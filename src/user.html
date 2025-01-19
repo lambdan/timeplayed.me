@@ -1,0 +1,28 @@
+<div class="container">
+  <div class="card mt-4 bg-light p-4">
+    <div class="row">
+      <div class="col-2">
+        <img
+          src="<%AVATAR_URL%>"
+          class="img-thumbnail img-fluid rounded-circle"
+        />
+      </div>
+      <div class="col">
+        <h1><%USERNAME%></h1>
+        <div class="mx-auto">
+          <ul>
+            <li>Total playtime: <%TOTAL_PLAYTIME%></li>
+            <li>Sessions: <%SESSIONS%></li>
+          </ul>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="table-responsive">
+          <table class="table">
+            <%TABLE_ROWS%>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
