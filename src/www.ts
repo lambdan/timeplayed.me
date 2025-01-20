@@ -37,9 +37,10 @@ export class www {
 
   async usersPage(): Promise<string> {
     const users = await this.postgres.fetchUserIDs();
-    let TR = ""; //<tr><th></th><th>Username</th>";
+    let TR = "<tr><th></th><th>Username</th><th>Time Played</th></tr>";
     for (const u of users) {
       const discordInfo = await this.discord.getUser(u);
+      const userInfo = await this.getUserData(u);
       TR += `<tr>`;
       TR += `<td class="col-1"><a href="user/${u}" ><img src="${
         discordInfo!.avatarURL
@@ -47,6 +48,9 @@ export class www {
       TR += `<td class="col align-middle"><a href="user/${u}">${
         discordInfo!.username
       }</td></a>`;
+      TR += `<td class="col align-middle">${formatSeconds(
+        userInfo.playtime
+      )}</td>`;
       TR += `</tr>`;
     }
     let html = await readFile(join(__dirname, "users.html"), "utf-8");

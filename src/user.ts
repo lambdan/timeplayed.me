@@ -31,17 +31,17 @@ export class User {
   }
 
   async fillGames() {
-    const data = await this.pgClient.fetchActivity(this.userID);
+    const userActivity = await this.pgClient.fetchActivity(this.userID);
 
     const m = new Map<number, GameEntry>();
-    for (const d of data) {
-      const game_id = d.game_id;
+    for (const ua of userActivity) {
+      const game_id = ua.game_id;
       const game_name = await this.pgClient.fetchGameName(game_id);
 
       const data: GameEntry = {
         game_id: game_id,
-        time_played: d.seconds,
-        last_played: d.timestamp,
+        time_played: ua.seconds,
+        last_played: ua.timestamp,
         game_name: game_name || "null",
         sessions: 1,
       };
