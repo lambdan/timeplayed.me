@@ -100,7 +100,9 @@ export class Postgres {
       await this.connect();
     }
     try {
-      const result = await this.postgresClient!.query("SELECT * FROM game");
+      const result = await this.postgresClient!.query(
+        "SELECT * FROM game ORDER BY name ASC"
+      );
       const games: GameDBEntry[] = [];
       for (const r of result.rows) {
         const game: GameDBEntry = {
