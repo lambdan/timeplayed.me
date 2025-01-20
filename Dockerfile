@@ -11,5 +11,6 @@ FROM node:22-alpine AS final
 WORKDIR /app
 COPY --from=build /build/dist ./dist
 COPY --from=build /build/node_modules ./node_modules
+COPY --from=build /build/package.json ./package.json
 
 CMD [ "node", "dist/index.js" ]

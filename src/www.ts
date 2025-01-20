@@ -11,18 +11,6 @@ function formatSeconds(secs: number): string {
     return (secs / 3600).toFixed(2) + " hours";
   }
   return (secs / 60).toFixed(2) + " minutes";
-  /*
-  let val = secs;
-  let word = "second";
-  if (secs > 3600) {
-    word = "hour";
-    val = Math.floor(secs / 3600);
-  } else if (secs > 60) {
-    word = "minute";
-    val = Math.floor(secs / 60);
-  }
-  return `${val} ${word}${val > 1 ? "s" : ""}`;
-  */
 }
 
 export class www {
@@ -41,13 +29,13 @@ export class www {
     return header + content + footer;
   }
 
-  async frontpage(): Promise<string> {
+  async frontPage(): Promise<string> {
     return this.constructHTML(
       await readFile(join(__dirname, "frontpage.html"), "utf-8")
     );
   }
 
-  async users(): Promise<string> {
+  async usersPage(): Promise<string> {
     const users = await this.postgres.fetchUserIDs();
     let TR = ""; //<tr><th></th><th>Username</th>";
     for (const u of users) {
@@ -66,14 +54,15 @@ export class www {
     return this.constructHTML(html);
   }
 
-  async games(): Promise<string> {
+  async gamesPage(): Promise<string> {
     const gs = await this.postgres.fetchGames();
     let TR = "<tr><th>Name</th><th>Players</th><th>Time Played</th></tr>";
     for (const g of gs) {
+      const stats = await this.postgres.fetchGameStatsGlobal(g.id);
       TR += `<tr>`;
       TR += "<td>" + g.game_name + "</td>";
-      TR += "<td>" + 0 + "</td>";
-      TR += "<td>" + 0 + "</td>";
+      TR += "<td>" + stats.players + "</td>";
+      TR += "<td>" + formatSeconds(stats.time_played) + "</td>";
       TR += `</tr>`;
     }
     let html = await readFile(join(__dirname, "games.html"), "utf-8");
@@ -81,14 +70,14 @@ export class www {
     return this.constructHTML(html);
   }
 
-  async getProfile(userID: string): Promise<ProfileData> {
+  async getUserData(userID: string): Promise<ProfileData> {
     const prof = new User(this.postgres, userID);
     await prof.generate();
     return await prof.getData();
   }
 
-  async getProfileHTML(userID: string): Promise<string> {
-    const res = await this.getProfile(userID);
+  async userPage(userID: string): Promise<string> {
+    const res = await this.getUserData(userID);
     const discordInfo = await this.discord.getUser(userID);
 
     let TR =

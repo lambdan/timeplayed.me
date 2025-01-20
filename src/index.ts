@@ -17,25 +17,25 @@ const w = new www(pg, dc);
 
 // Routes
 fastify.get("/", async (request, reply) => {
-  reply.type("text/html").send(await w.frontpage());
+  reply.type("text/html").send(await w.frontPage());
 });
 
 fastify.get("/users", async (request, reply) => {
-  reply.type("text/html").send(await w.users());
+  reply.type("text/html").send(await w.usersPage());
 });
 
 fastify.get("/games", async (request, reply) => {
-  reply.type("text/html").send(await w.games());
+  reply.type("text/html").send(await w.gamesPage());
 });
 
 fastify.get("/user/:id", async (request, reply) => {
   const { id } = request.params as { id: string };
-  reply.type("text/html").send(await w.getProfileHTML(id));
+  reply.type("text/html").send(await w.userPage(id));
 });
 
 fastify.get("/user/:id/json", async (request, reply) => {
   const { id } = request.params as { id: string };
-  reply.type("application/json").send(await w.getProfile(id));
+  reply.type("application/json").send(await w.getUserData(id));
 });
 
 fastify.listen(

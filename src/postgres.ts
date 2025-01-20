@@ -5,6 +5,17 @@ export interface GameDBEntry {
   id: number;
 }
 
+export interface GameStats {
+  players: number;
+  time_played: number;
+}
+
+export interface UserActivity {
+  timestamp: Date;
+  game_id: number;
+  seconds: number;
+}
+
 export class Postgres {
   private postgresClient: Client | null = null;
   private config: Configuration;
@@ -16,7 +27,8 @@ export class Postgres {
     this.postgresClient = await connect(this.config);
   }
 
-  async fetchActivity(userID: string): Promise<ResultRecord | null> {
+  async fetchActivity(userID: string): Promise<UserActivity[]> {
+    const activity = new Array<UserActivity>();
     if (!this.postgresClient) {
       await this.connect();
     }
@@ -25,11 +37,18 @@ export class Postgres {
         "SELECT * FROM activity WHERE user_id = $1",
         [userID]
       );
-      return result;
+
+      for (const r of result.rows) {
+        activity.push({
+          timestamp: new Date(r[1]),
+          game_id: +r[3],
+          seconds: +r[4],
+        });
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
-      return null;
     }
+    return activity;
   }
 
   async fetchGameName(gameID: number): Promise<string | null> {
@@ -48,6 +67,32 @@ export class Postgres {
       console.error("Error fetching data:", error);
     }
     return null;
+  }
+
+  async fetchGameStatsGlobal(gameID: number): Promise<GameStats> {
+    const gs: GameStats = {
+      players: 0,
+      time_played: 0,
+    };
+    const players = new Set<string>();
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    try {
+      const result = await this.postgresClient!.query(
+        "SELECT * FROM activity WHERE game_id = $1",
+        [gameID]
+      );
+
+      for (const r of result.rows) {
+        players.add(r[2]);
+        gs.time_played += r[4];
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+    gs.players = players.size;
+    return gs;
   }
 
   async fetchGames(): Promise<GameDBEntry[]> {

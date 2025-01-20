@@ -32,18 +32,16 @@ export class User {
 
   async fillGames() {
     const data = await this.pgClient.fetchActivity(this.userID);
-    if (!data) {
-      return;
-    }
+
     const m = new Map<number, GameEntry>();
-    for (const d of data.rows) {
-      const game_id = d[3];
+    for (const d of data) {
+      const game_id = d.game_id;
       const game_name = await this.pgClient.fetchGameName(game_id);
 
       const data: GameEntry = {
         game_id: game_id,
-        time_played: d[4],
-        last_played: new Date(d[1]),
+        time_played: d.seconds,
+        last_played: d.timestamp,
         game_name: game_name || "null",
         sessions: 1,
       };
