@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
-    "build": "rm -rf dist && tsc && mkdir -p dist/static && cp -r static/* dist/static/",
+    "build": "rm -rf dist && tsc",
     "start": "node dist/index.js"
   },
   "author": "",
