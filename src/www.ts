@@ -3,15 +3,9 @@ import { Postgres } from "./postgres";
 import { User, ProfileData } from "./user";
 import { readFile } from "fs/promises";
 import { Discord } from "./discord";
+import { formatSeconds } from "./utils";
 
 const APP_VERSION = require("../package.json").version;
-
-function formatSeconds(secs: number): string {
-  if (secs > 3600) {
-    return (secs / 3600).toFixed(2) + " hours";
-  }
-  return (secs / 60).toFixed(2) + " minutes";
-}
 
 export class www {
   private postgres: Postgres;
