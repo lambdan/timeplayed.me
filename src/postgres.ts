@@ -1,5 +1,10 @@
 import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
 
+export interface GameDBEntry {
+  game_name: string;
+  id: number;
+}
+
 export class Postgres {
   private postgresClient: Client | null = null;
   private config: Configuration;
@@ -43,6 +48,27 @@ export class Postgres {
       console.error("Error fetching data:", error);
     }
     return null;
+  }
+
+  async fetchGames(): Promise<GameDBEntry[]> {
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    try {
+      const result = await this.postgresClient!.query("SELECT * FROM game");
+      const games: GameDBEntry[] = [];
+      for (const r of result.rows) {
+        const game: GameDBEntry = {
+          game_name: r[1],
+          id: r[0],
+        };
+        games.push(game);
+      }
+      return games;
+    } catch (error) {
+      console.error("Error fetching games:", error);
+    }
+    return [];
   }
 
   async fetchUserIDs(): Promise<string[]> {

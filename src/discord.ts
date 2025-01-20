@@ -29,6 +29,9 @@ export class Discord {
 
   constructor(token: string) {
     this.token = token;
+    if (!this.token) {
+      throw new Error("No discord token?");
+    }
   }
 
   async getUser(userID: string): Promise<DiscordUserInfo | null> {

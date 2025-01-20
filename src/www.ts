@@ -66,6 +66,21 @@ export class www {
     return this.constructHTML(html);
   }
 
+  async games(): Promise<string> {
+    const gs = await this.postgres.fetchGames();
+    let TR = "<tr><th>Name</th><th>Players</th><th>Time Played</th></tr>";
+    for (const g of gs) {
+      TR += `<tr>`;
+      TR += "<td>" + g.game_name + "</td>";
+      TR += "<td>" + 0 + "</td>";
+      TR += "<td>" + 0 + "</td>";
+      TR += `</tr>`;
+    }
+    let html = await readFile(join(__dirname, "games.html"), "utf-8");
+    html = html.replace("<%TABLE_ROWS%>", TR);
+    return this.constructHTML(html);
+  }
+
   async getProfile(userID: string): Promise<ProfileData> {
     const prof = new User(this.postgres, userID);
     await prof.generate();

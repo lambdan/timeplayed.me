@@ -3,7 +3,7 @@ import { Postgres } from "./postgres";
 import { www } from "./www";
 import { Discord } from "./discord";
 
-const fastify = Fastify();
+const fastify = Fastify({ logger: true });
 const pg = new Postgres({
   host: process.env.POSTGRES_HOST || "localhost",
   port: +(process.env.POSTGRES_PORT || 5432),
@@ -22,6 +22,10 @@ fastify.get("/", async (request, reply) => {
 
 fastify.get("/users", async (request, reply) => {
   reply.type("text/html").send(await w.users());
+});
+
+fastify.get("/games", async (request, reply) => {
+  reply.type("text/html").send(await w.games());
 });
 
 fastify.get("/user/:id", async (request, reply) => {
