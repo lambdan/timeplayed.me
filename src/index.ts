@@ -15,22 +15,67 @@ const pg = new Postgres({
 const dc = new Discord(process.env.DISCORD_TOKEN!);
 const w = new www(pg, dc);
 
+export interface htmlCache {
+  html: string;
+  timestamp: number;
+}
+
+const cacheAge = 60 * 1000;
+const htmlCache = new Map<string, htmlCache>();
+
+function getCache(url: string): string | null {
+  if (!htmlCache.has(url)) {
+    return null;
+  }
+  const cached = htmlCache.get(url)!;
+  const age = Date.now() - cached.timestamp;
+  if (age > cacheAge) {
+    return null;
+  }
+  console.warn("using cache for", url);
+  return cached.html;
+}
+
 // Routes
 fastify.get("/", async (request, reply) => {
-  reply.type("text/html").send(await w.frontPage());
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const html = await w.frontPage();
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
 });
 
 fastify.get("/users", async (request, reply) => {
-  reply.type("text/html").send(await w.usersPage());
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const html = await w.usersPage();
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
 });
 
 fastify.get("/games", async (request, reply) => {
-  reply.type("text/html").send(await w.gamesPage());
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const html = await w.gamesPage();
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
 });
 
 fastify.get("/user/:id", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
   const { id } = request.params as { id: string };
-  reply.type("text/html").send(await w.userPage(id));
+  const html = await w.userPage(id);
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
 });
 
 fastify.get("/user/:id/json", async (request, reply) => {
