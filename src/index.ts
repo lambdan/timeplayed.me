@@ -3,6 +3,8 @@ import { Postgres } from "./postgres";
 import { www } from "./www";
 import { Discord } from "./discord";
 
+const PROD = process.env.NODE_ENV === "production";
+
 const fastify = Fastify({ logger: true });
 const pg = new Postgres({
   host: process.env.POSTGRES_HOST || "localhost",
@@ -24,6 +26,10 @@ const cacheAge = 60 * 1000;
 const htmlCache = new Map<string, htmlCache>();
 
 function getCache(url: string): string | null {
+  if (!PROD) {
+    // annoying when developing
+    return null;
+  }
   if (!htmlCache.has(url)) {
     return null;
   }
