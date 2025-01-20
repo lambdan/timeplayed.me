@@ -17,53 +17,64 @@ export class www {
   }
 
   async constructHTML(content: string): Promise<string> {
-    const header = await readFile(join(__dirname, "_header.html"), "utf-8");
-    let footer = await readFile(join(__dirname, "_footer.html"), "utf-8");
+    const header = await readFile(
+      join(__dirname, "../static/_header.html"),
+      "utf-8"
+    );
+    let footer = await readFile(
+      join(__dirname, "../static/_footer.html"),
+      "utf-8"
+    );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
     return header + content + footer;
   }
 
   async frontPage(): Promise<string> {
     return this.constructHTML(
-      await readFile(join(__dirname, "frontpage.html"), "utf-8")
+      await readFile(join(__dirname, "../static/frontpage.html"), "utf-8")
     );
   }
 
   async usersPage(): Promise<string> {
     const users = await this.postgres.fetchUserIDs();
-    let TR = "<tr><th></th><th>Username</th><th>Time Played</th></tr>";
+    let TR = `<tr ><th></th><th>Username</th><th>Time Played</th></tr>`;
     for (const u of users) {
       const discordInfo = await this.discord.getUser(u);
       const userInfo = await this.getUserData(u);
-      TR += `<tr>`;
+      TR += `<tr >`;
       TR += `<td class="col-lg-1"><a href="user/${u}" ><img src="${
         discordInfo!.avatarURL
       }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
       TR += `<td class="col align-middle"><a href="user/${u}">${
         discordInfo!.username
       }</td></a>`;
-      TR += `<td class="col align-middle">${formatSeconds(
+      TR += `<td sorttable_customkey="${userInfo.playtime}" title="${
+        userInfo.playtime
+      } seconds" class="col align-middle">${formatSeconds(
         userInfo.playtime
       )}</td>`;
       TR += `</tr>`;
     }
-    let html = await readFile(join(__dirname, "users.html"), "utf-8");
+    let html = await readFile(join(__dirname, "../static/users.html"), "utf-8");
     html = html.replace("<%TABLE_ROWS%>", TR);
     return this.constructHTML(html);
   }
 
   async gamesPage(): Promise<string> {
     const gs = await this.postgres.fetchGames();
-    let TR = "<tr><th>Name</th><th>Players</th><th>Time Played</th></tr>";
+    let TR = `<tr ><th>Name</th><th>Players</th><th >Time Played</th></tr>`;
     for (const g of gs) {
       const stats = await this.postgres.fetchGameStatsGlobal(g.id);
       TR += `<tr>`;
       TR += "<td>" + g.game_name + "</td>";
       TR += "<td>" + stats.players + "</td>";
-      TR += "<td>" + formatSeconds(stats.time_played) + "</td>";
+      TR +=
+        `<td sorttable_customkey="${stats.time_played}" title="${stats.time_played} seconds">` +
+        formatSeconds(stats.time_played) +
+        "</td>";
       TR += `</tr>`;
     }
-    let html = await readFile(join(__dirname, "games.html"), "utf-8");
+    let html = await readFile(join(__dirname, "../static/games.html"), "utf-8");
     html = html.replace("<%TABLE_ROWS%>", TR);
     return this.constructHTML(html);
   }
@@ -91,7 +102,7 @@ export class www {
       TR += "<td>" + r.last_played.toUTCString() + "</td>";
       TR += "</tr>";
     }
-    let html = await readFile(join(__dirname, "user.html"), "utf-8");
+    let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
     html = html.replace("<%USERNAME%>", discordInfo!.username);
     html = html.replace("<%AVATAR_URL%>", discordInfo!.avatarURL);
     html = html.replace("<%TABLE_ROWS%>", TR);
@@ -101,7 +112,7 @@ export class www {
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {
-    let html = await readFile(join(__dirname, "error.html"), "utf-8");
+    let html = await readFile(join(__dirname, "../static/error.html"), "utf-8");
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
     return this.constructHTML(html);
