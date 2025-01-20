@@ -37,7 +37,7 @@ export class www {
 
   async usersPage(): Promise<string> {
     const users = await this.postgres.fetchUserIDs();
-    let TR = `<tr ><th></th><th>Username</th><th>Time Played</th></tr>`;
+    let TR = `<tr ><th></th><th>Username</th><th>Time Played</th><th>Last Active</th></tr>`;
     for (const u of users) {
       const discordInfo = await this.discord.getUser(u);
       const userInfo = await this.getUserData(u);
@@ -52,6 +52,9 @@ export class www {
         userInfo.playtime
       } seconds" class="col align-middle">${formatSeconds(
         userInfo.playtime
+      )}</td>`;
+      TR += `<td sorttable_customkey="${userInfo.lastActive.getTime()}" title="${userInfo.lastActive.toUTCString()}" class="col align-middle">${timeSince(
+        userInfo.lastActive
       )}</td>`;
       TR += `</tr>`;
     }

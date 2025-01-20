@@ -124,7 +124,8 @@ export class Postgres {
     }
     try {
       const result = await this.postgresClient!.query(
-        "SELECT DISTINCT user_id FROM activity"
+        // Select distinct user_ids, order by recency
+        "SELECT user_id FROM activity GROUP BY user_id ORDER BY MAX(timestamp) DESC;"
       );
       const users: string[] = [];
       for (const r of result.rows) {
