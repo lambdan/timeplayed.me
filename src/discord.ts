@@ -21,7 +21,7 @@ export interface DiscordUserInfo {
 }*/
 }
 
-const CACHE_EXPIRE = 5 * 60 * 1000; // 5 mins
+const CACHE_EXPIRE = 24 * 60 * 60 * 1000; // 24 hours
 
 export class Discord {
   private token: string;
