@@ -42,7 +42,7 @@ export class www {
       const discordInfo = await this.discord.getUser(u);
       const userInfo = await this.getUserData(u);
       TR += `<tr>`;
-      TR += `<td class="col-1"><a href="user/${u}" ><img src="${
+      TR += `<td class="col-lg-1"><a href="user/${u}" ><img src="${
         discordInfo!.avatarURL
       }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
       TR += `<td class="col align-middle"><a href="user/${u}">${
@@ -82,6 +82,9 @@ export class www {
 
   async userPage(userID: string): Promise<string> {
     const res = await this.getUserData(userID);
+    if (res.games.length === 0) {
+      return await this.errorPage("Unknown user.");
+    }
     const discordInfo = await this.discord.getUser(userID);
 
     let TR =
@@ -100,6 +103,13 @@ export class www {
     html = html.replace("<%TABLE_ROWS%>", TR);
     html = html.replace("<%TOTAL_PLAYTIME%>", formatSeconds(res.playtime) + "");
     html = html.replace("<%SESSIONS%>", res.sessions + "");
+    return this.constructHTML(html);
+  }
+
+  async errorPage(msg: string, title = "Error"): Promise<string> {
+    let html = await readFile(join(__dirname, "error.html"), "utf-8");
+    html = html.replace("<%TITLE%>", title);
+    html = html.replace("<%MSG%>", msg);
     return this.constructHTML(html);
   }
 }
