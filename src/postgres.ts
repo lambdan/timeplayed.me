@@ -34,7 +34,7 @@ export class Postgres {
     }
     try {
       const result = await this.postgresClient!.query(
-        "SELECT * FROM activity WHERE user_id = $1",
+        "SELECT * FROM activity WHERE user_id = $1 ORDER BY id DESC",
         [userID]
       );
 

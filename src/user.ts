@@ -13,12 +13,14 @@ export interface ProfileData {
   games: GameEntry[];
   sessions: number;
   playtime: number;
+  lastActive: Date;
 }
 
 export class User {
   private pgClient: Postgres;
   private userID: string;
   private games: GameEntry[];
+  private lastActive = new Date(0);
 
   constructor(pgClient: Postgres, userID: string) {
     this.pgClient = pgClient;
@@ -46,6 +48,11 @@ export class User {
         sessions: 1,
       };
 
+      // Update user last active
+      if (ua.timestamp.getTime() > this.lastActive.getTime()) {
+        this.lastActive = ua.timestamp;
+      }
+
       if (m.has(data.game_id)) {
         const existing = m.get(data.game_id)!;
         existing.time_played += data.time_played;
@@ -60,7 +67,7 @@ export class User {
     this.games = [...m.values()];
   }
 
-  totalPlaytime(): number {
+  get totalPlaytime(): number {
     let sum = 0;
     for (const g of this.games) {
       sum += g.time_played;
@@ -68,7 +75,7 @@ export class User {
     return sum;
   }
 
-  totalSessions(): number {
+  get totalSessions(): number {
     let sum = 0;
     for (const g of this.games) {
       sum += g.sessions;
@@ -76,12 +83,14 @@ export class User {
     return sum;
   }
 
+
   async getData(): Promise<ProfileData> {
     return {
       userID: this.userID,
       games: this.games,
-      sessions: this.totalSessions(),
-      playtime: this.totalPlaytime(),
+      sessions: this.totalSessions,
+      playtime: this.totalPlaytime,
+      lastActive: this.lastActive
     };
   }
 }

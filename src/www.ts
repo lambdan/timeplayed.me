@@ -3,7 +3,7 @@ import { Postgres } from "./postgres";
 import { User, ProfileData } from "./user";
 import { readFile } from "fs/promises";
 import { Discord } from "./discord";
-import { formatSeconds } from "./utils";
+import { formatSeconds, timeSince } from "./utils";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -97,9 +97,15 @@ export class www {
     for (const r of res.games) {
       TR += "<tr>";
       TR += "<td>" + r.game_name + "</td>";
-      TR += "<td>" + formatSeconds(r.time_played) + "</td>";
+      TR +=
+        `<td sorttable_customkey="${r.time_played}" title="${r.time_played} seconds">` +
+        formatSeconds(r.time_played) +
+        "</td>";
       TR += "<td>" + r.sessions + "</td>";
-      TR += "<td>" + r.last_played.toUTCString() + "</td>";
+      TR +=
+        `<td sorttable_customkey="${r.last_played.getTime()}" title="${r.last_played.toUTCString()}">` +
+        timeSince(r.last_played) +
+        "</td>";
       TR += "</tr>";
     }
     let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
@@ -108,6 +114,8 @@ export class www {
     html = html.replace("<%TABLE_ROWS%>", TR);
     html = html.replace("<%TOTAL_PLAYTIME%>", formatSeconds(res.playtime) + "");
     html = html.replace("<%SESSIONS%>", res.sessions + "");
+    html = html.replace("<%LAST_ACTIVE%>", res.lastActive.toUTCString());
+    html = html.replace("<%LAST_ACTIVE_AGO%>", timeSince(res.lastActive));
     return this.constructHTML(html);
   }
 
