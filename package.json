@@ -1,5 +1,5 @@
 {
-  "name": "playtime-tracker",
+  "name": "timeplayed.me",
   "private": true,
   "version": "1.0.0",
   "main": "dist/index.js",
