@@ -4,6 +4,8 @@ import { User, ProfileData } from "./user";
 import { readFile } from "fs/promises";
 import { Discord } from "./discord";
 
+const APP_VERSION = require("../package.json").version;
+
 function formatSeconds(secs: number): string {
   if (secs > 3600) {
     return (secs / 3600).toFixed(2) + " hours";
@@ -34,7 +36,8 @@ export class www {
 
   async constructHTML(content: string): Promise<string> {
     const header = await readFile(join(__dirname, "_header.html"), "utf-8");
-    const footer = await readFile(join(__dirname, "_footer.html"), "utf-8");
+    let footer = await readFile(join(__dirname, "_footer.html"), "utf-8");
+    footer = footer.replace("<%VERSION%>", APP_VERSION);
     return header + content + footer;
   }
 

@@ -6,6 +6,23 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+    <style>
+      html {
+        position: relative;
+        min-height: 100%;
+      }
+      body {
+        margin-bottom: 60px; /* Margin bottom by footer height */
+      }
+      .footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 60px; /* Set the fixed height of the footer here */
+        line-height: 60px; /* Vertically center the text there */
+        background-color: #f5f5f5;
+      }
+    </style>
     <meta charset="utf8" />
     <title>timeplayed.me - track play time using Discord!</title>
   </head>
@@ -35,8 +52,15 @@
                 ><i class="bi bi-briefcase"></i> Users</a
               >
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/games"
+                ><i class="bi bi-briefcase"></i> Games</a
+              >
+            </li>
           </ul>
         </div>
       </div>
     </nav>
-
+    <main role="main" class="container"></main>
+  </body>
+</html>
