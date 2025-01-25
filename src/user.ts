@@ -1,18 +1,18 @@
 import { Postgres } from "./postgres";
 
 export interface GameEntry {
-  game_id: number;
-  game_name: string;
-  time_played: number;
+  gameID: number;
+  gameName: string;
+  timePlayed: number;
   sessions: number;
-  last_played: Date;
+  lastPlayed: Date;
 }
 
 export interface ProfileData {
   userID: string;
   games: GameEntry[];
   sessions: number;
-  playtime: number;
+  timePlayed: number;
   lastActive: Date;
 }
 
@@ -37,14 +37,14 @@ export class User {
 
     const m = new Map<number, GameEntry>();
     for (const ua of userActivity) {
-      const game_id = ua.game_id;
+      const game_id = ua.gameID;
       const game_name = await this.pgClient.fetchGameName(game_id);
 
       const data: GameEntry = {
-        game_id: game_id,
-        time_played: ua.seconds,
-        last_played: ua.timestamp,
-        game_name: game_name || "null",
+        gameID: game_id,
+        timePlayed: ua.seconds,
+        lastPlayed: ua.timestamp,
+        gameName: game_name || "null",
         sessions: 1,
       };
 
@@ -53,15 +53,15 @@ export class User {
         this.lastActive = ua.timestamp;
       }
 
-      if (m.has(data.game_id)) {
-        const existing = m.get(data.game_id)!;
-        existing.time_played += data.time_played;
+      if (m.has(data.gameID)) {
+        const existing = m.get(data.gameID)!;
+        existing.timePlayed += data.timePlayed;
         existing.sessions += 1;
-        if (existing.last_played.getTime() < data.last_played.getTime()) {
-          existing.last_played = data.last_played;
+        if (existing.lastPlayed.getTime() < data.lastPlayed.getTime()) {
+          existing.lastPlayed = data.lastPlayed;
         }
       } else {
-        m.set(data.game_id, data);
+        m.set(data.gameID, data);
       }
     }
     this.games = [...m.values()];
@@ -70,7 +70,7 @@ export class User {
   get totalPlaytime(): number {
     let sum = 0;
     for (const g of this.games) {
-      sum += g.time_played;
+      sum += g.timePlayed;
     }
     return sum;
   }
@@ -83,14 +83,13 @@ export class User {
     return sum;
   }
 
-
   async getData(): Promise<ProfileData> {
     return {
       userID: this.userID,
       games: this.games,
       sessions: this.totalSessions,
-      playtime: this.totalPlaytime,
-      lastActive: this.lastActive
+      timePlayed: this.totalPlaytime,
+      lastActive: this.lastActive,
     };
   }
 }

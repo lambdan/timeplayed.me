@@ -48,10 +48,10 @@ export class www {
       TR += `<td class="col align-middle"><a href="user/${u}">${
         discordInfo!.username
       }</td></a>`;
-      TR += `<td sorttable_customkey="${userInfo.playtime}" title="${
-        userInfo.playtime
+      TR += `<td sorttable_customkey="${userInfo.timePlayed}" title="${
+        userInfo.timePlayed
       } seconds" class="col align-middle">${formatSeconds(
-        userInfo.playtime
+        userInfo.timePlayed
       )}</td>`;
       TR += `<td sorttable_customkey="${userInfo.lastActive.getTime()}" title="${userInfo.lastActive.toUTCString()}" class="col align-middle">${timeSince(
         userInfo.lastActive
@@ -69,17 +69,17 @@ export class www {
     let totalSessions = 0;
     let TR = "";
     for (const g of gs) {
-      const stats = await this.postgres.fetchGameStatsGlobal(g.id);
+      const stats = await this.postgres.fetchGameStatsGlobal(g.gameID);
       TR += `<tr>`;
-      TR += `<td><a href="/game/${g.id}">` + g.game_name + "</a></td>";
+      TR += `<td><a href="/game/${g.gameID}">` + g.gameName + "</a></td>";
       TR += "<td>" + stats.players + "</td>";
       TR += "<td>" + stats.sessions + "</td>";
       TR +=
-        `<td sorttable_customkey="${stats.time_played}" title="${stats.time_played} seconds">` +
-        formatSeconds(stats.time_played) +
+        `<td sorttable_customkey="${stats.timePlayed}" title="${stats.timePlayed} seconds">` +
+        formatSeconds(stats.timePlayed) +
         "</td>";
       TR += `</tr>\n`;
-      totalTime += stats.time_played;
+      totalTime += stats.timePlayed;
       totalSessions += stats.sessions;
     }
     let html = await readFile(join(__dirname, "../static/games.html"), "utf-8");
@@ -117,10 +117,10 @@ export class www {
       TR += `<td class="col"><a href="user/${userId}">${
         discordInfo!.username
       }</td></a>`;
-      TR += `<td sorttable_customkey="${res.time_played}" title="${
-        stats.time_played
+      TR += `<td sorttable_customkey="${res.timePlayed}" title="${
+        stats.timePlayed
       } seconds" class="col align-middle">${formatSeconds(
-        stats.time_played
+        stats.timePlayed
       )}</td>`;
       TR += `<td>${stats.sessions}</td>`;
       TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
@@ -134,10 +134,7 @@ export class www {
     html = html.replaceAll("<%GAME_NAME%>", gameName);
     html = html.replaceAll("<%PLAYER_COUNT%>", res.players + "");
     html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
-    html = html.replaceAll(
-      "<%TOTAL_PLAYTIME%>",
-      formatSeconds(res.time_played)
-    );
+    html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(res.timePlayed));
     return await this.constructHTML(html);
   }
 
@@ -151,15 +148,15 @@ export class www {
     let TR = "";
     for (const r of res.games) {
       TR += "<tr>";
-      TR += `<td><a href="/game/${r.game_id}">` + r.game_name + "</a></td>";
+      TR += `<td><a href="/game/${r.gameID}">` + r.gameName + "</a></td>";
       TR +=
-        `<td sorttable_customkey="${r.time_played}" title="${r.time_played} seconds">` +
-        formatSeconds(r.time_played) +
+        `<td sorttable_customkey="${r.timePlayed}" title="${r.timePlayed} seconds">` +
+        formatSeconds(r.timePlayed) +
         "</td>";
       TR += "<td>" + r.sessions + "</td>";
       TR +=
-        `<td sorttable_customkey="${r.last_played.getTime()}" title="${r.last_played.toUTCString()}">` +
-        timeSince(r.last_played) +
+        `<td sorttable_customkey="${r.lastPlayed.getTime()}" title="${r.lastPlayed.toUTCString()}">` +
+        timeSince(r.lastPlayed) +
         "</td>";
       TR += "</tr>\n";
     }
@@ -170,7 +167,7 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
-      formatSeconds(res.playtime) + ""
+      formatSeconds(res.timePlayed) + ""
     );
     html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
     html = html.replaceAll("<%LAST_ACTIVE%>", res.lastActive.toUTCString());

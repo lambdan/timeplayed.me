@@ -1,12 +1,12 @@
 import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
 
 export interface GameDBEntry {
-  game_name: string;
-  id: number;
+  gameName: string;
+  gameID: number;
 }
 
 export interface GameStats {
-  time_played: number;
+  timePlayed: number;
   sessions: number;
   players: number;
   lastPlayed: Date;
@@ -14,14 +14,14 @@ export interface GameStats {
 }
 
 export interface UserGameStats {
-  time_played: number;
+  timePlayed: number;
   sessions: number;
   lastPlayed: Date;
 }
 
 export interface UserActivity {
   timestamp: Date;
-  game_id: number;
+  gameID: number;
   seconds: number;
 }
 
@@ -50,7 +50,7 @@ export class Postgres {
       for (const r of result.rows) {
         activity.push({
           timestamp: new Date(r[1]),
-          game_id: +r[3],
+          gameID: +r[3],
           seconds: +r[4],
         });
       }
@@ -81,7 +81,7 @@ export class Postgres {
   async fetchGameStatsGlobal(gameID: number): Promise<GameStats> {
     const gs: GameStats = {
       sessions: 0,
-      time_played: 0,
+      timePlayed: 0,
       players: 0,
       lastPlayed: new Date(0),
       userStats: new Map<string, UserGameStats>(),
@@ -106,13 +106,13 @@ export class Postgres {
           gs.lastPlayed = sessionDate;
         }
         gs.sessions += 1;
-        gs.time_played += timePlayed;
+        gs.timePlayed += timePlayed;
 
         // Update individual user stats
         // Create entry for this user if not exist
         if (!gs.userStats.has(userId)) {
           gs.userStats.set(userId, {
-            time_played: 0,
+            timePlayed: 0,
             sessions: 0,
             lastPlayed: new Date(0),
           });
@@ -120,7 +120,7 @@ export class Postgres {
         // Update the entry
         const existing = gs.userStats.get(userId)!;
         existing.sessions += 1;
-        existing.time_played += timePlayed;
+        existing.timePlayed += timePlayed;
         if (sessionDate.getTime() > existing.lastPlayed.getTime()) {
           existing.lastPlayed = sessionDate;
         }
@@ -144,8 +144,8 @@ export class Postgres {
       const games: GameDBEntry[] = [];
       for (const r of result.rows) {
         const game: GameDBEntry = {
-          game_name: r[1],
-          id: r[0],
+          gameName: r[1],
+          gameID: r[0],
         };
         games.push(game);
       }
