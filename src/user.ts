@@ -33,7 +33,7 @@ export class User {
   }
 
   async fillGames() {
-    const userActivity = await this.pgClient.fetchActivity(this.userID);
+    const userActivity = await this.pgClient.fetchSessions(this.userID);
 
     const m = new Map<number, GameEntry>();
     for (const ua of userActivity) {
@@ -43,14 +43,14 @@ export class User {
       const data: GameEntry = {
         gameID: game_id,
         timePlayed: ua.seconds,
-        lastPlayed: ua.timestamp,
+        lastPlayed: ua.date,
         gameName: game_name || "null",
         sessions: 1,
       };
 
       // Update user last active
-      if (ua.timestamp.getTime() > this.lastActive.getTime()) {
-        this.lastActive = ua.timestamp;
+      if (ua.date.getTime() > this.lastActive.getTime()) {
+        this.lastActive = ua.date;
       }
 
       if (m.has(data.gameID)) {

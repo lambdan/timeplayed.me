@@ -1,5 +1,6 @@
 import { join } from "path";
 import { Postgres } from "./postgres";
+import { GameStatsForPlayer, Game } from "./game";
 import { User, ProfileData } from "./user";
 import { readFile } from "fs/promises";
 import { Discord } from "./discord";
@@ -64,29 +65,28 @@ export class www {
   }
 
   async gamesPage(): Promise<string> {
-    const gs = await this.postgres.fetchGames();
+    const games = await this.postgres.fetchGames();
     let totalTime = 0;
     let totalSessions = 0;
     let TR = "";
-    for (const g of gs) {
-      const stats = await this.postgres.fetchGameStatsGlobal(g.gameID);
+    for (const game of games) {
       TR += `<tr>`;
-      TR += `<td><a href="/game/${g.gameID}">` + g.gameName + "</a></td>";
-      TR += "<td>" + stats.players + "</td>";
-      TR += "<td>" + stats.sessions + "</td>";
+      TR += `<td><a href="/game/${game.id}">` + game.name + "</a></td>";
+      TR += "<td>" + game.players.length + "</td>";
+      TR += "<td>" + game.sessions.length + "</td>";
       TR +=
-        `<td sorttable_customkey="${stats.timePlayed}" title="${stats.timePlayed} seconds">` +
-        formatSeconds(stats.timePlayed) +
+        `<td sorttable_customkey="${game.totalPlaytime}" title="${game.totalPlaytime} seconds">` +
+        formatSeconds(game.totalPlaytime) +
         "</td>";
       TR += `</tr>\n`;
-      totalTime += stats.timePlayed;
-      totalSessions += stats.sessions;
+      totalTime += game.totalPlaytime;
+      totalSessions += game.sessions.length;
     }
     let html = await readFile(join(__dirname, "../static/games.html"), "utf-8");
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(totalTime));
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
-    html = html.replaceAll("<%GAME_COUNT%>", gs.length + "");
+    html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
     return this.constructHTML(html);
   }
 
@@ -97,17 +97,16 @@ export class www {
   }
 
   async gamePage(gameID: number): Promise<string> {
-    const gameName = await this.postgres.fetchGameName(gameID);
-    if (!gameName) {
+    const game = await this.postgres.fetchGame(gameID);
+
+    if (!game) {
       return await this.errorPage("Unknown game");
     }
 
-    const res = await this.postgres.fetchGameStatsGlobal(gameID);
-
     let TR = "";
-    for (const userStat of res.userStats) {
-      const userId = userStat[0];
-      const stats = userStat[1];
+
+    for (const userId of game.players) {
+      const stats = game.getGameStatsForUser(userId);
       const discordInfo = await this.discord.getUser(userId);
 
       TR += `<tr class="align-middle">`;
@@ -117,12 +116,10 @@ export class www {
       TR += `<td class="col"><a href="user/${userId}">${
         discordInfo!.username
       }</td></a>`;
-      TR += `<td sorttable_customkey="${res.timePlayed}" title="${
-        stats.timePlayed
-      } seconds" class="col align-middle">${formatSeconds(
-        stats.timePlayed
-      )}</td>`;
-      TR += `<td>${stats.sessions}</td>`;
+      TR += `<td sorttable_customkey="${stats.seconds}" title="${
+        stats.seconds
+      } seconds" class="col align-middle">${formatSeconds(stats.seconds)}</td>`;
+      TR += `<td>${stats.sessions.length}</td>`;
       TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
         stats.lastPlayed
       )}</td>`;
@@ -131,10 +128,13 @@ export class www {
 
     let html = await readFile(join(__dirname, "../static/game.html"), "utf-8");
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
-    html = html.replaceAll("<%GAME_NAME%>", gameName);
-    html = html.replaceAll("<%PLAYER_COUNT%>", res.players + "");
-    html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
-    html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(res.timePlayed));
+    html = html.replaceAll("<%GAME_NAME%>", game.name);
+    html = html.replaceAll("<%PLAYER_COUNT%>", game.players.length + "");
+    html = html.replaceAll("<%SESSIONS%>", game.sessions.length + "");
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      formatSeconds(game.totalPlaytime)
+    );
     return await this.constructHTML(html);
   }
 

@@ -1,29 +1,6 @@
 import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
-
-export interface GameDBEntry {
-  gameName: string;
-  gameID: number;
-}
-
-export interface GameStats {
-  timePlayed: number;
-  sessions: number;
-  players: number;
-  lastPlayed: Date;
-  userStats: Map<string, UserGameStats>;
-}
-
-export interface UserGameStats {
-  timePlayed: number;
-  sessions: number;
-  lastPlayed: Date;
-}
-
-export interface UserActivity {
-  timestamp: Date;
-  gameID: number;
-  seconds: number;
-}
+import { Game } from "./game";
+import { Session } from "./session";
 
 export class Postgres {
   private postgresClient: Client | null = null;
@@ -36,28 +13,45 @@ export class Postgres {
     this.postgresClient = await connect(this.config);
   }
 
-  async fetchActivity(userID: string): Promise<UserActivity[]> {
-    const activity = new Array<UserActivity>();
+  async fetchSessions(userID?: string, gameID?: number): Promise<Session[]> {
+    const sessions = new Array<Session>();
     if (!this.postgresClient) {
       await this.connect();
     }
-    try {
-      const result = await this.postgresClient!.query(
-        "SELECT * FROM activity WHERE user_id = $1 ORDER BY id DESC",
-        [userID]
-      );
 
+    // Order by id DESC to get recent first
+    let query = "SELECT * FROM activity ORDER BY id DESC";
+    let values: any[] = [];
+    if (userID && gameID) {
+      query =
+        "SELECT * FROM activity WHERE user_id = $1 AND game_id = $2 ORDER BY id DESC";
+      values = [userID, gameID];
+    } else if (userID) {
+      query = "SELECT * FROM activity WHERE user_id = $1 ORDER BY id DESC";
+      values = [userID];
+    } else if (gameID) {
+      query = "SELECT * FROM activity WHERE game_id = $1 ORDER BY id DESC";
+      values = [gameID];
+    }
+
+    console.log(query, values);
+
+    try {
+      const result = await this.postgresClient!.query(query, values);
       for (const r of result.rows) {
-        activity.push({
-          timestamp: new Date(r[1]),
+        sessions.push({
+          id: +r[0],
+          date: new Date(r[1]),
+          userID: r[2],
           gameID: +r[3],
           seconds: +r[4],
         });
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching activity:", error);
     }
-    return activity;
+    //console.log(sessions);
+    return sessions;
   }
 
   async fetchGameName(gameID: number): Promise<string | null> {
@@ -78,62 +72,27 @@ export class Postgres {
     return null;
   }
 
-  async fetchGameStatsGlobal(gameID: number): Promise<GameStats> {
-    const gs: GameStats = {
-      sessions: 0,
-      timePlayed: 0,
-      players: 0,
-      lastPlayed: new Date(0),
-      userStats: new Map<string, UserGameStats>(),
-    };
-
+  async fetchGame(gameID: number): Promise<Game | null> {
     if (!this.postgresClient) {
       await this.connect();
     }
+    const gameName = await this.fetchGameName(gameID);
+    if (!gameName) {
+      console.error("Game name not found");
+      return null;
+    }
+
     try {
-      const result = await this.postgresClient!.query(
-        "SELECT * FROM activity WHERE game_id = $1 ORDER BY id DESC",
-        [gameID]
-      );
-
-      for (const r of result.rows) {
-        const userId = r[2];
-        const timePlayed = r[4];
-        const sessionDate = new Date(r[1]);
-
-        // Update global game stats
-        if (sessionDate.getTime() > gs.lastPlayed.getTime()) {
-          gs.lastPlayed = sessionDate;
-        }
-        gs.sessions += 1;
-        gs.timePlayed += timePlayed;
-
-        // Update individual user stats
-        // Create entry for this user if not exist
-        if (!gs.userStats.has(userId)) {
-          gs.userStats.set(userId, {
-            timePlayed: 0,
-            sessions: 0,
-            lastPlayed: new Date(0),
-          });
-        }
-        // Update the entry
-        const existing = gs.userStats.get(userId)!;
-        existing.sessions += 1;
-        existing.timePlayed += timePlayed;
-        if (sessionDate.getTime() > existing.lastPlayed.getTime()) {
-          existing.lastPlayed = sessionDate;
-        }
-      }
+      const sessions = await this.fetchSessions(undefined, gameID);
+      return new Game(gameID, gameName, sessions);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
 
-    gs.players = gs.userStats.size;
-    return gs;
+    return null;
   }
 
-  async fetchGames(): Promise<GameDBEntry[]> {
+  async fetchGames(): Promise<Game[]> {
     if (!this.postgresClient) {
       await this.connect();
     }
@@ -141,13 +100,12 @@ export class Postgres {
       const result = await this.postgresClient!.query(
         "SELECT * FROM game ORDER BY name ASC"
       );
-      const games: GameDBEntry[] = [];
+      const games: Game[] = [];
       for (const r of result.rows) {
-        const game: GameDBEntry = {
-          gameName: r[1],
-          gameID: r[0],
-        };
-        games.push(game);
+        const gameID = r[0];
+        const gameName = r[1];
+        const sessions = await this.fetchSessions(undefined, gameID);
+        games.push(new Game(gameID, gameName, sessions));
       }
       return games;
     } catch (error) {
