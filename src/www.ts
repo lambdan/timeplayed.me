@@ -56,7 +56,7 @@ export class www {
       TR += `<td sorttable_customkey="${userInfo.lastActive.getTime()}" title="${userInfo.lastActive.toUTCString()}" class="col align-middle">${timeSince(
         userInfo.lastActive
       )}</td>`;
-      TR += `</tr>`;
+      TR += `</tr>\n`;
     }
     let html = await readFile(join(__dirname, "../static/users.html"), "utf-8");
     html = html.replace("<%TABLE_ROWS%>", TR);
@@ -71,14 +71,14 @@ export class www {
     for (const g of gs) {
       const stats = await this.postgres.fetchGameStatsGlobal(g.id);
       TR += `<tr>`;
-      TR += "<td>" + g.game_name + "</td>";
+      TR += `<td><a href="/game/${g.id}">` + g.game_name + "</a></td>";
       TR += "<td>" + stats.players + "</td>";
       TR += "<td>" + stats.sessions + "</td>";
       TR +=
         `<td sorttable_customkey="${stats.time_played}" title="${stats.time_played} seconds">` +
         formatSeconds(stats.time_played) +
         "</td>";
-      TR += `</tr>`;
+      TR += `</tr>\n`;
       totalTime += stats.time_played;
       totalSessions += stats.sessions;
     }
@@ -96,6 +96,51 @@ export class www {
     return await prof.getData();
   }
 
+  async gamePage(gameID: number): Promise<string> {
+    const gameName = await this.postgres.fetchGameName(gameID);
+    if (!gameName) {
+      return await this.errorPage("Unknown game");
+    }
+
+    const res = await this.postgres.fetchGameStatsGlobal(gameID);
+
+    let TR = "";
+    for (const userStat of res.userStats) {
+      const userId = userStat[0];
+      const stats = userStat[1];
+      const discordInfo = await this.discord.getUser(userId);
+
+      TR += `<tr class="align-middle">`;
+      TR += `<td class="col-lg-1"><a href="user/${userId}" ><img src="${
+        discordInfo!.avatarURL
+      }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
+      TR += `<td class="col"><a href="user/${userId}">${
+        discordInfo!.username
+      }</td></a>`;
+      TR += `<td sorttable_customkey="${res.time_played}" title="${
+        stats.time_played
+      } seconds" class="col align-middle">${formatSeconds(
+        stats.time_played
+      )}</td>`;
+      TR += `<td>${stats.sessions}</td>`;
+      TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
+        stats.lastPlayed
+      )}</td>`;
+      TR += `</tr>\n`;
+    }
+
+    let html = await readFile(join(__dirname, "../static/game.html"), "utf-8");
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%GAME_NAME%>", gameName);
+    html = html.replaceAll("<%PLAYER_COUNT%>", res.players + "");
+    html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      formatSeconds(res.time_played)
+    );
+    return await this.constructHTML(html);
+  }
+
   async userPage(userID: string): Promise<string> {
     const res = await this.getUserData(userID);
     if (res.games.length === 0) {
@@ -106,7 +151,7 @@ export class www {
     let TR = "";
     for (const r of res.games) {
       TR += "<tr>";
-      TR += "<td>" + r.game_name + "</td>";
+      TR += `<td><a href="/game/${r.game_id}">` + r.game_name + "</a></td>";
       TR +=
         `<td sorttable_customkey="${r.time_played}" title="${r.time_played} seconds">` +
         formatSeconds(r.time_played) +
@@ -116,7 +161,7 @@ export class www {
         `<td sorttable_customkey="${r.last_played.getTime()}" title="${r.last_played.toUTCString()}">` +
         timeSince(r.last_played) +
         "</td>";
-      TR += "</tr>";
+      TR += "</tr>\n";
     }
     let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
     html = html.replaceAll("<%USERNAME%>", discordInfo!.username);

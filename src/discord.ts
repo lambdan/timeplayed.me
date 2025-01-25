@@ -35,7 +35,18 @@ export class Discord {
     }
   }
 
-  async getUser(userID: string): Promise<DiscordUserInfo | null> {
+  getNullUser(id: string): DiscordUserInfo {
+    // Might need this if someone removes their Discord account?
+    return {
+      username: "Deleted Discord Account?",
+      id: id,
+      fetchedAt: Date.now(),
+      avatarURL: "",
+      bannerColor: "#000000",
+    };
+  }
+
+  async getUser(userID: string): Promise<DiscordUserInfo> {
     if (this.cache.has(userID)) {
       const cached = this.cache.get(userID)!;
       const age = Date.now() - cached.fetchedAt;
@@ -44,25 +55,31 @@ export class Discord {
         return cached;
       }
     }
+
     //console.warn("Going out to discord!");
     const response = await fetch(`https://discord.com/api/v9/users/${userID}`, {
       headers: {
         Authorization: `Bot ${this.token}`,
       },
     });
-    if (!response.ok) throw new Error(`Error status code: ${response.status}`);
-    const parsed = await response.json();
-    if (parsed) {
-      const data: DiscordUserInfo = {
-        fetchedAt: Date.now(),
-        id: parsed.id,
-        username: parsed.username,
-        avatarURL: `https://cdn.discordapp.com/avatars/${userID}/${parsed.avatar}`,
-        bannerColor: parsed.banner_color
-      };
+    if (!response.ok) {
+      console.error(
+        `Discord getUser: Error status code: ${response.status} --- returning null user!`
+      );
+      const data = this.getNullUser(userID);
       this.cache.set(userID, data);
-      return data;
+      return this.getNullUser(userID);
     }
-    return null;
+    const parsed = await response.json();
+
+    const data: DiscordUserInfo = {
+      fetchedAt: Date.now(),
+      id: parsed.id,
+      username: parsed.username,
+      avatarURL: `https://cdn.discordapp.com/avatars/${userID}/${parsed.avatar}`,
+      bannerColor: parsed.banner_color,
+    };
+    this.cache.set(userID, data);
+    return data;
   }
 }

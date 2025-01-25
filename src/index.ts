@@ -89,6 +89,17 @@ fastify.get("/user/:id/json", async (request, reply) => {
   reply.type("application/json").send(await w.getUserData(id));
 });
 
+fastify.get("/game/:id", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const { id } = request.params as { id: string };
+  const html = await w.gamePage(+id);
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
+});
+
 fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },
   (err, address) => {

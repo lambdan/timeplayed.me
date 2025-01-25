@@ -1,0 +1,36 @@
+<div class="container">
+  <div class="card">
+    <h1 class="card-header text-center"><%GAME_NAME%></h1>
+    <div class="card-body">
+      <div class="row">
+        <div class="col">
+          <div class="table-responsive">
+            <table class="table sortable table-hover">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th scope="col">User</th>
+                  <th scope="col">Time played</th>
+                  <th scope="col">Sessions</th>
+                  <th scope="col">Last played</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%TABLE_ROWS%>
+              </tbody>
+              <tfoot class="table-success">
+                <tr>
+                  <th></th>
+                  <th scope="col">Total: <%PLAYER_COUNT%> players</th>
+                  <th scope="col"><%TOTAL_PLAYTIME%></th>
+                  <th scope="col"><%SESSIONS%></th>
+                  <th></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

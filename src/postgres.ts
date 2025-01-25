@@ -6,9 +6,17 @@ export interface GameDBEntry {
 }
 
 export interface GameStats {
-  players: number;
   time_played: number;
   sessions: number;
+  players: number;
+  lastPlayed: Date;
+  userStats: Map<string, UserGameStats>;
+}
+
+export interface UserGameStats {
+  time_played: number;
+  sessions: number;
+  lastPlayed: Date;
 }
 
 export interface UserActivity {
@@ -72,29 +80,56 @@ export class Postgres {
 
   async fetchGameStatsGlobal(gameID: number): Promise<GameStats> {
     const gs: GameStats = {
-      players: 0,
       sessions: 0,
       time_played: 0,
+      players: 0,
+      lastPlayed: new Date(0),
+      userStats: new Map<string, UserGameStats>(),
     };
-    const players = new Set<string>();
+
     if (!this.postgresClient) {
       await this.connect();
     }
     try {
       const result = await this.postgresClient!.query(
-        "SELECT * FROM activity WHERE game_id = $1",
+        "SELECT * FROM activity WHERE game_id = $1 ORDER BY id DESC",
         [gameID]
       );
 
       for (const r of result.rows) {
-        players.add(r[2]);
-        gs.time_played += r[4];
+        const userId = r[2];
+        const timePlayed = r[4];
+        const sessionDate = new Date(r[1]);
+
+        // Update global game stats
+        if (sessionDate.getTime() > gs.lastPlayed.getTime()) {
+          gs.lastPlayed = sessionDate;
+        }
         gs.sessions += 1;
+        gs.time_played += timePlayed;
+
+        // Update individual user stats
+        // Create entry for this user if not exist
+        if (!gs.userStats.has(userId)) {
+          gs.userStats.set(userId, {
+            time_played: 0,
+            sessions: 0,
+            lastPlayed: new Date(0),
+          });
+        }
+        // Update the entry
+        const existing = gs.userStats.get(userId)!;
+        existing.sessions += 1;
+        existing.time_played += timePlayed;
+        if (sessionDate.getTime() > existing.lastPlayed.getTime()) {
+          existing.lastPlayed = sessionDate;
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-    gs.players = players.size;
+
+    gs.players = gs.userStats.size;
     return gs;
   }
 
