@@ -118,6 +118,11 @@ export class www {
         stats.seconds
       } seconds" class="col align-middle">${formatSeconds(stats.seconds)}</td>`;
       TR += `<td>${stats.sessions.length}</td>`;
+      TR += `<td sorttable_customkey="${
+        stats.longestSession.seconds
+      }" title="${stats.longestSession.date.toUTCString()}">${formatSeconds(
+        stats.longestSession.seconds
+      )}</td>`;
       TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
         stats.lastPlayed
       )}</td>`;
@@ -153,6 +158,11 @@ export class www {
         formatSeconds(stats.seconds) +
         "</td>";
       TR += "<td>" + stats.sessions.length + "</td>";
+      TR += `<td sorttable_customkey="${
+        stats.longestSession.seconds
+      }" title="${stats.longestSession.date.toUTCString()}">${formatSeconds(
+        stats.longestSession.seconds
+      )}</td>`;
       TR +=
         `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}">` +
         timeSince(stats.lastPlayed) +
