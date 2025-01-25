@@ -110,10 +110,10 @@ export class www {
       const discordInfo = await this.discord.getUser(userId);
 
       TR += `<tr class="align-middle">`;
-      TR += `<td class="col-lg-1"><a href="user/${userId}" ><img src="${
+      TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
         discordInfo!.avatarURL
       }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
-      TR += `<td class="col"><a href="user/${userId}">${
+      TR += `<td class="col"><a href="/user/${userId}">${
         discordInfo!.username
       }</td></a>`;
       TR += `<td sorttable_customkey="${stats.seconds}" title="${
