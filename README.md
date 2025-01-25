@@ -1,8 +1,8 @@
 # timeplayed.me
 
-Tracks your playtime using Discord. You just have to join the server.
+Discord bot provided by [Oblivionis](https://github.com/Hamuko/oblivionis/tree/master).
 
-Essentially a frontend for https://github.com/Hamuko/oblivionis/tree/master
+This is essentially a web frontend for it.
 
 ![Screenshot](https://djsimg.org/59fae101549b8526587f980f36d0d534.png)
 
