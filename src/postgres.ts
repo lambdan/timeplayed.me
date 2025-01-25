@@ -1,6 +1,7 @@
 import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
 import { Game } from "./game";
 import { Session } from "./session";
+import { User } from "./user";
 
 export class Postgres {
   private postgresClient: Client | null = null;
@@ -90,6 +91,31 @@ export class Postgres {
     }
 
     return null;
+  }
+
+  async fetchUser(userID: string): Promise<User | null> {
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    const sessions = await this.fetchSessions(userID);
+    if (sessions.length === 0) {
+      return null;
+    }
+
+    const gotGames = new Set<number>();
+    const games: Game[] = [];
+    for (const s of sessions) {
+      if (gotGames.has(s.gameID)) {
+        continue;
+      }
+      gotGames.add(s.gameID);
+      const game = await this.fetchGame(s.gameID);
+      if (game) {
+        games.push(game);
+      }
+    }
+
+    return new User(userID, sessions, games);
   }
 
   async fetchGames(): Promise<Game[]> {

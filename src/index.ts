@@ -84,11 +84,6 @@ fastify.get("/user/:id", async (request, reply) => {
   reply.type("text/html").send(html);
 });
 
-fastify.get("/user/:id/json", async (request, reply) => {
-  const { id } = request.params as { id: string };
-  reply.type("application/json").send(await w.getUserData(id));
-});
-
 fastify.get("/game/:id", async (request, reply) => {
   const cache = getCache(request.url);
   if (cache) {

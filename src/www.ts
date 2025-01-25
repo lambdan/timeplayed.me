@@ -1,10 +1,10 @@
 import { join } from "path";
 import { Postgres } from "./postgres";
-import { GameStatsForPlayer, Game } from "./game";
-import { User, ProfileData } from "./user";
+
 import { readFile } from "fs/promises";
 import { Discord } from "./discord";
 import { formatSeconds, timeSince } from "./utils";
+import { stat } from "fs";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -37,25 +37,29 @@ export class www {
   }
 
   async usersPage(): Promise<string> {
-    const users = await this.postgres.fetchUserIDs();
+    const userIDs = await this.postgres.fetchUserIDs();
     let TR = `<tr ><th></th><th>Username</th><th>Time Played</th><th>Last Active</th></tr>`;
-    for (const u of users) {
+    for (const u of userIDs) {
+      const user = await this.postgres.fetchUser(u);
+      if (!user) {
+        continue;
+      }
       const discordInfo = await this.discord.getUser(u);
-      const userInfo = await this.getUserData(u);
+
       TR += `<tr >`;
-      TR += `<td class="col-lg-1"><a href="user/${u}" ><img src="${
+      TR += `<td class="col-lg-1"><a href="/user/${u}" ><img src="${
         discordInfo!.avatarURL
       }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
-      TR += `<td class="col align-middle"><a href="user/${u}">${
+      TR += `<td class="col align-middle"><a href="/user/${u}">${
         discordInfo!.username
       }</td></a>`;
-      TR += `<td sorttable_customkey="${userInfo.timePlayed}" title="${
-        userInfo.timePlayed
+      TR += `<td sorttable_customkey="${user.totalPlaytime}" title="${
+        user.totalPlaytime
       } seconds" class="col align-middle">${formatSeconds(
-        userInfo.timePlayed
+        user.totalPlaytime
       )}</td>`;
-      TR += `<td sorttable_customkey="${userInfo.lastActive.getTime()}" title="${userInfo.lastActive.toUTCString()}" class="col align-middle">${timeSince(
-        userInfo.lastActive
+      TR += `<td sorttable_customkey="${user.lastActive.getTime()}" title="${user.lastActive.toUTCString()}" class="col align-middle">${timeSince(
+        user.lastActive
       )}</td>`;
       TR += `</tr>\n`;
     }
@@ -88,12 +92,6 @@ export class www {
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
     html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
     return this.constructHTML(html);
-  }
-
-  async getUserData(userID: string): Promise<ProfileData> {
-    const prof = new User(this.postgres, userID);
-    await prof.generate();
-    return await prof.getData();
   }
 
   async gamePage(gameID: number): Promise<string> {
@@ -139,24 +137,25 @@ export class www {
   }
 
   async userPage(userID: string): Promise<string> {
-    const res = await this.getUserData(userID);
-    if (res.games.length === 0) {
+    const user = await this.postgres.fetchUser(userID);
+    if (!user) {
       return await this.errorPage("Unknown user.");
     }
     const discordInfo = await this.discord.getUser(userID);
 
     let TR = "";
-    for (const r of res.games) {
+    for (const game of user.games) {
+      const stats = game.getGameStatsForUser(userID);
       TR += "<tr>";
-      TR += `<td><a href="/game/${r.gameID}">` + r.gameName + "</a></td>";
+      TR += `<td><a href="/game/${game.id}">` + game.name + "</a></td>";
       TR +=
-        `<td sorttable_customkey="${r.timePlayed}" title="${r.timePlayed} seconds">` +
-        formatSeconds(r.timePlayed) +
+        `<td sorttable_customkey="${stats.seconds}" title="${stats.seconds} seconds">` +
+        formatSeconds(stats.seconds) +
         "</td>";
-      TR += "<td>" + r.sessions + "</td>";
+      TR += "<td>" + stats.sessions.length + "</td>";
       TR +=
-        `<td sorttable_customkey="${r.lastPlayed.getTime()}" title="${r.lastPlayed.toUTCString()}">` +
-        timeSince(r.lastPlayed) +
+        `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}">` +
+        timeSince(stats.lastPlayed) +
         "</td>";
       TR += "</tr>\n";
     }
@@ -167,11 +166,11 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
-      formatSeconds(res.timePlayed) + ""
+      formatSeconds(user.totalPlaytime) + ""
     );
-    html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
-    html = html.replaceAll("<%LAST_ACTIVE%>", res.lastActive.toUTCString());
-    html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(res.lastActive));
+    html = html.replaceAll("<%SESSIONS%>", user.sessions.length + "");
+    html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive.toUTCString());
+    html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive));
     return this.constructHTML(html);
   }
 

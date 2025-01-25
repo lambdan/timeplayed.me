@@ -1,95 +1,32 @@
-import { Postgres } from "./postgres";
-
-export interface GameEntry {
-  gameID: number;
-  gameName: string;
-  timePlayed: number;
-  sessions: number;
-  lastPlayed: Date;
-}
-
-export interface ProfileData {
-  userID: string;
-  games: GameEntry[];
-  sessions: number;
-  timePlayed: number;
-  lastActive: Date;
-}
+import { Game } from "./game";
+import { Session } from "./session";
 
 export class User {
-  private pgClient: Postgres;
-  private userID: string;
-  private games: GameEntry[];
-  private lastActive = new Date(0);
+  readonly userID: string;
+  readonly sessions: Session[];
+  readonly games: Game[];
 
-  constructor(pgClient: Postgres, userID: string) {
-    this.pgClient = pgClient;
+  constructor(userID: string, sessions: Session[], games: Game[]) {
     this.userID = userID;
-    this.games = new Array<GameEntry>();
-  }
-
-  async generate() {
-    await this.fillGames();
-  }
-
-  async fillGames() {
-    const userActivity = await this.pgClient.fetchSessions(this.userID);
-
-    const m = new Map<number, GameEntry>();
-    for (const ua of userActivity) {
-      const game_id = ua.gameID;
-      const game_name = await this.pgClient.fetchGameName(game_id);
-
-      const data: GameEntry = {
-        gameID: game_id,
-        timePlayed: ua.seconds,
-        lastPlayed: ua.date,
-        gameName: game_name || "null",
-        sessions: 1,
-      };
-
-      // Update user last active
-      if (ua.date.getTime() > this.lastActive.getTime()) {
-        this.lastActive = ua.date;
-      }
-
-      if (m.has(data.gameID)) {
-        const existing = m.get(data.gameID)!;
-        existing.timePlayed += data.timePlayed;
-        existing.sessions += 1;
-        if (existing.lastPlayed.getTime() < data.lastPlayed.getTime()) {
-          existing.lastPlayed = data.lastPlayed;
-        }
-      } else {
-        m.set(data.gameID, data);
-      }
-    }
-    this.games = [...m.values()];
+    this.sessions = sessions;
+    this.games = games;
   }
 
   get totalPlaytime(): number {
     let sum = 0;
-    for (const g of this.games) {
-      sum += g.timePlayed;
+    for (const s of this.sessions) {
+      sum += s.seconds;
     }
     return sum;
   }
 
-  get totalSessions(): number {
-    let sum = 0;
-    for (const g of this.games) {
-      sum += g.sessions;
+  get lastActive(): Date {
+    let latest = new Date(0);
+    for (const s of this.sessions) {
+      if (s.date.getTime() > latest.getTime()) {
+        latest = s.date;
+      }
     }
-    return sum;
-  }
-
-  async getData(): Promise<ProfileData> {
-    return {
-      userID: this.userID,
-      games: this.games,
-      sessions: this.totalSessions,
-      timePlayed: this.totalPlaytime,
-      lastActive: this.lastActive,
-    };
+    return latest;
   }
 }
