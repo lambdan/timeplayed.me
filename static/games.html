@@ -3,7 +3,25 @@
     <h1 class="card-header text-center">Games</h1>
     <div class="card-body">
       <table class="sortable table table-hover">
-        <%TABLE_ROWS%>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Players</th>
+            <th>Sessions</th>
+            <th>Time Played</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%TABLE_ROWS%>
+        </tbody>
+        <tfoot class="table-success">
+          <tr>
+            <th scope="col">Total: <%GAME_COUNT%> games</th>
+            <td></td>
+            <th scope="col"><%TOTAL_SESSIONS%></th>
+            <th scope="col"><%TOTAL_PLAYTIME%></th>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>

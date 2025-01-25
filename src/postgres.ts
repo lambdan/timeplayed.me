@@ -8,6 +8,7 @@ export interface GameDBEntry {
 export interface GameStats {
   players: number;
   time_played: number;
+  sessions: number;
 }
 
 export interface UserActivity {
@@ -72,6 +73,7 @@ export class Postgres {
   async fetchGameStatsGlobal(gameID: number): Promise<GameStats> {
     const gs: GameStats = {
       players: 0,
+      sessions: 0,
       time_played: 0,
     };
     const players = new Set<string>();
@@ -87,6 +89,7 @@ export class Postgres {
       for (const r of result.rows) {
         players.add(r[2]);
         gs.time_played += r[4];
+        gs.sessions += 1;
       }
     } catch (error) {
       console.error("Error fetching data:", error);

@@ -65,20 +65,28 @@ export class www {
 
   async gamesPage(): Promise<string> {
     const gs = await this.postgres.fetchGames();
-    let TR = `<tr ><th>Name</th><th>Players</th><th >Time Played</th></tr>`;
+    let totalTime = 0;
+    let totalSessions = 0;
+    let TR = "";
     for (const g of gs) {
       const stats = await this.postgres.fetchGameStatsGlobal(g.id);
       TR += `<tr>`;
       TR += "<td>" + g.game_name + "</td>";
       TR += "<td>" + stats.players + "</td>";
+      TR += "<td>" + stats.sessions + "</td>";
       TR +=
         `<td sorttable_customkey="${stats.time_played}" title="${stats.time_played} seconds">` +
         formatSeconds(stats.time_played) +
         "</td>";
       TR += `</tr>`;
+      totalTime += stats.time_played;
+      totalSessions += stats.sessions;
     }
     let html = await readFile(join(__dirname, "../static/games.html"), "utf-8");
-    html = html.replace("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(totalTime));
+    html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
+    html = html.replaceAll("<%GAME_COUNT%>", gs.length + "");
     return this.constructHTML(html);
   }
 
