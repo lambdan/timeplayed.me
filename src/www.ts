@@ -113,6 +113,7 @@ export class www {
     }
     let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
     html = html.replace("<%USERNAME%>", discordInfo!.username);
+    //html = html.replace("<%BORDER_COLOR%>", discordInfo!.bannerColor);
     html = html.replace("<%AVATAR_URL%>", discordInfo!.avatarURL);
     html = html.replace("<%TABLE_ROWS%>", TR);
     html = html.replace("<%TOTAL_PLAYTIME%>", formatSeconds(res.playtime) + "");

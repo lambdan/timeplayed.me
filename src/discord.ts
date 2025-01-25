@@ -3,6 +3,7 @@ export interface DiscordUserInfo {
   username: string;
   avatarURL: string;
   fetchedAt: number;
+  bannerColor: string;
   /*
     {
   id: '84733730387673088',
@@ -21,7 +22,7 @@ export interface DiscordUserInfo {
 }*/
 }
 
-const CACHE_EXPIRE = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_EXPIRE = 1 * 60 * 60 * 1000; // 1 hour
 
 export class Discord {
   private token: string;
@@ -57,6 +58,7 @@ export class Discord {
         id: parsed.id,
         username: parsed.username,
         avatarURL: `https://cdn.discordapp.com/avatars/${userID}/${parsed.avatar}`,
+        bannerColor: parsed.banner_color
       };
       this.cache.set(userID, data);
       return data;
