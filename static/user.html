@@ -9,7 +9,7 @@
             class="img-thumbnail img-fluid rounded-circle"
           />
         </div>
-        <div class="col">
+        <!--<div class="col mt-4">
           <div class="mx-auto">
             <ul>
               <li title="<%LAST_ACTIVE%>">Last active: <%LAST_ACTIVE_AGO%></li>
@@ -17,11 +17,22 @@
               <li>Sessions: <%SESSIONS%></li>
             </ul>
           </div>
-        </div>
-        <div class="row mt-4">
+        </div>-->
+        <div class="col">
           <div class="table-responsive">
-            <table class="table sortable table-striped table-hover">
+            <table class="table sortable table-hover">
+              <thead><tr><th scope="col">Game</th><th scope="col">Time played</th><th scope="col">Sessions</th><th scope="col">Last played</th></tr></thead>
+              <tbody>
               <%TABLE_ROWS%>
+              </tbody>
+              <tfoot class="table-success">
+                <tr>
+                  <th scope="col">Total:</td>
+                  <th scope="col"><%TOTAL_PLAYTIME%></td>
+                  <th scope="col"><%SESSIONS%></td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

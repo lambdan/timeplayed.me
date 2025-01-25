@@ -95,8 +95,7 @@ export class www {
     }
     const discordInfo = await this.discord.getUser(userID);
 
-    let TR =
-      "<tr><th>Game</th><th>Time played</th><th>Sessions</th><th>Last played</th>";
+    let TR = "";
     for (const r of res.games) {
       TR += "<tr>";
       TR += "<td>" + r.game_name + "</td>";
@@ -112,14 +111,17 @@ export class www {
       TR += "</tr>";
     }
     let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
-    html = html.replace("<%USERNAME%>", discordInfo!.username);
+    html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
     //html = html.replace("<%BORDER_COLOR%>", discordInfo!.bannerColor);
-    html = html.replace("<%AVATAR_URL%>", discordInfo!.avatarURL);
-    html = html.replace("<%TABLE_ROWS%>", TR);
-    html = html.replace("<%TOTAL_PLAYTIME%>", formatSeconds(res.playtime) + "");
-    html = html.replace("<%SESSIONS%>", res.sessions + "");
-    html = html.replace("<%LAST_ACTIVE%>", res.lastActive.toUTCString());
-    html = html.replace("<%LAST_ACTIVE_AGO%>", timeSince(res.lastActive));
+    html = html.replaceAll("<%AVATAR_URL%>", discordInfo!.avatarURL);
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      formatSeconds(res.playtime) + ""
+    );
+    html = html.replaceAll("<%SESSIONS%>", res.sessions + "");
+    html = html.replaceAll("<%LAST_ACTIVE%>", res.lastActive.toUTCString());
+    html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(res.lastActive));
     return this.constructHTML(html);
   }
 
