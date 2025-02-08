@@ -95,7 +95,11 @@ export class Game {
       playtimeByDate[day] = 0;
       now = new Date(now.getTime() + 86400 * 1000);
     }
-    playtimeByDate[today.toISOString().split("T")[0]] = 0;
+    // Add today if its not in there
+    const todayString = today.toISOString().split("T")[0];
+    if (!playtimeByDate[todayString]) {
+      playtimeByDate[todayString] = 0;
+    }
 
     // Add session data
     sessions.forEach(({ date, seconds }) => {

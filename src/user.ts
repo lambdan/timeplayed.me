@@ -46,7 +46,11 @@ export class User {
       allDatesInRange.push(now.toISOString().split("T")[0]); // YYYY-MM-DD
       now = new Date(now.getTime() + 86400 * 1000); // Add 1 day (86400 seconds)
     }
-    allDatesInRange.push(today.toISOString().split("T")[0]); // and today
+    // Add today if its not in there
+    const todayString = today.toISOString().split("T")[0];
+    if (!allDatesInRange.includes(todayString)) {
+      allDatesInRange.push(todayString);
+    }
 
     // 3. Initialize playtime data for all dates and games
     allDatesInRange.forEach((day) => {
