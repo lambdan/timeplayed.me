@@ -128,10 +128,21 @@ export class Game {
                     data: {
                         labels: data.labels,
                         datasets: [{
-                            label: "Hours Played per Day",
+                            label: "Hours Played",
                             data: data.values,
-                            backgroundColor: "rgba(75, 192, 192, 0.5)",
+                            backgroundColor: "${this.color}",
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {display: true, text: "Hours played"},
+                            legend: { position: "top", display: false},
+                        },
+                        scales: {
+                            x: { stacked: true }, // Stack bars by game
+                            y: { stacked: true }
+                        }
                     }
                 });
             })
