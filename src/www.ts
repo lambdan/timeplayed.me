@@ -6,17 +6,12 @@ import { Discord } from "./discord";
 import { formatSeconds, timeSince } from "./utils";
 import { stat } from "fs";
 import { Game } from "./game";
+import { STATICS } from ".";
 
 const APP_VERSION = require("../package.json").version;
 
 export class www {
-  private postgres: Postgres;
-  private discord: Discord;
-
-  constructor(postgres: Postgres, discord: Discord) {
-    this.postgres = postgres;
-    this.discord = discord;
-  }
+  constructor() {}
 
   async constructHTML(content: string): Promise<string> {
     const header = await readFile(
@@ -32,20 +27,24 @@ export class www {
   }
 
   async frontPage(): Promise<string> {
-    return this.constructHTML(
-      await readFile(join(__dirname, "../static/frontpage.html"), "utf-8")
+    let html = await readFile(
+      join(__dirname, "../static/frontpage.html"),
+      "utf-8"
     );
+    html = html.replace("<%CHART%>", STATICS.totals.getChart());
+
+    return await this.constructHTML(html);
   }
 
   async usersPage(): Promise<string> {
-    const userIDs = await this.postgres.fetchUserIDs();
+    const userIDs = await STATICS.pg.fetchUserIDs();
     let TR = `<tr ><th></th><th>Username</th><th>Time Played</th><th>Last Active</th></tr>`;
     for (const u of userIDs) {
-      const user = await this.postgres.fetchUser(u);
+      const user = await STATICS.pg.fetchUser(u);
       if (!user) {
         continue;
       }
-      const discordInfo = await this.discord.getUser(u);
+      const discordInfo = await STATICS.discord.getUser(u);
 
       TR += `<tr >`;
       TR += `<td class="col-lg-1"><a href="/user/${u}" ><img src="${
@@ -66,7 +65,7 @@ export class www {
     }
     let html = await readFile(join(__dirname, "../static/users.html"), "utf-8");
     html = html.replace("<%TABLE_ROWS%>", TR);
-    return this.constructHTML(html);
+    return await this.constructHTML(html);
   }
 
   async gamesPage(): Promise<string> {
@@ -74,7 +73,7 @@ export class www {
       return b.lastPlayed.getTime() - a.lastPlayed.getTime();
     };
 
-    const games = await this.postgres.fetchGames();
+    const games = await STATICS.pg.fetchGames();
     let totalTime = 0;
     let totalSessions = 0;
     let TR = "";
@@ -99,11 +98,11 @@ export class www {
     html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(totalTime));
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
     html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
-    return this.constructHTML(html);
+    return await this.constructHTML(html);
   }
 
   async gamePage(gameID: number): Promise<string> {
-    const game = await this.postgres.fetchGame(gameID);
+    const game = await STATICS.pg.fetchGame(gameID);
 
     if (!game) {
       return await this.errorPage("Unknown game");
@@ -113,7 +112,7 @@ export class www {
 
     for (const userId of game.players) {
       const stats = game.getGameStatsForUser(userId);
-      const discordInfo = await this.discord.getUser(userId);
+      const discordInfo = await STATICS.discord.getUser(userId);
 
       TR += `<tr class="align-middle">`;
       TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
@@ -151,11 +150,11 @@ export class www {
   }
 
   async userPage(userID: string): Promise<string> {
-    const user = await this.postgres.fetchUser(userID);
+    const user = await STATICS.pg.fetchUser(userID);
     if (!user) {
       return await this.errorPage("Unknown user.");
     }
-    const discordInfo = await this.discord.getUser(userID);
+    const discordInfo = await STATICS.discord.getUser(userID);
 
     let TR = "";
     for (const game of user.games) {
@@ -191,13 +190,13 @@ export class www {
     html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive.toUTCString());
     html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive));
     html = html.replaceAll("<%CHART%>", user.getChart());
-    return this.constructHTML(html);
+    return await this.constructHTML(html);
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {
     let html = await readFile(join(__dirname, "../static/error.html"), "utf-8");
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
-    return this.constructHTML(html);
+    return await this.constructHTML(html);
   }
 }

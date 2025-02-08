@@ -2,19 +2,23 @@ import Fastify from "fastify";
 import { Postgres } from "./postgres";
 import { www } from "./www";
 import { Discord } from "./discord";
+import { Totals } from "./totals";
 
 const PROD = process.env.NODE_ENV === "production";
 
-const discord = new Discord(process.env.DISCORD_TOKEN!);
-const fastify = Fastify({ logger: true });
-const pg = new Postgres({
-  host: process.env.POSTGRES_HOST || "localhost",
-  port: +(process.env.POSTGRES_PORT || 5432),
-  user: process.env.POSTGRES_USER || "oblivion",
-  password: process.env.POSTGRESS_PASS || "oblivion",
-  database: process.env.POSTGRES_DB || "oblivionis",
-});
-const web = new www(pg, discord);
+export class STATICS {
+  static discord = new Discord(process.env.DISCORD_TOKEN!);
+  static fastify = Fastify({ logger: true });
+  static pg = new Postgres({
+    host: process.env.POSTGRES_HOST || "localhost",
+    port: +(process.env.POSTGRES_PORT || 5432),
+    user: process.env.POSTGRES_USER || "oblivion",
+    password: process.env.POSTGRESS_PASS || "oblivion",
+    database: process.env.POSTGRES_DB || "oblivionis",
+  });
+  static web = new www();
+  static totals = new Totals();
+}
 
 export interface htmlCache {
   html: string;
@@ -42,50 +46,65 @@ function getCache(url: string): string | null {
 }
 
 // Routes
-fastify.get("/", async (request, reply) => {
+STATICS.fastify.get("/", async (request, reply) => {
   const cache = getCache(request.url);
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await web.frontPage();
+  const html = await STATICS.web.frontPage();
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
 
-fastify.get("/users", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-  const html = await web.usersPage();
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
-});
+/* Games */
 
-fastify.get("/games", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-  const html = await web.gamesPage();
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
-});
-
-fastify.get("/user/:id", async (request, reply) => {
+STATICS.fastify.get("/game/:id", async (request, reply) => {
   const cache = getCache(request.url);
   if (cache) {
     return reply.type("text/html").send(cache);
   }
   const { id } = request.params as { id: string };
-  const html = await web.userPage(id);
+  const html = await STATICS.web.gamePage(+id);
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
 
-fastify.get("/user/:id/chartData", async (request, reply) => {
+STATICS.fastify.get("/games", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const html = await STATICS.web.gamesPage();
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
+});
+
+/* Users */
+
+STATICS.fastify.get("/users", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+  const html = await STATICS.web.usersPage();
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
+});
+
+STATICS.fastify.get("/user/:id", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
   const { id } = request.params as { id: string };
-  const user = await pg.fetchUser(id);
+  const html = await STATICS.web.userPage(id);
+  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
+  reply.type("text/html").send(html);
+});
+
+STATICS.fastify.get("/user/:id/chartData", async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const user = await STATICS.pg.fetchUser(id);
   if (!user) {
     reply.code(400).send("Could not get user");
     return;
@@ -93,20 +112,9 @@ fastify.get("/user/:id/chartData", async (request, reply) => {
   reply.send(await user.chartData());
 });
 
-fastify.get("/game/:id", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-  const { id } = request.params as { id: string };
-  const html = await web.gamePage(+id);
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
-});
-
-fastify.get("/game/:id/chartData", async (request, reply) => {
+STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
   const { id } = request.params as { id: number };
-  const game = await pg.fetchGame(id);
+  const game = await STATICS.pg.fetchGame(id);
   if (!game) {
     reply.code(400).send("Could not get game");
     return;
@@ -114,7 +122,15 @@ fastify.get("/game/:id/chartData", async (request, reply) => {
   reply.send(await game.chartData());
 });
 
-fastify.listen(
+/* Totals */
+
+STATICS.fastify.get("/totals/chartData", async (request, reply) => {
+  reply.send(await STATICS.totals.chartData());
+});
+
+// end of routes
+
+STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },
   (err, address) => {
     if (err) {
