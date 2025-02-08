@@ -75,7 +75,10 @@ export class www {
     let TR = "";
     for (const game of games.sort(sortByLastPlayed)) {
       TR += `<tr>`;
-      TR += `<td><a href="/game/${game.id}">` + game.name + "</a></td>";
+      TR +=
+        `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
       TR += "<td>" + game.players.length + "</td>";
       TR += "<td>" + game.sessions.length + "</td>";
       TR += `<td sorttable_customkey="${game.lastPlayed.getTime()}" title="${game.lastPlayed.toUTCString()}">${timeSince(
@@ -135,6 +138,7 @@ export class www {
     let html = await readFile(join(__dirname, "../static/game.html"), "utf-8");
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%GAME_NAME%>", game.name);
+    html = html.replaceAll("<%GAME_COLOR%>", game.color);
     html = html.replaceAll("<%PLAYER_COUNT%>", game.players.length + "");
     html = html.replaceAll("<%SESSIONS%>", game.sessions.length + "");
     html = html.replaceAll(
@@ -156,7 +160,10 @@ export class www {
     for (const game of user.games) {
       const stats = game.getGameStatsForUser(userID);
       TR += "<tr>";
-      TR += `<td><a href="/game/${game.id}">` + game.name + "</a></td>";
+      TR +=
+        `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
       TR +=
         `<td sorttable_customkey="${stats.seconds}" title="${stats.seconds} seconds">` +
         formatSeconds(stats.seconds) +
