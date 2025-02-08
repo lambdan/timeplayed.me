@@ -84,6 +84,16 @@ fastify.get("/user/:id", async (request, reply) => {
   reply.type("text/html").send(html);
 });
 
+fastify.get("/user/:id/chart", async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const user = await pg.fetchUser(id);
+  if (!user) {
+    reply.code(400).send("Could not get user");
+    return;
+  }
+  reply.send(user.chartData());
+});
+
 fastify.get("/game/:id", async (request, reply) => {
   const cache = getCache(request.url);
   if (cache) {

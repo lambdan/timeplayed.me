@@ -189,6 +189,7 @@ export class www {
     html = html.replaceAll("<%SESSIONS%>", user.sessions.length + "");
     html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive.toUTCString());
     html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive));
+    html = html.replaceAll("<%CHART%>", user.getChart());
     return this.constructHTML(html);
   }
 
