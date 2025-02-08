@@ -5,6 +5,7 @@ import { readFile } from "fs/promises";
 import { Discord } from "./discord";
 import { formatSeconds, timeSince } from "./utils";
 import { stat } from "fs";
+import { Game } from "./game";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -69,15 +70,22 @@ export class www {
   }
 
   async gamesPage(): Promise<string> {
+    const sortByLastPlayed = (a: Game, b: Game): number => {
+      return b.lastPlayed.getTime() - a.lastPlayed.getTime();
+    };
+
     const games = await this.postgres.fetchGames();
     let totalTime = 0;
     let totalSessions = 0;
     let TR = "";
-    for (const game of games) {
+    for (const game of games.sort(sortByLastPlayed)) {
       TR += `<tr>`;
       TR += `<td><a href="/game/${game.id}">` + game.name + "</a></td>";
       TR += "<td>" + game.players.length + "</td>";
       TR += "<td>" + game.sessions.length + "</td>";
+      TR += `<td sorttable_customkey="${game.lastPlayed.getTime()}" title="${game.lastPlayed.toUTCString()}">${timeSince(
+        game.lastPlayed
+      )}</td>`;
       TR +=
         `<td sorttable_customkey="${game.totalPlaytime}" title="${game.totalPlaytime} seconds">` +
         formatSeconds(game.totalPlaytime) +

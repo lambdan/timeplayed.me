@@ -124,7 +124,8 @@ export class Postgres {
     }
     try {
       const result = await this.postgresClient!.query(
-        "SELECT * FROM game ORDER BY name ASC"
+        //"SELECT * FROM game ORDER BY name ASC"
+        "SELECT * FROM game"
       );
       const games: Game[] = [];
       for (const r of result.rows) {
