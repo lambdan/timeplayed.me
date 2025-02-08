@@ -1,6 +1,4 @@
-import { GLOBALS } from ".";
 import { Game } from "./game";
-import { Postgres } from "./postgres";
 import { Session } from "./session";
 
 export class User {
@@ -33,36 +31,61 @@ export class User {
   }
 
   chartData() {
+    const sessions = [...this.sessions].reverse();
     const playtimeByDateAndGame: Record<string, Record<number, number>> = {};
 
-    const games = new Map<number, Game>();
-    for (const g of this.games) {
-      games.set(g.id, g);
+    // 1. Calculate the first and last dates
+    const first = sessions[0].date;
+    const today = new Date();
+
+    // 2. Generate an array of all dates from first to last
+    let now = new Date(first.getTime());
+    const allDatesInRange: string[] = [];
+
+    while (now <= today) {
+      allDatesInRange.push(now.toISOString().split("T")[0]); // YYYY-MM-DD
+      now = new Date(now.getTime() + 86400 * 1000); // Add 1 day (86400 seconds)
     }
+    allDatesInRange.push(today.toISOString().split("T")[0]); // and today
 
-    this.sessions.forEach(({ date, gameID, seconds }) => {
+    // 3. Initialize playtime data for all dates and games
+    allDatesInRange.forEach((day) => {
+      playtimeByDateAndGame[day] = {};
+    });
+
+    // 4. Populate playtime data from the sessions
+    sessions.forEach(({ date, gameID, seconds }) => {
       const day = date.toISOString().split("T")[0]; // YYYY-MM-DD
-
       if (!playtimeByDateAndGame[day]) {
-        playtimeByDateAndGame[day] = {}; // Create a new day entry
+        playtimeByDateAndGame[day] = {};
       }
+
       playtimeByDateAndGame[day][gameID] =
         (playtimeByDateAndGame[day][gameID] || 0) + seconds;
     });
 
-    // Step 2: Extract unique game IDs
+    // 5. Extract unique game IDs and game names
+    const games = new Map<number, Game>();
+    this.games.forEach((g) => {
+      games.set(g.id, g);
+    });
+
     const uniqueGameIDs = Array.from(
-      new Set(this.sessions.map((session) => session.gameID))
+      new Set(sessions.map((session) => session.gameID))
     );
 
-    // Step 3: Format data for Chart.js
-    const labels = Object.keys(playtimeByDateAndGame); // Dates (x-axis)
-    const datasets = uniqueGameIDs.map((gameID, index) => ({
+    // 6. Format data for Chart.js
+    const labels = allDatesInRange; // Dates (x-axis)
+    const datasets = uniqueGameIDs.map((gameID) => ({
       label: `${games.get(gameID)!.name}`,
-      data: labels.map(
-        (date) => (playtimeByDateAndGame[date][gameID] || 0) / 3600
-      ), // Convert seconds to hours
-      backgroundColor: `${games.get(gameID)!.color}`, // Generate different colors
+      data: labels.map((date) => {
+        return (
+          ((playtimeByDateAndGame[date] &&
+            playtimeByDateAndGame[date][gameID]) ||
+            0) / 3600
+        ); // Convert seconds to hours
+      }),
+      backgroundColor: `${games.get(gameID)!.color}`, // Set specific game color
     }));
 
     return { labels, datasets };

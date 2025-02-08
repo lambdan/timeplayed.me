@@ -104,6 +104,16 @@ fastify.get("/game/:id", async (request, reply) => {
   reply.type("text/html").send(html);
 });
 
+fastify.get("/game/:id/chartData", async (request, reply) => {
+  const { id } = request.params as { id: number };
+  const game = await pg.fetchGame(id);
+  if (!game) {
+    reply.code(400).send("Could not get game");
+    return;
+  }
+  reply.send(await game.chartData());
+});
+
 fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },
   (err, address) => {

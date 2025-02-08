@@ -146,6 +146,7 @@ export class www {
       "<%TOTAL_PLAYTIME%>",
       formatSeconds(game.totalPlaytime)
     );
+    html = html.replace("<%CHART%>", game.getChart());
     return await this.constructHTML(html);
   }
 
