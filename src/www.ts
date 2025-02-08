@@ -1,10 +1,6 @@
 import { join } from "path";
-import { Postgres } from "./postgres";
-
 import { readFile } from "fs/promises";
-import { Discord } from "./discord";
 import { formatSeconds, timeSince } from "./utils";
-import { stat } from "fs";
 import { Game } from "./game";
 import { STATICS } from ".";
 

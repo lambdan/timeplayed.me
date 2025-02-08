@@ -20,29 +20,29 @@ export class STATICS {
   static totals = new Totals();
 }
 
-export interface htmlCache {
-  html: string;
-  timestamp: number;
-}
-
-const cacheAge = 60 * 1000;
-const htmlCache = new Map<string, htmlCache>();
+const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
+const cache = new Map<string, any>();
 
 function getCache(url: string): string | null {
   if (!PROD) {
     // annoying when developing
+    //return null;
+  }
+  if (!cache.has(url)) {
+    console.warn(url, "is not cached :(");
     return null;
   }
-  if (!htmlCache.has(url)) {
-    return null;
-  }
-  const cached = htmlCache.get(url)!;
-  const age = Date.now() - cached.timestamp;
-  if (age > cacheAge) {
-    return null;
-  }
-  console.warn("using cache for", url);
-  return cached.html;
+  console.warn(url, "is cached! :D");
+  return cache.get(url);
+}
+
+function cacheAndReturn(url: string, data: any): any {
+  cache.set(url, data);
+  setTimeout(() => {
+    cache.delete(url);
+    console.warn(url, "cache expired");
+  }, cacheAge);
+  return data;
 }
 
 // Routes
@@ -51,9 +51,10 @@ STATICS.fastify.get("/", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await STATICS.web.frontPage();
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
+
+  reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await STATICS.web.frontPage()));
 });
 
 /* Games */
@@ -64,9 +65,26 @@ STATICS.fastify.get("/game/:id", async (request, reply) => {
     return reply.type("text/html").send(cache);
   }
   const { id } = request.params as { id: string };
-  const html = await STATICS.web.gamePage(+id);
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
+
+  reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await STATICS.web.gamePage(+id)));
+});
+
+STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.send(cache);
+  }
+
+  const { id } = request.params as { id: number };
+  const game = await STATICS.pg.fetchGame(id);
+  if (!game) {
+    reply.code(400).send("Could not get game");
+    return;
+  }
+
+  reply.send(cacheAndReturn(request.url, await game.chartData()));
 });
 
 STATICS.fastify.get("/games", async (request, reply) => {
@@ -74,9 +92,10 @@ STATICS.fastify.get("/games", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await STATICS.web.gamesPage();
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
+
+  reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await STATICS.web.gamesPage()));
 });
 
 /* Users */
@@ -86,9 +105,10 @@ STATICS.fastify.get("/users", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await STATICS.web.usersPage();
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
+
+  reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await STATICS.web.usersPage()));
 });
 
 STATICS.fastify.get("/user/:id", async (request, reply) => {
@@ -98,34 +118,32 @@ STATICS.fastify.get("/user/:id", async (request, reply) => {
   }
   const { id } = request.params as { id: string };
   const html = await STATICS.web.userPage(id);
-  htmlCache.set(request.url, { html: html, timestamp: Date.now() });
-  reply.type("text/html").send(html);
+
+  reply.type("text/html").send(cacheAndReturn(request.url, html));
 });
 
 STATICS.fastify.get("/user/:id/chartData", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.send(cache);
+  }
   const { id } = request.params as { id: string };
   const user = await STATICS.pg.fetchUser(id);
   if (!user) {
     reply.code(400).send("Could not get user");
     return;
   }
-  reply.send(await user.chartData());
-});
-
-STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
-  const { id } = request.params as { id: number };
-  const game = await STATICS.pg.fetchGame(id);
-  if (!game) {
-    reply.code(400).send("Could not get game");
-    return;
-  }
-  reply.send(await game.chartData());
+  reply.send(cacheAndReturn(request.url, await user.chartData()));
 });
 
 /* Totals */
 
 STATICS.fastify.get("/totals/chartData", async (request, reply) => {
-  reply.send(await STATICS.totals.chartData());
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.send(cache);
+  }
+  reply.send(cacheAndReturn(request.url, await STATICS.totals.chartData()));
 });
 
 // end of routes
