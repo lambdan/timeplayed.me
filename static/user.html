@@ -35,10 +35,25 @@
               </tbody>
               <tfoot class="table-success">
                 <tr>
-                  <th scope="col">Total:</th>
-                  <th scope="col"><%TOTAL_PLAYTIME%></th>
-                  <th scope="col"><%SESSIONS%> session(s)</th>
+                  <th scope="col">Total: <%TOTAL_GAMES%> game(s)</th>
+                  <th scope="col" title="Time played total">
+                    <%TOTAL_PLAYTIME%>
+                  </th>
+                  <th scope="col"><%SESSIONS%></th>
                   <th></th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <th scope="col">Average:</th>
+                  <th scope="col" title="Time played each game on average">
+                    <%GAME_PLAYTIME_AVG%>
+                  </th>
+                  <th scope="col" title="Average amount of sessions per game">
+                    <%SESSIONS_AVERAGE%>
+                  </th>
+                  <th scope="col" title="Average session length">
+                    <%SESSION_LENGTH_AVG%>
+                  </th>
                   <th></th>
                 </tr>
               </tfoot>

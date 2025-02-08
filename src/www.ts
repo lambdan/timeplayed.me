@@ -193,6 +193,19 @@ export class www {
     html = html.replaceAll("<%SESSIONS%>", user.sessions.length + "");
     html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive.toUTCString());
     html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive));
+    html = html.replaceAll("<%TOTAL_GAMES%>", user.games.length + "");
+    html = html.replaceAll(
+      "<%GAME_PLAYTIME_AVG%>",
+      formatSeconds(user.totalPlaytime / user.games.length)
+    );
+    html = html.replaceAll(
+      "<%SESSIONS_AVERAGE%>",
+      Math.floor(user.sessions.length / user.games.length) + ""
+    );
+    html = html.replaceAll(
+      "<%SESSION_LENGTH_AVG%>",
+      formatSeconds(user.totalPlaytime / user.sessions.length)
+    );
     html = html.replaceAll("<%CHART%>", user.getChart());
     return await this.constructHTML(html);
   }

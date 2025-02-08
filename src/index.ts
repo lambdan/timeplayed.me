@@ -26,7 +26,7 @@ const cache = new Map<string, any>();
 function getCache(url: string): string | null {
   if (!PROD) {
     // annoying when developing
-    //return null;
+    return null;
   }
   if (!cache.has(url)) {
     console.warn(url, "is not cached :(");
