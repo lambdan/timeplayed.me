@@ -1,4 +1,6 @@
+import { GLOBALS } from ".";
 import { Game } from "./game";
+import { Postgres } from "./postgres";
 import { Session } from "./session";
 
 export class User {
@@ -31,15 +33,39 @@ export class User {
   }
 
   chartData() {
-    const playtimeByDate: Record<string, number> = {};
-    this.sessions.forEach(({ date, seconds }) => {
-      const day = date.toISOString().split("T")[0]; // Convert Date to YYYY-MM-DD string
-      playtimeByDate[day] = (playtimeByDate[day] || 0) + seconds;
+    const playtimeByDateAndGame: Record<string, Record<number, number>> = {};
+
+    const games = new Map<number, Game>();
+    for (const g of this.games) {
+      games.set(g.id, g);
+    }
+
+    this.sessions.forEach(({ date, gameID, seconds }) => {
+      const day = date.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      if (!playtimeByDateAndGame[day]) {
+        playtimeByDateAndGame[day] = {}; // Create a new day entry
+      }
+      playtimeByDateAndGame[day][gameID] =
+        (playtimeByDateAndGame[day][gameID] || 0) + seconds;
     });
-    return {
-      labels: Object.keys(playtimeByDate), // Dates as strings
-      values: Object.values(playtimeByDate).map((sec) => sec / 3600), // Convert seconds to hours
-    };
+
+    // Step 2: Extract unique game IDs
+    const uniqueGameIDs = Array.from(
+      new Set(this.sessions.map((session) => session.gameID))
+    );
+
+    // Step 3: Format data for Chart.js
+    const labels = Object.keys(playtimeByDateAndGame); // Dates (x-axis)
+    const datasets = uniqueGameIDs.map((gameID, index) => ({
+      label: `${games.get(gameID)!.name}`,
+      data: labels.map(
+        (date) => (playtimeByDateAndGame[date][gameID] || 0) / 3600
+      ), // Convert seconds to hours
+      backgroundColor: `${games.get(gameID)!.color}`, // Generate different colors
+    }));
+
+    return { labels, datasets };
   }
 
   getChart(): string {
@@ -47,22 +73,31 @@ export class User {
       <canvas id="myChart"></canvas>
         <script>
         document.addEventListener("DOMContentLoaded", function () {
-        fetch("/user/${this.userID}/chart")
+        fetch("/user/${this.userID}/chartData")
             .then(res => res.json())
             .then(data => {
                 const ctx = document.getElementById("myChart").getContext("2d");
                 new Chart(ctx, {
                     type: "bar",
                     data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: "Hours played",
-                            data: data.values,
-                            backgroundColor: "rgba(0, 255, 140, 0.5)",
-                        }]
+                        labels: data.labels, // Dates
+                        datasets: data.datasets // Games as datasets
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {display: true, text: "Hours played"},
+                            legend: { position: "top", display: false},
+                        },
+                        scales: {
+                            x: { stacked: true }, // Stack bars by game
+                            y: { stacked: true }
+                        }
                     }
                 });
-            });
-    });</script>`;
+            })
+            .catch(err => console.error("Failed to load chart data:", err));
+    });
+        </script>`;
   }
 }

@@ -5,6 +5,7 @@ import { Discord } from "./discord";
 
 const PROD = process.env.NODE_ENV === "production";
 
+const discord = new Discord(process.env.DISCORD_TOKEN!);
 const fastify = Fastify({ logger: true });
 const pg = new Postgres({
   host: process.env.POSTGRES_HOST || "localhost",
@@ -13,9 +14,7 @@ const pg = new Postgres({
   password: process.env.POSTGRESS_PASS || "oblivion",
   database: process.env.POSTGRES_DB || "oblivionis",
 });
-
-const dc = new Discord(process.env.DISCORD_TOKEN!);
-const w = new www(pg, dc);
+const web = new www(pg, discord);
 
 export interface htmlCache {
   html: string;
@@ -48,7 +47,7 @@ fastify.get("/", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await w.frontPage();
+  const html = await web.frontPage();
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
@@ -58,7 +57,7 @@ fastify.get("/users", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await w.usersPage();
+  const html = await web.usersPage();
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
@@ -68,7 +67,7 @@ fastify.get("/games", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const html = await w.gamesPage();
+  const html = await web.gamesPage();
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
@@ -79,19 +78,19 @@ fastify.get("/user/:id", async (request, reply) => {
     return reply.type("text/html").send(cache);
   }
   const { id } = request.params as { id: string };
-  const html = await w.userPage(id);
+  const html = await web.userPage(id);
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });
 
-fastify.get("/user/:id/chart", async (request, reply) => {
+fastify.get("/user/:id/chartData", async (request, reply) => {
   const { id } = request.params as { id: string };
   const user = await pg.fetchUser(id);
   if (!user) {
     reply.code(400).send("Could not get user");
     return;
   }
-  reply.send(user.chartData());
+  reply.send(await user.chartData());
 });
 
 fastify.get("/game/:id", async (request, reply) => {
@@ -100,7 +99,7 @@ fastify.get("/game/:id", async (request, reply) => {
     return reply.type("text/html").send(cache);
   }
   const { id } = request.params as { id: string };
-  const html = await w.gamePage(+id);
+  const html = await web.gamePage(+id);
   htmlCache.set(request.url, { html: html, timestamp: Date.now() });
   reply.type("text/html").send(html);
 });

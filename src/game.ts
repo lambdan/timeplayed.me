@@ -1,4 +1,5 @@
 import { Session } from "./session";
+import { colorFromString } from "./utils";
 
 export interface GameStatsForPlayer {
   seconds: number;
@@ -37,6 +38,10 @@ export class Game {
       sum += s.seconds;
     }
     return sum;
+  }
+
+  get color(): string {
+    return colorFromString(this.name);
   }
 
   /**
