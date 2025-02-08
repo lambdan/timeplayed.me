@@ -34,7 +34,7 @@ export class www {
 
   async usersPage(): Promise<string> {
     const userIDs = await STATICS.pg.fetchUserIDs();
-    let TR = `<tr ><th></th><th>Username</th><th>Time Played</th><th>Last Active</th></tr>`;
+    let TR = `<tr ><th></th><th>Username</th><th>Games Played</th><th>Time Played</th><th>Last Active</th></tr>`;
     for (const u of userIDs) {
       const user = await STATICS.pg.fetchUser(u);
       if (!user) {
@@ -49,6 +49,7 @@ export class www {
       TR += `<td class="col align-middle"><a href="/user/${u}">${
         discordInfo!.username
       }</td></a>`;
+      TR += `<td class="col align-middle">${user.games.length}</td>`;
       TR += `<td sorttable_customkey="${user.totalPlaytime}" title="${
         user.totalPlaytime
       } seconds" class="col align-middle">${formatSeconds(
