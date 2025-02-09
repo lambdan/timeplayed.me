@@ -9,17 +9,26 @@ const APP_VERSION = require("../package.json").version;
 export class www {
   constructor() {}
 
-  async constructHTML(content: string): Promise<string> {
-    const header = await readFile(
+  async constructHTML(
+    content: string,
+    title = "Playtime tracking using Discord"
+  ): Promise<string> {
+    let header = await readFile(
       join(__dirname, "../static/_header.html"),
       "utf-8"
     );
+    header = header.replace("<%TITLE%>", title);
     let footer = await readFile(
       join(__dirname, "../static/_footer.html"),
       "utf-8"
     );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
-    return header + content + footer;
+    return (
+      header +
+      content +
+      footer +
+      `<!--- Constructed ${new Date().toISOString()} -->`
+    );
   }
 
   async frontPage(): Promise<string> {
@@ -66,7 +75,7 @@ export class www {
     }
     let html = await readFile(join(__dirname, "../static/users.html"), "utf-8");
     html = html.replace("<%TABLE_ROWS%>", TR);
-    return await this.constructHTML(html);
+    return await this.constructHTML(html, "Users");
   }
 
   async gamesPage(): Promise<string> {
@@ -102,7 +111,7 @@ export class www {
     html = html.replaceAll("<%TOTAL_PLAYTIME%>", formatSeconds(totalTime));
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
     html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
-    return await this.constructHTML(html);
+    return await this.constructHTML(html, "Games");
   }
 
   async gamePage(gameID: number): Promise<string> {
@@ -151,7 +160,7 @@ export class www {
       formatSeconds(game.totalPlaytime)
     );
     html = html.replace("<%CHART%>", game.getChart());
-    return await this.constructHTML(html);
+    return await this.constructHTML(html, game.name);
   }
 
   async userPage(userID: string): Promise<string> {
@@ -229,13 +238,13 @@ export class www {
       timeSince(user.firstSession())
     );*/
     html = html.replaceAll("<%CHART%>", user.getChart());
-    return await this.constructHTML(html);
+    return await this.constructHTML(html, discordInfo.username);
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {
     let html = await readFile(join(__dirname, "../static/error.html"), "utf-8");
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
-    return await this.constructHTML(html);
+    return await this.constructHTML(html, "Error");
   }
 }
