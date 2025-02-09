@@ -4,9 +4,9 @@ import { Session } from "./session";
 import { User } from "./user";
 import { sleep } from "./utils";
 
-const MERGES = [
-  //TODO Read this from JSON or something
-  // Children sessions will be turned into parent sessions
+const REPLACERS = [
+  // TODO Read this from JSON or something
+  // Children sessions will be replaced with parent game ID
   {
     parent: "The Elder Scrolls V: Skyrim Special Edition",
     children: ["Skyrim Special Edition"],
@@ -39,7 +39,7 @@ export class Postgres {
         await this.connect();
       }
 
-      await this.mergeGamesTask();
+      await this.replaceGameIDsTask();
 
       await sleep(30 * 1000);
     }
@@ -215,8 +215,20 @@ export class Postgres {
     );
   }
 
-  async mergeGamesTask() {
-    for (const d of MERGES) {
+  async replaceActivityGameID(
+    sessionID: number,
+    newGameID: number
+  ): Promise<ResultRecord<any>> {
+    return await this.postgresClient!.query(
+      `UPDATE activity 
+     SET game_id = $1 
+     WHERE id = $2`,
+      [newGameID, sessionID]
+    );
+  }
+
+  async replaceGameIDsTask() {
+    for (const d of REPLACERS) {
       const parentID = await this.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
         console.warn("Did not find parent ID for", d.parent);
@@ -229,13 +241,8 @@ export class Postgres {
           continue;
         }
         const sessions = await this.fetchSessions(undefined, childID);
-        // Needs to be reversed so they come in chronological order
-        for (const s of sessions.reverse()) {
-          console.log("MERGING TO PARENT:", s);
-          // Recreate the activity, but with parent game ID
-          await this.insertActivity(s.date, s.userID, parentID, s.seconds);
-          // Then delete the original activity (the child game session)
-          await this.deleteActivity(s.id);
+        for (const s of sessions) {
+          await this.replaceActivityGameID(s.id, parentID);
         }
       }
     }
