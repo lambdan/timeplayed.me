@@ -1,6 +1,6 @@
 import { join } from "path";
 import { readFile } from "fs/promises";
-import { formatSeconds, timeSince } from "./utils";
+import { formatSeconds, sanitizeHTML, timeSince } from "./utils";
 import { Game } from "./game";
 import { STATICS } from ".";
 
@@ -17,7 +17,7 @@ export class www {
       join(__dirname, "../static/_header.html"),
       "utf-8"
     );
-    header = header.replace("<%TITLE%>", title);
+    header = header.replace("<%TITLE%>", sanitizeHTML(title));
     let footer = await readFile(
       join(__dirname, "../static/_footer.html"),
       "utf-8"

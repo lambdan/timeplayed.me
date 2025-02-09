@@ -75,3 +75,9 @@ export function colorFromString(s: string): string {
   const hue = ((hash % 360) + 360) % 360; // Keep hue within 0-360
   return `hsl(${hue}, 60%, 65%)`;
 }
+
+export function sanitizeHTML(s: string): string {
+  s = s.replaceAll("<", "");
+  s = s.replaceAll(">", "");
+  return s;
+}
