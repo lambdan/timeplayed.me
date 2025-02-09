@@ -2,23 +2,51 @@ import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
 import { Game } from "./game";
 import { Session } from "./session";
 import { User } from "./user";
+import { sleep } from "./utils";
+
+const MERGES = [
+  //TODO Read this from JSON or something
+  // Children sessions will be turned into parent sessions
+  {
+    parent: "The Elder Scrolls V: Skyrim Special Edition",
+    children: ["Skyrim Special Edition"],
+  },
+];
 
 export class Postgres {
   private postgresClient: Client | null = null;
   private config: Configuration;
+  private taskLoopRunning = false;
+
   constructor(config: Configuration) {
     this.config = config;
+    this.connect();
+    this.taskLoop();
   }
 
   async connect() {
     this.postgresClient = await connect(this.config);
   }
 
+  async taskLoop() {
+    if (this.taskLoopRunning) {
+      return;
+    }
+    this.taskLoopRunning = true;
+    while (true) {
+      console.warn(new Date(), "RUNNING TASKS!");
+      if (!this.postgresClient) {
+        await this.connect();
+      }
+
+      await this.mergeGamesTask();
+
+      await sleep(30 * 1000);
+    }
+  }
+
   async fetchSessions(userID?: string, gameID?: number): Promise<Session[]> {
     const sessions = new Array<Session>();
-    if (!this.postgresClient) {
-      await this.connect();
-    }
 
     // Order by id DESC to get recent first
     let query = "SELECT * FROM activity ORDER BY id DESC";
@@ -56,9 +84,6 @@ export class Postgres {
   }
 
   async fetchGameName(gameID: number): Promise<string | null> {
-    if (!this.postgresClient) {
-      await this.connect();
-    }
     try {
       const result = await this.postgresClient!.query(
         "SELECT name FROM game WHERE id = $1",
@@ -73,10 +98,22 @@ export class Postgres {
     return null;
   }
 
-  async fetchGame(gameID: number): Promise<Game | null> {
-    if (!this.postgresClient) {
-      await this.connect();
+  async fetchGameIDFromGameName(gameName: string): Promise<number | null> {
+    try {
+      const result = await this.postgresClient!.query(
+        "SELECT id FROM game WHERE name = $1",
+        [gameName]
+      );
+      if (result.rows.length > 0) {
+        return result.rows[0][0] as number;
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
+    return null;
+  }
+
+  async fetchGame(gameID: number): Promise<Game | null> {
     const gameName = await this.fetchGameName(gameID);
     if (!gameName) {
       console.error("Game name not found");
@@ -94,9 +131,6 @@ export class Postgres {
   }
 
   async fetchUser(userID: string): Promise<User | null> {
-    if (!this.postgresClient) {
-      await this.connect();
-    }
     const sessions = await this.fetchSessions(userID);
     if (sessions.length === 0) {
       return null;
@@ -119,9 +153,6 @@ export class Postgres {
   }
 
   async fetchGames(): Promise<Game[]> {
-    if (!this.postgresClient) {
-      await this.connect();
-    }
     try {
       const result = await this.postgresClient!.query(
         //"SELECT * FROM game ORDER BY name ASC"
@@ -132,6 +163,9 @@ export class Postgres {
         const gameID = r[0];
         const gameName = r[1];
         const sessions = await this.fetchSessions(undefined, gameID);
+        if (sessions.length === 0) {
+          continue;
+        }
         games.push(new Game(gameID, gameName, sessions));
       }
       return games;
@@ -142,9 +176,6 @@ export class Postgres {
   }
 
   async fetchUserIDs(): Promise<string[]> {
-    if (!this.postgresClient) {
-      await this.connect();
-    }
     try {
       const result = await this.postgresClient!.query(
         // Select distinct user_ids, order by recency
@@ -159,5 +190,53 @@ export class Postgres {
       console.error("Error fetching data:", error);
     }
     return [];
+  }
+
+  async insertActivity(
+    date: Date,
+    userID: string,
+    gameID: number,
+    seconds: number
+  ): Promise<ResultRecord<any>> {
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    return await this.postgresClient!.query(
+      `INSERT INTO activity (timestamp, user_id, game_id, seconds)
+     VALUES (to_timestamp($1), $2, $3, $4)`,
+      [date.getTime() / 1000, userID, gameID, seconds]
+    );
+  }
+
+  async deleteActivity(id: number): Promise<ResultRecord<any>> {
+    return await this.postgresClient!.query(
+      `DELETE FROM activity WHERE id = $1`,
+      [id]
+    );
+  }
+
+  async mergeGamesTask() {
+    for (const d of MERGES) {
+      const parentID = await this.fetchGameIDFromGameName(d.parent);
+      if (!parentID) {
+        console.warn("Did not find parent ID for", d.parent);
+        continue;
+      }
+      for (const c of d.children) {
+        const childID = await this.fetchGameIDFromGameName(c);
+        if (!childID) {
+          console.warn("Did not find child ID for", c);
+          continue;
+        }
+        const sessions = await this.fetchSessions(undefined, childID);
+        for (const s of sessions) {
+          console.log("MERGING TO PARENT:", s);
+          // Recreate the activity, but with parent game ID
+          await this.insertActivity(s.date, s.userID, parentID, s.seconds);
+          // Then delete the original activity (the child game session)
+          await this.deleteActivity(s.id);
+        }
+      }
+    }
   }
 }
