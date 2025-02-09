@@ -229,7 +229,8 @@ export class Postgres {
           continue;
         }
         const sessions = await this.fetchSessions(undefined, childID);
-        for (const s of sessions) {
+        // Needs to be reversed so they come in chronological order
+        for (const s of sessions.reverse()) {
           console.log("MERGING TO PARENT:", s);
           // Recreate the activity, but with parent game ID
           await this.insertActivity(s.date, s.userID, parentID, s.seconds);
