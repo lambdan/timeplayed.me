@@ -1,4 +1,10 @@
-export function formatSeconds(secs: number): string {
+/** Format seconds into hours or minutes, or days if daysAfter > 0 */
+export function formatSeconds(secs: number, daysAfter = 0): string {
+  if (daysAfter > 0 && secs > 86400 * daysAfter) {
+    const days = Math.floor(secs / 86400);
+    return days + ` ${days === 1 ? "day" : "days"}`;
+  }
+
   if (secs > 7200) {
     return (secs / 3600).toFixed(1) + " hours";
   }
@@ -11,15 +17,8 @@ export function formatSeconds(secs: number): string {
   return "<1 min";
 }
 
-export function timeSince(
-  old_date: Date,
-  return_date_after = 86400 * 30
-): string {
+export function timeSince(old_date: Date): string {
   const deltaSecs = (Date.now() - old_date.getTime()) / 1000;
-
-  if (return_date_after > 0 && deltaSecs > return_date_after) {
-    return old_date.toUTCString();
-  }
 
   if (deltaSecs > 172800) {
     return Math.floor(deltaSecs / 86400) + " days ago";

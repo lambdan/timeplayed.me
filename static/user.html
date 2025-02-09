@@ -2,22 +2,44 @@
   <div class="card">
     <h1 class="card-header text-center"><%USERNAME%></h1>
     <div class="card-body">
-      <div class="row">
+      <div class="row mt-4">
         <div class="col-lg-2">
           <img
             src="<%AVATAR_URL%>"
             class="img-thumbnail img-fluid rounded-circle"
           />
         </div>
-        <!--<div class="col mt-4">
+        <div class="col">
           <div class="mx-auto">
             <ul>
-              <li title="<%LAST_ACTIVE%>">Last active: <%LAST_ACTIVE_AGO%></li>
-              <li>Total playtime: <%TOTAL_PLAYTIME%></li>
-              <li>Sessions: <%SESSIONS%></li>
+              <li>
+                <b>First session:</b>
+                <%FIRST_SESSION%>
+              </li>
+              <li><b>Last active:</b> <%LAST_ACTIVE%></li>
+
+              <li><b>Active days:</b> <%ACTIVE_DAYS%></li>
+              <li>
+                <b>Longest streak of active days:</b> <%MOST_CONSECUTIVE_DAYS%>
+              </li>
+              <li><b>Longest break:</b> <%LONGEST_BREAK%></li>
             </ul>
           </div>
-        </div>-->
+        </div>
+        <div class="col">
+          <div class="mx-auto">
+            <ul>
+              <li><b>Games played:</b> <%GAMES_PLAYED%></li>
+              <li><b>Total playtime</b>: <%TOTAL_PLAYTIME%></li>
+              <li><b>Average playtime/game:</b> <%AVERAGE_PLAYTIME_GAME%></li>
+              <li><b>Total sessions:</b> <%SESSIONS%></li>
+              <li><b>Average sessions/game:</b> <%AVERAGE_SESSIONS_GAME%></li>
+              <li><b>Average session length:</b> <%AVERAGE_SESSION_LENGTH%></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
         <div class="col">
           <div class="table-responsive">
             <table class="table sortable table-hover">
@@ -26,42 +48,18 @@
                   <th scope="col">Game</th>
                   <th scope="col">Time played</th>
                   <th scope="col">Sessions</th>
-                  <th scope="col">Longest Session</th>
+                  <th scope="col">Longest session</th>
                   <th scope="col">Last played</th>
                 </tr>
               </thead>
               <tbody>
                 <%TABLE_ROWS%>
               </tbody>
-              <tfoot class="table-success">
-                <tr>
-                  <th scope="col">Total: <%TOTAL_GAMES%> game(s)</th>
-                  <th scope="col" title="Time played total">
-                    <%TOTAL_PLAYTIME%>
-                  </th>
-                  <th scope="col"><%SESSIONS%></th>
-                  <th></th>
-                  <th></th>
-                </tr>
-                <tr>
-                  <th scope="col">Average:</th>
-                  <th scope="col" title="Time played each game on average">
-                    <%GAME_PLAYTIME_AVG%>
-                  </th>
-                  <th scope="col" title="Average amount of sessions per game">
-                    <%SESSIONS_AVERAGE%>
-                  </th>
-                  <th scope="col" title="Average session length">
-                    <%SESSION_LENGTH_AVG%>
-                  </th>
-                  <th></th>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </div>
       </div>
-      <%CHART%>
+      <div class="row mt-4"><%CHART%></div>
     </div>
   </div>
 </div>

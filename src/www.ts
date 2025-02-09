@@ -53,10 +53,14 @@ export class www {
       TR += `<td sorttable_customkey="${user.totalPlaytime}" title="${
         user.totalPlaytime
       } seconds" class="col align-middle">${formatSeconds(
-        user.totalPlaytime
+        user.totalPlaytime()
       )}</td>`;
-      TR += `<td sorttable_customkey="${user.lastActive.getTime()}" title="${user.lastActive.toUTCString()}" class="col align-middle">${timeSince(
-        user.lastActive
+      TR += `<td sorttable_customkey="${user
+        .lastActive()
+        .getTime()}" title="${user
+        .lastActive()
+        .toUTCString()}" class="col align-middle">${timeSince(
+        user.lastActive()
       )}</td>`;
       TR += `</tr>\n`;
     }
@@ -188,24 +192,42 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
-      formatSeconds(user.totalPlaytime) + ""
+      formatSeconds(user.totalPlaytime()) + ""
     );
     html = html.replaceAll("<%SESSIONS%>", user.sessions.length + "");
-    html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive.toUTCString());
-    html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive));
-    html = html.replaceAll("<%TOTAL_GAMES%>", user.games.length + "");
+    html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive().toUTCString());
+    /*html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive()));*/
+    html = html.replaceAll("<%GAMES_PLAYED%>", user.games.length + "");
     html = html.replaceAll(
-      "<%GAME_PLAYTIME_AVG%>",
-      formatSeconds(user.totalPlaytime / user.games.length)
+      "<%AVERAGE_PLAYTIME_GAME%>",
+      formatSeconds(user.averagePlaytimePerGame())
     );
     html = html.replaceAll(
-      "<%SESSIONS_AVERAGE%>",
-      Math.floor(user.sessions.length / user.games.length) + ""
+      "<%AVERAGE_SESSIONS_GAME%>",
+      Math.floor(user.averageSessionsPerGame()) + ""
     );
     html = html.replaceAll(
-      "<%SESSION_LENGTH_AVG%>",
-      formatSeconds(user.totalPlaytime / user.sessions.length)
+      "<%AVERAGE_SESSION_LENGTH%>",
+      formatSeconds(user.averageSessionLength())
     );
+    html = html.replaceAll("<%ACTIVE_DAYS%>", user.activeDays() + "");
+    html = html.replaceAll(
+      "<%LONGEST_BREAK%>",
+      formatSeconds(user.longestBreak(), 1)
+    );
+    html = html.replaceAll(
+      "<%MOST_CONSECUTIVE_DAYS%>",
+      user.mostConsecutiveDays() + ""
+    );
+    html = html.replaceAll(
+      "<%FIRST_SESSION%>",
+      user.firstSessionDate().toUTCString()
+    );
+
+    /*html = html.replaceAll(
+      "<%FIRST_SESSION_AGO%>",
+      timeSince(user.firstSession())
+    );*/
     html = html.replaceAll("<%CHART%>", user.getChart());
     return await this.constructHTML(html);
   }
