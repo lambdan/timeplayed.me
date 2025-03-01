@@ -3,6 +3,7 @@ import { Postgres } from "./postgres";
 import { www } from "./www";
 import { Discord } from "./discord";
 import { Totals } from "./totals";
+import { Logger } from "./logger";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -22,6 +23,7 @@ export class STATICS {
 
 const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
 const cache = new Map<string, any>();
+const logger = new Logger("Index");
 
 function getCache(url: string): string | null {
   if (!PROD) {
@@ -29,10 +31,11 @@ function getCache(url: string): string | null {
     return null;
   }
   if (!cache.has(url)) {
-    console.warn(url, "is not cached :(");
+    logger.log(url, "is not cached :(");
+
     return null;
   }
-  console.warn(url, "is cached! :D");
+  logger.log(url, "is cached!");
   return cache.get(url);
 }
 
@@ -40,7 +43,7 @@ function cacheAndReturn(url: string, data: any): any {
   cache.set(url, data);
   setTimeout(() => {
     cache.delete(url);
-    console.warn(url, "cache expired");
+    logger.warn(url, "cache expired");
   }, cacheAge);
   return data;
 }
@@ -152,9 +155,10 @@ STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },
   (err, address) => {
     if (err) {
-      console.error("Error starting server:", err);
+      logger.error("Error starting server:", err);
+
       process.exit(1);
     }
-    console.log(`Server is running at ${address}`);
+    logger.log(`Server is running at ${address}`);
   }
 );

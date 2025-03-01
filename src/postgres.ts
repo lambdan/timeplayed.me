@@ -3,6 +3,7 @@ import { Game } from "./game";
 import { Session } from "./session";
 import { User } from "./user";
 import { sleep } from "./utils";
+import { Logger } from "./logger";
 
 const REPLACERS = [
   // TODO Read this from JSON or something
@@ -17,6 +18,7 @@ export class Postgres {
   private postgresClient: Client | null = null;
   private config: Configuration;
   private taskLoopRunning = false;
+  private logger = new Logger("Postgres");
 
   constructor(config: Configuration) {
     this.config = config;
@@ -25,7 +27,9 @@ export class Postgres {
   }
 
   async connect() {
+    this.logger.log("Connecting to Postgres");
     this.postgresClient = await connect(this.config);
+    this.logger.log("Connected!");
   }
 
   async taskLoop() {
@@ -34,7 +38,7 @@ export class Postgres {
     }
     this.taskLoopRunning = true;
     while (true) {
-      console.warn(new Date(), "RUNNING TASKS!");
+      this.logger.warn(new Date(), "RUNNING TASKS!");
       if (!this.postgresClient) {
         await this.connect();
       }
@@ -63,7 +67,7 @@ export class Postgres {
       values = [gameID];
     }
 
-    console.log(query, values);
+    this.logger.log(query, values);
 
     try {
       const result = await this.postgresClient!.query(query, values);
@@ -77,7 +81,7 @@ export class Postgres {
         });
       }
     } catch (error) {
-      console.error("Error fetching activity:", error);
+      this.logger.error("Error fetching activity:", error);
     }
     //console.log(sessions);
     return sessions;
@@ -93,7 +97,7 @@ export class Postgres {
         return result.rows[0][0] as string;
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      this.logger.error("Error fetching data:", error);
     }
     return null;
   }
@@ -108,7 +112,7 @@ export class Postgres {
         return result.rows[0][0] as number;
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      this.logger.error("Error fetching data:", error);
     }
     return null;
   }
@@ -116,7 +120,7 @@ export class Postgres {
   async fetchGame(gameID: number): Promise<Game | null> {
     const gameName = await this.fetchGameName(gameID);
     if (!gameName) {
-      console.error("Game name not found");
+      this.logger.error("Game name not found");
       return null;
     }
 
@@ -124,7 +128,7 @@ export class Postgres {
       const sessions = await this.fetchSessions(undefined, gameID);
       return new Game(gameID, gameName, sessions);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      this.logger.error("Error fetching data:", error);
     }
 
     return null;
@@ -170,7 +174,7 @@ export class Postgres {
       }
       return games;
     } catch (error) {
-      console.error("Error fetching games:", error);
+      this.logger.error("Error fetching games:", error);
     }
     return [];
   }
@@ -187,7 +191,7 @@ export class Postgres {
       }
       return users;
     } catch (error) {
-      console.error("Error fetching data:", error);
+      this.logger.error("Error fetching data:", error);
     }
     return [];
   }
@@ -231,13 +235,13 @@ export class Postgres {
     for (const d of REPLACERS) {
       const parentID = await this.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
-        console.warn("Did not find parent ID for", d.parent);
+        this.logger.warn("Did not find parent ID for", d.parent);
         continue;
       }
       for (const c of d.children) {
         const childID = await this.fetchGameIDFromGameName(c);
         if (!childID) {
-          console.warn("Did not find child ID for", c);
+          this.logger.warn("Did not find child ID for", c);
           continue;
         }
         const sessions = await this.fetchSessions(undefined, childID);

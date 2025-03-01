@@ -1,3 +1,5 @@
+import { Logger } from "./logger";
+
 export interface DiscordUserInfo {
   id: string;
   username: string;
@@ -25,6 +27,7 @@ export interface DiscordUserInfo {
 const CACHE_EXPIRE = 1 * 60 * 60 * 1000; // 1 hour
 
 export class Discord {
+  private logger = new Logger("Discord");
   private token: string;
   private cache = new Map<string, DiscordUserInfo>();
 
@@ -51,26 +54,28 @@ export class Discord {
       const cached = this.cache.get(userID)!;
       const age = Date.now() - cached.fetchedAt;
       if (age < CACHE_EXPIRE) {
-        //console.log("Using cached discord info :D");
+        this.logger.log("Using cache for user " + userID);
         return cached;
       }
     }
 
-    //console.warn("Going out to discord!");
+    this.logger.log("Fetching user " + userID);
     const response = await fetch(`https://discord.com/api/v9/users/${userID}`, {
       headers: {
         Authorization: `Bot ${this.token}`,
       },
     });
     if (!response.ok) {
-      console.error(
-        `Discord getUser: Error status code: ${response.status} --- returning null user!`
+      this.logger.error(
+        `Error status code: ${response.status} --- returning null user!`
       );
       const data = this.getNullUser(userID);
       this.cache.set(userID, data);
       return this.getNullUser(userID);
     }
     const parsed = await response.json();
+
+    this.logger.log(`Fetched user ${parsed.username}}`);
 
     const data: DiscordUserInfo = {
       fetchedAt: Date.now(),

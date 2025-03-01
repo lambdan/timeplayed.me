@@ -3,10 +3,12 @@ import { readFile } from "fs/promises";
 import { formatSeconds, sanitizeHTML, timeSince } from "./utils";
 import { Game } from "./game";
 import { STATICS } from ".";
+import { Logger } from "./logger";
 
 const APP_VERSION = require("../package.json").version;
 
 export class www {
+  private logger = new Logger("www");
   constructor() {}
 
   async constructHTML(

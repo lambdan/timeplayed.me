@@ -1,7 +1,9 @@
 import { STATICS } from ".";
+import { Logger } from "./logger";
 import { colorFromString } from "./utils";
 
 export class Totals {
+  private logger = new Logger("Postgres");
   constructor() {}
 
   async lastPlayed(): Promise<Date> {
