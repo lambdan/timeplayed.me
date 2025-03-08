@@ -44,6 +44,7 @@ export class Postgres {
       }
 
       await this.replaceGameIDsTask();
+      await this.removeShortSessionsTask();
 
       await sleep(30 * 1000);
     }
@@ -248,6 +249,15 @@ export class Postgres {
         for (const s of sessions) {
           await this.replaceActivityGameID(s.id, parentID);
         }
+      }
+    }
+  }
+
+  async removeShortSessionsTask() {
+    const sessions = await this.fetchSessions();
+    for (const s of sessions) {
+      if (s.seconds < 60) {
+        await this.deleteActivity(s.id);
       }
     }
   }
