@@ -101,7 +101,7 @@ export class www {
         game.lastPlayed
       )}</td>`;
       TR +=
-        `<td sorttable_customkey="${game.totalPlaytime}" title="${game.totalPlaytime} seconds">` +
+        `<td sorttable_customkey="${game.totalPlaytime()}" title="${game.totalPlaytime()} seconds">` +
         formatSeconds(game.totalPlaytime()) +
         "</td>";
       TR += `</tr>\n`;
