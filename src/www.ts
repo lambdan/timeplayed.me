@@ -102,10 +102,10 @@ export class www {
       )}</td>`;
       TR +=
         `<td sorttable_customkey="${game.totalPlaytime}" title="${game.totalPlaytime} seconds">` +
-        formatSeconds(game.totalPlaytime) +
+        formatSeconds(game.totalPlaytime()) +
         "</td>";
       TR += `</tr>\n`;
-      totalTime += game.totalPlaytime;
+      totalTime += game.totalPlaytime();
       totalSessions += game.sessions.length;
     }
     let html = await readFile(join(__dirname, "../static/games.html"), "utf-8");
@@ -159,7 +159,7 @@ export class www {
     html = html.replaceAll("<%SESSIONS%>", game.sessions.length + "");
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
-      formatSeconds(game.totalPlaytime)
+      formatSeconds(game.totalPlaytime())
     );
     html = html.replace("<%CHART%>", game.getChart());
     return await this.constructHTML(html, game.name);
@@ -171,36 +171,68 @@ export class www {
       return await this.errorPage("Unknown user.");
     }
     const discordInfo = await STATICS.discord.getUser(userID);
+    let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
 
-    let TR = "";
-    for (const game of user.games) {
-      const stats = game.getGameStatsForUser(userID);
-      TR += "<tr>";
-      TR +=
+    // Recent activity table
+    let recentActivity = "";
+    let recentActivityCount = 0;
+    const sessionsRecent = user.sessions.sort(
+      (a, b) => b.date.getTime() - a.date.getTime()
+    );
+    for (let i = 0; i < Math.min(10, sessionsRecent.length); i++) {
+      const session = sessionsRecent[i];
+      const game = await STATICS.pg.fetchGame(session.gameID);
+      if (!game) {
+        continue;
+      }
+      recentActivity += "<tr>";
+      recentActivity +=
+        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
+      recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
+      recentActivity += `<td>${timeSince(session.date)}</td>`;
+
+      recentActivity += "</tr>\n";
+      recentActivityCount++;
+    }
+    html = html.replaceAll("<%TABLE_RECENT_ROWS%>", recentActivity);
+
+    // Top games table
+    let topGamesTable = "";
+    const games = [...user.games];
+    games.sort((a, b) => {
+      return b.totalPlaytimeForUser(userID) - a.totalPlaytimeForUser(userID);
+    });
+    for (const game of games) {
+      console.log(game.name);
+      const gameStat = game.getGameStatsForUser(userID);
+      topGamesTable += "<tr>";
+      topGamesTable +=
         `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
         game.name +
         "</a></td>";
-      TR +=
-        `<td sorttable_customkey="${stats.seconds}" title="${stats.seconds} seconds">` +
-        formatSeconds(stats.seconds) +
+      topGamesTable +=
+        `<td sorttable_customkey="${gameStat.seconds}" title="${gameStat.seconds} seconds">` +
+        formatSeconds(gameStat.seconds) +
         "</td>";
-      TR += "<td>" + stats.sessions.length + "</td>";
-      TR += `<td sorttable_customkey="${
-        stats.longestSession.seconds
-      }" title="${stats.longestSession.date.toUTCString()}">${formatSeconds(
-        stats.longestSession.seconds
+      topGamesTable += "<td>" + gameStat.sessions.length + "</td>";
+      topGamesTable += `<td sorttable_customkey="${
+        gameStat.longestSession.seconds
+      }" title="${gameStat.longestSession.date.toUTCString()}">${formatSeconds(
+        gameStat.longestSession.seconds
       )}</td>`;
-      TR +=
-        `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}">` +
-        timeSince(stats.lastPlayed) +
+      topGamesTable +=
+        `<td sorttable_customkey="${gameStat.lastPlayed.getTime()}" title="${gameStat.lastPlayed.toUTCString()}">` +
+        timeSince(gameStat.lastPlayed) +
         "</td>";
-      TR += "</tr>\n";
+      topGamesTable += "</tr>\n";
     }
-    let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
+
     html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
     //html = html.replace("<%BORDER_COLOR%>", discordInfo!.bannerColor);
     html = html.replaceAll("<%AVATAR_URL%>", discordInfo!.avatarURL);
-    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TABLE_ROWS%>", topGamesTable);
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
       formatSeconds(user.totalPlaytime()) + ""

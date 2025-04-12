@@ -33,7 +33,8 @@ export class Game {
     return this.sessions.length;
   }
 
-  get totalPlaytime(): number {
+  /** Total playtime across all users */
+  totalPlaytime(): number {
     let sum = 0;
     for (const s of this.sessions) {
       sum += s.seconds;
@@ -43,6 +44,17 @@ export class Game {
 
   get color(): string {
     return colorFromString(this.name);
+  }
+
+  /** Total playtime for a single user  */
+  totalPlaytimeForUser(userID: string): number {
+    let sum = 0;
+    for (const s of this.sessions) {
+      if (s.userID === userID) {
+        sum += s.seconds;
+      }
+    }
+    return sum;
   }
 
   /**
