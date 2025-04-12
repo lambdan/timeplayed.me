@@ -40,6 +40,35 @@ export class www {
     );
     html = html.replace("<%CHART%>", STATICS.totals.getChart());
 
+    // Recent activity table
+    let recentActivityTable = "";
+    const sessions = await STATICS.pg.fetchSessions(undefined, undefined, 10);
+    console.log(sessions);
+    for (const session of sessions) {
+      const game = await STATICS.pg.fetchGame(session.gameID);
+      if (!game) {
+        continue;
+      }
+      const discordInfo = await STATICS.discord.getUser(session.userID);
+      recentActivityTable += '<tr class="align-middle">';
+      recentActivityTable += `<td class="col-lg-1"><a href="/user/${
+        session.userID
+      }" ><img src="${
+        discordInfo!.avatarURL
+      }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
+      recentActivityTable += `<td><a href="/user/${session.userID}">${
+        discordInfo!.username
+      }</a></td>`;
+      recentActivityTable +=
+        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
+      recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
+      recentActivityTable += `<td>${timeSince(session.date)}</td>`;
+      recentActivityTable += "</tr>\n";
+    }
+    html = html.replaceAll("<%RECENT_TABLE_ROWS%>", recentActivityTable);
+
     return await this.constructHTML(html);
   }
 

@@ -84,7 +84,7 @@ export class Totals {
                     data: {
                         labels: data.labels,
                         datasets: [{
-                            label: "Hours Played",
+                            label: "Hours played",
                             data: data.values,
                             backgroundColor: "${this.color}",
                         }]
@@ -92,7 +92,6 @@ export class Totals {
                     options: {
                         responsive: true,
                         plugins: {
-                            title: {display: true, text: "Hours tracked"},
                             legend: { position: "top", display: false},
                         },
                         scales: {

@@ -7,24 +7,35 @@
         This is a thing that tracks your playtime across games using Discord.
       </p>
       <p>
-        All you need to do is join the Discord server and you will be tracked.
+        All you need to do is join the Discord server and you will be tracked:
+        <br />
+        <i class="bi bi-discord"></i> <a href="https://discord.gg/YyhX6KHE27"
+          >https://discord.gg/YyhX6KHE27</a
+        >
       </p>
       <p>
         Please note that you need to be sharing your activity on Discord,
         otherwise the bot can't see it.
       </p>
-      <p>
-        Link to the server: <br /><i class="bi bi-discord"></i> <a
-          href="https://discord.gg/YyhX6KHE27"
-          >https://discord.gg/YyhX6KHE27</a
-        >
-      </p>
+      <p></p>
       <p>See you there!</p>
     </div>
   </div>
 
   <div class="card mt-5">
-    <!--<h1 class="card-header">Playtime Tracked</h1>-->
+    <h1 class="card-header">Recent activity</h1>
+
+    <div class="card-body">
+      <table class="table table-hover table-responsive">
+        <tbody>
+          <%RECENT_TABLE_ROWS%>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card mt-5">
+    <h1 class="card-header">Playtime across all users</h1>
 
     <div class="card-body"><%CHART%></div>
   </div>

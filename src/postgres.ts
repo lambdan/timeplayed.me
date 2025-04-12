@@ -50,7 +50,11 @@ export class Postgres {
     }
   }
 
-  async fetchSessions(userID?: string, gameID?: number): Promise<Session[]> {
+  async fetchSessions(
+    userID?: string,
+    gameID?: number,
+    limit?: number
+  ): Promise<Session[]> {
     const sessions = new Array<Session>();
 
     // Order by id DESC to get recent first
@@ -66,6 +70,11 @@ export class Postgres {
     } else if (gameID) {
       query = "SELECT * FROM activity WHERE game_id = $1 ORDER BY id DESC";
       values = [gameID];
+    }
+
+    if (limit) {
+      values.push(limit);
+      query += ` LIMIT $${values.length}`;
     }
 
     this.logger.log(query, values);
