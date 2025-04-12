@@ -1,41 +1,47 @@
 <div class="container">
   <div class="card">
-    <h1 class="card-header text-center" style="color: <%GAME_COLOR%>">
-      <%GAME_NAME%>
-    </h1>
+    <h1 class="card-header" style="color: <%GAME_COLOR%>"><%GAME_NAME%></h1>
+
     <div class="card-body">
-      <div class="row">
-        <div class="col">
-          <div class="table-responsive">
-            <table class="table sortable table-hover">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th scope="col">User</th>
-                  <th scope="col">Time played</th>
-                  <th scope="col">Sessions</th>
-                  <th scope="col">Longest Session</th>
-                  <th scope="col">Last played</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%TABLE_ROWS%>
-              </tbody>
-              <tfoot class="table-success">
-                <tr>
-                  <th></th>
-                  <th scope="col">Total: <%PLAYER_COUNT%> player(s)</th>
-                  <th scope="col"><%TOTAL_PLAYTIME%></th>
-                  <th scope="col"><%SESSIONS%> session(s)</th>
-                  <th></th>
-                  <th></th>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+      <div class="card">
+        <h2 class="card-header">Stats</h2>
+        <div class="card-body">
+          <p>
+            <b><%PLAYER_COUNT%></b> player(s) have played
+            <b><%GAME_NAME%></b> for <b><%TOTAL_PLAYTIME%></b> across
+            <b><%SESSIONS%></b> session(s)
+          </p>
         </div>
       </div>
-      <%CHART%>
+
+      <br />
+
+      <div class="card">
+        <h2 class="card-header">Players</h2>
+        <div class="card-body table-responsive">
+          <table class="table sortable table-hover">
+            <thead>
+              <tr>
+                <th></th>
+                <th scope="col">User</th>
+                <th scope="col">Time played</th>
+                <th scope="col">Sessions</th>
+                <th scope="col">Longest Session</th>
+                <th scope="col">Last played</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%TABLE_ROWS%>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <br />
+
+      <div class="card">
+        <div class="card-body"><%CHART%></div>
+      </div>
     </div>
   </div>
 </div>

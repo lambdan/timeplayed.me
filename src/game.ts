@@ -152,7 +152,7 @@ export class Game {
                     options: {
                         responsive: true,
                         plugins: {
-                            title: {display: true, text: "Hours played"},
+                            //title: {display: true, text: "Hours played"},
                             legend: { position: "top", display: false},
                         },
                         scales: {
