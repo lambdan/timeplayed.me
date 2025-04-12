@@ -81,15 +81,15 @@ export class www {
   }
 
   async gamesPage(): Promise<string> {
-    const sortByLastPlayed = (a: Game, b: Game): number => {
-      return b.lastPlayed.getTime() - a.lastPlayed.getTime();
-    };
-
     const games = await STATICS.pg.fetchGames();
+
     let totalTime = 0;
     let totalSessions = 0;
     let TR = "";
-    for (const game of games.sort(sortByLastPlayed)) {
+    for (const game of games.sort((a, b) => {
+      // Sort by total playtime
+      return b.totalPlaytime() - a.totalPlaytime();
+    })) {
       TR += `<tr>`;
       TR +=
         `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
