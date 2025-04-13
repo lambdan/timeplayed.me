@@ -4,6 +4,7 @@ import { www } from "./www";
 import { Discord } from "./discord";
 import { Totals } from "./totals";
 import { Logger } from "./logger";
+import { PostgresTasks } from "./postgres_tasks";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -17,6 +18,7 @@ export class STATICS {
     password: process.env.POSTGRESS_PASS || "oblivion",
     database: process.env.POSTGRES_DB || "oblivionis",
   });
+  static pgTasks = new PostgresTasks(STATICS.pg);
   static web = new www();
   static totals = new Totals();
 }

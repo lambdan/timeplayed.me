@@ -8,31 +8,16 @@ import {
 import { Game } from "./game";
 import { Session } from "./session";
 import { User } from "./user";
-import { sleep } from "./utils";
 import { Logger } from "./logger";
-
-// Use these to replace games with multiple titles
-const REPLACERS = [
-  // Children sessions will be replaced with parent game ID
-  {
-    parent: "The Elder Scrolls V: Skyrim Special Edition",
-    children: ["Skyrim Special Edition"],
-  },
-];
-
-// Games called this will be removed, use to remove bad data
-const BAD_GAMES = ["Steam Deck"];
 
 export class Postgres {
   private postgresClient: Client | null = null;
   private config: Configuration;
-  private taskLoopRunning = false;
   private logger = new Logger("Postgres");
 
   constructor(config: Configuration) {
     this.config = config;
     this.connect();
-    this.taskLoop();
   }
 
   async connect() {
@@ -47,25 +32,6 @@ export class Postgres {
     }
     this.logger.log(text, values);
     return await this.postgresClient!.query(text, values);
-  }
-
-  async taskLoop() {
-    if (this.taskLoopRunning) {
-      return;
-    }
-    this.taskLoopRunning = true;
-    while (true) {
-      this.logger.log("RUNNING TASKS!");
-      if (!this.postgresClient) {
-        await this.connect();
-      }
-
-      await this.taskReplaceGameIDs();
-      await this.taskRemoveShortSessions();
-      await this.taskRemoveBadGameSessions();
-
-      await sleep(30 * 1000);
-    }
   }
 
   async fetchSessions(
@@ -246,52 +212,5 @@ export class Postgres {
      WHERE id = $2`,
       [newGameID, sessionID]
     );
-  }
-
-  async taskReplaceGameIDs() {
-    this.logger.log("Running taskReplaceGameIDs");
-    for (const d of REPLACERS) {
-      const parentID = await this.fetchGameIDFromGameName(d.parent);
-      if (!parentID) {
-        this.logger.warn("Did not find parent ID for", d.parent);
-        continue;
-      }
-      for (const c of d.children) {
-        const childID = await this.fetchGameIDFromGameName(c);
-        if (!childID) {
-          this.logger.warn("Did not find child ID for", c);
-          continue;
-        }
-        const sessions = await this.fetchSessions(undefined, childID);
-        for (const s of sessions) {
-          await this.replaceActivityGameID(s.id, parentID);
-        }
-      }
-    }
-  }
-
-  async taskRemoveShortSessions() {
-    this.logger.log("Running taskRemoveShortSessions");
-    const sessions = await this.fetchSessions();
-    for (const s of sessions) {
-      if (s.seconds < 60) {
-        await this.deleteActivity(s.id);
-      }
-    }
-  }
-
-  async taskRemoveBadGameSessions() {
-    this.logger.log("Running taskRemoveBadGameSessions");
-    for (const game of BAD_GAMES) {
-      const gameID = await this.fetchGameIDFromGameName(game);
-      if (!gameID) {
-        //this.logger.warn("Did not find game ID for", game);
-        continue;
-      }
-      const sessions = await this.fetchSessions(undefined, gameID);
-      for (const s of sessions) {
-        await this.deleteActivity(s.id);
-      }
-    }
   }
 }
