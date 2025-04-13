@@ -124,28 +124,6 @@ export class Postgres {
     return null;
   }
 
-  async fetchUser(userID: string): Promise<User | null> {
-    const sessions = await this.fetchSessions(userID);
-    if (sessions.length === 0) {
-      return null;
-    }
-
-    const gotGames = new Set<number>();
-    const games: Game[] = [];
-    for (const s of sessions) {
-      if (gotGames.has(s.gameID)) {
-        continue;
-      }
-      gotGames.add(s.gameID);
-      const game = await this.fetchGame(s.gameID);
-      if (game) {
-        games.push(game);
-      }
-    }
-
-    return new User(userID, sessions, games);
-  }
-
   async fetchGames(): Promise<Game[]> {
     try {
       const result = await this.q("SELECT * FROM game");

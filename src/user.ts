@@ -1,15 +1,42 @@
+import { STATICS } from "./index";
 import { Game } from "./game";
 import { Session } from "./session";
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { formatSeconds, timeSince } from "./utils";
 
 export class User {
-  readonly userID: string;
+  readonly id: string;
   readonly sessions: Session[];
   readonly games: Game[];
 
   constructor(userID: string, sessions: Session[], games: Game[]) {
-    this.userID = userID;
+    this.id = userID;
     this.sessions = sessions;
     this.games = games;
+  }
+
+  /** Constructs a User object by ID. Async because it makes DB calls. */
+  public static async fromID(userID: string): Promise<User | null> {
+    const sessions = await STATICS.pg.fetchSessions(userID);
+    if (sessions.length === 0) {
+      return null;
+    }
+
+    const gotGames = new Set<number>();
+    const games: Game[] = [];
+    for (const s of sessions) {
+      if (gotGames.has(s.gameID)) {
+        continue;
+      }
+      gotGames.add(s.gameID);
+      const game = await STATICS.pg.fetchGame(s.gameID);
+      if (game) {
+        games.push(game);
+      }
+    }
+
+    return new User(userID, sessions, games);
   }
 
   /** Returns total playtime for user in seconds */
@@ -179,12 +206,114 @@ export class User {
     return { labels, datasets };
   }
 
+  /** Generates the HTML string for the user page */
+  async page(): Promise<string> {
+    const discordInfo = await STATICS.discord.getUser(this.id);
+    let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
+
+    // Recent activity table
+    let recentActivity = "";
+    let recentActivityCount = 0;
+    const sessionsRecent = this.sessions.sort(
+      (a, b) => b.date.getTime() - a.date.getTime()
+    );
+    for (let i = 0; i < Math.min(10, sessionsRecent.length); i++) {
+      const session = sessionsRecent[i];
+      const game = await STATICS.pg.fetchGame(session.gameID);
+      if (!game) {
+        continue;
+      }
+      recentActivity += "<tr>";
+      recentActivity +=
+        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
+      recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
+      recentActivity += `<td>${timeSince(session.date)}</td>`;
+
+      recentActivity += "</tr>\n";
+      recentActivityCount++;
+    }
+    html = html.replaceAll("<%TABLE_RECENT_ROWS%>", recentActivity);
+
+    // Top games table
+    let topGamesTable = "";
+    const games = [...this.games];
+    games.sort((a, b) => {
+      return b.totalPlaytimeForUser(this.id) - a.totalPlaytimeForUser(this.id);
+    });
+    for (const game of games) {
+      console.log(game.name);
+      const gameStat = game.getGameStatsForUser(this.id);
+      topGamesTable += "<tr>";
+      topGamesTable +=
+        `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
+      topGamesTable +=
+        `<td sorttable_customkey="${gameStat.seconds}" title="${gameStat.seconds} seconds">` +
+        formatSeconds(gameStat.seconds) +
+        "</td>";
+      topGamesTable += "<td>" + gameStat.sessions.length + "</td>";
+      topGamesTable += `<td sorttable_customkey="${
+        gameStat.longestSession.seconds
+      }" title="${gameStat.longestSession.date.toUTCString()}">${formatSeconds(
+        gameStat.longestSession.seconds
+      )}</td>`;
+      topGamesTable +=
+        `<td sorttable_customkey="${gameStat.lastPlayed.getTime()}" title="${gameStat.lastPlayed.toUTCString()}">` +
+        timeSince(gameStat.lastPlayed) +
+        "</td>";
+      topGamesTable += "</tr>\n";
+    }
+
+    html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
+    html = html.replaceAll("<%AVATAR_URL%>", discordInfo!.avatarURL);
+    html = html.replaceAll("<%TABLE_ROWS%>", topGamesTable);
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      formatSeconds(this.totalPlaytime()) + ""
+    );
+    html = html.replaceAll("<%SESSIONS%>", this.sessions.length + "");
+    html = html.replaceAll("<%LAST_ACTIVE%>", this.lastActive().toUTCString());
+    /*html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive()));*/
+    html = html.replaceAll("<%GAMES_PLAYED%>", this.games.length + "");
+    html = html.replaceAll(
+      "<%AVERAGE_PLAYTIME_GAME%>",
+      formatSeconds(this.averagePlaytimePerGame())
+    );
+    html = html.replaceAll(
+      "<%AVERAGE_SESSIONS_GAME%>",
+      Math.floor(this.averageSessionsPerGame()) + ""
+    );
+    html = html.replaceAll(
+      "<%AVERAGE_SESSION_LENGTH%>",
+      formatSeconds(this.averageSessionLength())
+    );
+    html = html.replaceAll("<%ACTIVE_DAYS%>", this.activeDays() + "");
+    html = html.replaceAll(
+      "<%LONGEST_BREAK%>",
+      formatSeconds(this.longestBreak(), 1)
+    );
+    html = html.replaceAll(
+      "<%MOST_CONSECUTIVE_DAYS%>",
+      this.mostConsecutiveDays() + ""
+    );
+    html = html.replaceAll(
+      "<%FIRST_SESSION%>",
+      this.firstSessionDate().toUTCString()
+    );
+
+    html = html.replaceAll("<%CHART%>", this.getChart());
+    return await STATICS.web.constructHTML(html, discordInfo.username);
+  }
+
   getChart(): string {
     return `
       <canvas id="myChart"></canvas>
         <script>
         document.addEventListener("DOMContentLoaded", function () {
-        fetch("/user/${this.userID}/chartData")
+        fetch("/user/${this.id}/chartData")
             .then(res => res.json())
             .then(data => {
                 const ctx = document.getElementById("myChart").getContext("2d");

@@ -4,6 +4,7 @@ import { formatSeconds, sanitizeHTML, timeSince } from "./utils";
 import { Game } from "./game";
 import { STATICS } from ".";
 import { Logger } from "./logger";
+import { User } from "./user";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -76,7 +77,8 @@ export class www {
     const userIDs = await STATICS.pg.fetchUserIDs();
     let TR = `<tr ><th></th><th>Username</th><th>Games Played</th><th>Time Played</th><th>Last Active</th></tr>`;
     for (const u of userIDs) {
-      const user = await STATICS.pg.fetchUser(u);
+      const user = await User.fromID(u);
+
       if (!user) {
         continue;
       }
@@ -192,116 +194,6 @@ export class www {
     );
     html = html.replace("<%CHART%>", game.getChart());
     return await this.constructHTML(html, game.name);
-  }
-
-  async userPage(userID: string): Promise<string> {
-    const user = await STATICS.pg.fetchUser(userID);
-    if (!user) {
-      return await this.errorPage("Unknown user.");
-    }
-    const discordInfo = await STATICS.discord.getUser(userID);
-    let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
-
-    // Recent activity table
-    let recentActivity = "";
-    let recentActivityCount = 0;
-    const sessionsRecent = user.sessions.sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
-    );
-    for (let i = 0; i < Math.min(10, sessionsRecent.length); i++) {
-      const session = sessionsRecent[i];
-      const game = await STATICS.pg.fetchGame(session.gameID);
-      if (!game) {
-        continue;
-      }
-      recentActivity += "<tr>";
-      recentActivity +=
-        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
-        game.name +
-        "</a></td>";
-      recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
-      recentActivity += `<td>${timeSince(session.date)}</td>`;
-
-      recentActivity += "</tr>\n";
-      recentActivityCount++;
-    }
-    html = html.replaceAll("<%TABLE_RECENT_ROWS%>", recentActivity);
-
-    // Top games table
-    let topGamesTable = "";
-    const games = [...user.games];
-    games.sort((a, b) => {
-      return b.totalPlaytimeForUser(userID) - a.totalPlaytimeForUser(userID);
-    });
-    for (const game of games) {
-      console.log(game.name);
-      const gameStat = game.getGameStatsForUser(userID);
-      topGamesTable += "<tr>";
-      topGamesTable +=
-        `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
-        game.name +
-        "</a></td>";
-      topGamesTable +=
-        `<td sorttable_customkey="${gameStat.seconds}" title="${gameStat.seconds} seconds">` +
-        formatSeconds(gameStat.seconds) +
-        "</td>";
-      topGamesTable += "<td>" + gameStat.sessions.length + "</td>";
-      topGamesTable += `<td sorttable_customkey="${
-        gameStat.longestSession.seconds
-      }" title="${gameStat.longestSession.date.toUTCString()}">${formatSeconds(
-        gameStat.longestSession.seconds
-      )}</td>`;
-      topGamesTable +=
-        `<td sorttable_customkey="${gameStat.lastPlayed.getTime()}" title="${gameStat.lastPlayed.toUTCString()}">` +
-        timeSince(gameStat.lastPlayed) +
-        "</td>";
-      topGamesTable += "</tr>\n";
-    }
-
-    html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
-    //html = html.replace("<%BORDER_COLOR%>", discordInfo!.bannerColor);
-    html = html.replaceAll("<%AVATAR_URL%>", discordInfo!.avatarURL);
-    html = html.replaceAll("<%TABLE_ROWS%>", topGamesTable);
-    html = html.replaceAll(
-      "<%TOTAL_PLAYTIME%>",
-      formatSeconds(user.totalPlaytime()) + ""
-    );
-    html = html.replaceAll("<%SESSIONS%>", user.sessions.length + "");
-    html = html.replaceAll("<%LAST_ACTIVE%>", user.lastActive().toUTCString());
-    /*html = html.replaceAll("<%LAST_ACTIVE_AGO%>", timeSince(user.lastActive()));*/
-    html = html.replaceAll("<%GAMES_PLAYED%>", user.games.length + "");
-    html = html.replaceAll(
-      "<%AVERAGE_PLAYTIME_GAME%>",
-      formatSeconds(user.averagePlaytimePerGame())
-    );
-    html = html.replaceAll(
-      "<%AVERAGE_SESSIONS_GAME%>",
-      Math.floor(user.averageSessionsPerGame()) + ""
-    );
-    html = html.replaceAll(
-      "<%AVERAGE_SESSION_LENGTH%>",
-      formatSeconds(user.averageSessionLength())
-    );
-    html = html.replaceAll("<%ACTIVE_DAYS%>", user.activeDays() + "");
-    html = html.replaceAll(
-      "<%LONGEST_BREAK%>",
-      formatSeconds(user.longestBreak(), 1)
-    );
-    html = html.replaceAll(
-      "<%MOST_CONSECUTIVE_DAYS%>",
-      user.mostConsecutiveDays() + ""
-    );
-    html = html.replaceAll(
-      "<%FIRST_SESSION%>",
-      user.firstSessionDate().toUTCString()
-    );
-
-    /*html = html.replaceAll(
-      "<%FIRST_SESSION_AGO%>",
-      timeSince(user.firstSession())
-    );*/
-    html = html.replaceAll("<%CHART%>", user.getChart());
-    return await this.constructHTML(html, discordInfo.username);
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {

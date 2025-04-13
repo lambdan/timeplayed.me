@@ -5,6 +5,7 @@ import { Discord } from "./discord";
 import { Totals } from "./totals";
 import { Logger } from "./logger";
 import { PostgresTasks } from "./postgres_tasks";
+import { User } from "./user";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -122,9 +123,14 @@ STATICS.fastify.get("/user/:id", async (request, reply) => {
     return reply.type("text/html").send(cache);
   }
   const { id } = request.params as { id: string };
-  const html = await STATICS.web.userPage(id);
+  const user = await User.fromID(id);
+  if (!user) {
+    return reply.code(400).send("Could not get user");
+  }
 
-  reply.type("text/html").send(cacheAndReturn(request.url, html));
+  return reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await user.page()));
 });
 
 STATICS.fastify.get("/user/:id/chartData", async (request, reply) => {
@@ -133,12 +139,12 @@ STATICS.fastify.get("/user/:id/chartData", async (request, reply) => {
     return reply.send(cache);
   }
   const { id } = request.params as { id: string };
-  const user = await STATICS.pg.fetchUser(id);
+  const user = await User.fromID(id);
+
   if (!user) {
-    reply.code(400).send("Could not get user");
-    return;
+    return reply.code(400).send("Could not get user");
   }
-  reply.send(cacheAndReturn(request.url, await user.chartData()));
+  return reply.send(cacheAndReturn(request.url, await user.chartData()));
 });
 
 /* Totals */
