@@ -1,4 +1,10 @@
-import { Client, Configuration, connect, ResultRecord } from "ts-postgres";
+import {
+  Client,
+  Configuration,
+  connect,
+  Query,
+  ResultRecord,
+} from "ts-postgres";
 import { Game } from "./game";
 import { Session } from "./session";
 import { User } from "./user";
@@ -35,13 +41,21 @@ export class Postgres {
     this.logger.log("Connected!");
   }
 
+  async q(text: Query | string, values?: any[]): Promise<ResultRecord<any>> {
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    this.logger.log(text, values);
+    return await this.postgresClient!.query(text, values);
+  }
+
   async taskLoop() {
     if (this.taskLoopRunning) {
       return;
     }
     this.taskLoopRunning = true;
     while (true) {
-      this.logger.warn(new Date(), "RUNNING TASKS!");
+      this.logger.log("RUNNING TASKS!");
       if (!this.postgresClient) {
         await this.connect();
       }
@@ -81,10 +95,8 @@ export class Postgres {
       query += ` LIMIT $${values.length}`;
     }
 
-    this.logger.log(query, values);
-
     try {
-      const result = await this.postgresClient!.query(query, values);
+      const result = await this.q(query, values);
       for (const r of result.rows) {
         sessions.push({
           id: +r[0],
@@ -103,10 +115,9 @@ export class Postgres {
 
   async fetchGameName(gameID: number): Promise<string | null> {
     try {
-      const result = await this.postgresClient!.query(
-        "SELECT name FROM game WHERE id = $1",
-        [gameID]
-      );
+      const result = await this.q("SELECT name FROM game WHERE id = $1", [
+        gameID,
+      ]);
       if (result.rows.length > 0) {
         return result.rows[0][0] as string;
       }
@@ -118,10 +129,9 @@ export class Postgres {
 
   async fetchGameIDFromGameName(gameName: string): Promise<number | null> {
     try {
-      const result = await this.postgresClient!.query(
-        "SELECT id FROM game WHERE name = $1",
-        [gameName]
-      );
+      const result = await this.q("SELECT id FROM game WHERE name = $1", [
+        gameName,
+      ]);
       if (result.rows.length > 0) {
         return result.rows[0][0] as number;
       }
@@ -172,10 +182,7 @@ export class Postgres {
 
   async fetchGames(): Promise<Game[]> {
     try {
-      const result = await this.postgresClient!.query(
-        //"SELECT * FROM game ORDER BY name ASC"
-        "SELECT * FROM game"
-      );
+      const result = await this.q("SELECT * FROM game");
       const games: Game[] = [];
       for (const r of result.rows) {
         const gameID = r[0];
@@ -195,8 +202,7 @@ export class Postgres {
 
   async fetchUserIDs(): Promise<string[]> {
     try {
-      const result = await this.postgresClient!.query(
-        // Select distinct user_ids, order by recency
+      const result = await this.q(
         "SELECT user_id FROM activity GROUP BY user_id ORDER BY MAX(timestamp) DESC;"
       );
       const users: string[] = [];
@@ -219,7 +225,7 @@ export class Postgres {
     if (!this.postgresClient) {
       await this.connect();
     }
-    return await this.postgresClient!.query(
+    return await this.q(
       `INSERT INTO activity (timestamp, user_id, game_id, seconds)
      VALUES (to_timestamp($1), $2, $3, $4)`,
       [date.getTime() / 1000, userID, gameID, seconds]
@@ -227,17 +233,14 @@ export class Postgres {
   }
 
   async deleteActivity(id: number): Promise<ResultRecord<any>> {
-    return await this.postgresClient!.query(
-      `DELETE FROM activity WHERE id = $1`,
-      [id]
-    );
+    return await this.q(`DELETE FROM activity WHERE id = $1`, [id]);
   }
 
   async replaceActivityGameID(
     sessionID: number,
     newGameID: number
   ): Promise<ResultRecord<any>> {
-    return await this.postgresClient!.query(
+    return await this.q(
       `UPDATE activity 
      SET game_id = $1 
      WHERE id = $2`,
@@ -246,6 +249,7 @@ export class Postgres {
   }
 
   async taskReplaceGameIDs() {
+    this.logger.log("Running taskReplaceGameIDs");
     for (const d of REPLACERS) {
       const parentID = await this.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
@@ -267,6 +271,7 @@ export class Postgres {
   }
 
   async taskRemoveShortSessions() {
+    this.logger.log("Running taskRemoveShortSessions");
     const sessions = await this.fetchSessions();
     for (const s of sessions) {
       if (s.seconds < 60) {
@@ -276,6 +281,7 @@ export class Postgres {
   }
 
   async taskRemoveBadGameSessions() {
+    this.logger.log("Running taskRemoveBadGameSessions");
     for (const game of BAD_GAMES) {
       const gameID = await this.fetchGameIDFromGameName(game);
       if (!gameID) {
