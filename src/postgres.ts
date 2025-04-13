@@ -5,14 +5,17 @@ import { User } from "./user";
 import { sleep } from "./utils";
 import { Logger } from "./logger";
 
+// Use these to replace games with multiple titles
 const REPLACERS = [
-  // TODO Read this from JSON or something
   // Children sessions will be replaced with parent game ID
   {
     parent: "The Elder Scrolls V: Skyrim Special Edition",
     children: ["Skyrim Special Edition"],
   },
 ];
+
+// Games called this will be removed, use to remove bad data
+const BAD_GAMES = ["Steam Deck"];
 
 export class Postgres {
   private postgresClient: Client | null = null;
@@ -43,8 +46,9 @@ export class Postgres {
         await this.connect();
       }
 
-      await this.replaceGameIDsTask();
-      await this.removeShortSessionsTask();
+      await this.taskReplaceGameIDs();
+      await this.taskRemoveShortSessions();
+      await this.taskRemoveBadGameSessions();
 
       await sleep(30 * 1000);
     }
@@ -241,7 +245,7 @@ export class Postgres {
     );
   }
 
-  async replaceGameIDsTask() {
+  async taskReplaceGameIDs() {
     for (const d of REPLACERS) {
       const parentID = await this.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
@@ -262,10 +266,24 @@ export class Postgres {
     }
   }
 
-  async removeShortSessionsTask() {
+  async taskRemoveShortSessions() {
     const sessions = await this.fetchSessions();
     for (const s of sessions) {
       if (s.seconds < 60) {
+        await this.deleteActivity(s.id);
+      }
+    }
+  }
+
+  async taskRemoveBadGameSessions() {
+    for (const game of BAD_GAMES) {
+      const gameID = await this.fetchGameIDFromGameName(game);
+      if (!gameID) {
+        //this.logger.warn("Did not find game ID for", game);
+        continue;
+      }
+      const sessions = await this.fetchSessions(undefined, gameID);
+      for (const s of sessions) {
         await this.deleteActivity(s.id);
       }
     }
