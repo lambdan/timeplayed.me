@@ -46,7 +46,8 @@ export class www {
     const sessions = await STATICS.pg.fetchSessions(undefined, undefined, 10);
     console.log(sessions);
     for (const session of sessions) {
-      const game = await STATICS.pg.fetchGame(session.gameID);
+      const game = await Game.fromID(session.gameID);
+
       if (!game) {
         continue;
       }
@@ -145,55 +146,6 @@ export class www {
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
     html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
     return await this.constructHTML(html, "Games");
-  }
-
-  async gamePage(gameID: number): Promise<string> {
-    const game = await STATICS.pg.fetchGame(gameID);
-
-    if (!game) {
-      return await this.errorPage("Unknown game");
-    }
-
-    let TR = "";
-
-    for (const userId of game.players) {
-      const stats = game.getGameStatsForUser(userId);
-      const discordInfo = await STATICS.discord.getUser(userId);
-
-      TR += `<tr class="align-middle">`;
-      TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
-        discordInfo!.avatarURL
-      }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
-      TR += `<td class="col"><a href="/user/${userId}">${
-        discordInfo!.username
-      }</td></a>`;
-      TR += `<td sorttable_customkey="${stats.seconds}" title="${
-        stats.seconds
-      } seconds" class="col align-middle">${formatSeconds(stats.seconds)}</td>`;
-      TR += `<td>${stats.sessions.length}</td>`;
-      TR += `<td sorttable_customkey="${
-        stats.longestSession.seconds
-      }" title="${stats.longestSession.date.toUTCString()}">${formatSeconds(
-        stats.longestSession.seconds
-      )}</td>`;
-      TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
-        stats.lastPlayed
-      )}</td>`;
-      TR += `</tr>\n`;
-    }
-
-    let html = await readFile(join(__dirname, "../static/game.html"), "utf-8");
-    html = html.replaceAll("<%TABLE_ROWS%>", TR);
-    html = html.replaceAll("<%GAME_NAME%>", game.name);
-    html = html.replaceAll("<%GAME_COLOR%>", game.color);
-    html = html.replaceAll("<%PLAYER_COUNT%>", game.players.length + "");
-    html = html.replaceAll("<%SESSIONS%>", game.sessions.length + "");
-    html = html.replaceAll(
-      "<%TOTAL_PLAYTIME%>",
-      formatSeconds(game.totalPlaytime())
-    );
-    html = html.replace("<%CHART%>", game.getChart());
-    return await this.constructHTML(html, game.name);
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {

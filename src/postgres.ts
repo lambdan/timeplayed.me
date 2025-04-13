@@ -107,22 +107,7 @@ export class Postgres {
     return null;
   }
 
-  async fetchGame(gameID: number): Promise<Game | null> {
-    const gameName = await this.fetchGameName(gameID);
-    if (!gameName) {
-      this.logger.error("Game name not found");
-      return null;
-    }
-
-    try {
-      const sessions = await this.fetchSessions(undefined, gameID);
-      return new Game(gameID, gameName, sessions);
-    } catch (error) {
-      this.logger.error("Error fetching data:", error);
-    }
-
-    return null;
-  }
+ 
 
   async fetchGames(): Promise<Game[]> {
     try {

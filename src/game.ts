@@ -1,6 +1,9 @@
+import { STATICS } from "./index";
+import { Logger } from "./logger";
 import { Session } from "./session";
-import { User } from "./user";
-import { colorFromString } from "./utils";
+import { colorFromString, formatSeconds, timeSince } from "./utils";
+import { readFile } from "fs/promises";
+import { join } from "path";
 
 export interface GameStatsForPlayer {
   seconds: number;
@@ -17,6 +20,25 @@ export class Game {
     this.id = id;
     this.name = name;
     this.sessions = sessions;
+  }
+
+  /** Constructs a Game object by ID. Async because it makes DB calls. */
+  public static async fromID(gameID: number): Promise<Game | null> {
+    const logger = new Logger("Game.fromID");
+    const gameName = await STATICS.pg.fetchGameName(gameID);
+    if (!gameName) {
+      logger.error("Game name not found");
+      return null;
+    }
+
+    try {
+      const sessions = await STATICS.pg.fetchSessions(undefined, gameID);
+      return new Game(gameID, gameName, sessions);
+    } catch (error) {
+      logger.error("Error fetching data:", error);
+    }
+
+    return null;
   }
 
   get lastPlayed(): Date {
@@ -123,6 +145,50 @@ export class Game {
       labels: Object.keys(playtimeByDate),
       values: Object.values(playtimeByDate).map((sec) => sec / 3600),
     };
+  }
+
+  /** Generates HTML for the game page */
+  async page(): Promise<string> {
+    let TR = "";
+
+    for (const userId of this.players) {
+      const stats = this.getGameStatsForUser(userId);
+      const discordInfo = await STATICS.discord.getUser(userId);
+
+      TR += `<tr class="align-middle">`;
+      TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
+        discordInfo!.avatarURL
+      }" class="img-thumbnail img-fluid rounded-circle"></a></td>`;
+      TR += `<td class="col"><a href="/user/${userId}">${
+        discordInfo!.username
+      }</td></a>`;
+      TR += `<td sorttable_customkey="${stats.seconds}" title="${
+        stats.seconds
+      } seconds" class="col align-middle">${formatSeconds(stats.seconds)}</td>`;
+      TR += `<td>${stats.sessions.length}</td>`;
+      TR += `<td sorttable_customkey="${
+        stats.longestSession.seconds
+      }" title="${stats.longestSession.date.toUTCString()}">${formatSeconds(
+        stats.longestSession.seconds
+      )}</td>`;
+      TR += `<td sorttable_customkey="${stats.lastPlayed.getTime()}" title="${stats.lastPlayed.toUTCString()}" class="col align-middle">${timeSince(
+        stats.lastPlayed
+      )}</td>`;
+      TR += `</tr>\n`;
+    }
+
+    let html = await readFile(join(__dirname, "../static/game.html"), "utf-8");
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%GAME_NAME%>", this.name);
+    html = html.replaceAll("<%GAME_COLOR%>", this.color);
+    html = html.replaceAll("<%PLAYER_COUNT%>", this.players.length + "");
+    html = html.replaceAll("<%SESSIONS%>", this.sessions.length + "");
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      formatSeconds(this.totalPlaytime())
+    );
+    html = html.replace("<%CHART%>", this.getChart());
+    return await STATICS.web.constructHTML(html, this.name);
   }
 
   getChart(): string {

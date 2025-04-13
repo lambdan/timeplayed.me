@@ -30,7 +30,7 @@ export class User {
         continue;
       }
       gotGames.add(s.gameID);
-      const game = await STATICS.pg.fetchGame(s.gameID);
+      const game = await Game.fromID(s.gameID);
       if (game) {
         games.push(game);
       }
@@ -219,7 +219,8 @@ export class User {
     );
     for (let i = 0; i < Math.min(10, sessionsRecent.length); i++) {
       const session = sessionsRecent[i];
-      const game = await STATICS.pg.fetchGame(session.gameID);
+      const game = await Game.fromID(session.gameID);
+
       if (!game) {
         continue;
       }

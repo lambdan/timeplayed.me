@@ -6,6 +6,7 @@ import { Totals } from "./totals";
 import { Logger } from "./logger";
 import { PostgresTasks } from "./postgres_tasks";
 import { User } from "./user";
+import { Game } from "./game";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -70,11 +71,16 @@ STATICS.fastify.get("/game/:id", async (request, reply) => {
   if (cache) {
     return reply.type("text/html").send(cache);
   }
-  const { id } = request.params as { id: string };
+  const { id } = request.params as { id: number };
 
-  reply
+  const game = await Game.fromID(id);
+  if (!game) {
+    return reply.code(400).send("Could not get game");
+  }
+
+  return reply
     .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.gamePage(+id)));
+    .send(cacheAndReturn(request.url, await game.page()));
 });
 
 STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
@@ -84,7 +90,7 @@ STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
   }
 
   const { id } = request.params as { id: number };
-  const game = await STATICS.pg.fetchGame(id);
+  const game = await Game.fromID(id);
   if (!game) {
     reply.code(400).send("Could not get game");
     return;
