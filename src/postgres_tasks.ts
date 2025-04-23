@@ -9,10 +9,14 @@ const REPLACERS = [
     parent: "The Elder Scrolls V: Skyrim Special Edition",
     children: ["Skyrim Special Edition"],
   },
+  {
+    parent: "The Legend of Zelda: Dungeons of Infinity",
+    children: ["Zelda Dungeons of Infinity"],
+  },
 ];
 
 // Games called this will be removed, use to remove bad data
-const BAD_GAMES = ["Steam Deck"];
+const BAD_GAMES = ["Steam Deck", "EmulationStationDE"];
 
 export class PostgresTasks {
   private postgres: Postgres;
