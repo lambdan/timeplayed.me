@@ -41,7 +41,7 @@ services:
       - 5432:5432
 
   web:
-    image: playtime-tracker:latest
+    image: ghcr.io/lambdan/timeplayed.me:latest
     ports:
       - 8000:8000
     environment:
