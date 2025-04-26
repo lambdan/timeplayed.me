@@ -19,23 +19,17 @@
     <script src="https://cdn.jsdelivr.net/npm/sorttable@1.0.2/sorttable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
     <script>
-      // Use system light/dark mode
-      // https://kolappan.com/blog/2023/auto-theme-selection-with-bootstrap-5/
+      function setTheme(theme) {
+        document.documentElement.setAttribute("data-bs-theme", theme);
+      }
 
       if (
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches
       ) {
-        document.documentElement.setAttribute("data-bs-theme", "dark");
-        console.log("switching to dark theme");
-      }
-
-      if (
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: light)").matches
-      ) {
-        document.documentElement.setAttribute("data-bs-theme", "light");
-        console.log("switching to light theme");
+        setTheme("dark");
+      } else {
+        setTheme("light");
       }
     </script>
 
