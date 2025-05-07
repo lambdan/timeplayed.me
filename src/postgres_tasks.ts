@@ -13,6 +13,10 @@ const REPLACERS = [
     parent: "The Legend of Zelda: Dungeons of Infinity",
     children: ["Zelda Dungeons of Infinity"],
   },
+  {
+    parent: "Tony Hawk's Pro Skater 3",
+    children: ["THPS3 - PARTYMOD"],
+  },
 ];
 
 // Games called this will be removed, use to remove bad data
