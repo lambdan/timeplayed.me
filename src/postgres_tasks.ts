@@ -3,8 +3,8 @@ import { Postgres } from "./postgres";
 import { sleep } from "./utils";
 
 // Use these to replace games with multiple titles
-const REPLACERS = [
-  // Children sessions will be replaced with parent game ID
+const MERGE_GAMES = [
+  // Children will be merged into parent
   {
     parent: "The Elder Scrolls V: Skyrim Special Edition",
     children: ["Skyrim Special Edition"],
@@ -42,17 +42,17 @@ export class PostgresTasks {
 
       this.logger.log("RUNNING TASKS!");
 
-      await this.taskReplaceGameIDs();
+      await this.taskMergeGames();
       await this.taskRemoveShortSessions();
-      await this.taskRemoveBadGameSessions();
+      await this.taskRemoveBadGames();
 
       await sleep(this.intervalSecs * 1000);
     }
   }
 
-  async taskReplaceGameIDs() {
+  async taskMergeGames() {
     this.logger.log("Running taskReplaceGameIDs");
-    for (const d of REPLACERS) {
+    for (const d of MERGE_GAMES) {
       const parentID = await this.postgres.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
         this.logger.warn("Did not find parent ID for", d.parent);
@@ -82,7 +82,7 @@ export class PostgresTasks {
     }
   }
 
-  async taskRemoveBadGameSessions() {
+  async taskRemoveBadGames() {
     this.logger.log("Running taskRemoveBadGameSessions");
     for (const game of BAD_GAMES) {
       const gameID = await this.postgres.fetchGameIDFromGameName(game);
