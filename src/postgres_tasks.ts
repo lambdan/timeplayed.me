@@ -15,7 +15,7 @@ const REPLACERS = [
   },
   {
     parent: "Tony Hawk's Pro Skater 3",
-    children: ["THPS3 - PARTYMOD"],
+    children: ["THPS3 - PARTYMOD", "thps3"],
   },
 ];
 
