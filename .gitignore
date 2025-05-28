@@ -131,3 +131,5 @@ dist
 .DS_Store
 docker-compose.yml
 dev-compose.yml
+build-test
+*.sql

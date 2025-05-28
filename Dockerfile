@@ -1,11 +1,13 @@
 FROM node:22-alpine AS build
 
 WORKDIR /build
-COPY package.json package-lock.json tsconfig.json /build/
+COPY package.json package-lock.json /build/
+RUN npm ci 
+
+COPY tsconfig.json tsconfig.dist.json /build/ 
 COPY src /build/src
 COPY static /build/static
-
-RUN npm ci
+RUN npm run test
 RUN npm run build
 
 FROM node:22-alpine AS final

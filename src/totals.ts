@@ -1,13 +1,15 @@
-import { STATICS } from ".";
 import { Logger } from "./logger";
+import { Postgres } from "./postgres";
 import { colorFromString } from "./utils";
+
+let _instance: Totals | null = null;
 
 export class Totals {
   private logger = new Logger("Postgres");
   constructor() {}
 
   async lastPlayed(): Promise<Date> {
-    const sessions = await STATICS.pg.fetchSessions();
+    const sessions = await Postgres.GetInstance().fetchSessions();
     let latest = new Date(0);
     for (const s of sessions) {
       if (s.date.getTime() > latest.getTime()) {
@@ -18,12 +20,12 @@ export class Totals {
   }
 
   async totalSessions(): Promise<number> {
-    const sessions = await STATICS.pg.fetchSessions();
+    const sessions = await Postgres.GetInstance().fetchSessions();
     return sessions.length;
   }
 
   async totalPlaytime(): Promise<number> {
-    const sessions = await STATICS.pg.fetchSessions();
+    const sessions = await Postgres.GetInstance().fetchSessions();
     let sum = 0;
     for (const s of sessions) {
       sum += s.seconds;
@@ -36,7 +38,7 @@ export class Totals {
   }
 
   async chartData() {
-    const sessions = (await STATICS.pg.fetchSessions()).reverse();
+    const sessions = (await Postgres.GetInstance().fetchSessions()).reverse();
     const playtimeByDate: Record<string, number> = {};
     // Fill in blank days
     const first = sessions[0].date;
@@ -104,5 +106,12 @@ export class Totals {
             .catch(err => console.error("Failed to load chart data:", err));
     });
         </script>`;
+  }
+
+  static GetInstance(): Totals {
+    if (!_instance) {
+      _instance = new Totals();
+    }
+    return _instance;
   }
 }

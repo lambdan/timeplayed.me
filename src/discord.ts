@@ -26,6 +26,8 @@ export interface DiscordUserInfo {
 
 const CACHE_EXPIRE = 1 * 60 * 60 * 1000; // 1 hour
 
+let _instance: Discord | null = null;
+
 export class Discord {
   private logger = new Logger("Discord");
   private token: string;
@@ -86,5 +88,17 @@ export class Discord {
     };
     this.cache.set(userID, data);
     return data;
+  }
+
+  static async GetInstance(): Promise<Discord> {
+    if (_instance) {
+      return _instance;
+    }
+    const token = process.env.DISCORD_TOKEN;
+    if (!token) {
+      throw new Error("No Discord token provided in environment variables.");
+    }
+    _instance = new Discord(token);
+    return _instance;
   }
 }

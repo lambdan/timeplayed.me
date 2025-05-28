@@ -2,11 +2,15 @@ import { join } from "path";
 import { readFile } from "fs/promises";
 import { formatSeconds, sanitizeHTML, timeSince } from "./utils";
 import { Game } from "./game";
-import { STATICS } from ".";
 import { Logger } from "./logger";
 import { User } from "./user";
+import { Discord } from "./discord";
+import { Postgres } from "./postgres";
+import { Totals } from "./totals";
 
 const APP_VERSION = require("../package.json").version;
+
+let _instance: www | null = null;
 
 export class www {
   private logger = new Logger("www");
@@ -39,11 +43,15 @@ export class www {
       join(__dirname, "../static/frontpage.html"),
       "utf-8"
     );
-    html = html.replace("<%CHART%>", STATICS.totals.getChart());
+    html = html.replace("<%CHART%>", Totals.GetInstance().getChart());
 
     // Recent activity table
     let recentActivityTable = "";
-    const sessions = await STATICS.pg.fetchSessions(undefined, undefined, 10);
+    const sessions = await Postgres.GetInstance().fetchSessions(
+      undefined,
+      undefined,
+      10
+    );
     console.log(sessions);
     for (const session of sessions) {
       const game = await Game.fromID(session.gameID);
@@ -51,7 +59,9 @@ export class www {
       if (!game) {
         continue;
       }
-      const discordInfo = await STATICS.discord.getUser(session.userID);
+      const discordInfo = await (
+        await Discord.GetInstance()
+      ).getUser(session.userID);
       recentActivityTable += '<tr class="align-middle">';
       recentActivityTable += `<td class="col-lg-1"><a href="/user/${
         session.userID
@@ -75,7 +85,7 @@ export class www {
   }
 
   async usersPage(): Promise<string> {
-    const userIDs = await STATICS.pg.fetchUserIDs();
+    const userIDs = await Postgres.GetInstance().fetchUserIDs();
     let TR = `<tr ><th></th><th>Username</th><th>Games Played</th><th>Time Played</th><th>Last Active</th></tr>`;
     for (const u of userIDs) {
       const user = await User.fromID(u);
@@ -83,7 +93,7 @@ export class www {
       if (!user) {
         continue;
       }
-      const discordInfo = await STATICS.discord.getUser(u);
+      const discordInfo = await (await Discord.GetInstance()).getUser(u);
 
       TR += `<tr >`;
       TR += `<td class="col-lg-1"><a href="/user/${u}" ><img src="${
@@ -113,7 +123,7 @@ export class www {
   }
 
   async gamesPage(): Promise<string> {
-    const games = await STATICS.pg.fetchGames();
+    const games = await Postgres.GetInstance().fetchGames();
 
     let totalTime = 0;
     let totalSessions = 0;
@@ -153,5 +163,12 @@ export class www {
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
     return await this.constructHTML(html, "Error");
+  }
+
+  static GetInstance(): www {
+    if (!_instance) {
+      _instance = new www();
+    }
+    return _instance;
   }
 }

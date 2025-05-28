@@ -7,8 +7,10 @@ import {
 } from "ts-postgres";
 import { Game } from "./game";
 import { Session } from "./session";
-import { User } from "./user";
 import { Logger } from "./logger";
+import { PostgresTasks } from "./postgres_tasks";
+
+let _instance: Postgres | null = null;
 
 export class Postgres {
   private postgresClient: Client | null = null;
@@ -107,8 +109,6 @@ export class Postgres {
     return null;
   }
 
- 
-
   async fetchGames(): Promise<Game[]> {
     try {
       const result = await this.q("SELECT * FROM game");
@@ -175,5 +175,21 @@ export class Postgres {
      WHERE id = $2`,
       [newGameID, sessionID]
     );
+  }
+
+  static GetInstance(): Postgres {
+    if (_instance) {
+      return _instance;
+    }
+    const pg = new Postgres({
+      host: process.env.POSTGRES_HOST || "localhost",
+      port: +(process.env.POSTGRES_PORT || 5432),
+      user: process.env.POSTGRES_USER || "oblivion",
+      password: process.env.POSTGRESS_PASS || "oblivion",
+      database: process.env.POSTGRES_DB || "oblivionis",
+    });
+    _instance = pg;
+    new PostgresTasks(_instance);
+    return _instance;
   }
 }

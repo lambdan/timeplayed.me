@@ -1,9 +1,11 @@
-import { STATICS } from "./index";
 import { Game } from "./game";
 import { Session } from "./session";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { formatSeconds, timeSince } from "./utils";
+import { Discord } from "./discord";
+import { Postgres } from "./postgres";
+import { www } from "./www";
 
 export class User {
   readonly id: string;
@@ -18,7 +20,7 @@ export class User {
 
   /** Constructs a User object by ID. Async because it makes DB calls. */
   public static async fromID(userID: string): Promise<User | null> {
-    const sessions = await STATICS.pg.fetchSessions(userID);
+    const sessions = await Postgres.GetInstance().fetchSessions(userID);
     if (sessions.length === 0) {
       return null;
     }
@@ -208,7 +210,7 @@ export class User {
 
   /** Generates the HTML string for the user page */
   async page(): Promise<string> {
-    const discordInfo = await STATICS.discord.getUser(this.id);
+    const discordInfo = await (await Discord.GetInstance()).getUser(this.id);
     let html = await readFile(join(__dirname, "../static/user.html"), "utf-8");
 
     // Recent activity table
@@ -306,7 +308,7 @@ export class User {
     );
 
     html = html.replaceAll("<%CHART%>", this.getChart());
-    return await STATICS.web.constructHTML(html, discordInfo.username);
+    return await www.GetInstance().constructHTML(html, discordInfo.username);
   }
 
   getChart(): string {

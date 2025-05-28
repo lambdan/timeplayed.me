@@ -1,9 +1,11 @@
-import { STATICS } from "./index";
+import { Discord } from "./discord";
 import { Logger } from "./logger";
+import { Postgres } from "./postgres";
 import { Session } from "./session";
 import { colorFromString, formatSeconds, timeSince } from "./utils";
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { www } from "./www";
 
 export interface GameStatsForPlayer {
   seconds: number;
@@ -25,14 +27,14 @@ export class Game {
   /** Constructs a Game object by ID. Async because it makes DB calls. */
   public static async fromID(gameID: number): Promise<Game | null> {
     const logger = new Logger("Game.fromID");
-    const gameName = await STATICS.pg.fetchGameName(gameID);
+    const gameName = await Postgres.GetInstance().fetchGameName(gameID);
     if (!gameName) {
       logger.error("Game name not found");
       return null;
     }
 
     try {
-      const sessions = await STATICS.pg.fetchSessions(undefined, gameID);
+      const sessions = await Postgres.GetInstance().fetchSessions(undefined, gameID);
       return new Game(gameID, gameName, sessions);
     } catch (error) {
       logger.error("Error fetching data:", error);
@@ -153,7 +155,9 @@ export class Game {
 
     for (const userId of this.players) {
       const stats = this.getGameStatsForUser(userId);
-      const discordInfo = await STATICS.discord.getUser(userId);
+      const discordInfo = await(await Discord.GetInstance()).getUser(
+        userId
+      );
 
       TR += `<tr class="align-middle">`;
       TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
@@ -188,7 +192,7 @@ export class Game {
       formatSeconds(this.totalPlaytime())
     );
     html = html.replace("<%CHART%>", this.getChart());
-    return await STATICS.web.constructHTML(html, this.name);
+    return await www.GetInstance().constructHTML(html, this.name);
   }
 
   getChart(): string {
