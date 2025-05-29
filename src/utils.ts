@@ -2,32 +2,44 @@
 export function formatSeconds(secs: number, daysAfter = 0): string {
   if (daysAfter > 0 && secs > 86400 * daysAfter) {
     const days = Math.floor(secs / 86400);
-    return days + ` ${days === 1 ? "day" : "days"}`;
+    return `${days} day${days === 1 ? "" : "s"}`;
   }
 
   if (secs >= 3600) {
-    return (secs / 3600).toFixed(1) + " hr(s)";
-  }
-  if (secs >= 60) {
-    return Math.floor(secs / 60) + " min(s)";
+    const hours = Math.floor(secs / 3600);
+    return `${hours} hour${hours === 1 ? "" : "s"}`;
   }
 
-  return "<1 min";
+  if (secs >= 60) {
+    const mins = Math.floor(secs / 60);
+    return `${mins} minute${mins === 1 ? "" : "s"}`;
+  }
+
+  return "<1 minute";
 }
 
+/** Returns a human readable time since string */
 export function timeSince(old_date: Date): string {
   const deltaSecs = (Date.now() - old_date.getTime()) / 1000;
 
+  if (deltaSecs >= 86400 * 365) {
+    const years = Math.floor(deltaSecs / (86400 * 365));
+    return `${years} year${years === 1 ? "" : "s"} ago`;
+  }
+
   if (deltaSecs >= 86400) {
-    return Math.floor(deltaSecs / 86400) + " day(s) ago";
+    const days = Math.floor(deltaSecs / 86400);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
   }
 
   if (deltaSecs >= 3600) {
-    return Math.floor(deltaSecs / 3600) + " hour(s) ago";
+    const hours = Math.floor(deltaSecs / 3600);
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
   }
 
   if (deltaSecs >= 60) {
-    return Math.floor(deltaSecs / 60) + " min(s) ago";
+    const mins = Math.floor(deltaSecs / 60);
+    return `${mins} minute${mins === 1 ? "" : "s"} ago`;
   }
 
   return "just now";
