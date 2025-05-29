@@ -5,31 +5,29 @@ export function formatSeconds(secs: number, daysAfter = 0): string {
     return days + ` ${days === 1 ? "day" : "days"}`;
   }
 
-  if (secs > 7200) {
-    return (secs / 3600).toFixed(1) + " hours";
+  if (secs >= 3600) {
+    return (secs / 3600).toFixed(1) + " hr(s)";
   }
-  if (secs > 120) {
-    return Math.floor(secs / 60) + " mins";
+  if (secs >= 60) {
+    return Math.floor(secs / 60) + " min(s)";
   }
-  if (secs > 60) {
-    return "1 min";
-  }
+
   return "<1 min";
 }
 
 export function timeSince(old_date: Date): string {
   const deltaSecs = (Date.now() - old_date.getTime()) / 1000;
 
-  if (deltaSecs > 172800) {
-    return Math.floor(deltaSecs / 86400) + " days ago";
+  if (deltaSecs >= 86400) {
+    return Math.floor(deltaSecs / 86400) + " day(s) ago";
   }
 
-  if (deltaSecs > 7200) {
-    return Math.floor(deltaSecs / 3600) + " hours ago";
+  if (deltaSecs >= 3600) {
+    return Math.floor(deltaSecs / 3600) + " hour(s) ago";
   }
 
-  if (deltaSecs > 120) {
-    return Math.floor(deltaSecs / 60) + " mins ago";
+  if (deltaSecs >= 60) {
+    return Math.floor(deltaSecs / 60) + " min(s) ago";
   }
 
   return "just now";
