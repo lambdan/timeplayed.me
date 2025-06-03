@@ -46,12 +46,13 @@ describe("Utils", () => {
     assert.strictEqual(utils.formatSeconds(MINUTE), "1 minute");
     assert.strictEqual(utils.formatSeconds(2 * MINUTE), "2 minutes");
     assert.strictEqual(utils.formatSeconds(HOUR), "1 hour");
-    assert.strictEqual(utils.formatSeconds(2 * HOUR), "2 hours");
-    assert.strictEqual(utils.formatSeconds(DAY), "24 hours");
-    assert.strictEqual(utils.formatSeconds(2 * DAY), "48 hours");
+    assert.strictEqual(utils.formatSeconds(1.5 * HOUR), "1.5 hours");
+    assert.strictEqual(utils.formatSeconds(2 * HOUR), "2.0 hours");
+    assert.strictEqual(utils.formatSeconds(DAY), "24.0 hours");
+    assert.strictEqual(utils.formatSeconds(2 * DAY), "48.0 hours");
     assert.strictEqual(utils.formatSeconds(2 * DAY, 1), "2 days");
-    assert.strictEqual(utils.formatSeconds(YEAR), "8760 hours");
-    assert.strictEqual(utils.formatSeconds(2 * YEAR), "17520 hours");
+    assert.strictEqual(utils.formatSeconds(YEAR), "8760.0 hours");
+    assert.strictEqual(utils.formatSeconds(2 * YEAR), "17520.0 hours");
     assert.strictEqual(utils.formatSeconds(YEAR, 1), "365 days");
     assert.strictEqual(utils.formatSeconds(YEAR * 2, 2), "730 days");
   });

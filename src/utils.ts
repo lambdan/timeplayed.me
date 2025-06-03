@@ -5,9 +5,15 @@ export function formatSeconds(secs: number, daysAfter = 0): string {
     return `${days} day${days === 1 ? "" : "s"}`;
   }
 
+  if (secs >= (1.1 * 3600)) {
+    const hours = (secs / 3600).toFixed(1);
+    return `${hours} hours`; 
+  }
+
   if (secs >= 3600) {
-    const hours = Math.floor(secs / 3600);
-    return `${hours} hour${hours === 1 ? "" : "s"}`;
+    return "1 hour";
+    //const hours = (secs / 3600).toFixed(1);
+    //return `${hours} hour${hours === 1 ? "" : "s"}`;
   }
 
   if (secs >= 60) {
