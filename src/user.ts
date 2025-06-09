@@ -234,6 +234,7 @@ export class User {
         "</a></td>";
       recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivity += `<td>${timeSince(session.date)}</td>`;
+      recentActivity += `<td>${session.platform}</td>`;
 
       recentActivity += "</tr>\n";
       recentActivityCount++;

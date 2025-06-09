@@ -72,6 +72,7 @@ export class Postgres {
           userID: r[2],
           gameID: +r[3],
           seconds: +r[4],
+          platform: r[5],
         });
       }
     } catch (error) {
