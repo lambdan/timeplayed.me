@@ -227,14 +227,14 @@ export class User {
         continue;
       }
       recentActivity += "<tr>";
-      recentActivity += `<td>${session.id}</td>`;
+      //recentActivity += `<td>${session.id}</td>`;
       recentActivity +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
-        "</a></td>";
+        "</a>" + `<br><small>${session.platform}</small>` + "</td>";
       recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivity += `<td>${timeSince(session.date)}</td>`;
-      recentActivity += `<td>${session.platform}</td>`;
+      //recentActivity += `<td>${session.platform}</td>`;
 
       recentActivity += "</tr>\n";
       recentActivityCount++;
@@ -323,7 +323,6 @@ export class User {
       "utf-8"
     );
 
-    // Recent activity table
     let sessionsTable = "";
     const sessions = this.sessions.slice(offset, offset + OFFSET_INC);
     const sessionsRecent = sessions.sort(

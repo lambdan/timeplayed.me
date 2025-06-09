@@ -74,7 +74,7 @@ export class www {
       recentActivityTable +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
-        "</a></td>";
+        "</a>" + `<br><small>${session.platform}</small>` + "</td>";
       recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
       recentActivityTable += "</tr>\n";
