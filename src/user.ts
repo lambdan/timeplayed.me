@@ -143,6 +143,20 @@ export class User {
     return this.totalPlaytime() / this.games.length;
   }
 
+  platformBreakdown(): Record<string, number> {
+    const breakdown: Record<string, number> = {};
+    for (const session of this.sessions) {
+      if (!breakdown[session.platform]) {
+        breakdown[session.platform] = 0;
+      }
+      breakdown[session.platform] += session.seconds;
+    }
+    // Sort by seconds played
+    return Object.fromEntries(
+      Object.entries(breakdown).sort(([, a], [, b]) => b - a)
+    );
+  }
+
   chartData() {
     const sessions = [...this.sessions].reverse();
     const playtimeByDateAndGame: Record<string, Record<number, number>> = {};
@@ -308,6 +322,23 @@ export class User {
       "<%FIRST_SESSION%>",
       this.firstSessionDate().toUTCString()
     );
+
+    
+    const platformData = this.platformBreakdown();
+    const total = this.totalPlaytime();
+    let platformBreakdown = "";
+    for (const platform in platformData) {
+      const percent = ((platformData[platform] / total) * 100).toFixed(1);
+      platformBreakdown += `
+      <tr>
+        <td>${platform}</td>
+        <td>${formatSeconds(platformData[platform])}</td>
+        <td>${percent}%</td>
+      </tr>
+      `;
+    }
+
+    html = html.replaceAll("<%PLATFORM_BREAKDOWN_ROWS%>", platformBreakdown);
 
     html = html.replaceAll("<%CHART%>", this.getChart());
     html = html.replaceAll("<%ALL_SESSIONS_URL%>", `/user/${this.id}/sessions`);

@@ -89,8 +89,30 @@
       <br />
 
       <div class="card">
-        <h2 class="card-header">Playtime by day</h2>
-        <div class="card-body"><%CHART%></div>
+        <h2 class="card-header">Platform breakdown</h2>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table sortable table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Platform</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Percent</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%PLATFORM_BREAKDOWN_ROWS%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <br />
+
+        <div class="card">
+          <h2 class="card-header">Playtime by day</h2>
+          <div class="card-body"><%CHART%></div>
+        </div>
       </div>
     </div>
   </div>
