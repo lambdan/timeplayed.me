@@ -1,12 +1,10 @@
 import Fastify, { FastifyInstance } from "fastify";
-import {  PROD } from ".";
+import { PROD } from ".";
 import { Game } from "./game";
 import { Totals } from "./totals";
 import { User } from "./user";
 import { www } from "./www";
 import { Logger } from "./logger";
-
-
 
 const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
 const cache = new Map<string, any>();
@@ -34,7 +32,6 @@ function cacheAndReturn(url: string, data: any): any {
   }, cacheAge);
   return data;
 }
-
 
 export class server {
   private fastify: FastifyInstance;
@@ -123,6 +120,25 @@ export class server {
       return reply
         .type("text/html")
         .send(cacheAndReturn(request.url, await user.page()));
+    });
+
+    this.fastify.get("/user/:id/sessions", async (request, reply) => {
+      const { offset } = request.query as { offset?: string };
+      const offsetNum = offset ? parseInt(offset, 10) : 0;
+
+      const cache = getCache(request.url);
+      if (cache) {
+        return reply.type("text/html").send(cache);
+      }
+      const { id } = request.params as { id: string };
+      const user = await User.fromID(id);
+      if (!user) {
+        return reply.code(400).send("Could not get user");
+      }
+
+      return reply
+        .type("text/html")
+        .send(cacheAndReturn(request.url, await user.sessionsPage(offsetNum)));
     });
 
     this.fastify.get("/user/:id/chartData", async (request, reply) => {

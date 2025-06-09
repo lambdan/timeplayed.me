@@ -310,7 +310,69 @@ export class User {
     );
 
     html = html.replaceAll("<%CHART%>", this.getChart());
+    html = html.replaceAll("<%ALL_SESSIONS_URL%>", `/user/${this.id}/sessions`);
     return await www.GetInstance().constructHTML(html, discordInfo.username);
+  }
+
+  async sessionsPage(offset = 0): Promise<string> {
+    const OFFSET_INC = 1000;
+
+    const discordInfo = await (await Discord.GetInstance()).getUser(this.id);
+    let html = await readFile(
+      join(__dirname, "../static/user_sessions.html"),
+      "utf-8"
+    );
+
+    // Recent activity table
+    let sessionsTable = "";
+    const sessions = this.sessions.slice(offset, offset + OFFSET_INC);
+    const sessionsRecent = sessions.sort(
+      (a, b) => b.date.getTime() - a.date.getTime()
+    );
+    for (let i = 0; i < Math.min(OFFSET_INC, sessionsRecent.length); i++) {
+      const session = sessionsRecent[i];
+      const game = await Game.fromID(session.gameID);
+
+      if (!game) {
+        continue;
+      }
+      sessionsTable += "<tr>";
+      sessionsTable += `<td>${session.id}</td>`;
+      sessionsTable +=
+        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
+        game.name +
+        "</a></td>";
+      sessionsTable += `<td>${formatSeconds(session.seconds)} (${session.seconds} secs)</td>`;
+      sessionsTable += `<td>${session.date.toUTCString()}</td>`;
+      sessionsTable += `<td>${session.platform}</td>`;
+
+      sessionsTable += "</tr>\n";
+    }
+    html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
+    html = html.replaceAll("<%TABLE_ROWS%>", sessionsTable);
+
+    const nextOffset = offset + OFFSET_INC;
+    if (offset > 0) {
+      html = html.replaceAll(
+        "<%PREV_LINK%>",
+        `<a href="/user/${this.id}/sessions?offset=${Math.max(0, offset - OFFSET_INC)}">Previous</a>`
+      );
+    } else {
+      html = html.replaceAll("<%PREV_LINK%>", "");
+    }
+
+    if (nextOffset < this.sessions.length) {
+      html = html.replaceAll(
+        "<%NEXT_LINK%>",
+        `<a href="/user/${this.id}/sessions?offset=${nextOffset}">Next</a>`
+      );
+    } else {
+      html = html.replaceAll("<%NEXT_LINK%>", "");
+    }
+
+    return await www
+      .GetInstance()
+      .constructHTML(html, discordInfo.username + " - all sessions");
   }
 
   getChart(): string {
