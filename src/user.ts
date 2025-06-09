@@ -227,6 +227,7 @@ export class User {
         continue;
       }
       recentActivity += "<tr>";
+      recentActivity += `<td>${session.id}</td>`;
       recentActivity +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
