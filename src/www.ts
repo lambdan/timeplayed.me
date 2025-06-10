@@ -80,7 +80,19 @@ export class www {
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
       recentActivityTable += "</tr>\n";
     }
+    
     html = html.replaceAll("<%RECENT_TABLE_ROWS%>", recentActivityTable);
+
+    const userCount = (await Postgres.GetInstance().fetchUserIDs()).length;
+    html = html.replaceAll("<%USER_AMOUNT%>", userCount.toString());
+    
+    let totalPlaytime = 0;
+    const games = await Postgres.GetInstance().fetchGames();
+    html = html.replaceAll("<%GAME_AMOUNT%>", games.length.toString());
+    for (const game of games) {
+      totalPlaytime += game.totalPlaytime();
+    }
+    html = html.replaceAll("<%TOTAL_PLAYTIME%>", (totalPlaytime/3600).toFixed(0) + " hours");
 
     return await this.constructHTML(html);
   }
