@@ -262,7 +262,6 @@ export class User {
       return b.totalPlaytimeForUser(this.id) - a.totalPlaytimeForUser(this.id);
     });
     for (const game of games) {
-      console.log(game.name);
       const gameStat = game.getGameStatsForUser(this.id);
       topGamesTable += "<tr>";
       topGamesTable +=

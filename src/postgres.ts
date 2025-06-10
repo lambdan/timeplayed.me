@@ -32,7 +32,7 @@ export class Postgres {
     if (!this.postgresClient) {
       await this.connect();
     }
-    this.logger.log(text, values);
+    this.logger.debug(text, values);
     return await this.postgresClient!.query(text, values);
   }
 

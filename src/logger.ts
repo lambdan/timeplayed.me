@@ -1,8 +1,10 @@
 export class Logger {
   identifier: string;
+  verbose: boolean = false;
 
   constructor(identifier: string) {
     this.identifier = identifier;
+    this.verbose = process.env.NODE_ENV !== "production";
   }
 
   date(): string {
@@ -19,5 +21,11 @@ export class Logger {
 
   error(...messages: any[]) {
     console.error(`${this.date()} [${this.identifier}]`, ...messages);
+  }
+
+  debug(...messages: any[]) {
+    if (this.verbose) {
+      console.debug(`${this.date()} [${this.identifier}]`, ...messages);
+    }
   }
 }

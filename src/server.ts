@@ -8,7 +8,7 @@ import { Logger } from "./logger";
 
 const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
 const cache = new Map<string, any>();
-export const logger = new Logger("Index");
+const logger = new Logger("Server");
 
 function getCache(url: string): string | null {
   if (!PROD) {
@@ -16,11 +16,11 @@ function getCache(url: string): string | null {
     return null;
   }
   if (!cache.has(url)) {
-    logger.log(url, "is not cached :(");
+    logger.debug(url, "is not cached :(");
 
     return null;
   }
-  logger.log(url, "is cached!");
+  logger.debug(url, "is cached!");
   return cache.get(url);
 }
 
@@ -28,7 +28,7 @@ function cacheAndReturn(url: string, data: any): any {
   cache.set(url, data);
   setTimeout(() => {
     cache.delete(url);
-    logger.warn(url, "cache expired");
+    logger.debug(url, "cache expired");
   }, cacheAge);
   return data;
 }

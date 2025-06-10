@@ -45,10 +45,10 @@ export class PostgresTasks {
     while (true) {
       // Check if postgres is connected
 
-      this.logger.log("RUNNING TASKS!");
+      this.logger.debug("RUNNING TASKS!");
 
       await this.taskMergeGames();
-      await this.taskRemoveShortSessions();
+      //await this.taskRemoveShortSessions();
       await this.taskRemoveBadGames();
 
       await sleep(this.intervalSecs * 1000);
@@ -56,17 +56,17 @@ export class PostgresTasks {
   }
 
   async taskMergeGames() {
-    this.logger.log("Running taskReplaceGameIDs");
+    this.logger.debug("Running taskReplaceGameIDs");
     for (const d of MERGE_GAMES) {
       const parentID = await this.postgres.fetchGameIDFromGameName(d.parent);
       if (!parentID) {
-        this.logger.warn("Did not find parent ID for", d.parent);
+        this.logger.debug("Did not find parent ID for", d.parent);
         continue;
       }
       for (const c of d.children) {
         const childID = await this.postgres.fetchGameIDFromGameName(c);
         if (!childID) {
-          this.logger.warn("Did not find child ID for", c);
+          this.logger.debug("Did not find child ID for", c);
           continue;
         }
         const sessions = await this.postgres.fetchSessions(undefined, childID);
@@ -78,7 +78,7 @@ export class PostgresTasks {
   }
 
   async taskRemoveShortSessions() {
-    this.logger.log("Running taskRemoveShortSessions");
+    this.logger.debug("Running taskRemoveShortSessions");
     const sessions = await this.postgres.fetchSessions();
     for (const s of sessions) {
       if (s.seconds < 60) {
@@ -88,7 +88,7 @@ export class PostgresTasks {
   }
 
   async taskRemoveBadGames() {
-    this.logger.log("Running taskRemoveBadGameSessions");
+    this.logger.debug("Running taskRemoveBadGameSessions");
     for (const game of BAD_GAMES) {
       const gameID = await this.postgres.fetchGameIDFromGameName(game);
       if (!gameID) {

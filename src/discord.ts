@@ -56,12 +56,12 @@ export class Discord {
       const cached = this.cache.get(userID)!;
       const age = Date.now() - cached.fetchedAt;
       if (age < CACHE_EXPIRE) {
-        this.logger.log("Using cache for user " + userID);
+        this.logger.debug("Using cache for user " + userID);
         return cached;
       }
     }
 
-    this.logger.log("Fetching user " + userID);
+    this.logger.debug("Fetching user " + userID);
     const response = await fetch(`https://discord.com/api/v9/users/${userID}`, {
       headers: {
         Authorization: `Bot ${this.token}`,
@@ -77,7 +77,7 @@ export class Discord {
     }
     const parsed = await response.json();
 
-    this.logger.log(`Fetched user ${parsed.username}}`);
+    this.logger.debug(`Fetched user ${parsed.username}}`);
 
     const data: DiscordUserInfo = {
       fetchedAt: Date.now(),
