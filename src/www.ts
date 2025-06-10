@@ -52,7 +52,6 @@ export class www {
       undefined,
       10
     );
-    console.log(sessions);
     for (const session of sessions) {
       const game = await Game.fromID(session.gameID);
 

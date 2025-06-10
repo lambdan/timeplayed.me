@@ -43,18 +43,20 @@ export class Postgres {
   ): Promise<Session[]> {
     const sessions = new Array<Session>();
 
-    // Order by id DESC to get recent first
-    let query = "SELECT * FROM activity ORDER BY id DESC";
+    // Order by timestamp DESC to get recent first
+    let query = "SELECT * FROM activity ORDER BY timestamp DESC";
     let values: any[] = [];
     if (userID && gameID) {
       query =
-        "SELECT * FROM activity WHERE user_id = $1 AND game_id = $2 ORDER BY id DESC";
+        "SELECT * FROM activity WHERE user_id = $1 AND game_id = $2 ORDER BY timestamp DESC";
       values = [userID, gameID];
     } else if (userID) {
-      query = "SELECT * FROM activity WHERE user_id = $1 ORDER BY id DESC";
+      query =
+        "SELECT * FROM activity WHERE user_id = $1 ORDER BY timestamp DESC";
       values = [userID];
     } else if (gameID) {
-      query = "SELECT * FROM activity WHERE game_id = $1 ORDER BY id DESC";
+      query =
+        "SELECT * FROM activity WHERE game_id = $1 ORDER BY timestamp DESC";
       values = [gameID];
     }
 
