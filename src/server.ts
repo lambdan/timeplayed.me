@@ -6,7 +6,7 @@ import { User } from "./user";
 import { www } from "./www";
 import { Logger } from "./logger";
 
-const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
+const cacheAge = +(process.env.CACHE_AGE || 10 * 1000);
 const cache = new Map<string, any>();
 const logger = new Logger("Server");
 
