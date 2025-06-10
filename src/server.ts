@@ -49,6 +49,17 @@ export class server {
         .send(cacheAndReturn(request.url, await www.GetInstance().frontPage()));
     });
 
+    this.fastify.get("/news", async (request, reply) => {
+      const cache = getCache(request.url);
+      if (cache) {
+        return reply.type("text/html").send(cache);
+      }
+
+      reply
+        .type("text/html")
+        .send(cacheAndReturn(request.url, await www.GetInstance().newsPage()));
+    });
+
     /* Games */
     this.fastify.get("/game/:id", async (request, reply) => {
       const cache = getCache(request.url);

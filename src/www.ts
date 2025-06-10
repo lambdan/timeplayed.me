@@ -74,7 +74,9 @@ export class www {
       recentActivityTable +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
-        "</a>" + `<br><small>${session.platform}</small>` + "</td>";
+        "</a>" +
+        `<br><small>${session.platform}</small>` +
+        "</td>";
       recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
       recentActivityTable += "</tr>\n";
@@ -163,6 +165,11 @@ export class www {
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
     return await this.constructHTML(html, "Error");
+  }
+
+  async newsPage(): Promise<string> {
+    let html = await readFile(join(__dirname, "../static/news.html"), "utf-8");
+    return await this.constructHTML(html, "News");
   }
 
   static GetInstance(): www {
