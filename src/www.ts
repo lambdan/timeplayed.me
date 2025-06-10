@@ -7,8 +7,9 @@ import { User } from "./user";
 import { Discord } from "./discord";
 import { Postgres } from "./postgres";
 import { Totals } from "./totals";
+import { APP_STARTED, APP_VERSION } from "./index";
 
-const APP_VERSION = require("../package.json").version;
+
 
 let _instance: www | null = null;
 
@@ -30,6 +31,8 @@ export class www {
       "utf-8"
     );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
+    const uptime = Date.now() - APP_STARTED.getTime();
+    footer = footer.replace("<%APP_STARTED%>",  formatSeconds(uptime/1000, 1));
     return (
       header +
       content +
