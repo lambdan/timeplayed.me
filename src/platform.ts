@@ -62,7 +62,7 @@ export class Platform {
       case "pc":
         return "orange";
       case "steam-deck":
-        return "#e54b33";
+        return "#6E56C0"; // Steam Deck purple
       case "xbox":
         return "lime";
       case "xbox360":
