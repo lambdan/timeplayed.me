@@ -99,15 +99,13 @@ export class Postgres {
       query.push("WHERE " + filters.join(" AND "));
     }
 
-    // push in limit to query
-    if (limit) {
-      values.push(limit);
-      query.push(`LIMIT $${values.length}`);
-    }
-
     // push in order to query
     if (orderBy) {
       query.push(`ORDER BY ${orderBy}`);
+    }
+    // push in limit to query
+    if (limit) {
+      query.push(`LIMIT ${limit}`);
     }
 
     try {
