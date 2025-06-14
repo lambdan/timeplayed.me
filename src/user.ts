@@ -6,6 +6,7 @@ import { formatSeconds, timeSince } from "./utils";
 import { Discord } from "./discord";
 import { Postgres } from "./postgres";
 import { www } from "./www";
+import { Platform } from "./platform";
 
 export class User {
   readonly id: string;
@@ -20,7 +21,7 @@ export class User {
 
   /** Constructs a User object by ID. Async because it makes DB calls. */
   public static async fromID(userID: string): Promise<User | null> {
-    const sessions = await Postgres.GetInstance().fetchSessions(userID);
+    const sessions = await Postgres.GetInstance().fetchSessionsByUserID(userID);
     if (sessions.length === 0) {
       return null;
     }
@@ -143,18 +144,18 @@ export class User {
     return this.totalPlaytime() / this.games.length;
   }
 
-  platformBreakdown(): Record<string, number> {
-    const breakdown: Record<string, number> = {};
+  platformData(): Platform[] {
+    const platforms: Record<string, Platform> = {};
     for (const session of this.sessions) {
-      if (!breakdown[session.platform]) {
-        breakdown[session.platform] = 0;
+      if (!platforms[session.platform]) {
+        platforms[session.platform] = new Platform(session.platform, []);
       }
-      breakdown[session.platform] += session.seconds;
+      platforms[session.platform].sessions.push(session);
     }
-    // Sort by seconds played
-    return Object.fromEntries(
-      Object.entries(breakdown).sort(([, a], [, b]) => b - a)
-    );
+    // sort by playtime
+    return Object.values(platforms).sort((a, b) => {
+      return b.totalPlaytime() - a.totalPlaytime();
+    });
   }
 
   chartData() {
@@ -245,7 +246,9 @@ export class User {
       recentActivity +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
-        "</a>" + `<br><small>${session.platform}</small>` + "</td>";
+        "</a>" +
+        `<br><small>${session.platform}</small>` +
+        "</td>";
       recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivity += `<td>${timeSince(session.date)}</td>`;
       //recentActivity += `<td>${session.platform}</td>`;
@@ -322,16 +325,14 @@ export class User {
       this.firstSessionDate().toUTCString()
     );
 
-    
-    const platformData = this.platformBreakdown();
+    // Platforms
     const total = this.totalPlaytime();
     let platformBreakdown = "";
-    for (const platform in platformData) {
-      const percent = ((platformData[platform] / total) * 100).toFixed(1);
-      platformBreakdown += `
-      <tr>
-        <td>${platform}</td>
-        <td>${formatSeconds(platformData[platform])}</td>
+    for (const platform of this.platformData()) {
+      const percent = ((platform.totalPlaytime() / total) * 100).toFixed(2);
+      platformBreakdown += `<tr>
+      <td class="col align-middle" style="color: ${platform.color()}">${platform.displayName()}</td>
+        <td>${formatSeconds(platform.totalPlaytime())}</td>
         <td>${percent}%</td>
       </tr>
       `;
@@ -388,7 +389,10 @@ export class User {
     if (offset > 0) {
       html = html.replaceAll(
         "<%PREV_LINK%>",
-        `<a href="/user/${this.id}/sessions?offset=${Math.max(0, offset - OFFSET_INC)}">Previous</a>`
+        `<a href="/user/${this.id}/sessions?offset=${Math.max(
+          0,
+          offset - OFFSET_INC
+        )}">Previous</a>`
       );
     } else {
       html = html.replaceAll("<%PREV_LINK%>", "");

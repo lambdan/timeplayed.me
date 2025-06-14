@@ -9,6 +9,7 @@ import { Game } from "./game";
 import { Session } from "./session";
 import { Logger } from "./logger";
 import { PostgresTasks } from "./postgres_tasks";
+import { Platform } from "./platform";
 
 let _instance: Postgres | null = null;
 
@@ -36,37 +37,81 @@ export class Postgres {
     return await this.postgresClient!.query(text, values);
   }
 
-  async fetchSessions(
+  async fetchSessionsByUserID(
+    userID: string,
+    limit?: number
+  ): Promise<Session[]> {
+    return await this._fetchSessions(userID, undefined, limit);
+  }
+
+  async fetchSessionsByGameID(
+    gameID: number,
+    limit?: number
+  ): Promise<Session[]> {
+    return await this._fetchSessions(undefined, gameID, limit);
+  }
+
+  async fetchSessions(limit?: number): Promise<Session[]> {
+    return await this._fetchSessions(undefined, undefined, limit);
+  }
+
+  async fetchSessionsByPlatform(platformName: string): Promise<Session[]> {
+    return await this._fetchSessions(
+      undefined,
+      undefined,
+      undefined,
+      platformName
+    );
+  }
+
+  private async _fetchSessions(
     userID?: string,
     gameID?: number,
-    limit?: number
+    limit?: number,
+    platform?: string,
+    orderBy = "timestamp DESC"
   ): Promise<Session[]> {
     const sessions = new Array<Session>();
 
-    // Order by timestamp DESC to get recent first
-    let query = "SELECT * FROM activity ORDER BY timestamp DESC";
-    let values: any[] = [];
+    const query: string[] = ["SELECT * FROM activity"];
+    const filters: string[] = [];
+    const values: any[] = [];
     if (userID && gameID) {
-      query =
-        "SELECT * FROM activity WHERE user_id = $1 AND game_id = $2 ORDER BY timestamp DESC";
-      values = [userID, gameID];
+      values.push(userID);
+      filters.push(`user_id = $${values.length}`);
+      values.push(gameID);
+      filters.push(`game_id = $${values.length}`);
     } else if (userID) {
-      query =
-        "SELECT * FROM activity WHERE user_id = $1 ORDER BY timestamp DESC";
-      values = [userID];
+      values.push(userID);
+      filters.push(`user_id = $${values.length}`);
     } else if (gameID) {
-      query =
-        "SELECT * FROM activity WHERE game_id = $1 ORDER BY timestamp DESC";
-      values = [gameID];
+      values.push(gameID);
+      filters.push(`game_id = $${values.length}`);
     }
 
+    if (platform) {
+      values.push(platform);
+      filters.push(`platform = $${values.length}`);
+    }
+
+    // push in filters to query
+    if (filters.length > 0) {
+      query.push("WHERE " + filters.join(" AND "));
+    }
+
+    // push in limit to query
     if (limit) {
       values.push(limit);
-      query += ` LIMIT $${values.length}`;
+      query.push(`LIMIT $${values.length}`);
+    }
+
+    // push in order to query
+    if (orderBy) {
+      query.push(`ORDER BY ${orderBy}`);
     }
 
     try {
-      const result = await this.q(query, values);
+      const result = await this.q(query.join(" "), values);
       for (const r of result.rows) {
         sessions.push({
           id: +r[0],
@@ -119,7 +164,7 @@ export class Postgres {
       for (const r of result.rows) {
         const gameID = r[0];
         const gameName = r[1];
-        const sessions = await this.fetchSessions(undefined, gameID);
+        const sessions = await this.fetchSessionsByGameID(gameID);
         if (sessions.length === 0) {
           continue;
         }
@@ -130,6 +175,23 @@ export class Postgres {
       this.logger.error("Error fetching games:", error);
     }
     return [];
+  }
+
+  async fetchPlatforms(): Promise<Platform[]> {
+    const result: Platform[] = [];
+    try {
+      const res = await this.q("SELECT DISTINCT platform FROM activity");
+      for (const r of res.rows) {
+        const name = r[0] as string;
+        const sessions = await this.fetchSessionsByPlatform(name);
+        if (sessions.length > 0) {
+          result.push(new Platform(name, sessions));
+        }
+      }
+    } catch (error) {
+      this.logger.error("Error fetching platforms:", error);
+    }
+    return result;
   }
 
   async fetchUserIDs(): Promise<string[]> {

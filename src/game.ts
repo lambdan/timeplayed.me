@@ -34,7 +34,7 @@ export class Game {
     }
 
     try {
-      const sessions = await Postgres.GetInstance().fetchSessions(undefined, gameID);
+      const sessions = await Postgres.GetInstance().fetchSessionsByGameID(gameID);
       return new Game(gameID, gameName, sessions);
     } catch (error) {
       logger.error("Error fetching data:", error);

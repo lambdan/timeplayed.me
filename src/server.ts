@@ -105,6 +105,17 @@ export class server {
         .send(cacheAndReturn(request.url, await www.GetInstance().gamesPage()));
     });
 
+    this.fastify.get("/platforms", async (request, reply) => {
+      const cache = getCache(request.url);
+      if (cache) {
+        return reply.type("text/html").send(cache);
+      }
+
+      reply
+        .type("text/html")
+        .send(cacheAndReturn(request.url, await www.GetInstance().platformsPage()));
+    });
+
     /* Users */
     this.fastify.get("/users", async (request, reply) => {
       const cache = getCache(request.url);

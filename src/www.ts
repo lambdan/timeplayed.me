@@ -9,8 +9,6 @@ import { Postgres } from "./postgres";
 import { Totals } from "./totals";
 import { APP_STARTED, APP_VERSION } from "./index";
 
-
-
 let _instance: www | null = null;
 
 export class www {
@@ -32,7 +30,7 @@ export class www {
     );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
     const uptime = Date.now() - APP_STARTED.getTime();
-    footer = footer.replace("<%APP_STARTED%>",  formatSeconds(uptime/1000, 1));
+    footer = footer.replace("<%APP_STARTED%>", formatSeconds(uptime / 1000, 1));
     return (
       header +
       content +
@@ -50,11 +48,7 @@ export class www {
 
     // Recent activity table
     let recentActivityTable = "";
-    const sessions = await Postgres.GetInstance().fetchSessions(
-      undefined,
-      undefined,
-      10
-    );
+    const sessions = await Postgres.GetInstance().fetchSessions(10);
     for (const session of sessions) {
       const game = await Game.fromID(session.gameID);
 
@@ -83,19 +77,22 @@ export class www {
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
       recentActivityTable += "</tr>\n";
     }
-    
+
     html = html.replaceAll("<%RECENT_TABLE_ROWS%>", recentActivityTable);
 
     const userCount = (await Postgres.GetInstance().fetchUserIDs()).length;
     html = html.replaceAll("<%USER_AMOUNT%>", userCount.toString());
-    
+
     let totalPlaytime = 0;
     const games = await Postgres.GetInstance().fetchGames();
     html = html.replaceAll("<%GAME_AMOUNT%>", games.length.toString());
     for (const game of games) {
       totalPlaytime += game.totalPlaytime();
     }
-    html = html.replaceAll("<%TOTAL_PLAYTIME%>", (totalPlaytime/3600).toFixed(0) + " hours");
+    html = html.replaceAll(
+      "<%TOTAL_PLAYTIME%>",
+      (totalPlaytime / 3600).toFixed(0) + " hours"
+    );
 
     return await this.constructHTML(html);
   }
@@ -172,6 +169,37 @@ export class www {
     html = html.replaceAll("<%TOTAL_SESSIONS%>", totalSessions + "");
     html = html.replaceAll("<%GAME_COUNT%>", games.length + "");
     return await this.constructHTML(html, "Games");
+  }
+
+  async platformsPage(): Promise<string> {
+    const platforms = await Postgres.GetInstance().fetchPlatforms();
+
+    let totalTime = 0;
+    for (const platform of platforms) {
+      totalTime += platform.totalPlaytime();
+    }
+
+    let TR = "";
+    for (const platform of platforms.sort((a, b) => {
+      // Sort by total playtime
+      return b.totalPlaytime() - a.totalPlaytime();
+    })) {
+      const percent = (platform.totalPlaytime() / totalTime) * 100;
+      TR += `<tr>`;
+      TR += `<td class="col align-middle" style="color: ${platform.color()}">${platform.displayName()}</a></td>`;
+      TR += `<td>${platform.gamesCount()}</td>`;
+      TR += `<td>${platform.playerCount()}</td>`;
+      TR += `<td sorttable_customkey="${platform.totalPlaytime()}">${formatSeconds(
+        platform.totalPlaytime()
+      )}</td>`;
+      TR += `<td>${percent.toFixed(2)}%</td>`;
+    }
+    let html = await readFile(
+      join(__dirname, "../static/platforms.html"),
+      "utf-8"
+    );
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    return await this.constructHTML(html, "Platforms");
   }
 
   async errorPage(msg: string, title = "Error"): Promise<string> {

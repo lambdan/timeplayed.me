@@ -20,8 +20,14 @@ const MERGE_GAMES: MergeGame[] = [
   },
   {
     parent: "Grand Theft Auto V",
-    children: ["Grand Theft Auto V Enhanced", "GTA V Enhanced", "GTA V", "GTA V Enhanced Edition", "GTA V EE"],
-  }
+    children: [
+      "Grand Theft Auto V Enhanced",
+      "GTA V Enhanced",
+      "GTA V",
+      "GTA V Enhanced Edition",
+      "GTA V EE",
+    ],
+  },
 ];
 
 // Games called this will be removed, use to remove bad data
@@ -69,7 +75,7 @@ export class PostgresTasks {
           this.logger.debug("Did not find child ID for", c);
           continue;
         }
-        const sessions = await this.postgres.fetchSessions(undefined, childID);
+        const sessions = await this.postgres.fetchSessionsByGameID(childID);
         for (const s of sessions) {
           await this.postgres.replaceActivityGameID(s.id, parentID);
         }
@@ -77,7 +83,7 @@ export class PostgresTasks {
     }
   }
 
-  async taskRemoveShortSessions() {
+  /*async taskRemoveShortSessions() {
     this.logger.debug("Running taskRemoveShortSessions");
     const sessions = await this.postgres.fetchSessions();
     for (const s of sessions) {
@@ -85,7 +91,7 @@ export class PostgresTasks {
         await this.postgres.deleteActivity(s.id);
       }
     }
-  }
+  }*/
 
   async taskRemoveBadGames() {
     this.logger.debug("Running taskRemoveBadGameSessions");
@@ -95,7 +101,7 @@ export class PostgresTasks {
         //this.logger.warn("Did not find game ID for", game);
         continue;
       }
-      const sessions = await this.postgres.fetchSessions(undefined, gameID);
+      const sessions = await this.postgres.fetchSessionsByGameID(gameID);
       for (const s of sessions) {
         await this.postgres.deleteActivity(s.id);
       }
