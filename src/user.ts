@@ -371,9 +371,13 @@ export class User {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a></td>";
-      sessionsTable += `<td>${formatSeconds(session.seconds)} (${session.seconds} secs)</td>`;
-      sessionsTable += `<td>${session.date.toUTCString()}</td>`;
       sessionsTable += `<td>${session.platform}</td>`;
+      sessionsTable += `<td sorttable_customkey="${
+        session.seconds
+      }">${formatSeconds(session.seconds)}<br><small>(${
+        session.seconds
+      } secs)</small></td>`;
+      sessionsTable += `<td sorttable_customkey="${session.date.getTime()}">${session.date.toUTCString()}</td>`;
 
       sessionsTable += "</tr>\n";
     }
