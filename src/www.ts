@@ -8,6 +8,7 @@ import { Discord } from "./discord";
 import { Postgres } from "./postgres";
 import { Totals } from "./totals";
 import { APP_STARTED, APP_VERSION } from "./index";
+import { Platform } from "./platform";
 
 let _instance: www | null = null;
 
@@ -55,6 +56,9 @@ export class www {
       if (!game) {
         continue;
       }
+
+      const platform = new Platform(session.platform, []); // GROSS! Really need to redo everything to avoid hax like this
+
       const discordInfo = await (
         await Discord.GetInstance()
       ).getUser(session.userID);
@@ -71,7 +75,7 @@ export class www {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a>" +
-        `<br><small>${session.platform}</small>` +
+        `<br><small style="color: ${platform.color()}">${platform.displayName()}</small>` +
         "</td>";
       recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;

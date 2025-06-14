@@ -60,7 +60,7 @@ export class Platform {
   color(): string {
     switch (this.internalName.toLowerCase()) {
       case "pc":
-        return "orange";
+        return "rgb(171, 137, 1)"; // PCMR
       case "steam-deck":
         return "#6E56C0"; // Steam Deck purple
       case "xbox":
