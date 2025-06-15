@@ -31,12 +31,22 @@ export class www {
     );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
     const uptime = Date.now() - APP_STARTED.getTime();
-    footer = footer.replace("<%APP_STARTED%>", formatSeconds(uptime / 1000, 1));
     return (
       header +
       content +
       footer +
-      `<!--- Constructed ${new Date().toISOString()} -->`
+      `
+      <!---
+      Page built: ${new Date().toISOString()}
+      
+      Super secret info:
+        Version: ${APP_VERSION}
+        Started: ${APP_STARTED.toISOString()} (uptime ${formatSeconds(
+        uptime / 1000,
+        1
+      )})
+       
+      -->`
     );
   }
 
