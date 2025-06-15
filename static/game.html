@@ -3,55 +3,67 @@
     <h1 class="card-header" style="color: <%GAME_COLOR%>"><%GAME_NAME%></h1>
 
     <div class="card-body">
-      <div class="card">
-        <h2 class="card-header">Stats</h2>
-        <div class="card-body">
-          <p>
-            <b><%PLAYER_COUNT%></b> player(s) have played
-            <b><%GAME_NAME%></b> for <b><%TOTAL_PLAYTIME%></b> across
-            <b><%SESSIONS%></b> session(s)
-          </p>
+      <div class="row row-cols-1 row-cols-lg-3 g-2">
+        <!-- Image -->
+        <div class="col mb-4">
+          <div class="card h-100">
+            <img class="card-img img-fluid" src="<%GAME_IMAGE%>" />
+          </div>
+        </div>
+
+        <div class="col mb-4">
+          <div class="card h-100">
+            <h2 class="card-header">Stats</h2>
+            <div class="card-body">
+              <p>
+                <b><%PLAYER_COUNT%></b> player(s) have played
+                <b><%GAME_NAME%></b> for <b><%TOTAL_PLAYTIME%></b> across
+                <b><%SESSIONS%></b> session(s)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col mb-4">
+          <div class="card h-100">
+            <h2 class="card-header">Metadata</h2>
+            <div class="card-body">
+              <ul>
+                <li>Internal ID: <%GAME_ID%></li>
+                <li><i class="bi bi-steam"></i> <%STEAM_ID%></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
-      <br />
-
-      <div class="card">
-        <h2 class="card-header">Players</h2>
-        <div class="card-body table-responsive">
-          <table class="table sortable table-hover">
-            <thead>
-              <tr>
-                <th></th>
-                <th scope="col">User</th>
-                <th scope="col">Time played</th>
-                <th scope="col">Sessions</th>
-                <th scope="col">Longest Session</th>
-                <th scope="col">Last played</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%TABLE_ROWS%>
-            </tbody>
-          </table>
+      <div class="col mb-4">
+        <div class="card h-100">
+          <h2 class="card-header">Players</h2>
+          <div class="card-body table-responsive">
+            <table class="table sortable table-hover">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th scope="col">User</th>
+                  <th scope="col">Time played</th>
+                  <th scope="col">Sessions</th>
+                  <th scope="col">Longest Session</th>
+                  <th scope="col">Last played</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%TABLE_ROWS%>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <br />
-
-      <div class="card">
-        <div class="card-body"><%CHART%></div>
-      </div>
-
-      <br />
-
-      <div class="card">
-        <h2 class="card-header">Metadata</h2>
-        <div class="card-body">
-          <ul>
-            <li>Internal ID: <%GAME_ID%></li>
-            <li><i class="bi bi-steam"></i> <%STEAM_ID%></li>
-          </ul>
+      <div class="col mb-4">
+        <div class="card h-100">
+          <h2 class="card-header">Activity over time</h2>
+          <div class="card-body"><%CHART%></div>
         </div>
       </div>
     </div>

@@ -191,6 +191,7 @@ export class Game {
       formatSeconds(this.totalPlaytime())
     );
     html = html.replace("<%CHART%>", this.getChart());
+    html = html.replace("<%GAME_IMAGE%>", this.getCapsuleImage());
     html = html.replace("<%GAME_ID%>", this.id.toString());
     html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
     return await www.GetInstance().constructHTML(html, this.name);
@@ -201,7 +202,7 @@ export class Game {
    * either directly set or from Steam if Steam ID is set
    *  or placeholder if no image is set
    */
-  getImage(): string {
+  getCapsuleImage(): string {
     if (this.large_image) {
       return this.large_image;
     }
@@ -211,7 +212,7 @@ export class Game {
     if (this.steam_id) {
       return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
     }
-    return "https://placehold.co/500x500?text=No+Image";
+    return "https://placehold.co/600x900?text=No+Image";
   }
 
   getChart(): string {
