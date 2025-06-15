@@ -159,6 +159,9 @@ export class www {
       // Sort by total playtime
       return b.totalPlaytime() - a.totalPlaytime();
     })) {
+      if (game.sessions.length === 0) {
+        continue; // Skip games with no sessions
+      }
       TR += `<tr>`;
       TR +=
         `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
