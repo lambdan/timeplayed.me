@@ -111,14 +111,16 @@ export class Postgres {
     try {
       const result = await this.q(query.join(" "), values);
       for (const r of result.rows) {
-        sessions.push({
-          id: +r[0],
-          date: new Date(r[1]),
-          userID: r[2],
-          gameID: +r[3],
-          seconds: +r[4],
-          platform: r[5],
-        });
+        sessions.push(
+          new Session({
+            id: +r[0],
+            date: new Date(r[1]),
+            userID: r[2],
+            gameID: +r[3],
+            seconds: +r[4],
+            platform: new Platform(r[5], []),
+          })
+        );
       }
     } catch (error) {
       this.logger.error("Error fetching activity:", error);

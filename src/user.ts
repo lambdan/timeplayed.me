@@ -147,10 +147,13 @@ export class User {
   platformData(): Platform[] {
     const platforms: Record<string, Platform> = {};
     for (const session of this.sessions) {
-      if (!platforms[session.platform]) {
-        platforms[session.platform] = new Platform(session.platform, []);
+      if (!platforms[session.platform.internalName]) {
+        platforms[session.platform.internalName] = new Platform(
+          session.platform.internalName,
+          []
+        );
       }
-      platforms[session.platform].sessions.push(session);
+      platforms[session.platform.internalName].sessions.push(session);
     }
     // sort by playtime
     return Object.values(platforms).sort((a, b) => {
@@ -247,7 +250,7 @@ export class User {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a>" +
-        `<br><small>${session.platform}</small>` +
+        `<br><small>${session.platform.displayName()}</small>` +
         "</td>";
       recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivity += `<td>${timeSince(session.date)}</td>`;

@@ -1,23 +1,25 @@
+import { Platform } from "./platform";
+
 export class Session {
   id: number;
   date: Date;
   userID: string;
   gameID: number;
   seconds: number;
-  platform: string;
-  constructor(
-    id: number,
-    date: Date,
-    userID: string,
-    gameID: number,
-    seconds: number,
-    platform: string
-  ) {
-    this.id = id;
-    this.date = date;
-    this.userID = userID;
-    this.gameID = gameID;
-    this.seconds = seconds;
-    this.platform = platform;
+  platform: Platform;
+  constructor(settings: {
+    id: number;
+    date: Date;
+    userID: string;
+    gameID: number;
+    seconds: number;
+    platform: Platform;
+  }) {
+    this.id = settings.id;
+    this.date = settings.date;
+    this.userID = settings.userID;
+    this.gameID = settings.gameID;
+    this.seconds = settings.seconds;
+    this.platform = settings.platform;
   }
 }

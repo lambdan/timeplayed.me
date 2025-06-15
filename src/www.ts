@@ -57,7 +57,7 @@ export class www {
         continue;
       }
 
-      const platform = new Platform(session.platform, []); // GROSS! Really need to redo everything to avoid hax like this
+      const platform = session.platform;
 
       const discordInfo = await (
         await Discord.GetInstance()
