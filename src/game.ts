@@ -17,15 +17,25 @@ export interface GameStatsForPlayer {
 export class Game {
   readonly id: number;
   readonly name: string;
-  private small_image: string;
-  private large_image: string;
+  readonly steam_id: number | null;
+  private small_image: string | null;
+  private large_image: string | null;
+
   readonly sessions: Session[];
-  constructor(id: number, name: string, sessions: Session[], small_image: string, large_image: string) {
+  constructor(
+    id: number,
+    name: string,
+    sessions: Session[],
+    small_image: string | null,
+    large_image: string | null,
+    steam_id: number | null
+  ) {
     this.id = id;
     this.name = name;
     this.sessions = sessions;
     this.small_image = small_image;
     this.large_image = large_image;
+    this.steam_id = steam_id;
   }
 
   /** Constructs a Game object by ID. Async because it makes DB calls. */
@@ -146,9 +156,7 @@ export class Game {
 
     for (const userId of this.players) {
       const stats = this.getGameStatsForUser(userId);
-      const discordInfo = await(await Discord.GetInstance()).getUser(
-        userId
-      );
+      const discordInfo = await (await Discord.GetInstance()).getUser(userId);
 
       TR += `<tr class="align-middle">`;
       TR += `<td class="col-lg-1"><a href="/user/${userId}" ><img src="${
@@ -183,18 +191,25 @@ export class Game {
       formatSeconds(this.totalPlaytime())
     );
     html = html.replace("<%CHART%>", this.getChart());
+    html = html.replace("<%GAME_ID%>", this.id.toString());
+    html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
     return await www.GetInstance().constructHTML(html, this.name);
   }
 
   /**
-   * Returns URL to image
+   * Returns URL to image,
+   * either directly set or from Steam if Steam ID is set
+   *  or placeholder if no image is set
    */
   getImage(): string {
-    if (this.large_image.length > 0) {
+    if (this.large_image) {
       return this.large_image;
     }
-    if (this.small_image.length > 0) {
+    if (this.small_image) {
       return this.small_image;
+    }
+    if (this.steam_id) {
+      return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
     }
     return "https://placehold.co/500x500?text=No+Image";
   }

@@ -135,11 +135,25 @@ export class Postgres {
       if (result.rows.length > 0) {
         const r = result.rows[0];
         const gameName = r[1] as string;
-        const smallImage = r[2] as string;
-        const largeImage = r[3] as string;
+        let smallImage = r[2];
+        if (smallImage === "") {
+          smallImage = null;
+        }
+        let largeImage = r[3];
+        if (largeImage === "") {
+          largeImage = null;
+        }
+        const steam_id = r[4] as number | null;
         const sessions = await this.fetchSessionsByGameID(gameID);
 
-        return new Game(gameID, gameName, sessions, smallImage, largeImage);
+        return new Game(
+          gameID,
+          gameName,
+          sessions,
+          smallImage,
+          largeImage,
+          steam_id
+        );
       }
     } catch (error) {
       this.logger.error("Error fetching data:", error);
@@ -162,27 +176,19 @@ export class Postgres {
   }
 
   async fetchGames(): Promise<Game[]> {
+    const games: Game[] = [];
     try {
-      const result = await this.q("SELECT * FROM game");
-      const games: Game[] = [];
+      const result = await this.q("SELECT id FROM game");
       for (const r of result.rows) {
         const gameID = r[0];
-        const gameName = r[1];
-        const smallImage = r[2];
-        const largeImage = r[3];
-        const sessions = await this.fetchSessionsByGameID(gameID);
-        if (sessions.length === 0) {
-          continue;
-        }
-        games.push(
-          new Game(gameID, gameName, sessions, smallImage, largeImage)
-        );
+        const game = await this.fetchGameById(gameID);
+        if (game) games.push(game);
       }
       return games;
     } catch (error) {
       this.logger.error("Error fetching games:", error);
     }
-    return [];
+    return games;
   }
 
   async fetchPlatforms(): Promise<Platform[]> {
