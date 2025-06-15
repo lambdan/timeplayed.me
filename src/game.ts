@@ -17,30 +17,21 @@ export interface GameStatsForPlayer {
 export class Game {
   readonly id: number;
   readonly name: string;
+  private small_image: string;
+  private large_image: string;
   readonly sessions: Session[];
-  constructor(id: number, name: string, sessions: Session[]) {
+  constructor(id: number, name: string, sessions: Session[], small_image: string, large_image: string) {
     this.id = id;
     this.name = name;
     this.sessions = sessions;
+    this.small_image = small_image;
+    this.large_image = large_image;
   }
 
   /** Constructs a Game object by ID. Async because it makes DB calls. */
   public static async fromID(gameID: number): Promise<Game | null> {
     const logger = new Logger("Game.fromID");
-    const gameName = await Postgres.GetInstance().fetchGameName(gameID);
-    if (!gameName) {
-      logger.error("Game name not found");
-      return null;
-    }
-
-    try {
-      const sessions = await Postgres.GetInstance().fetchSessionsByGameID(gameID);
-      return new Game(gameID, gameName, sessions);
-    } catch (error) {
-      logger.error("Error fetching data:", error);
-    }
-
-    return null;
+    return await Postgres.GetInstance().fetchGameById(gameID);
   }
 
   get lastPlayed(): Date {
@@ -193,6 +184,19 @@ export class Game {
     );
     html = html.replace("<%CHART%>", this.getChart());
     return await www.GetInstance().constructHTML(html, this.name);
+  }
+
+  /**
+   * Returns URL to image
+   */
+  getImage(): string {
+    if (this.large_image.length > 0) {
+      return this.large_image;
+    }
+    if (this.small_image.length > 0) {
+      return this.small_image;
+    }
+    return "https://placehold.co/500x500?text=No+Image";
   }
 
   getChart(): string {

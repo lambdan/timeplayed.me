@@ -375,7 +375,7 @@ export class User {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a></td>";
-      sessionsTable += `<td>${session.platform}</td>`;
+      sessionsTable += `<td>${session.platform.displayName()}</td>`;
       sessionsTable += `<td sorttable_customkey="${
         session.seconds
       }">${formatSeconds(session.seconds)}<br><small>(${
