@@ -58,6 +58,7 @@ export class Platform {
 
   /** Color for the platform */
   color(): string {
+    return ""; // disabled for now... colors need to look good on both dark and light mode
     switch (this.internalName.toLowerCase()) {
       case "pc":
         return "black";
