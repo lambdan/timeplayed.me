@@ -1,0 +1,211 @@
+import { Logger } from "./logger";
+
+const BASE_URL = "https://www.steamgriddb.com/api/v2";
+const CACHE_EXPIRY = 1000 * 60 * 60 * 24; // 24 hours
+
+export interface SearchResult {
+  success: boolean;
+  data: {
+    id: number;
+    name: string;
+    types: string[];
+    verified: boolean;
+    release_date: number; // Unix timestamp
+  }[];
+}
+
+export interface Author {
+  name: string;
+  steam64: string;
+  avatar: string;
+}
+
+export interface Grid {
+  id: number;
+  score: number;
+  style: string;
+  url: string;
+  thumb: string;
+  verified: boolean;
+  tags: string[];
+  author: Author;
+  width: number;
+  height: number;
+  nsfw: boolean;
+  humor: boolean;
+  notes: string | null;
+  mime: string;
+  language: string;
+  epilepsy: boolean;
+  lock: boolean;
+  upvotes: number;
+  downvotes: number;
+}
+
+export interface GridResult {
+  success: boolean;
+  page: number;
+  total: number;
+  limit: number;
+  data: Grid[];
+}
+
+export interface CachedImage {
+  url: string;
+  date: Date;
+}
+
+let _instance: SteamGridDB | null = null;
+
+export class SteamGridDB {
+  private queries = 0;
+  private logger = new Logger("SteamGridDB");
+  private apiKey: string;
+  private cache = new Map<string, CachedImage>();
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    headers["Authorization"] = `Bearer ${this.apiKey}`;
+    return headers;
+  }
+
+  /**
+   * Search for a game by name, to figure out its ID
+   */
+  async searchGames(query: string): Promise<SearchResult> {
+    const queryNumber = ++this.queries;
+
+    const url = `${BASE_URL}/search/autocomplete/${encodeURIComponent(query)}`;
+    this.logger.debug(queryNumber, "Searching for games:", url);
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) {
+      this.logger.error(
+        queryNumber,
+        "Failed to fetch from SteamGridDB:",
+        response.statusText
+      );
+      return {
+        success: false,
+      } as SearchResult;
+    }
+    this.logger.debug(queryNumber, "Received OK response from SteamGridDB :D");
+    const data = await response.json();
+    return data as SearchResult;
+  }
+
+  /**
+   * Gets available grids for a game
+   */
+  async getGridsForGameId(gameId: number, page = 0): Promise<GridResult> {
+    const queryNumber = ++this.queries;
+    const url = `${BASE_URL}/grids/game/${gameId}?page=${page}`;
+    this.logger.debug(queryNumber, "Fetching grids for game ID:", gameId, url);
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) {
+      this.logger.error(
+        queryNumber,
+        "Failed to fetch grids from SteamGridDB:",
+        response.statusText
+      );
+      return {
+        success: false,
+      } as GridResult;
+    }
+    this.logger.debug(queryNumber, "Received OK response from SteamGridDB :D");
+    const data = await response.json();
+    this.logger.debug(queryNumber, "Fetched grids:", data);
+    return data as GridResult;
+  }
+
+  /** Tries to figure out the best grid for a game */
+  async bestGridForGame(name: string): Promise<Grid | null> {
+    let best: Grid | null = null;
+    let bestScore = 0;
+    const searchResult = await this.searchGames(name);
+    if (!searchResult.success || searchResult.data.length === 0) {
+      this.logger.error("No games found for:", name);
+      return null;
+    }
+    const gameId = searchResult.data[0].id;
+    const gridsResult = await this.getGridsForGameId(gameId);
+    if (!gridsResult.success || gridsResult.data.length === 0) {
+      this.logger.error("No grids found for game ID:", gameId);
+      return null;
+    }
+    for (const grid of gridsResult.data) {
+      let thisScore = 0;
+      if (grid.verified) {
+        grid.score += 1;
+      }
+
+      if (grid.nsfw) {
+        thisScore -= 100;
+      }
+
+      if (grid.language === "en") {
+        thisScore += 1;
+      }
+
+      if (grid.width === 600 && grid.height === 900) {
+        thisScore += 1;
+      }
+
+      thisScore += grid.upvotes;
+      thisScore -= grid.downvotes;
+
+      if (thisScore > bestScore) {
+        bestScore = thisScore;
+        best = grid;
+      }
+    }
+    if (!best) {
+      this.logger.error("No best grid found for game ID:", gameId);
+      return null;
+    }
+    this.logger.debug("Best grid found for game ID:", gameId, best, bestScore);
+    return best;
+  }
+
+  /**
+   * Wrapper function to get the best grid and cache it
+   */
+  async easyGridForGame(name: string): Promise<string | null> {
+    if (this.cache.has(name)) {
+      const cached = this.cache.get(name)!;
+      if (cached.date.getTime() + CACHE_EXPIRY > Date.now()) {
+        this.logger.debug("Returning cached grid for:", name);
+        return cached.url;
+      }
+    }
+
+    const best = await this.bestGridForGame(name);
+    if (!best) {
+      return null;
+    }
+
+    this.cache.set(name, {
+      url: best.url,
+      date: new Date(),
+    });
+    return best.url;
+  }
+
+  static GetInstance(): SteamGridDB {
+    if (!_instance) {
+      _instance = new SteamGridDB(process.env.SGDB_TOKEN!);
+    }
+    return _instance;
+  }
+}

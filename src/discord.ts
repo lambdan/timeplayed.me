@@ -24,7 +24,7 @@ export interface DiscordUserInfo {
 }*/
 }
 
-const CACHE_EXPIRE = 1 * 60 * 60 * 1000; // 1 hour
+const CACHE_EXPIRE = 24 * 60 * 60 * 1000; // 24 hours
 
 let _instance: Discord | null = null;
 

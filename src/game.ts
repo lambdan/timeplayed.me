@@ -6,6 +6,7 @@ import { colorFromString, formatSeconds, timeSince } from "./utils";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { www } from "./www";
+import { SteamGridDB } from "./steamgriddb";
 
 export interface GameStatsForPlayer {
   seconds: number;
@@ -191,7 +192,7 @@ export class Game {
       formatSeconds(this.totalPlaytime())
     );
     html = html.replace("<%CHART%>", this.getChart());
-    html = html.replace("<%GAME_IMAGE%>", this.getCapsuleImage());
+    html = html.replace("<%GAME_IMAGE%>", await this.getCapsuleImage());
     html = html.replace("<%GAME_ID%>", this.id.toString());
     html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
     return await www.GetInstance().constructHTML(html, this.name);
@@ -202,16 +203,23 @@ export class Game {
    * either directly set or from Steam if Steam ID is set
    *  or placeholder if no image is set
    */
-  getCapsuleImage(): string {
+  async getCapsuleImage(): Promise<string> {
     if (this.large_image) {
       return this.large_image;
     }
     if (this.small_image) {
       return this.small_image;
     }
+
     if (this.steam_id) {
       return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
     }
+
+    const sgdb = await SteamGridDB.GetInstance().easyGridForGame(this.name);
+    if (sgdb) {
+      return sgdb;
+    }
+
     return "https://placehold.co/600x900?text=No+Image";
   }
 
