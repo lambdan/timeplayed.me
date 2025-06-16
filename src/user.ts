@@ -144,6 +144,14 @@ export class User {
     return this.totalPlaytime() / this.games.length;
   }
 
+  platformsPlayedOn(): string[] {
+    const platforms = new Set<string>();
+    for (const session of this.sessions) {
+      platforms.add(session.platform.displayName());
+    }
+    return [...platforms];
+  }
+
   platformData(): Platform[] {
     const platforms: Record<string, Platform> = {};
     for (const session of this.sessions) {
@@ -302,6 +310,7 @@ export class User {
     }
 
     html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
+    html = html.replaceAll("<%ID%>", this.id);
     html = html.replaceAll("<%AVATAR_URL%>", discordInfo!.avatarURL);
     html = html.replaceAll("<%TABLE_ROWS%>", topGamesTable);
     html = html.replaceAll(
@@ -336,6 +345,10 @@ export class User {
     html = html.replaceAll(
       "<%FIRST_SESSION%>",
       this.firstSessionDate().toUTCString()
+    );
+    html = html.replaceAll(
+      "<%PLATFORM_LIST%>",
+      this.platformsPlayedOn().join(", ")
     );
 
     // Platforms
@@ -396,6 +409,7 @@ export class User {
       sessionsTable += "</tr>\n";
     }
     html = html.replaceAll("<%USERNAME%>", discordInfo!.username);
+
     html = html.replaceAll("<%TABLE_ROWS%>", sessionsTable);
 
     const nextOffset = offset + OFFSET_INC;
