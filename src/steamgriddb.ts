@@ -50,18 +50,17 @@ export interface GridResult {
   data: Grid[];
 }
 
-export interface CachedImage {
-  url: string;
+export interface CachedGrid {
+  grid: Grid;
   date: Date;
 }
 
 let _instance: SteamGridDB | null = null;
 
 export class SteamGridDB {
-  private queries = 0;
   private logger = new Logger("SteamGridDB");
   private apiKey: string;
-  private cache = new Map<number, CachedImage>();
+  private cache = new Map<number, CachedGrid>();
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
@@ -79,17 +78,14 @@ export class SteamGridDB {
    * Search for a game by name, to figure out its ID
    */
   async searchGames(query: string): Promise<SearchResult> {
-    const queryNumber = ++this.queries;
-
     const url = `${BASE_URL}/search/autocomplete/${encodeURIComponent(query)}`;
-    this.logger.debug(queryNumber, "Searching for games:", url);
+    this.logger.debug("Searching for games:", url);
     const response = await fetch(url, {
       method: "GET",
       headers: this.getHeaders(),
     });
     if (!response.ok) {
       this.logger.error(
-        queryNumber,
         "Failed to fetch from SteamGridDB:",
         response.statusText
       );
@@ -97,7 +93,7 @@ export class SteamGridDB {
         success: false,
       } as SearchResult;
     }
-    this.logger.debug(queryNumber, "Received OK response from SteamGridDB :D");
+    this.logger.debug("Received OK response from SteamGridDB :D");
     const data = await response.json();
     return data as SearchResult;
   }
@@ -106,16 +102,14 @@ export class SteamGridDB {
    * Gets available grids for a game
    */
   async getGridsForGameId(gameId: number, page = 0): Promise<GridResult> {
-    const queryNumber = ++this.queries;
     const url = `${BASE_URL}/grids/game/${gameId}?page=${page}`;
-    this.logger.debug(queryNumber, "Fetching grids for game ID:", gameId, url);
+    this.logger.debug("Fetching grids for game ID:", gameId, url);
     const response = await fetch(url, {
       method: "GET",
       headers: this.getHeaders(),
     });
     if (!response.ok) {
       this.logger.error(
-        queryNumber,
         "Failed to fetch grids from SteamGridDB:",
         response.statusText
       );
@@ -123,9 +117,9 @@ export class SteamGridDB {
         success: false,
       } as GridResult;
     }
-    this.logger.debug(queryNumber, "Received OK response from SteamGridDB :D");
+    this.logger.debug("Received OK response from SteamGridDB :D");
     const data = await response.json();
-    this.logger.debug(queryNumber, "Fetched grids:", data);
+    this.logger.debug("Fetched grids:", data);
     return data as GridResult;
   }
 
@@ -189,12 +183,12 @@ export class SteamGridDB {
   /**
    * Wrapper function to get the best grid and cache it
    */
-  async cacheAndGetGridForGame(gameId: number): Promise<string | null> {
+  async cacheAndGetGridForGame(gameId: number): Promise<Grid | null> {
     if (this.cache.has(gameId)) {
       const cached = this.cache.get(gameId)!;
       if (cached.date.getTime() + CACHE_EXPIRY > Date.now()) {
-        this.logger.debug("Returning cached grid for:", name);
-        return cached.url;
+        this.logger.debug("Returning cached grid for:", gameId);
+        return cached.grid;
       }
     }
 
@@ -204,10 +198,10 @@ export class SteamGridDB {
     }
 
     this.cache.set(gameId, {
-      url: best.url,
+      grid: best,
       date: new Date(),
     });
-    return best.url;
+    return best;
   }
 
   static GetInstance(): SteamGridDB {

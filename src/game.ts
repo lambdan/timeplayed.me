@@ -227,8 +227,10 @@ export class Game {
    * Returns URL to image,
    * either directly set or from Steam if Steam ID is set
    *  or placeholder if no image is set
+   *
+   * @param thumb - If true, returns a thumbnail image (267x400), otherwise returns a large image (600x900)
    */
-  async getCapsuleImage(): Promise<string> {
+  async getCapsuleImage(thumb = false): Promise<string> {
     if (this.large_image) {
       return this.large_image;
     }
@@ -236,24 +238,26 @@ export class Game {
       return this.small_image;
     }
 
-    if (this.steam_id) {
-      return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
-    }
+    //if (this.steam_id) {
+    //  return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
+    //}
 
     let sgdbId = this.sgdb_id;
     if (!sgdbId) {
       sgdbId = await SteamGridDB.GetInstance().topHitForGame(this.name);
     }
     if (sgdbId) {
-      const sgdb = await SteamGridDB.GetInstance().cacheAndGetGridForGame(
+      const grid = await SteamGridDB.GetInstance().cacheAndGetGridForGame(
         sgdbId
       );
-      if (sgdb) {
-        return sgdb;
+      if (grid) {
+        return thumb ? grid.thumb : grid.url;
       }
     }
 
-    return "https://placehold.co/600x900?text=No+Image";
+    return thumb
+      ? "https://placehold.co/267x400?text=No+Image"
+      : "https://placehold.co/600x900?text=No+Image";
   }
 
   getChart(): string {
