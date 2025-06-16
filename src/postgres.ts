@@ -9,7 +9,7 @@ import { Game } from "./game";
 import { Session } from "./session";
 import { Logger } from "./logger";
 import { PostgresTasks } from "./postgres_tasks";
-import { Platform } from "./platform";
+import { Platform, PlatformName } from "./platform";
 
 let _instance: Postgres | null = null;
 
@@ -196,7 +196,7 @@ export class Postgres {
     try {
       const res = await this.q("SELECT DISTINCT platform FROM activity");
       for (const r of res.rows) {
-        const name = r[0] as string;
+        const name = r[0] as PlatformName;
         const sessions = await this.fetchSessionsByPlatform(name);
         if (sessions.length > 0) {
           result.push(new Platform(name, sessions));

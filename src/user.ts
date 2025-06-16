@@ -147,13 +147,13 @@ export class User {
   platformData(): Platform[] {
     const platforms: Record<string, Platform> = {};
     for (const session of this.sessions) {
-      if (!platforms[session.platform.internalName]) {
-        platforms[session.platform.internalName] = new Platform(
-          session.platform.internalName,
+      if (!platforms[session.platform.name]) {
+        platforms[session.platform.name] = new Platform(
+          session.platform.name,
           []
         );
       }
-      platforms[session.platform.internalName].sessions.push(session);
+      platforms[session.platform.name].sessions.push(session);
     }
     // sort by playtime
     return Object.values(platforms).sort((a, b) => {

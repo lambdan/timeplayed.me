@@ -1,19 +1,46 @@
 import { Session } from "./session";
 
+const VALID_PLATFORMS = [
+  "pc",
+  "switch",
+  "switch2",
+  "ps1",
+  "ps2",
+  "ps3",
+  "ps4",
+  "ps5",
+  "xbox",
+  "xbox360",
+  "xboxone",
+  "xboxseries",
+  "steam-deck",
+  "nes",
+  "snes",
+  "n64",
+  "gamecube",
+  "wii",
+  "wiiu",
+  "ds",
+  "3ds",
+  "psp",
+  "vita",
+] as const;
+export type PlatformName = (typeof VALID_PLATFORMS)[number];
+
 export class Platform {
-  internalName: string;
+  name: PlatformName;
   sessions: Session[];
 
   private _cachedTotalPlaytime = 0;
 
-  constructor(internalName: string, sessions: Session[]) {
-    this.internalName = internalName;
+  constructor(internalName: PlatformName, sessions: Session[]) {
+    this.name = internalName;
     this.sessions = sessions;
   }
 
   /** "Pretty name" of the platform */
   displayName(): string {
-    switch (this.internalName.toLowerCase()) {
+    switch (this.name) {
       case "steam-deck":
         return "Steam Deck";
       case "switch":
@@ -21,7 +48,7 @@ export class Platform {
       case "switch2":
         return "Nintendo Switch 2";
       default:
-        return this.internalName.toUpperCase();
+        return this.name.toUpperCase();
     }
   }
 
@@ -59,7 +86,7 @@ export class Platform {
   /** Color for the platform */
   color(): string {
     return ""; // disabled for now... colors need to look good on both dark and light mode
-    switch (this.internalName.toLowerCase()) {
+    switch (this.name.toLowerCase()) {
       case "pc":
         return "black";
       //return "rgb(171, 137, 1)"; // PCMR
