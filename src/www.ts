@@ -85,7 +85,7 @@ export class www {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a>" +
-        `<br><small style="color: ${platform.color()}">${platform.displayName()}</small>` +
+        `<br><small style="color: ${platform.color()}"><i class="bi ${platform.bootstrapIcon()}"></i> ${platform.displayName()}</small>` +
         "</td>";
       recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
@@ -208,7 +208,7 @@ export class www {
     })) {
       const percent = (platform.totalPlaytime() / totalTime) * 100;
       TR += `<tr>`;
-      TR += `<td class="col align-middle" style="color: ${platform.color()}">${platform.displayName()}</a></td>`;
+      TR += `<td class="col align-middle" style="color: ${platform.color()}"><i class="bi ${platform.bootstrapIcon()}"></i> ${platform.displayName()}</a></td>`;
       TR += `<td>${platform.gamesCount()}</td>`;
       TR += `<td>${platform.playerCount()}</td>`;
       TR += `<td sorttable_customkey="${platform.totalPlaytime()}">${formatSeconds(

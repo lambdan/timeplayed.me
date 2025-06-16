@@ -52,6 +52,34 @@ export class Platform {
     }
   }
 
+  /**
+   * Returns bootstrap icon class for the platform.
+   */
+  bootstrapIcon(): string {
+    switch (this.name) {
+      case "switch":
+      case "switch2":
+        return "bi-nintendo-switch";
+      case "ps1":
+      case "ps2":
+      case "ps3":
+      case "ps4":
+      case "ps5":
+        return "bi-playstation";
+      case "xbox":
+      case "xbox360":
+      case "xboxone":
+      case "xboxseries":
+        return "bi-xbox";
+      case "steam-deck":
+        return "bi-steam";
+      case "pc":
+        return "bi-pc-display";
+      default:
+        return "bi-controller"; // Fallback
+    }
+  }
+
   /** Total playtime in seconds of the platform */
   totalPlaytime(): number {
     if (this._cachedTotalPlaytime > 0) {

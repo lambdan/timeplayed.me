@@ -250,7 +250,7 @@ export class User {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a>" +
-        `<br><small>${session.platform.displayName()}</small>` +
+        `<br><small><i class="bi ${session.platform.bootstrapIcon()}"></i> ${session.platform.displayName()}</small>` +
         "</td>";
       recentActivity += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivity += `<td>${timeSince(session.date)}</td>`;
@@ -334,7 +334,7 @@ export class User {
     for (const platform of this.platformData()) {
       const percent = ((platform.totalPlaytime() / total) * 100).toFixed(2);
       platformBreakdown += `<tr>
-      <td class="col align-middle" style="color: ${platform.color()}">${platform.displayName()}</td>
+      <td class="col align-middle" style="color: ${platform.color()}"><i class="bi ${platform.bootstrapIcon()}"></i> ${platform.displayName()}</td>
         <td>${formatSeconds(platform.totalPlaytime())}</td>
         <td>${percent}%</td>
       </tr>
@@ -375,7 +375,7 @@ export class User {
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
         "</a></td>";
-      sessionsTable += `<td>${session.platform.displayName()}</td>`;
+      sessionsTable += `<td><i class="bi ${session.platform.bootstrapIcon()}"></i> ${session.platform.displayName()}</td>`;
       sessionsTable += `<td sorttable_customkey="${
         session.seconds
       }">${formatSeconds(session.seconds)}<br><small>(${
