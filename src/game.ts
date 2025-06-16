@@ -6,7 +6,7 @@ import { colorFromString, formatSeconds, timeSince } from "./utils";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { www } from "./www";
-import { SteamGridDB } from "./steamgriddb";
+import { SteamGridDB } from "./SteamGridDB/steamgriddb";
 
 export interface GameStatsForPlayer {
   seconds: number;

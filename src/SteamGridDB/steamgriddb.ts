@@ -1,59 +1,8 @@
-import { Logger } from "./logger";
+import { Logger } from "../logger";
+import { CachedGrid, Grid, GridResult, SearchResult } from "./models";
 
 const BASE_URL = "https://www.steamgriddb.com/api/v2";
 const CACHE_EXPIRY = 1000 * 60 * 60 * 24; // 24 hours
-
-export interface SearchResult {
-  success: boolean;
-  data: {
-    id: number;
-    name: string;
-    types: string[];
-    verified: boolean;
-    release_date: number; // Unix timestamp
-  }[];
-}
-
-export interface Author {
-  name: string;
-  steam64: string;
-  avatar: string;
-}
-
-export interface Grid {
-  id: number;
-  score: number;
-  style: string;
-  url: string;
-  thumb: string;
-  verified: boolean;
-  tags: string[];
-  author: Author;
-  width: number;
-  height: number;
-  nsfw: boolean;
-  humor: boolean;
-  notes: string | null;
-  mime: string;
-  language: string;
-  epilepsy: boolean;
-  lock: boolean;
-  upvotes: number;
-  downvotes: number;
-}
-
-export interface GridResult {
-  success: boolean;
-  page: number;
-  total: number;
-  limit: number;
-  data: Grid[];
-}
-
-export interface CachedGrid {
-  grid: Grid;
-  date: Date;
-}
 
 let _instance: SteamGridDB | null = null;
 
@@ -75,7 +24,7 @@ export class SteamGridDB {
   }
 
   /**
-   * Search for a game by name, to figure out its ID
+   * Search for a game by name
    */
   async searchGames(query: string): Promise<SearchResult> {
     const url = `${BASE_URL}/search/autocomplete/${encodeURIComponent(query)}`;
@@ -100,6 +49,8 @@ export class SteamGridDB {
 
   /**
    * Gets available grids for a game
+   * @param gameId The ID of the game to fetch grids for
+   * @param page The page number to fetch (default is 0)
    */
   async getGridsForGameId(gameId: number, page = 0): Promise<GridResult> {
     const url = `${BASE_URL}/grids/game/${gameId}?page=${page}`;
@@ -123,7 +74,11 @@ export class SteamGridDB {
     return data as GridResult;
   }
 
-  /** Tries to figure out the best grid for a game */
+  /**
+   * Tries to figure out the best grid for a game
+   * @param gameId The ID of the game to find the best grid for
+   * @returns The best grid for the game, or null if no suitable grid is found
+   * */
   async bestGridForGame(gameId: number): Promise<Grid | null> {
     let best: Grid | null = null;
     let bestScore = 0;
@@ -135,12 +90,13 @@ export class SteamGridDB {
     for (const grid of gridsResult.data) {
       let thisScore = 0;
 
-      if (grid.style === "alternate") {
-        thisScore += 10;
+      if (grid.nsfw) {
+        // Really dont want to show NSFW
+        thisScore -= 999_999_999;
       }
 
-      if (grid.nsfw) {
-        thisScore -= 100000;
+      if (grid.style === "alternate") {
+        thisScore += 10;
       }
 
       if (grid.language === "en") {
@@ -168,7 +124,9 @@ export class SteamGridDB {
   }
 
   /**
-   * Find top game ID by searching name
+   * Searches for a game by name and returns the top hit's ID
+   * @param name The name of the game to search for
+   * @returns The ID of the top hit game, or null if no games are found
    */
   async topHitForGame(name: string): Promise<number | null> {
     const searchResult = await this.searchGames(name);
