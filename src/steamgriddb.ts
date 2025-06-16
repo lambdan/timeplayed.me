@@ -134,12 +134,13 @@ export class SteamGridDB {
     }
     for (const grid of gridsResult.data) {
       let thisScore = 0;
-      if (grid.verified) {
-        grid.score += 1;
+
+      if (grid.style === "alternate") {
+        thisScore += 10;
       }
 
       if (grid.nsfw) {
-        thisScore -= 100;
+        thisScore -= 100000;
       }
 
       if (grid.language === "en") {
