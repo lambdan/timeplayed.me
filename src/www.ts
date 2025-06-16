@@ -179,7 +179,7 @@ export class www {
         true
       )}" class="img-thumbnail img-fluid"></a></td>`;
       TR +=
-        `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
+        `<td sorttable_customkey="${game.name.toLowerCase()}"><a href="/game/${game.id}" style="color: ${game.color}">` +
         game.name +
         "</a></td>";
       TR += "<td>" + game.players.length + "</td>";
