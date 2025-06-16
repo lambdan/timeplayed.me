@@ -49,3 +49,8 @@ export interface CachedGrid {
   grid: Grid;
   date: Date;
 }
+
+export interface CachedSearchResult {
+  searchResult: SearchResult;
+  date: Date;
+}

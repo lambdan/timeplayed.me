@@ -167,7 +167,12 @@ export class www {
       if (game.sessions.length === 0) {
         continue; // Skip games with no sessions
       }
-      TR += `<tr>`;
+      TR += `<tr class="align-middle">`;
+      TR += `<td class="col-lg-1"><a href="/game/${
+        game.id
+      }" ><img src="${await game.getCapsuleImage(
+        true
+      )}" class="img-thumbnail img-fluid"></a></td>`;
       TR +=
         `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
         game.name +

@@ -82,7 +82,8 @@ export class Game {
   }
 
   get color(): string {
-    return colorFromString(this.name);
+    return "";
+    //return colorFromString(this.name);
   }
 
   /** Total playtime for a single user  */

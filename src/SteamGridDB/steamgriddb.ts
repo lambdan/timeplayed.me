@@ -1,5 +1,11 @@
 import { Logger } from "../logger";
-import { CachedGrid, Grid, GridResult, SearchResult } from "./models";
+import {
+  CachedGrid,
+  Grid,
+  GridResult,
+  SearchResult,
+  CachedSearchResult,
+} from "./models";
 
 const BASE_URL = "https://www.steamgriddb.com/api/v2";
 const CACHE_EXPIRY = 1000 * 60 * 60 * 24; // 24 hours
@@ -9,7 +15,8 @@ let _instance: SteamGridDB | null = null;
 export class SteamGridDB {
   private logger = new Logger("SteamGridDB");
   private apiKey: string;
-  private cache = new Map<number, CachedGrid>();
+  private gridCache = new Map<number, CachedGrid>();
+  private searchCache = new Map<string, CachedSearchResult>();
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
@@ -24,27 +31,45 @@ export class SteamGridDB {
   }
 
   /**
-   * Search for a game by name
+   * Search for a game by name. Uses cached hit if available.
    */
   async searchGames(query: string): Promise<SearchResult> {
+    if (this.searchCache.has(query)) {
+      const cached = this.searchCache.get(query)!;
+      if (cached.date.getTime() + CACHE_EXPIRY > Date.now()) {
+        this.logger.debug("Returning cached search result for:", query);
+        return cached.searchResult;
+      }
+    }
+    this.logger.debug("No cached search result for:", query);
+
     const url = `${BASE_URL}/search/autocomplete/${encodeURIComponent(query)}`;
     this.logger.debug("Searching for games:", url);
     const response = await fetch(url, {
       method: "GET",
       headers: this.getHeaders(),
     });
+
+    let data: SearchResult;
     if (!response.ok) {
       this.logger.error(
         "Failed to fetch from SteamGridDB:",
         response.statusText
       );
-      return {
+
+      data = {
         success: false,
       } as SearchResult;
+    } else {
+      this.logger.debug("Received OK response from SteamGridDB :D");
+      data = (await response.json()) as SearchResult;
     }
-    this.logger.debug("Received OK response from SteamGridDB :D");
-    const data = await response.json();
-    return data as SearchResult;
+
+    this.searchCache.set(query, {
+      searchResult: data,
+      date: new Date(),
+    });
+    return data;
   }
 
   /**
@@ -143,8 +168,8 @@ export class SteamGridDB {
    * Wrapper function to get the best grid and cache it
    */
   async cacheAndGetGridForGame(gameId: number): Promise<Grid | null> {
-    if (this.cache.has(gameId)) {
-      const cached = this.cache.get(gameId)!;
+    if (this.gridCache.has(gameId)) {
+      const cached = this.gridCache.get(gameId)!;
       if (cached.date.getTime() + CACHE_EXPIRY > Date.now()) {
         this.logger.debug("Returning cached grid for:", gameId);
         return cached.grid;
@@ -156,7 +181,7 @@ export class SteamGridDB {
       return null;
     }
 
-    this.cache.set(gameId, {
+    this.gridCache.set(gameId, {
       grid: best,
       date: new Date(),
     });

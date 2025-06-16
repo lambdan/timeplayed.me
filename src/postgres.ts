@@ -177,10 +177,10 @@ export class Postgres {
     return null;
   }
 
-  async fetchGames(): Promise<Game[]> {
+  async fetchGames(limit?: number): Promise<Game[]> {
     const games: Game[] = [];
     try {
-      const result = await this.q("SELECT id FROM game");
+      const result = await this.q(`SELECT id FROM game ${limit ? `LIMIT ${limit}` : ""}`);
       for (const r of result.rows) {
         const gameID = r[0];
         const game = await this.fetchGameById(gameID);
