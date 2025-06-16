@@ -239,9 +239,9 @@ export class Game {
       return this.small_image;
     }
 
-    //if (this.steam_id) {
-    //  return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
-    //}
+    if (this.steam_id) {
+      return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
+    }
 
     let sgdbId = this.sgdb_id;
     if (!sgdbId) {

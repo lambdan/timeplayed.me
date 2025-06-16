@@ -244,8 +244,13 @@ export class User {
       if (!game) {
         continue;
       }
-      recentActivity += "<tr>";
+      recentActivity += "<tr class='align-middle'>";
       //recentActivity += `<td>${session.id}</td>`;
+      recentActivity += `<td class="col-lg-1"><a href="/game/${
+        game.id
+      }" ><img src="${await game.getCapsuleImage(
+        true
+      )}" class="img-thumbnail img-fluid"></a></td>`;
       recentActivity +=
         `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
         game.name +
@@ -269,7 +274,12 @@ export class User {
     });
     for (const game of games) {
       const gameStat = game.getGameStatsForUser(this.id);
-      topGamesTable += "<tr>";
+      topGamesTable += "<tr class='align-middle'>";
+      topGamesTable += `<td class="col-lg-1"><a href="/game/${
+        game.id
+      }" ><img src="${await game.getCapsuleImage(
+        true
+      )}" class="img-thumbnail img-fluid"></a></td>`;
       topGamesTable +=
         `<td><a href="/game/${game.id}" style="color: ${game.color}">` +
         game.name +
