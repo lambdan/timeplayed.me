@@ -240,9 +240,17 @@ export class Game {
       return `https://shared.steamstatic.com/store_item_assets/steam/apps/${this.steam_id}/library_600x900.jpg`;
     }
 
-    const sgdb = await SteamGridDB.GetInstance().easyGridForGame(this.name);
-    if (sgdb) {
-      return sgdb;
+    let sgdbId = this.sgdb_id;
+    if (!sgdbId) {
+      sgdbId = await SteamGridDB.GetInstance().topHitForGame(this.name);
+    }
+    if (sgdbId) {
+      const sgdb = await SteamGridDB.GetInstance().cacheAndGetGridForGame(
+        sgdbId
+      );
+      if (sgdb) {
+        return sgdb;
+      }
     }
 
     return "https://placehold.co/600x900?text=No+Image";

@@ -61,7 +61,7 @@ export class SteamGridDB {
   private queries = 0;
   private logger = new Logger("SteamGridDB");
   private apiKey: string;
-  private cache = new Map<string, CachedImage>();
+  private cache = new Map<number, CachedImage>();
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
@@ -130,15 +130,9 @@ export class SteamGridDB {
   }
 
   /** Tries to figure out the best grid for a game */
-  async bestGridForGame(name: string): Promise<Grid | null> {
+  async bestGridForGame(gameId: number): Promise<Grid | null> {
     let best: Grid | null = null;
     let bestScore = 0;
-    const searchResult = await this.searchGames(name);
-    if (!searchResult.success || searchResult.data.length === 0) {
-      this.logger.error("No games found for:", name);
-      return null;
-    }
-    const gameId = searchResult.data[0].id;
     const gridsResult = await this.getGridsForGameId(gameId);
     if (!gridsResult.success || gridsResult.data.length === 0) {
       this.logger.error("No grids found for game ID:", gameId);
@@ -179,23 +173,37 @@ export class SteamGridDB {
   }
 
   /**
+   * Find top game ID by searching name
+   */
+  async topHitForGame(name: string): Promise<number | null> {
+    const searchResult = await this.searchGames(name);
+    if (!searchResult.success || searchResult.data.length === 0) {
+      this.logger.error("No games found for:", name);
+      return null;
+    }
+    this.logger.debug("Top hit for game:", name, searchResult.data[0]);
+    // Return the first game's ID
+    return searchResult.data[0].id;
+  }
+
+  /**
    * Wrapper function to get the best grid and cache it
    */
-  async easyGridForGame(name: string): Promise<string | null> {
-    if (this.cache.has(name)) {
-      const cached = this.cache.get(name)!;
+  async cacheAndGetGridForGame(gameId: number): Promise<string | null> {
+    if (this.cache.has(gameId)) {
+      const cached = this.cache.get(gameId)!;
       if (cached.date.getTime() + CACHE_EXPIRY > Date.now()) {
         this.logger.debug("Returning cached grid for:", name);
         return cached.url;
       }
     }
 
-    const best = await this.bestGridForGame(name);
+    const best = await this.bestGridForGame(gameId);
     if (!best) {
       return null;
     }
 
-    this.cache.set(name, {
+    this.cache.set(gameId, {
       url: best.url,
       date: new Date(),
     });
