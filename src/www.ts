@@ -81,11 +81,16 @@ export class www {
       recentActivityTable += `<td><a href="/user/${session.userID}">${
         discordInfo!.username
       }</a></td>`;
+      recentActivityTable += `<td class="col-lg-1"><a href="/game/${
+        game.id
+      }" ><img src="${await game.getCapsuleImage(
+        true
+      )}" class="img-thumbnail img-fluid"></a></td>`;
       recentActivityTable +=
-        `<td><a href="/game/${session.gameID}" style="color: ${game.color}">` +
-        game.name +
-        "</a>" +
-        `<br><small style="color: ${platform.color()}"><i class="bi ${platform.bootstrapIcon()}"></i> ${platform.displayName()}</small>` +
+        `<td><a href="/game/${game.id}" style="color: ${game.color}">${
+          game.name
+        }</a>
+        <br><small style="color: ${platform.color()}"><i class="bi ${platform.bootstrapIcon()}"></i> ${platform.displayName()}</small>` +
         "</td>";
       recentActivityTable += `<td>${formatSeconds(session.seconds)}</td>`;
       recentActivityTable += `<td>${timeSince(session.date)}</td>`;
