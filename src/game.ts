@@ -20,26 +20,23 @@ export class Game {
   readonly name: string;
   readonly steam_id: number | null;
   readonly sgdb_id: number | null;
-  private small_image: string | null;
-  private large_image: string | null;
+  readonly image_url: string | null;
 
   readonly sessions: Session[];
   constructor(
     id: number,
     name: string,
     sessions: Session[],
-    small_image: string | null,
-    large_image: string | null,
     steam_id: number | null,
-    sgdb_id: number | null
+    sgdb_id: number | null,
+    image_url: string | null
   ) {
     this.id = id;
     this.name = name;
     this.sessions = sessions;
-    this.small_image = small_image;
-    this.large_image = large_image;
     this.steam_id = steam_id;
     this.sgdb_id = sgdb_id;
+    this.image_url = image_url;
   }
 
   /** Constructs a Game object by ID. Async because it makes DB calls. */
@@ -232,11 +229,8 @@ export class Game {
    * @param thumb - If true, returns a thumbnail image (267x400), otherwise returns a large image (600x900)
    */
   async getCapsuleImage(thumb = false): Promise<string> {
-    if (this.large_image) {
-      return this.large_image;
-    }
-    if (this.small_image) {
-      return this.small_image;
+    if (this.image_url) {
+      return this.image_url;
     }
 
     if (this.steam_id) {

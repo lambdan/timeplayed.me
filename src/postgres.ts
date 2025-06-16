@@ -135,26 +135,18 @@ export class Postgres {
       if (result.rows.length > 0) {
         const r = result.rows[0];
         const gameName = r[1] as string;
-        let smallImage = r[2];
-        if (smallImage === "") {
-          smallImage = null;
-        }
-        let largeImage = r[3];
-        if (largeImage === "") {
-          largeImage = null;
-        }
-        const steam_id = r[4] as number | null;
-        const sgdb_id = r[5] as number | null;
+        const steam_id = r[2] as number | null;
+        const sgdb_id = r[3] as number | null;
+        const image_url = r[4] as string | null;
         const sessions = await this.fetchSessionsByGameID(gameID);
 
         return new Game(
           gameID,
           gameName,
           sessions,
-          smallImage,
-          largeImage,
           steam_id,
-          sgdb_id
+          sgdb_id,
+          image_url
         );
       }
     } catch (error) {
@@ -180,7 +172,9 @@ export class Postgres {
   async fetchGames(limit?: number): Promise<Game[]> {
     const games: Game[] = [];
     try {
-      const result = await this.q(`SELECT id FROM game ${limit ? `LIMIT ${limit}` : ""}`);
+      const result = await this.q(
+        `SELECT id FROM game ${limit ? `LIMIT ${limit}` : ""}`
+      );
       for (const r of result.rows) {
         const gameID = r[0];
         const game = await this.fetchGameById(gameID);
