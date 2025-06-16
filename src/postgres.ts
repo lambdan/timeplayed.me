@@ -144,6 +144,7 @@ export class Postgres {
           largeImage = null;
         }
         const steam_id = r[4] as number | null;
+        const sgdb_id = r[5] as number | null;
         const sessions = await this.fetchSessionsByGameID(gameID);
 
         return new Game(
@@ -152,7 +153,8 @@ export class Postgres {
           sessions,
           smallImage,
           largeImage,
-          steam_id
+          steam_id,
+          sgdb_id
         );
       }
     } catch (error) {

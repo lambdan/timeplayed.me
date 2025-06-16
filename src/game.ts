@@ -19,6 +19,7 @@ export class Game {
   readonly id: number;
   readonly name: string;
   readonly steam_id: number | null;
+  readonly sgdb_id: number | null;
   private small_image: string | null;
   private large_image: string | null;
 
@@ -29,7 +30,8 @@ export class Game {
     sessions: Session[],
     small_image: string | null,
     large_image: string | null,
-    steam_id: number | null
+    steam_id: number | null,
+    sgdb_id: number | null
   ) {
     this.id = id;
     this.name = name;
@@ -37,6 +39,7 @@ export class Game {
     this.small_image = small_image;
     this.large_image = large_image;
     this.steam_id = steam_id;
+    this.sgdb_id = sgdb_id;
   }
 
   /** Constructs a Game object by ID. Async because it makes DB calls. */
@@ -45,7 +48,17 @@ export class Game {
     return await Postgres.GetInstance().fetchGameById(gameID);
   }
 
-  get lastPlayed(): Date {
+  firstPlayed(): Date {
+    let earliest = new Date();
+    for (const s of this.sessions) {
+      if (s.date.getTime() < earliest.getTime()) {
+        earliest = s.date;
+      }
+    }
+    return earliest;
+  }
+
+  lastPlayed(): Date {
     let latest = new Date(0);
     for (const s of this.sessions) {
       if (s.date.getTime() > latest.getTime()) {
@@ -81,6 +94,14 @@ export class Game {
       }
     }
     return sum;
+  }
+
+  playedPlatforms(): string[] {
+    const platforms = new Set<string>();
+    for (const s of this.sessions) {
+      platforms.add(s.platform.displayName());
+    }
+    return [...platforms];
   }
 
   /**
@@ -191,10 +212,14 @@ export class Game {
       "<%TOTAL_PLAYTIME%>",
       formatSeconds(this.totalPlaytime())
     );
+    html = html.replace("<%PLATFORM_LIST%>", this.playedPlatforms().join(", "));
     html = html.replace("<%CHART%>", this.getChart());
     html = html.replace("<%GAME_IMAGE%>", await this.getCapsuleImage());
+    html = html.replace("<%FIRST_PLAYED%>", this.firstPlayed().toUTCString());
+    html = html.replace("<%LAST_PLAYED%>", this.lastPlayed().toUTCString());
     html = html.replace("<%GAME_ID%>", this.id.toString());
     html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
+    html = html.replace("<%SGDB_ID%>", this.sgdb_id?.toString() || "-");
     return await www.GetInstance().constructHTML(html, this.name);
   }
 

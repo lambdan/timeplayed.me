@@ -174,8 +174,10 @@ export class www {
         "</a></td>";
       TR += "<td>" + game.players.length + "</td>";
       TR += "<td>" + game.sessions.length + "</td>";
-      TR += `<td sorttable_customkey="${game.lastPlayed.getTime()}" title="${game.lastPlayed.toUTCString()}">${timeSince(
-        game.lastPlayed
+      TR += `<td sorttable_customkey="${game
+        .lastPlayed()
+        .getTime()}" title="${game.lastPlayed().toUTCString()}">${timeSince(
+        game.lastPlayed()
       )}</td>`;
       TR +=
         `<td sorttable_customkey="${game.totalPlaytime()}" title="${game.totalPlaytime()} seconds">` +

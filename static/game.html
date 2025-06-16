@@ -15,11 +15,33 @@
           <div class="card h-100">
             <h2 class="card-header">Stats</h2>
             <div class="card-body">
-              <p>
-                <b><%PLAYER_COUNT%></b> player(s) have played
-                <b><%GAME_NAME%></b> for <b><%TOTAL_PLAYTIME%></b> across
-                <b><%SESSIONS%></b> session(s)
-              </p>
+              <table class="table table-responsive table-hover">
+                <tr>
+                  <td><b>Playtime:</b></td>
+                  <td><%TOTAL_PLAYTIME%></td>
+                </tr>
+                <tr>
+                  <td><b>Sessions:</b></td>
+                  <td><%SESSIONS%></td>
+                </tr>
+                <tr>
+                  <td><b>Players:</b></td>
+                  <td><%PLAYER_COUNT%></td>
+                </tr>
+                <tr>
+                  <td><b>First played:</b></td>
+                  <td><%FIRST_PLAYED%></td>
+                </tr>
+                <tr>
+                  <td><b>Last played:</b></td>
+                  <td><%LAST_PLAYED%></td>
+                </tr>
+                <tr>
+                  <td><b>Platforms played on:</b></td>
+                  <td><%PLATFORM_LIST%></td>
+                </tr>
+
+              </table>
             </div>
           </div>
         </div>
@@ -28,10 +50,20 @@
           <div class="card h-100">
             <h2 class="card-header">Metadata</h2>
             <div class="card-body">
-              <ul>
-                <li>Internal ID: <%GAME_ID%></li>
-                <li><i class="bi bi-steam"></i> <%STEAM_ID%></li>
-              </ul>
+              <table class="table table-responsive table-hover">
+                <tr>
+                  <td><b>Internal ID:</b></td>
+                  <td><%GAME_ID%></td>
+                </tr>
+                <tr>
+                  <td><b>Steam ID:</b></td>
+                  <td><%STEAM_ID%></td>
+                </tr>
+                <tr>
+                  <td><b>SteamGridDB ID:</b></td>
+                  <td><%SGDB_ID%></td>
+                </tr>
+              </table>
             </div>
           </div>
         </div>
