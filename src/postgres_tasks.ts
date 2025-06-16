@@ -53,9 +53,9 @@ export class PostgresTasks {
 
       this.logger.debug("RUNNING TASKS!");
 
-      await this.taskMergeGames();
+      //await this.taskMergeGames();
       //await this.taskRemoveShortSessions();
-      await this.taskRemoveBadGames();
+      //await this.taskRemoveBadGames();
 
       await sleep(this.intervalSecs * 1000);
     }
