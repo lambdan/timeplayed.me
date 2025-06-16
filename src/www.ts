@@ -99,10 +99,15 @@ export class www {
 
     let totalPlaytime = 0;
     const games = await Postgres.GetInstance().fetchGames();
-    html = html.replaceAll("<%GAME_AMOUNT%>", games.length.toString());
+
+    let gameCount = 0;
     for (const game of games) {
-      totalPlaytime += game.totalPlaytime();
+      if (game.sessions.length > 0) {
+        totalPlaytime += game.totalPlaytime();
+        gameCount++;
+      }
     }
+    html = html.replaceAll("<%GAME_AMOUNT%>", gameCount.toString());
     html = html.replaceAll(
       "<%TOTAL_PLAYTIME%>",
       (totalPlaytime / 3600).toFixed(0) + " hours"
