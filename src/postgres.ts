@@ -132,7 +132,7 @@ export class Postgres {
   async fetchGameById(gameID: number): Promise<Game | null> {
     try {
       const result = await this.q(
-        "SELECT id, name, steam_id, sgdb_id, image_url, to_json(aliases) FROM game WHERE id = $1",
+        "SELECT id, name, steam_id, sgdb_id, image_url, to_json(aliases), release_year FROM game WHERE id = $1",
         [gameID]
       );
       if (result.rows.length > 0) {
@@ -143,6 +143,7 @@ export class Postgres {
         const sgdb_id = r[3] as number | null;
         const image_url = r[4] as string | null;
         const aliases = r[5] as string[];
+        const release_year = r[6] as number | null;
 
         const sessions = await this.fetchSessionsByGameID(gameID);
 
@@ -153,7 +154,8 @@ export class Postgres {
           steam_id,
           sgdb_id,
           image_url,
-          aliases
+          aliases,
+          release_year
         );
       }
     } catch (error) {

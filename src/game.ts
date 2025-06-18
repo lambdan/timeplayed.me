@@ -22,6 +22,7 @@ export class Game {
   readonly sgdb_id: number | null;
   readonly image_url: string | null;
   readonly aliases: string[];
+  readonly release_year: number | null;
 
   readonly sessions: Session[];
   constructor(
@@ -31,7 +32,8 @@ export class Game {
     steam_id: number | null,
     sgdb_id: number | null,
     image_url: string | null,
-    aliases: string[]
+    aliases: string[],
+    release_year: number | null,
   ) {
     this.id = id;
     this.name = name;
@@ -40,6 +42,7 @@ export class Game {
     this.sgdb_id = sgdb_id;
     this.image_url = image_url;
     this.aliases = aliases;
+    this.release_year = release_year;
   }
 
   /** Constructs a Game object by ID. Async because it makes DB calls. */
@@ -222,6 +225,7 @@ export class Game {
     html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
     html = html.replace("<%SGDB_ID%>", this.sgdb_id?.toString() || "-");
     html = html.replace("<%ALIASES%>", this.aliases?.join(", ") || "-");
+    html = html.replace("<%YEAR%>", this.release_year?.toString() || "-");
     return await www.GetInstance().constructHTML(html, this.name);
   }
 
