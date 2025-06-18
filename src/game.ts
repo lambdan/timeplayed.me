@@ -33,7 +33,7 @@ export class Game {
     sgdb_id: number | null,
     image_url: string | null,
     aliases: string[],
-    release_year: number | null,
+    release_year: number | null
   ) {
     this.id = id;
     this.name = name;
@@ -225,8 +225,21 @@ export class Game {
     html = html.replace("<%STEAM_ID%>", this.steam_id?.toString() || "-");
     html = html.replace("<%SGDB_ID%>", this.sgdb_id?.toString() || "-");
     html = html.replace("<%ALIASES%>", this.aliases?.join(", ") || "-");
+
     html = html.replace("<%YEAR%>", this.release_year?.toString() || "-");
-    return await www.GetInstance().constructHTML(html, this.name);
+    html = html.replace(
+      "<%TITLE_YEAR%>",
+      this.release_year
+        ? `<span class="text-muted float-end">${this.release_year}</span>`
+        : ""
+    );
+
+    let title = this.name;
+    if (this.release_year) {
+      title += ` (${this.release_year})`;
+    }
+
+    return await www.GetInstance().constructHTML(html, title);
   }
 
   /**
@@ -247,7 +260,11 @@ export class Game {
 
     let sgdbId = this.sgdb_id;
     if (!sgdbId) {
-      sgdbId = await SteamGridDB.GetInstance().topHitForGame(this.name);
+      let query = this.name;
+      if (this.release_year) {
+        query += ` (${this.release_year})`;
+      }
+      sgdbId = await SteamGridDB.GetInstance().topHitForGame(query);
     }
     if (sgdbId) {
       const grid = await SteamGridDB.GetInstance().cacheAndGetGridForGame(
