@@ -53,9 +53,9 @@ export class PostgresTasks {
 
       this.logger.debug("RUNNING TASKS!");
 
-      //await this.taskMergeGames();
-      //await this.taskRemoveShortSessions();
-      //await this.taskRemoveBadGames();
+      await this.taskMergeGames();
+      await this.taskRemoveShortSessions();
+      await this.taskRemoveBadGames();
 
       await sleep(this.intervalSecs * 1000);
     }
@@ -83,7 +83,7 @@ export class PostgresTasks {
     }
   }
 
-  /*async taskRemoveShortSessions() {
+  async taskRemoveShortSessions() {
     this.logger.debug("Running taskRemoveShortSessions");
     const sessions = await this.postgres.fetchSessions();
     for (const s of sessions) {
@@ -91,7 +91,7 @@ export class PostgresTasks {
         await this.postgres.deleteActivity(s.id);
       }
     }
-  }*/
+  }
 
   async taskRemoveBadGames() {
     this.logger.debug("Running taskRemoveBadGameSessions");
