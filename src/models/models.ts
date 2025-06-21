@@ -21,10 +21,7 @@ export interface Game {
 
 export interface Activity {
   id: number;
-  /**
-   * ISO8601 string representing the date and time of the activity.
-   */
-  timestamp: string;
+  timestamp: number;
   user: User;
   game: Game;
   platform: Platform;
