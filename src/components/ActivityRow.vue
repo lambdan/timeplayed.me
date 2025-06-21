@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Activity } from "../models/models";
 
+const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
+
 defineProps<{ activity: Activity }>();
 </script>
 
@@ -9,7 +11,7 @@ defineProps<{ activity: Activity }>();
     <td class="col-lg-1">
       <a :href="`/user/${activity.user.id}`">
         <img
-          :src="activity.user.avatar_url ?? 'fallback.jpg'"
+          :src="activity.user.avatar_url ?? FALLBACK_AVATAR"
           class="img-thumbnail img-fluid rounded-circle"
         />
       </a>
@@ -21,7 +23,7 @@ defineProps<{ activity: Activity }>();
 
     <td class="col-lg-1">
       <a :href="`/game/${activity.game.id}`">
-        <img :src="`fallback.jpg`" class="img-thumbnail img-fluid" />
+        <img :src="`https://placehold.co/267x400?text=No+Image`" class="img-thumbnail img-fluid" />
       </a>
     </td>
 
