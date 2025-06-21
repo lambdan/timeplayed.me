@@ -1,24 +1,24 @@
 {
-  "name": "timeplayed.me",
+  "name": "timeplayed",
   "private": true,
-  "version": "1.13.5",
-  "main": "dist/index.js",
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.dist.json",
-    "start": "node dist/index.js",
-    "test": "rm -rf build-test && tsc --outDir build-test && node --test-reporter=spec --test build-test/**/*.test.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.3"
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "fastify": "^5.2.1",
-    "ts-postgres": "^2.0.4"
+    "bootstrap": "^5.3.7",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/vue-router": "^2.0.0",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vue-tsc": "^2.2.8"
   }
 }

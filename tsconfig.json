@@ -1,13 +1,7 @@
 {
-    "compilerOptions": {
-        "target": "ES2023",
-        "module": "CommonJS",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "outDir": "dist",
-        "strict": true,
-        "strictNullChecks": true
-    },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

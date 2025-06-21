@@ -1,55 +1,5 @@
-# timeplayed.me
+# Vue 3 + TypeScript + Vite
 
-Discord bot provided by [Oblivionis](https://github.com/Hamuko/oblivionis/tree/master).
+This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-This is essentially a web frontend for it.
-
-![Screenshot](https://djsimg.org/59fae101549b8526587f980f36d0d534.png)
-
-# Docker Compose
-
-```
-version: "3.7"
-
-volumes:
-  oblivionis-postgres:
-
-services:
-  oblivionis:
-    image: ghcr.io/hamuko/oblivionis:latest
-    container_name: oblivionis
-    environment:
-      DB_HOST: postgres
-      DB_NAME: oblivionis
-      DB_USER: oblivion
-      DB_PASSWORD: oblivion
-      TOKEN: - # Discord token
-    restart: always
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres:17.2
-    restart: always
-    volumes:
-      - oblivionis-postgres:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: oblivion
-      POSTGRES_PASSWORD: oblivion
-      POSTGRES_DB: oblivionis
-    ports:
-      - 5432:5432
-
-  web:
-    image: ghcr.io/lambdan/timeplayed.me:latest
-    ports:
-      - 8000:8000
-    environment:
-      PORT: 8000
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: oblivion
-      POSTGRES_PASS: oblivion
-      POSTGRES_DB: oblivionis
-      DISCORD_TOKEN: -
-```
+Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
