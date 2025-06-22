@@ -26,7 +26,7 @@ const isUserPage = window.location.pathname.startsWith("/user/");
     </td>
 
     <td class="col-lg-1">
-      <GameCover :game="activity.game" />
+      <GameCover :game="activity.game" :thumb="true" />
     </td>
 
     <td>

@@ -4,7 +4,9 @@ import type { Game, SGDBGame, SGDBGrid } from "../models/models";
 
 const FALLBACK = "https://placehold.co/267x400?text=No+Image";
 
-const props = defineProps<{ game: Game }>();
+const props = withDefaults(defineProps<{ game: Game; thumb?: boolean }>(), {
+  thumb: false,
+});
 
 const imageUrl = ref<string>("");
 const loading = ref(true);
@@ -21,7 +23,7 @@ async function getCover(): Promise<string> {
   if (props.game.sgdb_id) {
     const res = await fetch(`/api/sgdb/grids/${props.game.sgdb_id}/best`);
     const data: SGDBGrid = await res.json();
-    return data.url;
+    return props.thumb ? data.thumbnail : data.url;
   }
 
   // search
@@ -33,7 +35,7 @@ async function getCover(): Promise<string> {
     const gameId = searchData[0].id;
     const res = await fetch(`/api/sgdb/grids/${gameId}/best`);
     const data: SGDBGrid = await res.json();
-    return data.url;
+    return props.thumb ? data.thumbnail : data.url;
   }
 
   return FALLBACK;
