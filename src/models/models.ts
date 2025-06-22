@@ -91,3 +91,13 @@ export interface UserStats {
     session_length: number;
   };
 }
+
+export interface GlobalStats {
+  total: {
+    seconds: number;
+    users: number;
+    games: number;
+    activities: number;
+    platforms: number;
+  };
+}

@@ -56,7 +56,7 @@ onMounted(() => {
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">Recent activity</h1>
+    <h1 class="card-header">Activity</h1>
     <div class="card-body">
       <div class="row table-responsive">
         <ActivityTable

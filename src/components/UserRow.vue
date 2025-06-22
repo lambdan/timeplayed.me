@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { User, UserStats } from "../models/models";
-import { formatDate, timeAgo } from "../utils";
+import { formatDate, formatDuration, timeAgo } from "../utils";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
@@ -53,7 +53,7 @@ onMounted(async () => {
 
     <td>{{ stats?.total.games }}</td>
 
-    <td v-if="stats">{{ (stats?.total.seconds / 3600).toFixed(1) }} hours</td>
+    <td v-if="stats">{{ formatDuration(stats.total.seconds) }}</td>
 
     <td>
       <small v-if="expanded" class="text-muted">

@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import type { Activity, API_Activities } from "../models/models";
+import type { Activity, GlobalStats } from "../models/models";
 
-const activities = ref<Activity[]>([]);
+const globalStats = ref<GlobalStats>();
+const loading = ref<boolean>(true);
 
 onMounted(async () => {
-  const res = await fetch("/api/activities?limit=10");
-  const data: API_Activities = await res.json();
-  activities.value = data.data.map((activity) => ({
-    ...activity,
-    createdAt: new Date(activity.timestamp),
-  }));
+  const res = await fetch("/api/stats");
+  const data: GlobalStats = await res.json();
+  globalStats.value = data;
+  loading.value = false;
 });
 </script>
 
@@ -20,12 +19,15 @@ onMounted(async () => {
     <h1 class="card-header">Discord Playtime Tracker</h1>
 
     <div class="card-body text-start">
-      <p>
+      <p class="lead">
         This is a thing that automatically tracks your playtime across games
         using Discord.
-        <br />
-        So far, <b>XXX users</b> have played <b>XXX games</b> for a total of
-        <b>XXX hours</b>.
+      </p>
+      <p v-if="!loading">
+        So far <b>{{ globalStats!.total.users }} users</b> have played
+        <b>{{ globalStats!.total.games }} games</b> across
+        <b>{{ globalStats!.total.platforms }} platforms</b> for a total of
+        <b>{{ (globalStats!.total.seconds / 3600).toFixed(0) }} hours</b>.
       </p>
       <p>
         All you need to do is join the Discord server and you will be tracked:

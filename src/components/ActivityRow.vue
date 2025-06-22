@@ -3,7 +3,7 @@ import { ref } from "vue";
 import type { Activity } from "../models/models";
 import GameCover from "./GameCover.vue";
 import Platform from "./Platform.vue";
-import { timeAgo } from "../utils";
+import { formatDuration, timeAgo } from "../utils";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
@@ -48,7 +48,7 @@ function toggleExpand() {
     </td>
 
     <td v-if="!expanded">
-      {{ (activity.seconds / 3600).toFixed(1) }} hours
+      {{ formatDuration(activity.seconds) }}
       <br />
       <small class="text-muted">{{
         timeAgo(new Date(activity.timestamp + "Z"))
