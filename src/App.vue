@@ -9,6 +9,6 @@ import Footer from "./components/Footer.vue";
     <main class="flex-grow pt-2 pb-2">
       <router-view />
     </main>
-    <Footer />
+    <Footer class="mt-4"></Footer>
   </div>
 </template>
