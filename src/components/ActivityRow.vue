@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Activity } from "../models/models";
+import GameCover from "./GameCover.vue";
 import Platform from "./Platform.vue";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
@@ -25,12 +26,7 @@ const isUserPage = window.location.pathname.startsWith("/user/");
     </td>
 
     <td class="col-lg-1">
-      <a :href="`/game/${activity.game.id}`">
-        <img
-          :src="`https://placehold.co/267x400?text=No+Image`"
-          class="img-thumbnail img-fluid"
-        />
-      </a>
+      <GameCover :game="activity.game" />
     </td>
 
     <td>
