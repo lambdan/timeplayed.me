@@ -7,7 +7,7 @@ defineProps<{ user: User }>();
 </script>
 
 <template>
-  <div class="card">
+  <div class="card p-0">
     <h1 class="card-header">{{ user.name }}</h1>
     <div class="card-body">
       <div class="row">

@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { type User, type Activity } from "../models/models";
+import { type User } from "../models/models";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -16,6 +16,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UserInfoCard v-if="user" :user="user" />
+  <UserInfoCard class="mb-4" v-if="user" :user="user" />
   <RecentActivityCard v-if="user" :limit="10" :user="user" />
 </template>

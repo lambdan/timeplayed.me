@@ -1,8 +1,8 @@
 <template>
-  <div class="card">
+  <div class="card p-0">
     <h1 class="card-header">News</h1>
 
-    <div class="card-body">
+    <div class="card-body text-start">
       <strong>2025-06-10: Incorrect timestamps</strong>
       <p>
         Due to a bug, sessions played between 2025-06-09 21:48 to 2025-06-10
