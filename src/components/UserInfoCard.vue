@@ -1,9 +1,61 @@
 <script setup lang="ts">
-import type { User } from "../models/models";
+import { onMounted, ref } from "vue";
+import type { User, UserStats } from "../models/models";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
-defineProps<{ user: User }>();
+const props = defineProps<{ user: User }>();
+
+const stats = ref<UserStats>();
+const loadingStats = ref(true);
+
+onMounted(async () => {
+  const res = await fetch(`/api/users/${props.user.id}/stats`);
+  const data: UserStats = await res.json();
+  stats.value = data;
+  loadingStats.value = false;
+});
+
+function formatDate(number?: number): string {
+  if (!number) return "N/A";
+  const date = new Date(number);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(date.getDate()).padStart(2, "0")} ${String(
+    date.getHours()
+  ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(
+    date.getSeconds()
+  ).padStart(2, "0")} UTC`;
+}
+
+function formatDuration(secs?: number): string {
+  if (!secs) return "N/A";
+  const hours = (secs / 3600).toFixed(1);
+  return `${hours} hours`;
+}
+
+function timeAgo(timestamp?: number): string {
+  if (!timestamp) return "";
+  const now = new Date();
+  const parsedDate = new Date(timestamp);
+  const seconds = Math.floor((now.getTime() - parsedDate.getTime()) / 1000);
+
+  const intervals = [
+    { label: "year", seconds: 31536000 },
+    { label: "month", seconds: 2592000 },
+    { label: "day", seconds: 86400 },
+    { label: "hour", seconds: 3600 },
+    { label: "minute", seconds: 60 },
+  ];
+
+  for (const i of intervals) {
+    const count = Math.floor(seconds / i.seconds);
+    if (count > 0) return `${count} ${i.label}${count !== 1 ? "s" : ""} ago`;
+  }
+
+  return "just now";
+}
 </script>
 
 <template>
@@ -22,28 +74,36 @@ defineProps<{ user: User }>();
           <table class="table table-responsive table-hover">
             <tbody>
               <tr>
-                <td><b>Discord ID:</b></td>
-                <td>{{ user.id }}</td>
-              </tr>
-              <tr>
                 <td><b>First session:</b></td>
-                <td>Mon, 20 Jan 2025 19:11:26 GMT</td>
+                <td>
+                  {{ formatDate(stats?.first_activity) }}
+                  <br />
+                  <small class="text-muted">
+                    {{ timeAgo(stats?.first_activity) }}
+                  </small>
+                </td>
               </tr>
               <tr>
-                <td><b>Last active:</b></td>
-                <td>Sat, 21 Jun 2025 12:09:58 GMT</td>
+                <td><b>Last session:</b></td>
+                <td>
+                  {{ formatDate(stats?.last_active) }}
+                  <br />
+                  <small class="text-muted">
+                    {{ timeAgo(stats?.last_active) }}
+                  </small>
+                </td>
               </tr>
               <tr>
                 <td><b>Active days:</b></td>
-                <td>139</td>
+                <td>{{ stats?.active_days }}</td>
               </tr>
               <tr>
-                <td><b>Longest streak:</b></td>
-                <td>31</td>
+                <td><b>Games played:</b></td>
+                <td>{{ stats?.total.games }}</td>
               </tr>
               <tr>
-                <td><b>Longest break:</b></td>
-                <td>3 days</td>
+                <td><b>Platforms played on:</b></td>
+                <td>{{ stats?.total.platforms }}</td>
               </tr>
             </tbody>
           </table>
@@ -53,28 +113,24 @@ defineProps<{ user: User }>();
           <table class="table table-responsive table-hover">
             <tbody>
               <tr>
-                <td><b>Games played:</b></td>
-                <td>48</td>
-              </tr>
-              <tr>
                 <td><b>Total playtime:</b></td>
-                <td>361.5 hours</td>
-              </tr>
-              <tr>
-                <td><b>Average playtime/game:</b></td>
-                <td>7.5 hours</td>
+                <td>{{ formatDuration(stats?.total.seconds) }}</td>
               </tr>
               <tr>
                 <td><b>Total sessions:</b></td>
-                <td><a href="/user/84733730387673088/sessions">451</a></td>
+                <td>{{ stats?.total.activities }}</td>
+              </tr>
+              <tr>
+                <td><b>Average playtime/game:</b></td>
+                <td>{{ formatDuration(stats?.average.seconds_per_game) }}</td>
               </tr>
               <tr>
                 <td><b>Average sessions/game:</b></td>
-                <td>9</td>
+                <td>{{ stats?.average.sessions_per_game.toFixed(0) }}</td>
               </tr>
               <tr>
                 <td><b>Average session length:</b></td>
-                <td>48 minutes</td>
+                <td>{{ formatDuration(stats?.average.session_length) }}</td>
               </tr>
             </tbody>
           </table>

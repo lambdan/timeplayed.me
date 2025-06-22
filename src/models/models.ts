@@ -65,3 +65,20 @@ export interface SGDBGame {
    */
   release_date: string | undefined;
 }
+
+export interface UserStats {
+  total: {
+    seconds: number;
+    activities: number;
+    games: number;
+    platforms: number;
+  };
+  first_activity: number;
+  last_active: number;
+  active_days: number;
+  average: {
+    seconds_per_game: number;
+    sessions_per_game: number;
+    session_length: number;
+  };
+}
