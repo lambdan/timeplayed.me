@@ -16,5 +16,5 @@ onMounted(async () => {
 </script>
 
 <template>
-  <RecentActivityCard :activities="activities" />
+  <RecentActivityCard :limit="10" />
 </template>

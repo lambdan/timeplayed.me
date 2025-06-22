@@ -4,11 +4,13 @@ import type { Activity } from "../models/models";
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
 defineProps<{ activity: Activity }>();
+
+const isUserPage = window.location.pathname.startsWith("/user/");
 </script>
 
 <template>
   <tr class="align-middle">
-    <td class="col-lg-1">
+    <td class="col-lg-1" v-if="!isUserPage">
       <a :href="`/user/${activity.user.id}`">
         <img
           :src="activity.user.avatar_url ?? FALLBACK_AVATAR"
@@ -17,13 +19,16 @@ defineProps<{ activity: Activity }>();
       </a>
     </td>
 
-    <td>
+    <td v-if="!isUserPage">
       <a :href="`/user/${activity.user.id}`">{{ activity.user.name }}</a>
     </td>
 
     <td class="col-lg-1">
       <a :href="`/game/${activity.game.id}`">
-        <img :src="`https://placehold.co/267x400?text=No+Image`" class="img-thumbnail img-fluid" />
+        <img
+          :src="`https://placehold.co/267x400?text=No+Image`"
+          class="img-thumbnail img-fluid"
+        />
       </a>
     </td>
 
