@@ -3,6 +3,7 @@ import { ref } from "vue";
 import type { Activity } from "../models/models";
 import GameCover from "./GameCover.vue";
 import Platform from "./Platform.vue";
+import { timeAgo } from "../utils";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
@@ -18,27 +19,6 @@ const expanded = ref(false);
 
 function toggleExpand() {
   expanded.value = !expanded.value;
-}
-
-function timeAgo(timestamp: number): string {
-  const now = new Date();
-  const parsedDate = new Date(timestamp);
-  const seconds = Math.floor((now.getTime() - parsedDate.getTime()) / 1000);
-
-  const intervals = [
-    { label: "year", seconds: 31536000 },
-    { label: "month", seconds: 2592000 },
-    { label: "day", seconds: 86400 },
-    { label: "hour", seconds: 3600 },
-    { label: "minute", seconds: 60 },
-  ];
-
-  for (const i of intervals) {
-    const count = Math.floor(seconds / i.seconds);
-    if (count > 0) return `${count} ${i.label}${count !== 1 ? "s" : ""} ago`;
-  }
-
-  return "just now";
 }
 </script>
 
@@ -70,12 +50,16 @@ function timeAgo(timestamp: number): string {
     <td v-if="!expanded">
       {{ (activity.seconds / 3600).toFixed(1) }} hours
       <br />
-      <small class="text-muted">{{ timeAgo(activity.timestamp) }}</small>
+      <small class="text-muted">{{
+        timeAgo(new Date(activity.timestamp + "Z"))
+      }}</small>
     </td>
     <td v-else>
       <div class="d-flex flex-column">
         <span
-          ><code>{{ new Date(activity.timestamp).toISOString() }}</code></span
+          ><code>{{
+            new Date(activity.timestamp + "Z").toISOString()
+          }}</code></span
         >
         <span>{{ activity.seconds }} seconds</span>
       </div>

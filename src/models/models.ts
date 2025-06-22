@@ -5,6 +5,7 @@ export interface Platform {
 
 export interface User {
   id: number;
+  last_active: string;
   name: string;
   avatar_url: string | null;
   default_platform: Platform;
@@ -22,7 +23,7 @@ export interface Game {
 
 export interface Activity {
   id: number;
-  timestamp: number;
+  timestamp: string;
   user: User;
   game: Game;
   platform: Platform;
@@ -31,6 +32,14 @@ export interface Activity {
 
 export interface API_Activities {
   data: Activity[];
+  _total: number;
+  _offset: number;
+  _limit: number;
+  _order: number;
+}
+
+export interface API_Users {
+  data: User[];
   _total: number;
   _offset: number;
   _limit: number;
@@ -73,8 +82,8 @@ export interface UserStats {
     games: number;
     platforms: number;
   };
-  first_activity: number;
-  last_active: number;
+  oldest_activity: Activity;
+  newest_activity: Activity;
   active_days: number;
   average: {
     seconds_per_game: number;
