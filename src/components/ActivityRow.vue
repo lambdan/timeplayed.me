@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Activity } from "../models/models";
+import Platform from "./Platform.vue";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
@@ -33,19 +34,9 @@ const isUserPage = window.location.pathname.startsWith("/user/");
     </td>
 
     <td>
-      <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a
-      ><br />
-      <small>
-        <i
-          class="bi"
-          :class="{
-            'bi-pc-display': activity.platform.abbreviation === 'PC',
-            'bi-nintendo-switch':
-              activity.platform.abbreviation.includes('Switch'),
-          }"
-        ></i>
-        {{ activity.platform.name }}
-      </small>
+      <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a>
+      <br />
+      <small> <Platform :platform="activity.platform" /></small>
     </td>
 
     <td>{{ (activity.seconds / 3600).toFixed(1) }} hours</td>
