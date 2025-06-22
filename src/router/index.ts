@@ -3,6 +3,7 @@ import HomePage from "../views/HomePage.vue";
 import UserPage from "../views/UserPage.vue";
 import NewsPage from "../views/NewsPage.vue";
 import UserListPage from "../views/UserListPage.vue";
+import GameListPage from "../views/GameListPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -14,6 +15,7 @@ const routes = [
   { path: "/news", component: NewsPage },
 
   { path: "/users", component: UserListPage },
+  { path: "/games", component: GameListPage },
 ];
 
 export const router = createRouter({

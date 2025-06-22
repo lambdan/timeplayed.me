@@ -22,20 +22,28 @@ async function getCover(): Promise<string> {
 
   if (props.game.sgdb_id) {
     const res = await fetch(`/api/sgdb/grids/${props.game.sgdb_id}/best`);
-    const data: SGDBGrid = await res.json();
-    return props.thumb ? data.thumbnail : data.url;
+    if (res.ok) {
+      const data: SGDBGrid = await res.json();
+      return props.thumb ? data.thumbnail : data.url;
+    }
+    return FALLBACK;
   }
 
   // search
   const searchRes = await fetch(
     `/api/sgdb/search?query=${encodeURIComponent(props.game.name)}`
   );
-  const searchData: SGDBGame[] = await searchRes.json();
-  if (searchData.length > 0) {
-    const gameId = searchData[0].id;
-    const res = await fetch(`/api/sgdb/grids/${gameId}/best`);
-    const data: SGDBGrid = await res.json();
-    return props.thumb ? data.thumbnail : data.url;
+
+  if (searchRes.ok) {
+    const searchData: SGDBGame[] = await searchRes.json();
+    if (searchData.length > 0) {
+      const gameId = searchData[0].id;
+      const res = await fetch(`/api/sgdb/grids/${gameId}/best`);
+      if (res.ok) {
+        const data: SGDBGrid = await res.json();
+        return props.thumb ? data.thumbnail : data.url;
+      }
+    }
   }
 
   return FALLBACK;

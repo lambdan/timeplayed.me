@@ -1,4 +1,5 @@
 export interface Platform {
+  id: number;
   abbreviation: string;
   name: string | null;
 }
@@ -6,6 +7,7 @@ export interface Platform {
 export interface User {
   id: number;
   last_active: string;
+  seconds_played: number;
   name: string;
   avatar_url: string | null;
   default_platform: Platform;
@@ -14,6 +16,8 @@ export interface User {
 export interface Game {
   id: number;
   name: string;
+  last_played: string | null;
+  seconds_played: number;
   image_url: string | null;
   steam_id: number | null;
   sgdb_id: number | null;
@@ -30,20 +34,23 @@ export interface Activity {
   seconds: number;
 }
 
-export interface API_Activities {
-  data: Activity[];
+export interface API_Paginated {
   _total: number;
   _offset: number;
   _limit: number;
-  _order: number;
+  _order: string;
 }
 
-export interface API_Users {
+export interface API_Activities extends API_Paginated {
+  data: Activity[];
+}
+
+export interface API_Users extends API_Paginated {
   data: User[];
-  _total: number;
-  _offset: number;
-  _limit: number;
-  _order: number;
+}
+
+export interface API_Games extends API_Paginated {
+  data: Game[];
 }
 
 export interface SGDBGrid {
@@ -101,3 +108,18 @@ export interface GlobalStats {
     platforms: number;
   };
 }
+/*
+export interface GameStats {
+  total: {
+    seconds: number;
+    activities: number;
+    users: number;
+    platforms: number;
+  };
+  platforms: Platform[];
+  average: {
+    seconds_per_user: number;
+    sessions_per_user: number;
+    session_length: number;
+  };
+}*/

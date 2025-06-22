@@ -40,7 +40,7 @@ async function fetchActivities(limit?: number, offsetVal = 0) {
     activities.value = [...activities.value, ...newActivities];
   }
 
-  hasMore.value = newActivities.length === props.limit;
+  hasMore.value = data._total > offsetVal + newActivities.length;
   loading.value = false;
 }
 

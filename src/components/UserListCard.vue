@@ -43,7 +43,7 @@ async function fetchUsers(limit?: number, offsetVal = 0) {
     users.value = [...users.value, ...newUsers];
   }
 
-  hasMore.value = newUsers.length === props.limit;
+  hasMore.value = data._total > offsetVal + newUsers.length;
   loading.value = false;
 }
 

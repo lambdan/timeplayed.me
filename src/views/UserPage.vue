@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import GameListCard from "../components/GameListCard.vue";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import { type User } from "../models/models";
@@ -17,5 +18,14 @@ onMounted(async () => {
 
 <template>
   <UserInfoCard class="mb-4" v-if="user" :user="user" />
-  <RecentActivityCard v-if="user" :limit="50" :user="user" :showExpand="true" />
+  <GameListCard
+    v-if="user"
+    class="mb-4"
+    :showExpand="false"
+    :limit="10"
+    :order="'desc'"
+    :sort="'playtime'"
+    :user="user"
+  ></GameListCard>
+  <RecentActivityCard v-if="user" :limit="10" :user="user" :showExpand="true" />
 </template>
