@@ -17,5 +17,5 @@ onMounted(async () => {
 
 <template>
   <UserInfoCard class="mb-4" v-if="user" :user="user" />
-  <RecentActivityCard v-if="user" :limit="10" :user="user" />
+  <RecentActivityCard v-if="user" :limit="50" :user="user" :showExpand="true" />
 </template>

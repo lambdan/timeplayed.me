@@ -2,7 +2,12 @@
 import ActivityRow from "./ActivityRow.vue";
 import type { Activity } from "../models/models";
 
-defineProps<{ activities: Activity[] }>();
+const props = withDefaults(
+  defineProps<{ activities: Activity[]; showExpand?: boolean }>(),
+  {
+    showExpand: false,
+  }
+);
 </script>
 
 <template>
@@ -12,6 +17,7 @@ defineProps<{ activities: Activity[] }>();
         v-for="activity in activities"
         :key="activity.id"
         :activity="activity"
+        :showExpand="showExpand"
       />
     </tbody>
   </table>

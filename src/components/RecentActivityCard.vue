@@ -3,37 +3,54 @@ import { onMounted, ref } from "vue";
 import ActivityTable from "../components/ActivityTable.vue";
 import type { Activity, API_Activities, User } from "../models/models";
 
-const props = defineProps<{ user?: User; limit: number }>();
+const props = withDefaults(
+  defineProps<{ user?: User; limit: number; showExpand?: boolean }>(),
+  { showExpand: false }
+);
 
 const activities = ref<Activity[]>([]);
+const offset = ref(0);
+const loading = ref(false);
+const hasMore = ref(true);
 
-async function fetchActivities(userId?: string, limit?: number) {
-  if (props.user) {
-    userId = props.user.id + "";
-  }
-
+async function fetchActivities(limit?: number, offsetVal = 0) {
   const params = [];
-  if (userId) {
-    params.push(`user=${userId}`);
+  if (props.user) {
+    params.push(`user=${props.user.id}`);
   }
   if (limit) {
     params.push(`limit=${limit}`);
   }
+  if (offsetVal) {
+    params.push(`offset=${offsetVal}`);
+  }
 
+  loading.value = true;
   const res = await fetch(`/api/activities?${params.join("&")}`);
   const data: API_Activities = await res.json();
 
-  activities.value = data.data.map((activity: any) => ({
+  const newActivities = data.data.map((activity: any) => ({
     ...activity,
     createdAt: new Date(activity.timestamp),
   }));
-}
-onMounted(() => {
-  let userId;
-  if (props.user) {
-    userId = props.user.id + "";
+
+  if (offsetVal === 0) {
+    activities.value = newActivities;
+  } else {
+    activities.value = [...activities.value, ...newActivities];
   }
-  fetchActivities(userId, props.limit);
+
+  hasMore.value = newActivities.length === props.limit;
+  loading.value = false;
+}
+
+function loadMore() {
+  offset.value += props.limit;
+  fetchActivities(props.limit, offset.value);
+}
+
+onMounted(() => {
+  fetchActivities(props.limit, 0);
 });
 </script>
 
@@ -42,7 +59,28 @@ onMounted(() => {
     <h1 class="card-header">Recent activity</h1>
     <div class="card-body">
       <div class="row table-responsive">
-        <ActivityTable :activities="activities" />
+        <ActivityTable
+          :activities="activities"
+          :showExpand="props.showExpand"
+        />
+      </div>
+      <div class="text-center my-2">
+        <button v-if="loading" class="btn btn-primary" type="button" disabled>
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Loading...
+        </button>
+        <button
+          v-else-if="hasMore"
+          class="btn btn-primary"
+          :disabled="loading"
+          @click="loadMore"
+        >
+          Load More
+        </button>
       </div>
     </div>
   </div>
