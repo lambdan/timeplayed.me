@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Game } from "../models/models";
+import type { Platform } from "../models/models";
 import GameRow from "./GameRow.vue";
+import PlatformRow from "./PlatformRow.vue";
 
 const props = withDefaults(
-  defineProps<{ games: Game[]; showExpand?: boolean }>(),
+  defineProps<{ platforms: Platform[]; showExpand?: boolean }>(),
   {
     showExpand: false,
   }
@@ -11,23 +12,20 @@ const props = withDefaults(
 </script>
 
 <template>
-  <table class="table table-hover">
+  <table class="table table-responsive table-hover">
     <thead>
       <tr>
         <th></th>
-        <!-- Cover -->
-
-        <th>Name</th>
         <th>Last played</th>
         <th>Total playtime</th>
-        <th></th>
+        <th>Percentage</th>
       </tr>
     </thead>
     <tbody>
-      <GameRow
-        v-for="game in games"
-        :key="game.id"
-        :game="game"
+      <PlatformRow
+        v-for="platform in platforms"
+        :key="platform.id"
+        :platform="platform"
         :showExpand="showExpand"
       />
     </tbody>

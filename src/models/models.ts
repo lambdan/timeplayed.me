@@ -2,6 +2,8 @@ export interface Platform {
   id: number;
   abbreviation: string;
   name: string | null;
+  last_played: string | null;
+  seconds_played: number;
 }
 
 export interface User {
@@ -51,6 +53,10 @@ export interface API_Users extends API_Paginated {
 
 export interface API_Games extends API_Paginated {
   data: Game[];
+}
+
+export interface API_Platforms extends API_Paginated {
+  data: Platform[];
 }
 
 export interface SGDBGrid {

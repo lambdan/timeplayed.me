@@ -4,6 +4,7 @@ import UserPage from "../views/UserPage.vue";
 import NewsPage from "../views/NewsPage.vue";
 import UserListPage from "../views/UserListPage.vue";
 import GameListPage from "../views/GameListPage.vue";
+import PlatformListPage from "../views/PlatformListPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -13,9 +14,9 @@ const routes = [
     component: UserPage,
   },
   { path: "/news", component: NewsPage },
-
   { path: "/users", component: UserListPage },
   { path: "/games", component: GameListPage },
+  { path: "/platforms", component: PlatformListPage },
 ];
 
 export const router = createRouter({

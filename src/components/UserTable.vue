@@ -13,7 +13,7 @@ const props = withDefaults(
 
 <template>
   <table class="table table-hover">
-    <tbody>
+    <thead>
       <tr>
         <th></th>
         <th></th>
@@ -22,6 +22,8 @@ const props = withDefaults(
         <th>Total playtime</th>
         <th></th>
       </tr>
+    </thead>
+    <tbody>
       <UserRow
         v-for="user in users"
         :key="user.id"

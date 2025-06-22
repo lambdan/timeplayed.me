@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import GameTable from "./GameTable.vue";
-import type { API_Games, Game, User } from "../models/models";
+import type { API_Platforms, Platform, User } from "../models/models";
+import PlatformTable from "./PlatformTable.vue";
 
 const props = withDefaults(
   defineProps<{
     limit?: number;
     showExpand?: boolean;
     order?: "asc" | "desc";
-    sort?: "recency" | "playtime" | "name";
+    sort?: "recency" | "playtime";
     user?: User;
   }>(),
   {
@@ -20,14 +21,14 @@ const props = withDefaults(
   }
 );
 
-const games = ref<Game[]>([]);
+const platforms = ref<Platform[]>([]);
 const offset = ref(0);
 const loading = ref(false);
 const hasMore = ref(true);
-const localSort = ref<"recency" | "playtime" | "name">(props.sort);
+const localSort = ref<"recency" | "playtime">(props.sort);
 const localOrder = ref<"asc" | "desc">(props.order);
 
-async function fetchGames(limit?: number, offsetVal = 0) {
+async function fetchPlatforms(limit?: number, offsetVal = 0) {
   const params = [];
 
   if (limit) {
@@ -49,58 +50,59 @@ async function fetchGames(limit?: number, offsetVal = 0) {
     user = `/users/${props.user.id}`;
   }
 
-  const res = await fetch(`/api${user}/games?${params.join("&")}`);
-  const data: API_Games = await res.json();
+  const res = await fetch(`/api${user}/platforms?${params.join("&")}`);
+  const data: API_Platforms = await res.json();
 
-  const newGames = data.data.map((game: Game) => ({
-    ...game,
+  const newPlatforms = data.data.map((platform: Platform) => ({
+    ...platform,
   }));
 
   if (offsetVal === 0) {
-    games.value = newGames;
+    platforms.value = newPlatforms;
   } else {
-    games.value = [...games.value, ...newGames];
+    platforms.value = [...platforms.value, ...newPlatforms];
   }
 
-  hasMore.value = data._total > offsetVal + newGames.length;
+  hasMore.value = data._total > offsetVal + newPlatforms.length;
   loading.value = false;
 }
 
 function loadMore() {
   offset.value += props.limit;
-  fetchGames(props.limit, offset.value);
+  fetchPlatforms(props.limit, offset.value);
 }
 
-function changeSort(newSort: "recency" | "playtime" | "name") {
-  games.value = [];
+function changeSort(newSort: "recency" | "playtime") {
+  platforms.value = [];
   if (localSort.value !== newSort) {
     localSort.value = newSort;
     offset.value = 0;
-    fetchGames(props.limit, 0);
+    fetchPlatforms(props.limit, 0);
   }
 }
 
 function changeOrder(newOrder: "asc" | "desc") {
-  games.value = [];
+  platforms.value = [];
   if (localOrder.value !== newOrder) {
     localOrder.value = newOrder;
     offset.value = 0;
-    fetchGames(props.limit, 0);
+    fetchPlatforms(props.limit, 0);
   }
 }
 
 onMounted(() => {
-  fetchGames(props.limit, 0);
+  fetchPlatforms(props.limit, 0);
 });
 </script>
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">Games</h1>
+    <h1 class="card-header">Platforms</h1>
     <div class="card-body">
       <!-- Sort Button Group -->
+      <!--
       <div class="mb-3 text-center">
-        <div class="btn-group" role="group" aria-label="Sort games">
+        <div class="btn-group" role="group" aria-label="Sort platforms">
           <button
             type="button"
             class="btn"
@@ -121,21 +123,12 @@ onMounted(() => {
           >
             Playtime
           </button>
-          <button
-            type="button"
-            class="btn"
-            :class="
-              localSort === 'name' ? 'btn-primary' : 'btn-outline-primary'
-            "
-            @click="changeSort('name')"
-          >
-            Name
-          </button>
         </div>
-      </div>
+      </div>-->
       <!-- Order Button Group -->
+      <!---
       <div class="mb-3 text-center">
-        <div class="btn-group" role="group" aria-label="Order games">
+        <div class="btn-group" role="group" aria-label="Order platforms">
           <button
             type="button"
             class="btn"
@@ -157,9 +150,9 @@ onMounted(() => {
             Descending
           </button>
         </div>
-      </div>
+      </div>-->
       <div class="row table-responsive">
-        <GameTable :games="games" :showExpand="props.showExpand" />
+        <PlatformTable :platforms="platforms" :showExpand="props.showExpand" />
       </div>
       <div class="text-center my-2">
         <button v-if="loading" class="btn btn-primary" type="button" disabled>

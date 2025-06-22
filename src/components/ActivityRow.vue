@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import type { Activity } from "../models/models";
 import GameCover from "./GameCover.vue";
-import Platform from "./Platform.vue";
+import Platform from "./PlatformComp.vue";
 import { formatDuration, timeAgo } from "../utils";
 
 const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
