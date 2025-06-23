@@ -31,7 +31,9 @@ onMounted(async () => {});
     </td>
 
     <td>
-      {{ props.user.user.name }}
+      <a :href="`/user/${props.user.user.id}`">
+        {{ props.user.user.name }}
+      </a>
     </td>
 
     <td>
