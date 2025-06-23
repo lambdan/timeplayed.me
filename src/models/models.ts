@@ -14,10 +14,7 @@ export interface PlatformWithStats {
 
 export interface User {
   id: number;
-  last_active: string;
-  seconds_played: number;
   name: string;
-  avatar_url: string | null;
   default_platform: Platform;
 }
 
@@ -35,7 +32,7 @@ export interface Game {
 
 export interface Activity {
   id: number;
-  timestamp: string;
+  timestamp: number;
   user: User;
   game: Game;
   platform: Platform;
@@ -112,13 +109,11 @@ export interface UserStats {
 }
 
 export interface GlobalStats {
-  total: {
-    seconds: number;
-    users: number;
-    games: number;
-    activities: number;
-    platforms: number;
-  };
+  total_playtime: number;
+  activities: number;
+  users: number;
+  games: number;
+  platforms: number;
 }
 /*
 export interface GameStats {

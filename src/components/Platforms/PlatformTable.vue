@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { PlatformWithStats, User } from "../models/models";
+import type { PlatformWithStats, User } from "../../models/models";
 import PlatformRow from "./PlatformRow.vue";
 //import { sleep } from "../utils";
-import ColorSpinners from "./ColorSpinners.vue";
+import ColorSpinners from "../Misc/ColorSpinners.vue";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;

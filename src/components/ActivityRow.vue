@@ -2,10 +2,9 @@
 import { ref } from "vue";
 import type { Activity } from "../models/models";
 import GameCover from "./GameCover.vue";
-import Platform from "./PlatformComp.vue";
+import Platform from "./Platforms/PlatformComp.vue";
 import { formatDuration, timeAgo } from "../utils";
-
-const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
+import DiscordAvatar from "./DiscordAvatar.vue";
 
 const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),
@@ -25,12 +24,7 @@ function toggleExpand() {
 <template>
   <tr class="align-middle">
     <td class="col-lg-1" v-if="!isUserPage">
-      <a :href="`/user/${activity.user.id}`">
-        <img
-          :src="activity.user.avatar_url ?? FALLBACK_AVATAR"
-          class="img-thumbnail img-fluid rounded-circle"
-        />
-      </a>
+      <DiscordAvatar :user="activity.user" />
     </td>
 
     <td v-if="!isUserPage">
@@ -51,15 +45,13 @@ function toggleExpand() {
       {{ formatDuration(activity.seconds) }}
       <br />
       <small class="text-muted">{{
-        timeAgo(new Date(activity.timestamp + "Z"))
+        timeAgo(new Date(activity.timestamp))
       }}</small>
     </td>
     <td v-else>
       <div class="d-flex flex-column">
         <span
-          ><code>{{
-            new Date(activity.timestamp + "Z").toISOString()
-          }}</code></span
+          ><code>{{ new Date(activity.timestamp).toISOString() }}</code></span
         >
         <span>{{ activity.seconds }} seconds</span>
       </div>

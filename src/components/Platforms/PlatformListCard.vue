@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { User } from "../models/models";
+import type { User } from "../../models/models";
 import PlatformTable from "./PlatformTable.vue";
 
 const props = withDefaults(

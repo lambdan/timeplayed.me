@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { PlatformWithStats } from "../models/models";
+import type { PlatformWithStats } from "../../models/models";
 
-import { formatDate, formatDuration, timeAgo } from "../utils";
+import { formatDate, formatDuration, timeAgo } from "../../utils";
 import PlatformComp from "./PlatformComp.vue";
 
 const props = withDefaults(

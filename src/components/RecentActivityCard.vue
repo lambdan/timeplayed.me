@@ -5,7 +5,7 @@ import type { Activity, API_Activities, User } from "../models/models";
 
 const props = withDefaults(
   defineProps<{ user?: User; limit: number; showExpand?: boolean }>(),
-  { showExpand: false }
+  { showExpand: false, limit: 25, user: undefined }
 );
 
 const activities = ref<Activity[]>([]);

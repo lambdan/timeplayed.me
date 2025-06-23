@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Platform } from "../models/models";
+import type { Platform } from "../../models/models";
 import { defineProps } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
 

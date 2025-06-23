@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 
-import PlatformListCard from "../components/PlatformListCard.vue";
+import PlatformListCard from "../components/Platforms/PlatformListCard.vue";
 
 const route = useRoute();
 </script>

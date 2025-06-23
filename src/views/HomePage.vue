@@ -24,10 +24,10 @@ onMounted(async () => {
         using Discord.
       </p>
       <p v-if="!loading">
-        So far <b>{{ globalStats!.total.users }} users</b> have played
-        <b>{{ globalStats!.total.games }} games</b> across
-        <b>{{ globalStats!.total.platforms }} platforms</b> for a total of
-        <b>{{ (globalStats!.total.seconds / 3600).toFixed(0) }} hours</b>.
+        So far <b>{{ globalStats!.users }} users</b> have played
+        <b>{{ globalStats!.games }} games</b> across
+        <b>{{ globalStats!.platforms }} platforms</b> for a total of
+        <b>{{ (globalStats!.total_playtime / 3600).toFixed(0) }} hours</b>.
       </p>
       <p>
         All you need to do is join the Discord server and you will be tracked:
