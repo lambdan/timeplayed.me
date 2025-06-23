@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type {
-  API_Games,
-  GameWithStats,
-  PlatformWithStats,
-  User,
-} from "../../models/models";
+import type { API_Games, GameWithStats, User } from "../../models/models";
 import GameRow from "./GameRow.vue";
 import { sleep } from "../../utils";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
