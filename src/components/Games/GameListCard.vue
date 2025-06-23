@@ -9,12 +9,14 @@ const props = withDefaults(
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     user?: User;
+    limit: number;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     user: undefined,
+    limit: 10,
   }
 );
 
@@ -98,6 +100,7 @@ function setOrder(newOrder: "asc" | "desc") {
         :sort="localSort"
         :order="localOrder"
         :user="props.user"
+        :limit="props.limit"
       />
     </div>
   </div>

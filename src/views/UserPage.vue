@@ -18,19 +18,20 @@ onMounted(async () => {
 
 <template>
   <UserInfoCard class="mb-4" v-if="apiUser" :user="apiUser.user" />
+  <RecentActivityCard
+    v-if="apiUser"
+    :limit="5"
+    :user="apiUser.user"
+    :showExpand="true"
+    class="mb-4"
+  />
   <GameListCard
     v-if="apiUser"
     class="mb-4"
     :showExpand="false"
-    :limit="10"
+    :limit="5"
     :order="'desc'"
     :sort="'playtime'"
     :user="apiUser.user"
   ></GameListCard>
-  <RecentActivityCard
-    v-if="apiUser"
-    :limit="10"
-    :user="apiUser.user"
-    :showExpand="true"
-  />
 </template>

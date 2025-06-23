@@ -15,20 +15,25 @@ const props = withDefaults(
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     user?: User;
+    limit?: number;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     user: undefined,
+    limit: 10,
   }
 );
 
+const limit = ref(props.limit);
 const baseUrl = ref(`/api/games`);
 const games = ref<GameWithStats[]>([]);
+const displayedGames = ref<GameWithStats[]>([]);
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
+const showAll = ref(false);
 
 if (props.user) {
   baseUrl.value = `/api/users/${props.user.id}/games`;
@@ -51,7 +56,16 @@ async function fetchGames() {
   }
   games.value = fetchedGames;
   sort();
+
   loading.value = false;
+}
+
+function updateDisplayedGames() {
+  if (showAll.value || games.value.length <= limit.value || limit.value == 0) {
+    displayedGames.value = games.value;
+  } else {
+    displayedGames.value = games.value.slice(0, limit.value);
+  }
 }
 
 function sort() {
@@ -76,6 +90,7 @@ function sort() {
         : b_name.localeCompare(a_name);
     });
   }
+  updateDisplayedGames();
 }
 
 watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
@@ -103,13 +118,35 @@ onMounted(() => {
       </thead>
       <tbody>
         <GameRow
-          v-for="game in games"
+          v-for="game in displayedGames"
           :key="game.game.id"
           :game="game"
           :showExpand="props.showExpand"
         />
       </tbody>
     </table>
+    <div class="text-center">
+      <button
+        v-if="!showAll && displayedGames.length < games.length"
+        class="btn btn-primary"
+        @click="
+          showAll = true;
+          updateDisplayedGames();
+        "
+      >
+        Show All
+      </button>
+      <button
+        v-else-if="showAll && limit > 0 && displayedGames.length > limit"
+        class="btn btn-secondary"
+        @click="
+          showAll = false;
+          updateDisplayedGames();
+        "
+      >
+        Show Less
+      </button>
+    </div>
   </template>
   <div v-else class="text-center text-muted">No games found.</div>
 </template>

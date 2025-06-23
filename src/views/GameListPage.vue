@@ -9,7 +9,7 @@ const route = useRoute();
 <template>
   <GameListCard
     :showExpand="false"
-    :limit="25"
+    :limit="0"
     :order="'desc'"
     :sort="'recency'"
   ></GameListCard>
