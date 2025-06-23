@@ -54,7 +54,7 @@ export interface API_Activities extends API_Paginated {
   data: Activity[];
 }
 
-export interface API_User {
+export interface UserWithStats {
   user: User;
   last_played: number;
   total_activities: number;
@@ -62,7 +62,7 @@ export interface API_User {
 }
 
 export interface API_Users extends API_Paginated {
-  data: User[];
+  data: UserWithStats[];
 }
 
 export interface API_Games extends API_Paginated {

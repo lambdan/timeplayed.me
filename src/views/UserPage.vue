@@ -3,11 +3,11 @@ import { onMounted, ref } from "vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { type API_User } from "../models/models";
+import { type UserWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const apiUser = ref<API_User>();
+const apiUser = ref<UserWithStats>();
 
 onMounted(async () => {
   const userId = route.params.id as string;
