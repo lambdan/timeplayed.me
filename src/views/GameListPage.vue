@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 
-import GameListCard from "../components/GameListCard.vue";
+import GameListCard from "../components/Games/GameListCard.vue";
 
 const route = useRoute();
 </script>

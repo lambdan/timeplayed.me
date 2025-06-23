@@ -21,13 +21,18 @@ export interface User {
 export interface Game {
   id: number;
   name: string;
-  last_played: string | null;
-  seconds_played: number;
   image_url: string | null;
   steam_id: number | null;
   sgdb_id: number | null;
   aliases: string[];
   release_year: number | null;
+}
+
+export interface GameWithStats {
+  game: Game;
+  last_played: number;
+  total_sessions: number;
+  total_playtime: number;
 }
 
 export interface Activity {
@@ -43,11 +48,17 @@ export interface API_Paginated {
   _total: number;
   _offset: number;
   _limit: number;
-  _order: string;
 }
 
 export interface API_Activities extends API_Paginated {
   data: Activity[];
+}
+
+export interface API_User {
+  user: User;
+  last_played: number;
+  total_activities: number;
+  total_playtime: number;
 }
 
 export interface API_Users extends API_Paginated {
@@ -55,10 +66,10 @@ export interface API_Users extends API_Paginated {
 }
 
 export interface API_Games extends API_Paginated {
-  data: Game[];
+  data: GameWithStats[];
 }
 
-export interface API_PlatformsWithStats extends API_Paginated {
+export interface API_Platforms extends API_Paginated {
   data: PlatformWithStats[];
 }
 

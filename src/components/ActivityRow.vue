@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import type { Activity } from "../models/models";
-import GameCover from "./GameCover.vue";
+import GameCover from "./Games/GameCover.vue";
 import Platform from "./Platforms/PlatformComp.vue";
 import { formatDuration, timeAgo } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";

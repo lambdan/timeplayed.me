@@ -2,8 +2,7 @@
 import { onMounted, ref } from "vue";
 import type { User, UserStats } from "../models/models";
 import { formatDate, timeAgo, formatDuration } from "../utils";
-
-const FALLBACK_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
+import DiscordAvatar from "./DiscordAvatar.vue";
 
 const props = defineProps<{ user: User }>();
 
@@ -24,10 +23,7 @@ onMounted(async () => {
     <div class="card-body">
       <div class="row">
         <div class="col-lg-2 mb-4">
-          <img
-            :src="user.avatar_url ?? FALLBACK_AVATAR"
-            class="img-thumbnail img-fluid rounded-circle"
-          />
+          <DiscordAvatar :user="user"></DiscordAvatar>
         </div>
 
         <div class="col mb-4">
@@ -36,28 +32,20 @@ onMounted(async () => {
               <tr>
                 <td><b>First session:</b></td>
                 <td v-if="stats">
-                  {{
-                    formatDate(new Date(stats?.oldest_activity.timestamp + "Z"))
-                  }}
+                  {{ formatDate(new Date(stats?.oldest_activity.timestamp)) }}
                   <br />
                   <small class="text-muted">
-                    {{
-                      timeAgo(new Date(stats?.oldest_activity.timestamp + "Z"))
-                    }}
+                    {{ timeAgo(new Date(stats?.oldest_activity.timestamp)) }}
                   </small>
                 </td>
               </tr>
               <tr>
                 <td><b>Last session:</b></td>
                 <td v-if="stats">
-                  {{
-                    formatDate(new Date(stats?.newest_activity.timestamp + "Z"))
-                  }}
+                  {{ formatDate(new Date(stats?.newest_activity.timestamp)) }}
                   <br />
                   <small class="text-muted">
-                    {{
-                      timeAgo(new Date(stats?.newest_activity.timestamp + "Z"))
-                    }}
+                    {{ timeAgo(new Date(stats?.newest_activity.timestamp)) }}
                   </small>
                 </td>
               </tr>

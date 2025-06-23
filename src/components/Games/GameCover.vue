@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Game, SGDBGame, SGDBGrid } from "../models/models";
+import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
 
 const FALLBACK = "https://placehold.co/267x400?text=No+Image";
 

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import type {
-  API_Platforms,
+  API_Games,
+  GameWithStats,
   PlatformWithStats,
   User,
 } from "../../models/models";
-import PlatformRow from "./PlatformRow.vue";
+import GameRow from "./GameRow.vue";
+import { sleep } from "../../utils";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 const props = withDefaults(
   defineProps<{
@@ -22,47 +24,53 @@ const props = withDefaults(
   }
 );
 
-const platforms = ref<PlatformWithStats[]>([]);
+const baseUrl = ref(`/api/games`);
+const games = ref<GameWithStats[]>([]);
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
-async function fetchPlatforms() {
+if (props.user) {
+  baseUrl.value = `/api/users/${props.user.id}/games`;
+}
+
+async function fetchGames() {
   loading.value = true;
-  platforms.value = [];
-  const fetchedPlatforms: PlatformWithStats[] = [];
-  let res = await fetch(`/api/platforms`);
-  let data = (await res.json()) as API_Platforms;
-  fetchedPlatforms.push(...data.data);
-  while (fetchedPlatforms.length < data._total) {
-    res = await fetch(
-      `/api/platforms?offset=${fetchedPlatforms.length}`
-    );
-    data = (await res.json()) as API_Platforms;
-    fetchedPlatforms.push(...data.data);
+  games.value = [];
+
+  const fetchedGames: GameWithStats[] = [];
+  let res = await fetch(`${baseUrl.value}`);
+  console.log("Fetching games from", res.url);
+  let data = (await res.json()) as API_Games;
+  fetchedGames.push(...data.data);
+  while (fetchedGames.length < data._total) {
+    res = await fetch(`${baseUrl.value}?offset=${fetchedGames.length}`);
+    console.log("Fetching games from", res.url);
+    data = (await res.json()) as API_Games;
+    fetchedGames.push(...data.data);
   }
-  platforms.value = fetchedPlatforms;
+  games.value = fetchedGames;
   sort();
   loading.value = false;
 }
 
 function sort() {
   if (localSort.value === "recency") {
-    platforms.value.sort((a, b) => {
+    games.value.sort((a, b) => {
       return localOrder.value === "asc"
         ? a.last_played - b.last_played
         : b.last_played - a.last_played;
     });
   } else if (localSort.value === "playtime") {
-    platforms.value.sort((a, b) => {
+    games.value.sort((a, b) => {
       return localOrder.value === "asc"
         ? a.total_playtime - b.total_playtime
         : b.total_playtime - a.total_playtime;
     });
   } else if (localSort.value === "name") {
-    platforms.value.sort((a, b) => {
-      const a_name = a.platform.name || a.platform.abbreviation;
-      const b_name = b.platform.name || b.platform.abbreviation;
+    games.value.sort((a, b) => {
+      const a_name = a.game.name;
+      const b_name = b.game.name;
       return localOrder.value === "asc"
         ? a_name.localeCompare(b_name)
         : b_name.localeCompare(a_name);
@@ -77,30 +85,31 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
-  fetchPlatforms();
+  fetchGames();
 });
 </script>
 
 <template>
   <ColorSpinners v-if="loading" />
-  <template v-else-if="platforms.length > 0">
+  <template v-else-if="games.length > 0">
     <table class="table table-responsive table-hover">
       <thead>
         <tr>
+          <th></th>
           <th>Name</th>
           <th>Last played</th>
           <th>Total playtime</th>
         </tr>
       </thead>
       <tbody>
-        <PlatformRow
-          v-for="platform in platforms"
-          :key="platform.platform.id"
-          :platform="platform"
+        <GameRow
+          v-for="game in games"
+          :key="game.game.id"
+          :game="game"
           :showExpand="props.showExpand"
         />
       </tbody>
     </table>
   </template>
-  <div v-else class="text-center text-muted">No platforms found.</div>
+  <div v-else class="text-center text-muted">No games found.</div>
 </template>
