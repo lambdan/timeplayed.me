@@ -2,8 +2,14 @@ export interface Platform {
   id: number;
   abbreviation: string;
   name: string | null;
-  last_played: string | null;
-  seconds_played: number;
+}
+
+export interface PlatformWithStats {
+  platform: Platform;
+  last_played: number;
+  total_sessions: number;
+  total_playtime: number;
+  percent: number;
 }
 
 export interface User {
@@ -55,8 +61,8 @@ export interface API_Games extends API_Paginated {
   data: Game[];
 }
 
-export interface API_Platforms extends API_Paginated {
-  data: Platform[];
+export interface API_PlatformsWithStats extends API_Paginated {
+  data: PlatformWithStats[];
 }
 
 export interface SGDBGrid {

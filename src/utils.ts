@@ -38,3 +38,7 @@ export function timeAgo(other?: Date): string {
 export function toUTCDate(s: string): Date {
   return new Date(s + "Z");
 }
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
