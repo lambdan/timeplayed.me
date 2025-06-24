@@ -1,20 +1,22 @@
-FROM node:22-alpine AS build
+FROM node:22-alpine AS builder
 
-WORKDIR /build
-COPY package.json package-lock.json /build/
-RUN npm ci 
+WORKDIR /app
 
-COPY tsconfig.json tsconfig.dist.json /build/ 
-COPY src /build/src
-COPY static /build/static
-RUN npm run test
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
 RUN npm run build
 
-FROM node:22-alpine AS final
-WORKDIR /app
-COPY --from=build /build/dist ./dist
-COPY --from=build /build/node_modules ./node_modules
-COPY --from=build /build/package.json ./package.json
-COPY --from=build /build/static ./static
 
-CMD [ "node", "dist/index.js" ]
+FROM nginx:alpine
+
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
