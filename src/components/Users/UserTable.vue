@@ -3,10 +3,11 @@ import { onMounted, ref, watch } from "vue";
 
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 import { sleep } from "../../utils";
-import type { API_Users, UserWithStats } from "../../models/models";
+import type { API_Users, Game, UserWithStats } from "../../models/models";
 import UserRow from "./UserRow.vue";
 const props = withDefaults(
   defineProps<{
+    game?: Game;
     showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
@@ -15,6 +16,7 @@ const props = withDefaults(
     showExpand: false,
     order: "desc",
     sort: "recency",
+    game: undefined,
   }
 );
 
@@ -36,6 +38,19 @@ async function fetchUsers() {
     data = (await res.json()) as API_Users;
     fetchedUsers.push(...data.data);
   }
+  users.value = fetchedUsers;
+  sort();
+  loading.value = false;
+}
+
+async function fetchTopPlayers() {
+  loading.value = true;
+  users.value = [];
+  const fetchedUsers: UserWithStats[] = [];
+  let res = await fetch(`/api/games/${props.game?.id}/players`);
+  let data = (await res.json()) as UserWithStats[];
+  await sleep(200); // I like the way it looks
+  fetchedUsers.push(...data);
   users.value = fetchedUsers;
   sort();
   loading.value = false;
@@ -72,7 +87,11 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
-  fetchUsers();
+  if (props.game) {
+    fetchTopPlayers();
+  } else {
+    fetchUsers();
+  }
 });
 </script>
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { type Game, type GameWithStats } from "../models/models";
+import { type GameWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
+import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 
 const route = useRoute();
 const game = ref<GameWithStats>();
@@ -17,5 +18,17 @@ onMounted(async () => {
 
 <template>
   <GameInfoCard class="mb-4" v-if="game" :game="game.game" />
-  <RecentActivityCard v-if="game" :game="game.game" :limit="5" class="mb-4" />
+  <div class="row">
+    <div class="col">
+      <RecentActivityCard
+        v-if="game"
+        :game="game.game"
+        :limit="5"
+        class="mb-4"
+      />
+    </div>
+    <div class="col">
+      <TopPlayersCard v-if="game" :game="game.game" :limit="5" class="mb-4" />
+    </div>
+  </div>
 </template>
