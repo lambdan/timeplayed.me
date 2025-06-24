@@ -52,64 +52,66 @@ onMounted(async () => {
             <h2 class="card-header">Stats</h2>
             <div class="card-body" v-if="stats">
               <table class="table table-responsive table-hover">
-                <tr>
-                  <td><b>Playtime:</b></td>
-                  <td>
-                    {{
-                      stats?.total_playtime !== undefined
-                        ? formatDuration(stats.total_playtime)
-                        : "-"
-                    }}
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>Activity count:</b></td>
-                  <td>{{ stats.activity_count ?? "-" }}</td>
-                </tr>
-                <tr>
-                  <td><b>Player count:</b></td>
-                  <td>{{ stats.player_count ?? "-" }}</td>
-                </tr>
-                <tr>
-                  <td><b>Platform count:</b></td>
-                  <td>{{ stats.platform_count ?? "-" }}</td>
-                </tr>
-                <tr>
-                  <td><b>First played:</b></td>
-                  <td>
-                    {{
-                      stats.oldest_activity.timestamp
-                        ? formatDate(stats.oldest_activity.timestamp)
-                        : "-"
-                    }}
-                    <br />
-                    <small class="text-muted">
+                <tbody>
+                  <tr>
+                    <td><b>Playtime:</b></td>
+                    <td>
+                      {{
+                        stats?.total_playtime !== undefined
+                          ? formatDuration(stats.total_playtime)
+                          : "-"
+                      }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Activity count:</b></td>
+                    <td>{{ stats.activity_count ?? "-" }}</td>
+                  </tr>
+                  <tr>
+                    <td><b>Player count:</b></td>
+                    <td>{{ stats.player_count ?? "-" }}</td>
+                  </tr>
+                  <tr>
+                    <td><b>Platform count:</b></td>
+                    <td>{{ stats.platform_count ?? "-" }}</td>
+                  </tr>
+                  <tr>
+                    <td><b>First played:</b></td>
+                    <td>
                       {{
                         stats.oldest_activity.timestamp
-                          ? timeAgo(stats.oldest_activity.timestamp)
+                          ? formatDate(stats.oldest_activity.timestamp)
                           : "-"
                       }}
-                    </small>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>Last played:</b></td>
-                  <td>
-                    {{
-                      stats.newest_activity?.timestamp
-                        ? formatDate(stats.newest_activity.timestamp)
-                        : "-"
-                    }}
-                    <br />
-                    <small class="text-muted">
+                      <br />
+                      <small class="text-muted">
+                        {{
+                          stats.oldest_activity.timestamp
+                            ? timeAgo(stats.oldest_activity.timestamp)
+                            : "-"
+                        }}
+                      </small>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Last played:</b></td>
+                    <td>
                       {{
                         stats.newest_activity?.timestamp
-                          ? timeAgo(stats.newest_activity.timestamp)
+                          ? formatDate(stats.newest_activity.timestamp)
                           : "-"
                       }}
-                    </small>
-                  </td>
-                </tr>
+                      <br />
+                      <small class="text-muted">
+                        {{
+                          stats.newest_activity?.timestamp
+                            ? timeAgo(stats.newest_activity.timestamp)
+                            : "-"
+                        }}
+                      </small>
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
             <div v-else class="text-center">
@@ -127,38 +129,40 @@ onMounted(async () => {
             <h2 class="card-header">Metadata</h2>
             <div class="card-body">
               <table class="table table-responsive table-hover">
-                <tr>
-                  <td><b>Internal ID:</b></td>
-                  <td>
-                    <code>{{ game.id }}</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>Year:</b></td>
-                  <td>
-                    <code>{{ game.release_year || "-" }}</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>Steam ID:</b></td>
-                  <td>
-                    <code>{{ game.steam_id || "-" }}</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>SteamGridDB ID:</b></td>
-                  <td>
-                    <code>{{ game.sgdb_id || "-" }}</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>Aliases:</b></td>
-                  <td>
-                    <code>{{
-                      game.aliases.length > 0 ? game.aliases.join(",") : "-"
-                    }}</code>
-                  </td>
-                </tr>
+                <tbody>
+                  <tr>
+                    <td><b>Internal ID:</b></td>
+                    <td>
+                      <code>{{ game.id }}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Year:</b></td>
+                    <td>
+                      <code>{{ game.release_year || "-" }}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Steam ID:</b></td>
+                    <td>
+                      <code>{{ game.steam_id || "-" }}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>SteamGridDB ID:</b></td>
+                    <td>
+                      <code>{{ game.sgdb_id || "-" }}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Aliases:</b></td>
+                    <td>
+                      <code>{{
+                        game.aliases.length > 0 ? game.aliases.join(",") : "-"
+                      }}</code>
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
