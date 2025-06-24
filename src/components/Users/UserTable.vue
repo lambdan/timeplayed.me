@@ -32,7 +32,6 @@ async function fetchUsers() {
   let res = await fetch(`/api/users?limit=1`);
   let data = (await res.json()) as API_Users;
   fetchedUsers.push(...data.data);
-  await sleep(200); // I like the way it looks
   while (fetchedUsers.length < data._total) {
     res = await fetch(`/api/users?offset=${fetchedUsers.length}&limit=1`);
     data = (await res.json()) as API_Users;

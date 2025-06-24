@@ -19,16 +19,11 @@ onMounted(async () => {
 <template>
   <GameInfoCard class="mb-4" v-if="game" :game="game.game" />
   <div class="row">
-    <div class="col">
-      <RecentActivityCard
-        v-if="game"
-        :game="game.game"
-        :limit="5"
-        class="mb-4"
-      />
+    <div class="col mb-4">
+      <TopPlayersCard v-if="game" :game="game.game" :limit="5" />
     </div>
-    <div class="col">
-      <TopPlayersCard v-if="game" :game="game.game" :limit="5" class="mb-4" />
+    <div class="col mb-4">
+      <RecentActivityCard v-if="game" :game="game.game" :limit="5" />
     </div>
   </div>
 </template>
