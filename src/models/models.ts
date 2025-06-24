@@ -126,18 +126,12 @@ export interface GlobalStats {
   games: number;
   platforms: number;
 }
-/*
+
 export interface GameStats {
-  total: {
-    seconds: number;
-    activities: number;
-    users: number;
-    platforms: number;
-  };
-  platforms: Platform[];
-  average: {
-    seconds_per_user: number;
-    sessions_per_user: number;
-    session_length: number;
-  };
-}*/
+  total_playtime: number;
+  activity_count: number;
+  platform_count: number;
+  player_count: number;
+  oldest_activity: Activity;
+  newest_activity: Activity;
+}

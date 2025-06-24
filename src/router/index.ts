@@ -5,6 +5,7 @@ import NewsPage from "../views/NewsPage.vue";
 import UserListPage from "../views/UserListPage.vue";
 import GameListPage from "../views/GameListPage.vue";
 import PlatformListPage from "../views/PlatformListPage.vue";
+import GamePage from "../views/GamePage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -12,6 +13,11 @@ const routes = [
     path: "/user/:id",
     name: "UserPage",
     component: UserPage,
+  },
+  {
+    path: "/game/:id",
+    name: "GamePage",
+    component: GamePage,
   },
   { path: "/news", component: NewsPage },
   { path: "/users", component: UserListPage },

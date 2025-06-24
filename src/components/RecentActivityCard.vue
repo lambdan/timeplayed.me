@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import ActivityTable from "../components/ActivityTable.vue";
-import type { Activity, API_Activities, User } from "../models/models";
+import type { Activity, API_Activities, Game, User } from "../models/models";
 
 const props = withDefaults(
-  defineProps<{ user?: User; limit: number; showExpand?: boolean }>(),
-  { showExpand: false, limit: 25, user: undefined }
+  defineProps<{
+    user?: User;
+    game?: Game;
+    limit: number;
+    showExpand?: boolean;
+  }>(),
+  {
+    showExpand: false,
+    limit: 25,
+    user: undefined,
+    game: undefined,
+  }
 );
 
 const activities = ref<Activity[]>([]);
@@ -17,6 +27,9 @@ async function fetchActivities(limit?: number, offsetVal = 0) {
   const params = [];
   if (props.user) {
     params.push(`user=${props.user.id}`);
+  }
+  if (props.game) {
+    params.push(`game=${props.game.id}`);
   }
   if (limit) {
     params.push(`limit=${limit}`);

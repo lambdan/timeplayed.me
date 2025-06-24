@@ -1,10 +1,13 @@
-export function formatDate(date?: Date): string {
+export function formatDate(date?: Date | number): string {
   if (!date) return "";
+  if (typeof date === "number") {
+    date = new Date(date);
+  }
   return date.toLocaleString();
 }
 
 export function formatDuration(secs?: number): string {
-  if (!secs) return "N/A";
+  if (!secs) return "";
   // HH:MM:SS
   const hours = Math.floor(secs / 3600);
   const minutes = Math.floor((secs % 3600) / 60);
@@ -14,8 +17,13 @@ export function formatDuration(secs?: number): string {
     .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
-export function timeAgo(other?: Date): string {
+export function timeAgo(other?: Date | number): string {
   if (!other) return "";
+
+  if (typeof other === "number") {
+    other = new Date(other);
+  }
+
   const now = new Date();
   const seconds = Math.floor((now.getTime() - other.getTime()) / 1000);
 

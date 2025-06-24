@@ -61,10 +61,6 @@ onMounted(async () => {
     style="display: inline-block; position: relative"
   >
     <div v-if="loading" class="spinner-border" role="status"></div>
-    <img
-      v-show="!loading"
-      :src="`${imageUrl}`"
-      class="img-thumbnail img-fluid"
-    />
+    <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
   </a>
 </template>

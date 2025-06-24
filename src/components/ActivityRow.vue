@@ -13,6 +13,7 @@ const props = withDefaults(
   }
 );
 
+const isGamePage = window.location.pathname.startsWith("/game/");
 const isUserPage = window.location.pathname.startsWith("/user/");
 const expanded = ref(false);
 
@@ -31,14 +32,17 @@ function toggleExpand() {
       <a :href="`/user/${activity.user.id}`">{{ activity.user.name }}</a>
     </td>
 
-    <td class="col-lg-1">
+    <td class="col-lg-1" v-if="!isGamePage">
       <GameCover :game="activity.game" :thumb="true" />
     </td>
 
-    <td>
+    <td v-if="!isGamePage">
       <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a>
       <br />
       <small> <Platform :platform="activity.platform" /></small>
+    </td>
+    <td v-else>
+      <Platform :platform="activity.platform" />
     </td>
 
     <td v-if="!expanded">
