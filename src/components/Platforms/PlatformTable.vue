@@ -64,6 +64,19 @@ async function fetchWithGame() {
   loading.value = false;
 }
 
+async function fetchWithUser() {
+  loading.value = true;
+  platforms.value = [];
+  const fetchedPlatforms: PlatformWithStats[] = [];
+  let res = await fetch(`/api/users/${props.user?.id}/platforms`);
+  let data = (await res.json()) as PlatformWithStats[];
+  fetchedPlatforms.push(...data);
+
+  platforms.value = fetchedPlatforms;
+  sort();
+  loading.value = false;
+}
+
 function sort() {
   if (localSort.value === "recency") {
     platforms.value.sort((a, b) => {
@@ -97,6 +110,8 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 onMounted(() => {
   if (props.game) {
     fetchWithGame();
+  } else if (props.user) {
+    fetchWithUser();
   } else {
     fetchPlatforms();
   }
