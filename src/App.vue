@@ -4,11 +4,11 @@ import Footer from "./components/Footer.vue";
 </script>
 
 <template>
-  <div class="d-flex flex-column min-vh-100">
+  <div class="mb-2">
     <Navbar />
-    <main class="flex-grow pt-2 pb-2">
+    <main class="">
       <router-view />
     </main>
-    <Footer class="mt-4"></Footer>
+    <Footer class="mt-2"></Footer>
   </div>
 </template>

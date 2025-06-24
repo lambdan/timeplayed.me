@@ -4,10 +4,15 @@ import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
 
 const FALLBACK = "https://placehold.co/267x400?text=No+Image";
 
-const props = withDefaults(defineProps<{ game: Game; thumb?: boolean }>(), {
-  thumb: false,
-});
+const props = withDefaults(
+  defineProps<{ game: Game; thumb?: boolean; clickable?: boolean }>(),
+  {
+    thumb: false,
+    clickable: true,
+  }
+);
 
+const clickable = ref(props.clickable);
 const imageUrl = ref<string>("");
 const loading = ref(true);
 
@@ -56,11 +61,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a
-    :href="`/game/${props.game.id}`"
-    style="display: inline-block; position: relative"
-  >
-    <div v-if="loading" class="spinner-border" role="status"></div>
-    <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
-  </a>
+  <div style="display: inline-block; position: relative">
+    <template v-if="clickable">
+      <a :href="`/game/${props.game.id}`">
+        <div v-if="loading" class="spinner-border" role="status"></div>
+        <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
+      </a>
+    </template>
+    <template v-else>
+      <div>
+        <div v-if="loading" class="spinner-border" role="status"></div>
+        <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
+      </div>
+    </template>
+  </div>
 </template>

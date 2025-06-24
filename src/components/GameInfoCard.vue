@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Game, GameStats } from "../models/models";
-import { formatDate, timeAgo, formatDuration, sleep } from "../utils";
-import DiscordAvatar from "./DiscordAvatar.vue";
+import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 
 const props = defineProps<{ game: Game }>();
@@ -23,17 +22,33 @@ onMounted(async () => {
   <div class="card p-0">
     <h1 class="card-header">{{ game.name }}</h1>
     <div class="card-body">
-      <div class="row p-0 row-cols-1 row-cols-lg-3 g-2">
-        <div class="col">
-          <div class="card p-0 h-100">
-            <GameCover :game="game" :thumb="false"></GameCover>
+      <div class="row">
+        <div
+          class="col-12 col-lg-auto d-flex flex-column align-items-center justify-content-center mb-3 mb-lg-0"
+        >
+          <div
+            class="card p-0 h-100 border-0 bg-transparent"
+            style="box-shadow: none"
+          >
+            <GameCover
+              :game="game"
+              :thumb="false"
+              :clickable="false"
+              style="
+                width: auto;
+                max-width: 100%;
+                min-width: 0;
+                object-fit: cover;
+                display: block;
+              "
+            ></GameCover>
           </div>
         </div>
 
-        <div class="col">
+        <div class="col mb-3 mb-lg-0">
           <div class="card p-0 h-100">
             <h2 class="card-header">Stats</h2>
-            <div class="card-body" v-if="!loadingStats">
+            <div class="card-body" v-if="stats">
               <table class="table table-responsive table-hover">
                 <tr>
                   <td><b>Playtime:</b></td>
@@ -47,34 +62,50 @@ onMounted(async () => {
                 </tr>
                 <tr>
                   <td><b>Activity count:</b></td>
-                  <td>{{ stats?.activity_count ?? "-" }}</td>
+                  <td>{{ stats.activity_count ?? "-" }}</td>
                 </tr>
                 <tr>
                   <td><b>Player count:</b></td>
-                  <td>{{ stats?.player_count ?? "-" }}</td>
+                  <td>{{ stats.player_count ?? "-" }}</td>
                 </tr>
                 <tr>
                   <td><b>Platform count:</b></td>
-                  <td>{{ stats?.platform_count ?? "-" }}</td>
+                  <td>{{ stats.platform_count ?? "-" }}</td>
                 </tr>
                 <tr>
                   <td><b>First played:</b></td>
                   <td>
                     {{
-                      stats?.oldest_activity?.timestamp
+                      stats.oldest_activity.timestamp
                         ? formatDate(stats.oldest_activity.timestamp)
                         : "-"
                     }}
+                    <br />
+                    <small class="text-muted">
+                      {{
+                        stats.oldest_activity.timestamp
+                          ? timeAgo(stats.oldest_activity.timestamp)
+                          : "-"
+                      }}
+                    </small>
                   </td>
                 </tr>
                 <tr>
                   <td><b>Last played:</b></td>
                   <td>
                     {{
-                      stats?.newest_activity?.timestamp
+                      stats.newest_activity?.timestamp
                         ? formatDate(stats.newest_activity.timestamp)
                         : "-"
                     }}
+                    <br />
+                    <small class="text-muted">
+                      {{
+                        stats.newest_activity?.timestamp
+                          ? timeAgo(stats.newest_activity.timestamp)
+                          : "-"
+                      }}
+                    </small>
                   </td>
                 </tr>
               </table>

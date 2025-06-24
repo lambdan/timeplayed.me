@@ -15,7 +15,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card container mb-4 p-0">
+  <div class="card mb-4 p-0">
     <h1 class="card-header">Discord Playtime Tracker</h1>
 
     <div class="card-body text-start">
