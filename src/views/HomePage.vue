@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import type { Activity, GlobalStats } from "../models/models";
+import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 
 const globalStats = ref<GlobalStats>();
 const loading = ref<boolean>(true);
@@ -52,4 +53,9 @@ onMounted(async () => {
   </div>
 
   <RecentActivityCard :limit="10" />
+
+  <div class="card mt-4 p-0 mb-4">
+    <h1 class="card-header">Daily playtime</h1>
+    <PlaytimeChart />
+  </div>
 </template>

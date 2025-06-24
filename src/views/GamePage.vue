@@ -5,6 +5,7 @@ import { type GameWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
+import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 
 const route = useRoute();
 const game = ref<GameWithStats>();
@@ -18,6 +19,10 @@ onMounted(async () => {
 
 <template>
   <GameInfoCard class="mb-4" v-if="game" :game="game.game" />
+  <div class="card mt-4 p-0 mb-4">
+    <h1 class="card-header">Daily playtime</h1>
+    <PlaytimeChart v-if="game" :game="game.game" />
+  </div>
   <div class="row">
     <div class="col mb-4">
       <TopPlayersCard v-if="game" :game="game.game" :limit="5" />

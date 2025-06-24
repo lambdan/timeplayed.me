@@ -5,6 +5,7 @@ import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import { type UserWithStats } from "../models/models";
 import { useRoute } from "vue-router";
+import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 
 const route = useRoute();
 const apiUser = ref<UserWithStats>();
@@ -25,6 +26,10 @@ onMounted(async () => {
     :showExpand="true"
     class="mb-4"
   />
+  <div class="card mt-4 p-0 mb-4">
+    <h1 class="card-header">Daily playtime</h1>
+    <PlaytimeChart v-if="apiUser" :user="apiUser.user" />
+  </div>
   <GameListCard
     v-if="apiUser"
     class="mb-4"

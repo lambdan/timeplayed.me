@@ -3,6 +3,7 @@ import { useRoute } from "vue-router";
 
 import PlatformListCard from "../components/Platforms/PlatformListCard.vue";
 
+
 const route = useRoute();
 </script>
 
@@ -13,4 +14,5 @@ const route = useRoute();
     :order="'desc'"
     :sort="'playtime'"
   ></PlatformListCard>
+
 </template>
