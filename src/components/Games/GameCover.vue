@@ -65,14 +65,31 @@ onMounted(async () => {
     <template v-if="clickable">
       <a :href="`/game/${props.game.id}`">
         <div v-if="loading" class="spinner-border" role="status"></div>
-        <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
+        <img
+          v-show="!loading"
+          :src="`${imageUrl}`"
+          class="img-fluid game-cover-img"
+        />
       </a>
     </template>
     <template v-else>
       <div>
         <div v-if="loading" class="spinner-border" role="status"></div>
-        <img v-show="!loading" :src="`${imageUrl}`" class="img-fluid" />
+        <img
+          v-show="!loading"
+          :src="`${imageUrl}`"
+          class="img-fluid game-cover-img"
+        />
       </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+.game-cover-img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+</style>

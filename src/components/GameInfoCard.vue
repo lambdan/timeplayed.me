@@ -40,6 +40,8 @@ onMounted(async () => {
                 min-width: 0;
                 object-fit: cover;
                 display: block;
+                max-width: 600px;
+                max-height: 900px;
               "
             ></GameCover>
           </div>
