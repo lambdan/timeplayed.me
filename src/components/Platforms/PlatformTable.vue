@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import type {
   API_Platforms,
+  Game,
   PlatformWithStats,
   User,
 } from "../../models/models";
@@ -14,12 +15,16 @@ const props = withDefaults(
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     user?: User;
+    game?: Game;
+    showLastPlayed?: boolean;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     user: undefined,
+    game: undefined,
+    showLastPlayed: true,
   }
 );
 
@@ -35,12 +40,25 @@ async function fetchPlatforms() {
   let res = await fetch(`/api/platforms`);
   let data = (await res.json()) as API_Platforms;
   fetchedPlatforms.push(...data.data);
-  await sleep(200); // I like the way it looks
+
   while (fetchedPlatforms.length < data._total) {
     res = await fetch(`/api/platforms?offset=${fetchedPlatforms.length}`);
     data = (await res.json()) as API_Platforms;
     fetchedPlatforms.push(...data.data);
   }
+  platforms.value = fetchedPlatforms;
+  sort();
+  loading.value = false;
+}
+
+async function fetchWithGame() {
+  loading.value = true;
+  platforms.value = [];
+  const fetchedPlatforms: PlatformWithStats[] = [];
+  let res = await fetch(`/api/games/${props.game?.id}/platforms`);
+  let data = (await res.json()) as PlatformWithStats[];
+  fetchedPlatforms.push(...data);
+
   platforms.value = fetchedPlatforms;
   sort();
   loading.value = false;
@@ -77,7 +95,11 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
-  fetchPlatforms();
+  if (props.game) {
+    fetchWithGame();
+  } else {
+    fetchPlatforms();
+  }
 });
 </script>
 
@@ -88,7 +110,7 @@ onMounted(() => {
       <thead>
         <tr>
           <th>Name</th>
-          <th>Last played</th>
+          <th v-if="showLastPlayed">Last played</th>
           <th>Total playtime</th>
         </tr>
       </thead>
@@ -98,6 +120,7 @@ onMounted(() => {
           :key="platform.platform.id"
           :platform="platform"
           :showExpand="props.showExpand"
+          :showLastPlayed="props.showLastPlayed"
         />
       </tbody>
     </table>

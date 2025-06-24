@@ -9,9 +9,11 @@ const props = withDefaults(
   defineProps<{
     platform: PlatformWithStats;
     showExpand?: boolean;
+    showLastPlayed?: boolean;
   }>(),
   {
     showExpand: false,
+    showLastPlayed: true,
   }
 );
 
@@ -30,7 +32,7 @@ onMounted(async () => {});
       <PlatformComp :platform="props.platform.platform" />
     </td>
 
-    <td>
+    <td v-if="props.showLastPlayed">
       {{ timeAgo(new Date(props.platform.last_played)) }}
       <br />
       <small class="text-muted">{{
