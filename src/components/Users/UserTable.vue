@@ -29,11 +29,11 @@ async function fetchUsers() {
   loading.value = true;
   users.value = [];
   const fetchedUsers: UserWithStats[] = [];
-  let res = await fetch(`/api/users?limit=1`);
+  let res = await fetch(`/api/users`);
   let data = (await res.json()) as API_Users;
   fetchedUsers.push(...data.data);
   while (fetchedUsers.length < data._total) {
-    res = await fetch(`/api/users?offset=${fetchedUsers.length}&limit=1`);
+    res = await fetch(`/api/users?offset=${fetchedUsers.length}`);
     data = (await res.json()) as API_Users;
     fetchedUsers.push(...data.data);
   }

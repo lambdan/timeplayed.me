@@ -109,8 +109,8 @@ onMounted(async () => {
 
   // Fill in missing dates
   if (data.labels.length > 0) {
-    const startDate = new Date(data.labels[0]);
-    const endDate = new Date(data.labels[data.labels.length - 1]);
+    const startDate = new Date(data.labels[0]); // First date
+    const endDate = new Date(); // Today
     const allLabels: string[] = [];
     const dateMap = new Map(data.labels.map((d, i) => [d, i]));
     for (
@@ -118,7 +118,7 @@ onMounted(async () => {
       d <= endDate;
       d.setDate(d.getDate() + 1)
     ) {
-      const iso = d.toISOString().slice(0, 10);
+      const iso = d.toISOString().split("T")[0]; // YYYY-MM-DD
       allLabels.push(iso);
     }
     data.datasets = data.datasets.map((ds) => {
