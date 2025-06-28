@@ -22,8 +22,8 @@ onMounted(async () => {
     <h1 class="card-header">{{ user.name }}</h1>
     <div class="card-body">
       <div class="row">
-        <div class="col-lg-2 mb-4">
-          <DiscordAvatar :user="user"></DiscordAvatar>
+        <div class="col mb-4">
+          <DiscordAvatar :user="user" :maxWidth="300"></DiscordAvatar>
         </div>
 
         <div class="col mb-4">

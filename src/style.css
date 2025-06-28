@@ -116,15 +116,15 @@ html {
 
 .bg-steamdeck {
   background-color: rgb(115, 81, 192) !important;
-  color: rgb(255,255,255) !important; 
+  color: rgb(255, 255, 255) !important;
 }
 
 .bg-pcmr {
-  background-color: #FACA04 !important;
-  color: #000 !important; 
+  background-color: #faca04 !important;
+  color: #000 !important;
 }
 
 .bg-nintendo {
-  background-color: #E60012 !important;
+  background-color: #e60012 !important;
   color: #fff !important;
 }

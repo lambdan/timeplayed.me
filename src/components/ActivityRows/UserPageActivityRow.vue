@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { Activity } from "../models/models";
-import GameCover from "./Games/GameCover.vue";
-import DurationComponent from "./DurationBadge.vue";
-import PlatformBadge from "./Platforms/PlatformBadge.vue";
-import CalendarBadge from "./CalendarBadge.vue";
+import type { Activity } from "../../models/models";
+import GameCover from "../Games/GameCover.vue";
+import DurationComponent from "../Badges/DurationBadge.vue";
+import PlatformBadge from "../Badges/PlatformBadge.vue";
+import CalendarBadge from "../Badges/CalendarBadge.vue";
 
 const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),

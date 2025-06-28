@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Activity, API_Activities, Game, User } from "../models/models";
-import UserPageActivityRow from "./UserPageActivityRow.vue";
-import FrontPageActivityRow from "./FrontPageActivityRow.vue";
-import GamePageActivityRow from "./GamePageActivityRow.vue";
+import UserPageActivityRow from "./ActivityRows/UserPageActivityRow.vue";
+import FrontPageActivityRow from "./ActivityRows/FrontPageActivityRow.vue";
+import GamePageActivityRow from "./ActivityRows/GamePageActivityRow.vue";
 
 const props = withDefaults(
   defineProps<{

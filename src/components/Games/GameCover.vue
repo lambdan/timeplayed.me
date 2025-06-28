@@ -5,10 +5,16 @@ import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
 const FALLBACK = "https://placehold.co/267x400?text=No+Image";
 
 const props = withDefaults(
-  defineProps<{ game: Game; thumb?: boolean; clickable?: boolean }>(),
+  defineProps<{
+    game: Game;
+    thumb?: boolean;
+    clickable?: boolean;
+    maxHeight?: number;
+  }>(),
   {
     thumb: false,
     clickable: true,
+    maxHeight: 400,
   }
 );
 
@@ -68,7 +74,8 @@ onMounted(async () => {
         <img
           v-show="!loading"
           :src="`${imageUrl}`"
-          class="img-fluid game-cover-img"
+          class="img-fluid"
+          :style="{ maxHeight: props.maxHeight + 'px' }"
         />
       </a>
     </template>
@@ -78,18 +85,10 @@ onMounted(async () => {
         <img
           v-show="!loading"
           :src="`${imageUrl}`"
-          class="img-fluid game-cover-img"
+          class="img-fluid"
+          :style="{ maxHeight: props.maxHeight + 'px' }"
         />
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.game-cover-img {
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  display: block;
-}
-</style>
