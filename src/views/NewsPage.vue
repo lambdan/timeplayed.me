@@ -18,7 +18,7 @@
         The commands system has also been pretty neglected while I was
         re-working the frontend, so it has a lot of bugs.
         <br />
-        But, the webisite is now decent enough for now. Maybe I will actually
+        But, the website is now decent enough for now. Maybe I will actually
         play some games now!
         <br /><i>-djs</i>
       </p>
