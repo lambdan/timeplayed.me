@@ -5,20 +5,22 @@ onMounted(async () => {});
 </script>
 
 <template>
-  <div class="spinner-border text-primary" role="status">
-    <span class="sr-only"></span>
+  <div class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="sr-only"></span>
+    </div>
+     
+    <div class="spinner-border text-success" role="status">
+      <span class="sr-only"></span>
+    </div>
+     
+    <div class="spinner-border text-danger" role="status">
+      <span class="sr-only"></span>
+    </div>
+     
+    <div class="spinner-border text-warning" role="status">
+      <span class="sr-only"></span>
+    </div>
+     
   </div>
-   
-  <div class="spinner-border text-success" role="status">
-    <span class="sr-only"></span>
-  </div>
-   
-  <div class="spinner-border text-danger" role="status">
-    <span class="sr-only"></span>
-  </div>
-   
-  <div class="spinner-border text-warning" role="status">
-    <span class="sr-only"></span>
-  </div>
-   
 </template>
