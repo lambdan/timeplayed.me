@@ -39,16 +39,8 @@ onMounted(async () => {});
       }}</small>
     </td>
 
-    <td>{{ formatDuration(props.game.total_playtime) }}</td>
-
     <td>
-      <small v-if="expanded" class="text-muted">
-        Game ID {{ game.game.id }} <br />
-      </small>
-      <button v-if="showExpand" @click="toggleExpand" class="btn btn-link p-0">
-        <span v-if="expanded">▼</span>
-        <span v-else>▶</span>
-      </button>
+      <strong>{{ formatDuration(props.game.total_playtime) }}</strong>
     </td>
   </tr>
 </template>

@@ -45,18 +45,7 @@ onMounted(async () => {});
     </td>
 
     <td>
-      {{ formatDuration(props.user.total_playtime) }}
-      <br />
-    </td>
-
-    <td>
-      <small v-if="expanded" class="text-muted">
-        User ID {{ user.user.id }} <br />
-      </small>
-      <button v-if="showExpand" @click="toggleExpand" class="btn btn-link p-0">
-        <span v-if="expanded">▼</span>
-        <span v-else>▶</span>
-      </button>
+      <strong> {{ formatDuration(props.user.total_playtime) }}</strong>
     </td>
   </tr>
 </template>
