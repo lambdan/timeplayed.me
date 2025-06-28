@@ -177,8 +177,8 @@ onMounted(async () => {
         // Daily playtime
         return {
           ...ds,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderColor: "rgba(75, 192, 192, 0.9)",
+          //backgroundColor: "rgba(75, 192, 192, 0.2)",
           tension: 0.3,
           fill: true,
           yAxisID: "y",
@@ -187,9 +187,9 @@ onMounted(async () => {
         // Cumulative playtime
         return {
           ...ds,
-          borderColor: "#ff6384",
-          backgroundColor: "rgba(255, 99, 132, 0.1)",
-          borderDash: [5, 5],
+          borderColor: "rgba(255, 99, 132, 0.7)",
+          //backgroundColor: "rgba(255, 99, 132, 0.1)",
+          borderDash: [4, 4],
           pointRadius: 0,
           fill: false,
           tension: 0.1,
