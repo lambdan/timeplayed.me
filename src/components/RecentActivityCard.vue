@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import ActivityTable from "../components/ActivityTable.vue";
 import type { Activity, API_Activities, Game, User } from "../models/models";
+import UserPageActivityRow from "./UserPageActivityRow.vue";
+import FrontPageActivityRow from "./FrontPageActivityRow.vue";
+import GamePageActivityRow from "./GamePageActivityRow.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -71,12 +73,28 @@ onMounted(() => {
   <div class="card p-0">
     <h1 class="card-header">Activity</h1>
     <div class="card-body">
-      <div class="row table-responsive">
-        <ActivityTable
-          :activities="activities"
-          :showExpand="props.showExpand"
-        />
-      </div>
+      <FrontPageActivityRow
+        v-if="!props.user && !props.game"
+        v-for="activity in activities"
+        :key="activity.id"
+        :activity="activity"
+        :showExpand="showExpand"
+      />
+      <UserPageActivityRow
+        v-if="props.user && !props.game"
+        v-for="activity in activities"
+        :key="activity.id"
+        :activity="activity"
+        :showExpand="showExpand"
+      />
+      <GamePageActivityRow
+        v-if="props.game && !props.user"
+        v-for="activity in activities"
+        :key="activity.id"
+        :activity="activity"
+        :showExpand="showExpand"
+      />
+
       <div class="text-center my-2">
         <button v-if="loading" class="btn btn-primary" type="button" disabled>
           <span

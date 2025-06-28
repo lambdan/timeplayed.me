@@ -71,7 +71,7 @@ onMounted(async () => {
     class="mb-4"
   />
   <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlaytime">
-    <h1 class="card-header">Daily playtime</h1>
+    <h1 class="card-header">Playtime</h1>
     <PlaytimeChart :user="apiUser.user" />
   </div>
   <GameListCard

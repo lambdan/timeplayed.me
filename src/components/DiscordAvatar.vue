@@ -24,7 +24,13 @@ onMounted(async () => {
   <a :href="`/user/${props.user.id}`">
     <img
       :src="avatarUrl.toString()"
-      class="img-thumbnail img-fluid rounded-circle"
+      class="img-thumbnail img-fluid rounded-circle avatar"
     />
   </a>
 </template>
+
+<style scoped>
+.avatar {
+  max-width: 100px;
+}
+</style>
