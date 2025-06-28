@@ -10,6 +10,7 @@ import {
   PointElement,
   CategoryScale,
   LinearScale,
+  Filler,
 } from "chart.js";
 import type { Game, Platform, User } from "../../models/models";
 import { sleep } from "../../utils";
@@ -21,7 +22,8 @@ ChartJS.register(
   LineElement,
   PointElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  Filler
 );
 
 interface ChartResponse {
@@ -178,9 +180,8 @@ onMounted(async () => {
         return {
           ...ds,
           borderColor: "rgba(75, 192, 192, 0.9)",
-          //backgroundColor: "rgba(75, 192, 192, 0.2)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
           tension: 0.3,
-          fill: true,
           yAxisID: "y",
         };
       } else if (ds.label === "Total Playtime") {
@@ -188,10 +189,9 @@ onMounted(async () => {
         return {
           ...ds,
           borderColor: "rgba(255, 99, 132, 0.7)",
-          //backgroundColor: "rgba(255, 99, 132, 0.1)",
+          backgroundColor: "rgba(255, 99, 132, 0.1)",
           borderDash: [4, 4],
           pointRadius: 0,
-          fill: false,
           tension: 0.1,
           yAxisID: "y2",
         };
