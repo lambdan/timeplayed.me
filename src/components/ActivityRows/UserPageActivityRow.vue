@@ -25,7 +25,7 @@ function toggleExpand() {
     class="row align-items-center mb-2"
     :title="'Activity ID ' + activity.id"
   >
-    <div class="col-1">
+    <div class="col col-lg-1">
       <GameCover :game="activity.game" :thumb="true" />
     </div>
 

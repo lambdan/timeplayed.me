@@ -27,15 +27,15 @@ function toggleExpand() {
     class="row align-items-center mb-2"
     :title="'Activity ID ' + activity.id"
   >
-    <div class="col-lg-1">
+    <div class="col col-lg-1">
       <DiscordAvatar :user="activity.user" />
     </div>
 
-    <div class="col-lg-2">
+    <div class="col col-lg-2">
       <a :href="`/user/${activity.user.id}`">{{ activity.user.name }}</a>
     </div>
 
-    <div class="d-none d-lg-block col-lg-1">
+    <div class="col d-none d-lg-block col-lg-1">
       <GameCover :game="activity.game" :thumb="true" :maxHeight="100" />
     </div>
 
