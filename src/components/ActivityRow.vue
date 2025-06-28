@@ -5,6 +5,7 @@ import GameCover from "./Games/GameCover.vue";
 import Platform from "./Platforms/PlatformComp.vue";
 import { formatDuration, timeAgo } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
+import DurationComponent from "./DurationComponent.vue";
 
 const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),
@@ -46,7 +47,7 @@ function toggleExpand() {
     </td>
 
     <td v-if="!expanded">
-      {{ formatDuration(activity.seconds) }}
+      <DurationComponent :activity="activity" />
       <br />
       <small class="text-muted">{{
         timeAgo(new Date(activity.timestamp))
