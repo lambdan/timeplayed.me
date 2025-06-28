@@ -6,7 +6,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 const props = withDefaults(
   defineProps<{ platform: Platform; showName?: boolean }>(),
   {
-    showName: false,
+    showName: true,
   }
 );
 

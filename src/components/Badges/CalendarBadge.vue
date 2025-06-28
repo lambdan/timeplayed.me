@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import type { Activity, Platform } from "../../models/models";
-import { defineProps } from "vue";
+import { defineProps, ref } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { timeAgo } from "../../utils";
 
 const props = withDefaults(
-  defineProps<{ activity: Activity; absolute?: boolean }>(),
+  defineProps<{ date: Date | number; absolute?: boolean }>(),
   {
     absolute: false,
   }
 );
 
-const ts = new Date(props.activity.timestamp);
+const localDate = ref(props.date);
+
+if (typeof props.date === "number") {
+  // Convert timestamp to Date object
+  localDate.value = new Date(props.date);
+}
+
+const ts = localDate.value;
 </script>
 
 <template>

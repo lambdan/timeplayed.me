@@ -37,9 +37,9 @@ function toggleExpand() {
     <div class="col text-start">
       <PlatformBadge :platform="activity.platform" :showName="true" />
       <br />
-      <DurationComponent :activity="activity" />
+      <DurationComponent :secs="activity.seconds" />
       <br />
-      <CalendarBadge :activity="activity" />
+      <CalendarBadge :date="activity.timestamp" />
     </div>
   </div>
   <hr />

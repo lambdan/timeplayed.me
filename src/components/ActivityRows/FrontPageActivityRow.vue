@@ -43,9 +43,9 @@ function toggleExpand() {
       <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a>
       <br />
       <PlatformBadge :platform="activity.platform" :showName="true" /> 
-      <DurationComponent :activity="activity" />
+      <DurationComponent :secs="activity.seconds" />
        
-      <CalendarBadge :activity="activity" />
+      <CalendarBadge :date="activity.timestamp" />
     </div>
   </div>
   <hr />

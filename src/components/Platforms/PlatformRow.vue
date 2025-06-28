@@ -4,6 +4,7 @@ import type { PlatformWithStats } from "../../models/models";
 
 import { formatDate, formatDuration, timeAgo } from "../../utils";
 import PlatformComp from "./PlatformComp.vue";
+import PlatformBadge from "../Badges/PlatformBadge.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -29,7 +30,7 @@ onMounted(async () => {});
 <template>
   <tr class="align-middle">
     <td>
-      <PlatformComp :platform="props.platform.platform" />
+      <PlatformBadge :platform="props.platform.platform" />
     </td>
 
     <td v-if="props.showLastPlayed">
