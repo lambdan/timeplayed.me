@@ -40,7 +40,7 @@ const chartData = ref({
 const chartOptions = {
   responsive: true,
   plugins: {
-    legend: { display: false },
+    legend: { display: true }, // Show legend for clarity
     title: {
       display: false,
       text: "Daily Playtime",
@@ -49,6 +49,9 @@ const chartOptions = {
       callbacks: {
         label: function (context: any) {
           const value = context.parsed.y;
+          if (context.dataset.label === "Total Playtime") {
+            return `${value.toFixed(2)} total hours`;
+          }
           return `${value.toFixed(2)} hours`;
         },
       },
@@ -62,10 +65,24 @@ const chartOptions = {
       },
     },
     y: {
+      type: "linear" as const,
       beginAtZero: true,
       title: {
         display: true,
-        text: "Hours",
+        text: "Hours (Daily)",
+      },
+      position: "left" as const,
+    },
+    y2: {
+      type: "linear" as const,
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: "Total Hours",
+      },
+      position: "right" as const,
+      grid: {
+        drawOnChartArea: false, // Only want grid lines for one axis
       },
     },
   },
@@ -131,15 +148,57 @@ onMounted(async () => {
     data.labels = allLabels;
   }
 
+  // Set label for first dataset
+  if (data.datasets.length > 0) {
+    data.datasets[0].label = "Daily Playtime"; // Change this to your desired label
+  }
+
+  // Add cumulative (total) playtime line
+  if (data.datasets.length > 0 && data.labels.length > 0) {
+    // Assume first dataset is daily playtime
+    const daily = data.datasets[0].data;
+    const cumulative: number[] = [];
+    let sum = 0;
+    for (let i = 0; i < daily.length; i++) {
+      sum += daily[i];
+      cumulative.push(sum);
+    }
+    data.datasets.push({
+      label: "Total Playtime",
+      data: cumulative,
+      // Style will be applied below
+    });
+  }
+
   chartData.value = {
     labels: data.labels,
-    datasets: data.datasets.map((ds) => ({
-      ...ds,
-      borderColor: "rgb(75, 192, 192)",
-      backgroundColor: "rgba(75, 192, 192, 0.2)",
-      tension: 0.3,
-      fill: true,
-    })),
+    datasets: data.datasets.map((ds) => {
+      if (ds.label === "Daily Playtime") {
+        // Daily playtime
+        return {
+          ...ds,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          tension: 0.3,
+          fill: true,
+          yAxisID: "y",
+        };
+      } else if (ds.label === "Total Playtime") {
+        // Cumulative playtime
+        return {
+          ...ds,
+          borderColor: "#ff6384",
+          backgroundColor: "rgba(255, 99, 132, 0.1)",
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false,
+          tension: 0.1,
+          yAxisID: "y2",
+        };
+      } else {
+        return ds;
+      }
+    }),
   };
 });
 </script>
