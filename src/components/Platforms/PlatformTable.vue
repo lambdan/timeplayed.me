@@ -121,24 +121,13 @@ onMounted(() => {
 <template>
   <ColorSpinners v-if="loading" />
   <template v-else-if="platforms.length > 0">
-    <table class="table table-responsive table-hover">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th v-if="showLastPlayed">Last played</th>
-          <th>Total playtime</th>
-        </tr>
-      </thead>
-      <tbody>
-        <PlatformRow
-          v-for="platform in platforms"
-          :key="platform.platform.id"
-          :platform="platform"
-          :showExpand="props.showExpand"
-          :showLastPlayed="props.showLastPlayed"
-        />
-      </tbody>
-    </table>
+    <PlatformRow
+      v-for="platform in platforms"
+      :key="platform.platform.id"
+      :platform="platform"
+      :showExpand="props.showExpand"
+      :showLastPlayed="props.showLastPlayed"
+    />
   </template>
   <div v-else class="text-center text-muted">No platforms found.</div>
 </template>

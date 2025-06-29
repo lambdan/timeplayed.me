@@ -1,62 +1,43 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { PlatformWithStats } from "../../models/models";
-
-import { formatDate, formatDuration, timeAgo } from "../../utils";
-import PlatformComp from "./PlatformComp.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
+import CalendarBadge from "../Badges/CalendarBadge.vue";
+import DurationBadge from "../Badges/DurationBadge.vue";
 
 const props = withDefaults(
   defineProps<{
     platform: PlatformWithStats;
-    showExpand?: boolean;
     showLastPlayed?: boolean;
   }>(),
   {
-    showExpand: false,
     showLastPlayed: true,
   }
 );
-
-const expanded = ref(false);
-
-function toggleExpand() {
-  expanded.value = !expanded.value;
-}
 
 onMounted(async () => {});
 </script>
 
 <template>
-  <tr class="align-middle">
-    <td>
-      <PlatformBadge :platform="props.platform.platform" />
-    </td>
+  <div class="row align-items-center mb-2 text-center">
+    <div class="col-lg-1">
+      <PlatformBadge :platform="props.platform.platform" :showName="true" />
+    </div>
 
-    <td v-if="props.showLastPlayed">
-      {{ timeAgo(new Date(props.platform.last_played)) }}
+    <div class="col">
+      Last played on<br /><CalendarBadge
+        :date="new Date(props.platform.last_played)"
+      />
+    </div>
+
+    <div class="col">
+      Playtime<br />
+      <DurationBadge :secs="props.platform.total_playtime" />
       <br />
-      <small class="text-muted">{{
-        formatDate(new Date(props.platform.last_played))
-      }}</small>
-    </td>
-
-    <td>
-      {{ formatDuration(props.platform.total_playtime) }}
-      <br />
-      <small class="text-muted">
-        {{ (props.platform.percent * 100).toFixed(1) + "%" }}
-      </small>
-    </td>
-
-    <td>
-      <small v-if="expanded" class="text-muted">
-        Platform ID {{ platform.platform.id }} <br />
-      </small>
-      <button v-if="showExpand" @click="toggleExpand" class="btn btn-link p-0">
-        <span v-if="expanded">▼</span>
-        <span v-else>▶</span>
-      </button>
-    </td>
-  </tr>
+      <span class="text-muted small">
+        {{ (props.platform.percent * 100).toFixed(1) }}% of total
+      </span>
+    </div>
+  </div>
+  <hr />
 </template>

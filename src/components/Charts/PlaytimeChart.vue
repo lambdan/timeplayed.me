@@ -179,7 +179,8 @@ onMounted(async () => {
         // Daily playtime
         return {
           ...ds,
-          borderColor: "rgba(75, 192, 192, 0.9)",
+          //borderColor: "rgba(75, 192, 192, 0.9)",
+          borderColor: "rgba(158, 194, 73, 0.9)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           tension: 0.3,
           yAxisID: "y",
