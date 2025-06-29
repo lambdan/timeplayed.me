@@ -14,11 +14,10 @@ function toggle() {
 <template>
   <span
     :class="['badge', 'bg-timer']"
-    title="Click to toggle between seconds/HH:MM:SS"
     @click="toggle()"
     style="cursor: pointer"
   >
     <i class="bi bi-stopwatch"></i>
-    {{ showAbsolute ? `${props.secs} secs` : formatDuration(props.secs) }}
+    {{ showAbsolute ? `${props.secs} seconds` : formatDuration(props.secs) }}
   </span>
 </template>

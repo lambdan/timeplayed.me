@@ -2,45 +2,33 @@
 import { onMounted, ref } from "vue";
 import type { GameWithStats } from "../../models/models";
 import GameCover from "./GameCover.vue";
+import CalendarBadge from "../Badges/CalendarBadge.vue";
+import DurationBadge from "../Badges/DurationBadge.vue";
 
-import { formatDate, formatDuration, timeAgo } from "../../utils";
-
-const props = withDefaults(
-  defineProps<{ game: GameWithStats; showExpand?: boolean }>(),
-  {
-    showExpand: false,
-  }
-);
+const props = withDefaults(defineProps<{ game: GameWithStats }>(), {});
 
 const expanded = ref(false);
-
-function toggleExpand() {
-  expanded.value = !expanded.value;
-}
 
 onMounted(async () => {});
 </script>
 
 <template>
-  <tr class="align-middle">
-    <td class="col-lg-1">
-      <GameCover :game="game.game" :thumb="true" />
-    </td>
+  <div class="row align-items-center mb-2" :title="'Game ID ' + game.game.id">
+    <div class="col col-lg-1">
+      <GameCover :game="game.game" :thumb="true" :maxHeight="100" />
+    </div>
 
-    <td>
-      <a :href="`/game/${props.game.game.id}`">{{ game.game.name }}</a>
-    </td>
-
-    <td>
-      {{ timeAgo(new Date(props.game.last_played || 0)) }}
+    <div class="col text-start">
+      <a
+        class="text-decoration-none link-primary"
+        :href="`/game/${game.game.id}`"
+        >{{ game.game.name }}</a
+      >
       <br />
-      <small class="text-muted">{{
-        formatDate(new Date(props.game.last_played || 0))
-      }}</small>
-    </td>
-
-    <td>
-      <strong>{{ formatDuration(props.game.total_playtime) }}</strong>
-    </td>
-  </tr>
+      <CalendarBadge :date="game.last_played" title="Last played" />
+       
+      <DurationBadge :secs="game.total_playtime" title="Total playtime" />
+    </div>
+  </div>
+  <hr />
 </template>

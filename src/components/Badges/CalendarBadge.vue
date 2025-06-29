@@ -29,7 +29,6 @@ function toggle() {
 <template>
   <span
     :class="['badge', 'bg-calendar']"
-    title="Click to toggle absolute/relative time"
     @click="toggle()"
     style="cursor: pointer"
   >

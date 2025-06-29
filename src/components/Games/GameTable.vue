@@ -102,24 +102,13 @@ onMounted(() => {
 <template>
   <ColorSpinners v-if="loading" />
   <template v-else-if="games.length > 0">
-    <table class="table table-responsive table-hover">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th>
-          <th>Last played</th>
-          <th>Total playtime</th>
-        </tr>
-      </thead>
-      <tbody>
-        <GameRow
-          v-for="game in displayedGames"
-          :key="game.game.id"
-          :game="game"
-          :showExpand="props.showExpand"
-        />
-      </tbody>
-    </table>
+    <GameRow
+      v-for="game in displayedGames"
+      :key="game.game.id"
+      :game="game"
+      :showExpand="props.showExpand"
+    />
+
     <div class="text-center">
       <button
         v-if="!showAll && displayedGames.length < games.length"

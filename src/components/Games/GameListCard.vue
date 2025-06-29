@@ -39,25 +39,29 @@ function setOrder(newOrder: string) {
 </script>
 
 <template>
-  <div class="card p-0">
-    <h1 class="card-header">Games</h1>
-    <div class="card-body">
-      <SortOrderButtons
-        :sort="localSort"
-        :order="localOrder"
-        :sortOptions="sortOptions"
-        sortLabel="Sort Games"
-        orderLabel="Order games"
-        @update:sort="setSort"
-        @update:order="setOrder"
-      />
-      <GameTable
-        :showExpand="props.showExpand"
-        :sort="localSort"
-        :order="localOrder"
-        :user="props.user"
-        :limit="props.limit"
-      />
+  <div class="d-flex justify-content-center">
+    <div class="col-lg-8">
+      <div class="card p-0">
+        <h1 class="card-header">Games</h1>
+        <div class="card-body">
+          <SortOrderButtons
+            :sort="localSort"
+            :order="localOrder"
+            :sortOptions="sortOptions"
+            sortLabel="Sort Games"
+            orderLabel="Order games"
+            @update:sort="setSort"
+            @update:order="setOrder"
+          />
+          <GameTable
+            :showExpand="props.showExpand"
+            :sort="localSort"
+            :order="localOrder"
+            :user="props.user"
+            :limit="props.limit"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
