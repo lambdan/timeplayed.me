@@ -13,7 +13,7 @@ function toggle() {
 
 <template>
   <span
-    :class="['badge', 'bg-secondary']"
+    :class="['badge', 'bg-timer']"
     title="Click to toggle between seconds/HH:MM:SS"
     @click="toggle()"
     style="cursor: pointer"
