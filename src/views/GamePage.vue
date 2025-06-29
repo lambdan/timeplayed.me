@@ -20,7 +20,6 @@ onMounted(async () => {
 <template>
   <GameInfoCard class="mb-4" v-if="game" :game="game.game" />
   <div class="card mt-4 p-0 mb-4">
-    <h1 class="card-header">Daily playtime</h1>
     <PlaytimeChart v-if="game" :game="game.game" />
   </div>
   <div class="row">

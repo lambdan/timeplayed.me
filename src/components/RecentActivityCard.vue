@@ -71,7 +71,7 @@ onMounted(() => {
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">Activity</h1>
+    <h2 class="card-header">Activity</h2>
     <div class="card-body">
       <FrontPageActivityRow
         v-if="!props.user && !props.game"

@@ -13,7 +13,7 @@ const props = withDefaults(
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">Top players</h1>
+    <h2 class="card-header">Top players</h2>
     <div class="card-body">
       <UserTable :game="game" :sort="'playtime'" :order="'desc'" />
     </div>

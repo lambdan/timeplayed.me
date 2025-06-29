@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import type { Activity } from "../../models/models";
-import GameCover from "../Games/GameCover.vue";
-import Platform from "../Platforms/PlatformComp.vue";
-import { formatDuration, timeAgo } from "../../utils";
-import DiscordAvatar from "../DiscordAvatar.vue";
 import DurationComponent from "../Badges/DurationBadge.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
+import UserColumn from "../Users/UserColumn.vue";
 
 const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),
@@ -23,22 +20,14 @@ function toggleExpand() {
 </script>
 
 <template>
-  <div
-    class="row align-items-center mb-2"
-    :title="'Activity ID ' + activity.id"
-  >
-    <div class="col">
-      <DiscordAvatar :user="activity.user" />
-    </div>
-    <div class="col text-start">
-      <a :href="`/user/${activity.user.id}`">{{ activity.user.name }}</a>
-    </div>
+  <div class="row align-items-center p-0" :title="'Activity ID ' + activity.id">
+    <UserColumn :user="activity.user" class="col-lg-3" />
 
-    <div class="col text-start">
+    <div class="col text-center">
       <PlatformBadge :platform="activity.platform" :showName="true" />
       <br />
       <DurationComponent :secs="activity.seconds" />
-      <br />
+       
       <CalendarBadge :date="activity.timestamp" />
     </div>
   </div>

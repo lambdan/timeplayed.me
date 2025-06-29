@@ -19,12 +19,21 @@ if (typeof props.date === "number") {
 }
 
 const ts = localDate.value;
+const showAbsolute = ref(props.absolute);
+
+function toggle() {
+  showAbsolute.value = !showAbsolute.value;
+}
 </script>
 
 <template>
-  <span :class="['badge', 'bg-secondary']" :title="ts.toLocaleString()">
+  <span
+    :class="['badge', 'bg-secondary']"
+    title="Click to toggle absolute/relative time"
+    @click="toggle()"
+    style="cursor: pointer"
+  >
     <i class="bi bi-calendar"></i>
-
-    {{ absolute ? ts.toLocaleString() : timeAgo(ts) }}
+    {{ showAbsolute ? ts.toLocaleString() : timeAgo(ts) }}
   </span>
 </template>
