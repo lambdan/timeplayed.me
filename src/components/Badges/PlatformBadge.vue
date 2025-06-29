@@ -46,13 +46,12 @@ function color() {
     return "bg-pcmr";
   }
 
-  return "bg-white";
+  return "bg-secondary";
 }
 </script>
 
 <template>
-  <span :class="['badge', color()]" :title="displayName()">
-    <!-- Hover shows name -->
+  <span :class="['badge', color()]">
     <i :class="['bi', getIcon()]"></i>
     <span v-if="showName"
       > 
