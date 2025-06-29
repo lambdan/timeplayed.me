@@ -23,45 +23,53 @@ function setOrder(newOrder: string) {
 </script>
 
 <template>
-  <div>
+  <div class="col">
     <!-- Sort Button Group -->
-    <div class="mb-3 text-center">
-      <div class="btn-group" role="group" :aria-label="sortLabel || 'Sort'">
-        <button
-          v-for="option in sortOptions"
-          :key="option.value"
-          type="button"
-          class="btn"
-          :class="
-            props.sort === option.value ? 'btn-primary' : 'btn-outline-primary'
-          "
-          @click="setSort(option.value)"
-        >
-          {{ option.label }}
-        </button>
+    <div class="row">
+      <div class="mb-3 text-center">
+        <div class="btn-group" role="group" :aria-label="sortLabel || 'Sort'">
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            type="button"
+            class="btn"
+            :class="
+              props.sort === option.value
+                ? 'btn-primary'
+                : 'btn-outline-primary'
+            "
+            @click="setSort(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
     </div>
     <!-- Order Button Group -->
-    <div class="mb-3 text-center">
-      <div class="btn-group" role="group" :aria-label="orderLabel || 'Order'">
-        <button
-          type="button"
-          class="btn"
-          :class="props.order === 'asc' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setOrder('asc')"
-        >
-          Ascending
-        </button>
-        <button
-          type="button"
-          class="btn"
-          :class="
-            props.order === 'desc' ? 'btn-primary' : 'btn-outline-primary'
-          "
-          @click="setOrder('desc')"
-        >
-          Descending
-        </button>
+    <div class="row">
+      <div class="mb-3 text-center">
+        <div class="btn-group" role="group" :aria-label="orderLabel || 'Order'">
+          <button
+            type="button"
+            class="btn"
+            :class="
+              props.order === 'asc' ? 'btn-primary' : 'btn-outline-primary'
+            "
+            @click="setOrder('asc')"
+          >
+            Ascending
+          </button>
+          <button
+            type="button"
+            class="btn"
+            :class="
+              props.order === 'desc' ? 'btn-primary' : 'btn-outline-primary'
+            "
+            @click="setOrder('desc')"
+          >
+            Descending
+          </button>
+        </div>
       </div>
     </div>
   </div>

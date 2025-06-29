@@ -97,24 +97,12 @@ onMounted(() => {
 <template>
   <ColorSpinners v-if="loading" />
   <template v-else-if="users.length > 0">
-    <table class="table table-responsive table-hover">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th>
-          <th>Last played</th>
-          <th>Total playtime</th>
-        </tr>
-      </thead>
-      <tbody>
-        <UserRow
-          v-for="user in users"
-          :key="user.user.id"
-          :user="user"
-          :showExpand="props.showExpand"
-        />
-      </tbody>
-    </table>
+    <UserRow
+      v-for="user in users"
+      :key="user.user.id"
+      :user="user"
+      :showExpand="props.showExpand"
+    />
   </template>
   <div v-else class="text-center text-muted">No platforms found.</div>
 </template>

@@ -32,7 +32,7 @@ onMounted(async () => {});
         :href="`/user/${props.user.id}`"
         class="link-secondary text-center text-decoration-none"
       >
-        {{ props.user.name }}
+        <strong>{{ props.user.name }}</strong>
       </a>
     </div>
   </div>

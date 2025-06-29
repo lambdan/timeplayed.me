@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import type { UserWithStats } from "../../models/models";
 import DiscordAvatar from "../DiscordAvatar.vue";
-
+import UserColumn from "./UserColumn.vue";
 import { formatDate, formatDuration, timeAgo } from "../../utils";
+import CalendarBadge from "../Badges/CalendarBadge.vue";
+import DurationBadge from "../Badges/DurationBadge.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -25,27 +27,19 @@ onMounted(async () => {});
 </script>
 
 <template>
-  <tr class="align-middle">
-    <td class="col-lg-1">
-      <DiscordAvatar :user="props.user.user" />
-    </td>
+  <div class="row align-items-center mb-2 text-center">
+    <UserColumn :user="user.user" class="col-lg-3" />
 
-    <td>
-      <a :href="`/user/${props.user.user.id}`">
-        {{ props.user.user.name }}
-      </a>
-    </td>
+    <div class="col">
+      Last played<br /><CalendarBadge
+        :date="new Date(props.user.last_played)"
+      />
+    </div>
 
-    <td>
-      {{ timeAgo(new Date(props.user.last_played)) }}
-      <br />
-      <small class="text-muted">{{
-        formatDate(new Date(props.user.last_played))
-      }}</small>
-    </td>
-
-    <td>
-      <strong> {{ formatDuration(props.user.total_playtime) }}</strong>
-    </td>
-  </tr>
+    <div class="col">
+      Total playtime<br />
+      <DurationBadge :secs="props.user.total_playtime" />
+    </div>
+  </div>
+  <hr />
 </template>
