@@ -24,6 +24,16 @@ const showAbsolute = ref(props.absolute);
 function toggle() {
   showAbsolute.value = !showAbsolute.value;
 }
+
+function text() {
+  if (!ts) {
+    return "?";
+  }
+  if (showAbsolute.value) {
+    return ts.toLocaleString();
+  }
+  return timeAgo(ts);
+}
 </script>
 
 <template>
@@ -33,6 +43,6 @@ function toggle() {
     style="cursor: pointer"
   >
     <i class="bi bi-calendar"></i>
-    {{ showAbsolute ? ts.toLocaleString() : timeAgo(ts) }}
+    {{ text() }}
   </span>
 </template>
