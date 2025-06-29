@@ -30,7 +30,11 @@ function toggleExpand() {
     </div>
 
     <div class="col text-start">
-      <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a>
+      <a
+        class="text-decoration-none link-primary"
+        :href="`/game/${activity.game.id}`"
+        >{{ activity.game.name }}</a
+      >
       <br />
       <PlatformBadge :platform="activity.platform" :showName="true" /> 
       <DurationComponent :secs="activity.seconds" />

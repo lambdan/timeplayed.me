@@ -25,7 +25,7 @@ function toggleExpand() {
 
     <div class="col text-center">
       <PlatformBadge :platform="activity.platform" :showName="true" />
-      <br />
+       
       <DurationComponent :secs="activity.seconds" />
        
       <CalendarBadge :date="activity.timestamp" />

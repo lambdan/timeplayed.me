@@ -113,6 +113,11 @@ html {
   overflow-x: hidden;
 }
 
+.bg-calendar {
+  background-color: #F2F0EF !important;
+  color: #000 !important;
+}
+
 .bg-steamdeck {
   background-color: rgb(115, 81, 192) !important;
   color: rgb(255, 255, 255) !important;
