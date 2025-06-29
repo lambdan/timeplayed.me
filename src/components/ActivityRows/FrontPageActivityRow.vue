@@ -8,6 +8,7 @@ import DiscordAvatar from "../DiscordAvatar.vue";
 import DurationComponent from "../Badges/DurationBadge.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
+import UserColumn from "../Users/UserColumn.vue";
 
 const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),
@@ -27,20 +28,16 @@ function toggleExpand() {
     class="row align-items-center mb-2"
     :title="'Activity ID ' + activity.id"
   >
-    <div class="col col-lg-1">
-      <DiscordAvatar :user="activity.user" />
-    </div>
-
-    <div class="col col-lg-2">
-      <a :href="`/user/${activity.user.id}`">{{ activity.user.name }}</a>
-    </div>
+    <UserColumn :user="activity.user" class="col-lg-3" />
 
     <div class="col d-none d-lg-block col-lg-1">
       <GameCover :game="activity.game" :thumb="true" :maxHeight="100" />
     </div>
 
     <div class="col text-start">
-      <a :href="`/game/${activity.game.id}`">{{ activity.game.name }}</a>
+      <a class="text-decoration-none" :href="`/game/${activity.game.id}`">{{
+        activity.game.name
+      }}</a>
       <br />
       <PlatformBadge :platform="activity.platform" :showName="true" /> 
       <DurationComponent :secs="activity.seconds" />

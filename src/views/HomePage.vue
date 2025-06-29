@@ -55,7 +55,6 @@ onMounted(async () => {
   <RecentActivityCard :limit="10" />
 
   <div class="card mt-4 p-0 mb-4">
-    <h1 class="card-header">Daily playtime</h1>
     <PlaytimeChart />
   </div>
 </template>
