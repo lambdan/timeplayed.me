@@ -7,9 +7,11 @@ const route = useRoute();
 </script>
 
 <template>
-  <UserListCard
-    :showExpand="false"
-    :limit="25"
-    :sort="'playtime'"
-  ></UserListCard>
+  <div class="col-lg-8 justify-content-center mx-auto p-0">
+    <UserListCard
+      :showExpand="false"
+      :limit="25"
+      :sort="'playtime'"
+    ></UserListCard>
+  </div>
 </template>

@@ -41,30 +41,26 @@ function setOrder(newOrder: string) {
 </script>
 
 <template>
-  <div class="d-flex justify-content-center">
-    <div class="col-lg-8">
-      <div class="card p-0">
-        <h1 class="card-header">Platforms</h1>
-        <div class="card-body">
-          <SortOrderButtons
-            v-if="props.showSortButtons"
-            :sort="localSort"
-            :order="localOrder"
-            :sortOptions="sortOptions"
-            sortLabel="Sort platforms"
-            orderLabel="Order platforms"
-            @update:sort="setSort"
-            @update:order="setOrder"
-          />
-          <PlatformTable
-            :showExpand="props.showExpand"
-            :sort="localSort"
-            :order="localOrder"
-            :user="props.user"
-            :game="props.game"
-          />
-        </div>
-      </div>
+  <div class="card p-0">
+    <h1 class="card-header">Platforms</h1>
+    <div class="card-body">
+      <SortOrderButtons
+        v-if="props.showSortButtons"
+        :sort="localSort"
+        :order="localOrder"
+        :sortOptions="sortOptions"
+        sortLabel="Sort platforms"
+        orderLabel="Order platforms"
+        @update:sort="setSort"
+        @update:order="setOrder"
+      />
+      <PlatformTable
+        :showExpand="props.showExpand"
+        :sort="localSort"
+        :order="localOrder"
+        :user="props.user"
+        :game="props.game"
+      />
     </div>
   </div>
 </template>

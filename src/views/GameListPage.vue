@@ -7,10 +7,12 @@ const route = useRoute();
 </script>
 
 <template>
-  <GameListCard
-    :showExpand="false"
-    :limit="0"
-    :order="'desc'"
-    :sort="'recency'"
-  ></GameListCard>
+  <div class="col-lg-8 justify-content-center mx-auto p-0">
+    <GameListCard
+      :showExpand="false"
+      :limit="0"
+      :order="'desc'"
+      :sort="'recency'"
+    ></GameListCard>
+  </div>
 </template>
