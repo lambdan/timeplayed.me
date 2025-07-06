@@ -7,7 +7,7 @@ export function formatDate(date?: Date | number): string {
 }
 
 export function formatDuration(secs?: number): string {
-  if (!secs) return "";
+  if (!secs) return "00:00:00";
   // HH:MM:SS
   const hours = Math.floor(secs / 3600);
   const minutes = Math.floor((secs % 3600) / 60);

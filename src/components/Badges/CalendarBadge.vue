@@ -19,11 +19,14 @@ function toggle() {
 }
 
 function text(): string {
+  const reallyDate = typeof props.date === "number" ? new Date(props.date) : props.date;
+  if (reallyDate.getTime() === 0) {
+    return "?";
+  }
   if (showAbsolute.value) {
-    const reallyDate = typeof props.date === "number" ? new Date(props.date) : props.date;
     return reallyDate.toISOString();
   }
-  return timeAgo(props.date);
+  return timeAgo(reallyDate);
 }
 
 onMounted(() => {
