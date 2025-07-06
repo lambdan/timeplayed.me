@@ -6,7 +6,6 @@ import SortOrderButtons from "../Misc/SortOrderButtons.vue";
 
 const props = withDefaults(
   defineProps<{
-    showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     user?: User;
@@ -14,7 +13,6 @@ const props = withDefaults(
     showSortButtons?: boolean;
   }>(),
   {
-    showExpand: false,
     order: "desc",
     sort: "recency",
     user: undefined,
@@ -55,7 +53,6 @@ function setOrder(newOrder: string) {
         @update:order="setOrder"
       />
       <PlatformTable
-        :showExpand="props.showExpand"
         :sort="localSort"
         :order="localOrder"
         :user="props.user"

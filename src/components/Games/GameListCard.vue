@@ -53,7 +53,6 @@ function setOrder(newOrder: string) {
           @update:order="setOrder"
         />
         <GameTable
-          :showExpand="props.showExpand"
           :sort="localSort"
           :order="localOrder"
           :user="props.user"

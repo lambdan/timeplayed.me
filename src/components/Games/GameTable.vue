@@ -106,7 +106,6 @@ onMounted(() => {
       v-for="game in displayedGames"
       :key="game.game.id"
       :game="game"
-      :showExpand="props.showExpand"
     />
 
     <div class="text-center">

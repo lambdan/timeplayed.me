@@ -125,7 +125,6 @@ onMounted(() => {
       v-for="platform in platforms"
       :key="platform.platform.id"
       :platform="platform"
-      :showExpand="props.showExpand"
       :showLastPlayed="props.showLastPlayed"
     />
   </template>
