@@ -129,16 +129,19 @@ onMounted(async () => {
   // Fill in missing dates
   if (data.labels.length > 0) {
     const startDate = new Date(data.labels[0]); // First date
-    const endDate = new Date(); // Today
+    const endDate = new Date(new Date().toISOString().split("T")[0]); // Today at 00:00:00
     const allLabels: string[] = [];
     const dateMap = new Map(data.labels.map((d, i) => [d, i]));
-    for (
-      let d = new Date(startDate);
-      d <= endDate;
-      d.setDate(d.getDate() + 1)
-    ) {
+    let d = new Date(startDate);
+    while (d <= endDate) {
       const iso = d.toISOString().split("T")[0]; // YYYY-MM-DD
       allLabels.push(iso);
+      d.setDate(d.getDate() + 1);
+    }
+    // Ensure today is included even if no data
+    const todayIso = endDate.toISOString().split("T")[0];
+    if (!allLabels.includes(todayIso)) {
+      allLabels.push(todayIso);
     }
     data.datasets = data.datasets.map((ds) => {
       const newData = allLabels.map((label) => {
@@ -152,7 +155,7 @@ onMounted(async () => {
 
   // Set label for first dataset
   if (data.datasets.length > 0) {
-    data.datasets[0].label = "Daily Playtime"; // Change this to your desired label
+    data.datasets[0].label = "Daily Playtime";
   }
 
   // Add cumulative (total) playtime line
@@ -168,9 +171,10 @@ onMounted(async () => {
     data.datasets.push({
       label: "Total Playtime",
       data: cumulative,
-      // Style will be applied below
     });
   }
+
+  console.log("Chart data:", data);
 
   chartData.value = {
     labels: data.labels,
