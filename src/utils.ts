@@ -33,6 +33,7 @@ export function timeAgo(other?: Date | number): string {
     { label: "day", seconds: 86400 },
     { label: "hour", seconds: 3600 },
     { label: "minute", seconds: 60 },
+    { label: "second", seconds: 1 },
   ];
 
   for (const i of intervals) {

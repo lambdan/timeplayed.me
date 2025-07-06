@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { Activity, Platform } from "../../models/models";
-import { defineProps, ref } from "vue";
+import { defineProps, onMounted, ref } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { timeAgo } from "../../utils";
 
@@ -11,29 +10,30 @@ const props = withDefaults(
   }
 );
 
-const localDate = ref(props.date);
-
-if (typeof props.date === "number") {
-  // Convert timestamp to Date object
-  localDate.value = new Date(props.date);
-}
-
-const ts = localDate.value;
 const showAbsolute = ref(props.absolute);
+const textToDisplay = ref(text());
 
 function toggle() {
   showAbsolute.value = !showAbsolute.value;
+  textToDisplay.value = text(); // Update immediately on toggle
 }
 
-function text() {
-  if (!ts) {
-    return "?";
-  }
+function text(): string {
   if (showAbsolute.value) {
-    return ts.toLocaleString();
+    const reallyDate = typeof props.date === "number" ? new Date(props.date) : props.date;
+    return reallyDate.toISOString();
   }
-  return timeAgo(ts);
+  return timeAgo(props.date);
 }
+
+onMounted(() => {
+  textToDisplay.value = text();
+  setInterval(() => {
+    // Update the text every second, except when in absolute mode
+    if (showAbsolute.value) return;
+    textToDisplay.value = text();
+  }, 1000);
+});
 </script>
 
 <template>
@@ -43,6 +43,6 @@ function text() {
     style="cursor: pointer"
   >
     <i class="bi bi-calendar"></i>
-    {{ text() }}
+    {{ textToDisplay }}
   </span>
 </template>
