@@ -5,9 +5,11 @@ import UserTable from "./UserTable.vue";
 
 const props = withDefaults(
   defineProps<{
-    game: Game;
+    game?: Game;
   }>(),
-  {}
+  {
+    game: undefined,
+  }
 );
 </script>
 

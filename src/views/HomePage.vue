@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import type { Activity, GlobalStats } from "../models/models";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
+import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 
 const globalStats = ref<GlobalStats>();
 const loading = ref<boolean>(true);
@@ -52,9 +53,22 @@ onMounted(async () => {
     </div>
   </div>
 
-  <RecentActivityCard :limit="10" />
-
   <div class="card mt-4 p-0 mb-4">
-    <PlaytimeChart />
+    <PlaytimeChart  />
+  </div>
+  <div class="row">
+    <div class="col mb-4">
+      <TopPlayersCard />
+    </div>
+    <div class="col mb-4">
+      <RecentActivityCard  :limit="5" />
+    </div>
+    <PlatformListCard
+      :showExpand="false"
+      :limit="25"
+      :order="'desc'"
+      :sort="'playtime'"
+      :showSortButtons="false"
+    ></PlatformListCard>
   </div>
 </template>
