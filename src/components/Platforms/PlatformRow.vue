@@ -9,17 +9,22 @@ const props = withDefaults(
   defineProps<{
     platform: PlatformWithStats;
     showLastPlayed?: boolean;
+    showEmpty?: boolean;
   }>(),
   {
     showLastPlayed: true,
+    showEmpty: false,
   }
 );
 
-onMounted(async () => {});
+const show = ref(props.showEmpty || props.platform.total_playtime > 0);
+
+onMounted(async () => {
+});
 </script>
 
-<template>
-  <div class="row align-items-center mb-2 text-center">
+<template >
+  <div class="row align-items-center mb-2 text-center" v-if="show">
     <div class="col-lg-1">
       <PlatformBadge :platform="props.platform.platform" :showName="true" />
     </div>
