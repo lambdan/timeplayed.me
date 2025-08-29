@@ -13,15 +13,23 @@ const props = withDefaults(
 function getIcon() {
   if (props.platform.abbreviation.startsWith("ps")) {
     return "bi-playstation";
-  } else if (props.platform.abbreviation.startsWith("xbox")) {
+  }
+  if (props.platform.abbreviation.startsWith("xbox")) {
     return "bi-xbox";
-  } else if (props.platform.abbreviation.includes("switch")) {
+  }
+  if (props.platform.abbreviation.includes("switch")) {
     return "bi-nintendo-switch";
-  } else if (props.platform.abbreviation === "pc") {
+  }
+  if (props.platform.abbreviation === "pc") {
     return "bi-pc-display";
-  } else if (props.platform.abbreviation === "steamdeck") {
+  }
+  if (props.platform.abbreviation === "steamdeck") {
     return "bi-steam";
   }
+  if (props.platform.abbreviation === "mac") {
+    return "bi-apple";
+  }
+  // fallback
   return "bi-controller";
 }
 

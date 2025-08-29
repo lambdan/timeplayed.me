@@ -2,9 +2,6 @@
 import { ref } from "vue";
 import type { Activity } from "../../models/models";
 import GameCover from "../Games/GameCover.vue";
-import Platform from "../Platforms/PlatformComp.vue";
-import { formatDuration, timeAgo } from "../../utils";
-import DiscordAvatar from "../DiscordAvatar.vue";
 import DurationComponent from "../Badges/DurationBadge.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
