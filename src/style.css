@@ -138,3 +138,24 @@ html {
   background-color: #e60012 !important;
   color: #fff !important;
 }
+
+.bg-apple {
+  /* https://mobbin.com/colors/brand/apple */
+  background-color: #f5f5f7 !important;
+  color: #1d1d1f !important;
+}
+
+.bg-game-boy-advance {
+  background-color: #7761ab !important;
+  color: #dadada !important;
+}
+
+.bg-game-boy {
+  background-color: #9bbc0f !important;
+  color: #0f380f !important;
+}
+
+.bg-n64 {
+  background-color: #001dab !important;
+  color: #fc180d !important;
+}

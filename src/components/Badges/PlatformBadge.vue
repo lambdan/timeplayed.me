@@ -40,9 +40,13 @@ function displayName() {
 function color() {
   if (props.platform.abbreviation.startsWith("ps")) {
     return "bg-primary";
-  } else if (props.platform.abbreviation.startsWith("xbox")) {
+  }
+
+  if (props.platform.abbreviation.startsWith("xbox")) {
     return "bg-success";
-  } else if (props.platform.abbreviation.includes("switch")) {
+  }
+
+  if (props.platform.abbreviation.includes("switch")) {
     return "bg-nintendo";
   }
 
@@ -52,6 +56,22 @@ function color() {
 
   if (props.platform.abbreviation === "pc") {
     return "bg-pcmr";
+  }
+
+  if (props.platform.abbreviation === "mac") {
+    return "bg-apple";
+  }
+
+  if (props.platform.abbreviation === "gba") {
+    return "bg-game-boy-advance";
+  }
+
+  if (props.platform.abbreviation === "gb") {
+    return "bg-game-boy";
+  }
+
+  if (props.platform.abbreviation === "n64") {
+    return "bg-n64";
   }
 
   return "bg-secondary";
