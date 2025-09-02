@@ -113,16 +113,26 @@ html {
   overflow-x: hidden;
 }
 
+/**
+Badges
+**/
+
 .bg-calendar {
   background-color: #f2f0ef !important;
   color: #000 !important;
 }
 
 .bg-timer {
+  font-family: monospace !important;
+  color: #f2f0ef !important;
+  background-color: #000 !important;
+  /*
   background-color: rgba(0, 0, 0, 1) !important;
-  color: rgb(207, 254, 96) !important;
-  /*color: rgb(98, 255, 255) !important; chart */
+  /*color: rgb(207, 254, 96) !important;*/
+  /*color: rgb(98, 255, 255) !important;*/
 }
+
+/** Platform colors **/
 
 .bg-steamdeck {
   background-color: rgb(115, 81, 192) !important;
@@ -147,7 +157,7 @@ html {
 
 .bg-game-boy-advance {
   background-color: #7761ab !important;
-  color: #dadada !important;
+  color: #ffffff !important;
 }
 
 .bg-game-boy {
@@ -156,6 +166,11 @@ html {
 }
 
 .bg-n64 {
-  background-color: #001dab !important;
-  color: #fc180d !important;
+  background-color: #302e32 !important;
+  color: #e2e2e6 !important;
+}
+
+.bg-xbox {
+  background-color: #010100 !important;
+  color: #6ee817 !important;
 }

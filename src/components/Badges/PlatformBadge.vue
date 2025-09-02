@@ -39,10 +39,16 @@ function displayName() {
 
 function color() {
   if (props.platform.abbreviation.startsWith("ps")) {
+    /* ps1, ps2, ps3, ps4, ps5 */
     return "bg-primary";
   }
 
-  if (props.platform.abbreviation.startsWith("xbox")) {
+  if (props.platform.abbreviation === "xbox") {
+    /* og xbox */
+    return "bg-xbox";
+  }
+
+  if (props.platform.abbreviation.includes("xbox")) {
     return "bg-success";
   }
 
@@ -58,7 +64,10 @@ function color() {
     return "bg-pcmr";
   }
 
-  if (props.platform.abbreviation === "mac") {
+  if (
+    props.platform.abbreviation === "mac" ||
+    props.platform.abbreviation === "ios"
+  ) {
     return "bg-apple";
   }
 
