@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
+import { cacheFetch } from "../../utils";
 
 const FALLBACK = "https://placehold.co/267x400?text=No+Image";
 
@@ -18,6 +19,7 @@ const props = withDefaults(
   }
 );
 
+const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
 const clickable = ref(props.clickable);
 const imageUrl = ref<string>("");
 const loading = ref(true);
@@ -32,7 +34,10 @@ async function getCover(): Promise<string> {
   }
 
   if (props.game.sgdb_id) {
-    const res = await fetch(`/api/sgdb/grids/${props.game.sgdb_id}/best`);
+    const res = await cacheFetch(
+      `/api/sgdb/grids/${props.game.sgdb_id}/best`,
+      CACHE_LIFETIME
+    );
     if (res.ok) {
       const data: SGDBGrid = await res.json();
       return props.thumb ? data.thumbnail : data.url;
@@ -41,15 +46,19 @@ async function getCover(): Promise<string> {
   }
 
   // search
-  const searchRes = await fetch(
-    `/api/sgdb/search?query=${encodeURIComponent(props.game.name)}`
+  const searchRes = await cacheFetch(
+    `/api/sgdb/search?query=${encodeURIComponent(props.game.name)}`,
+    CACHE_LIFETIME
   );
 
   if (searchRes.ok) {
     const searchData: SGDBGame[] = await searchRes.json();
     if (searchData.length > 0) {
       const gameId = searchData[0].id;
-      const res = await fetch(`/api/sgdb/grids/${gameId}/best`);
+      const res = await cacheFetch(
+        `/api/sgdb/grids/${gameId}/best`,
+        CACHE_LIFETIME
+      );
       if (res.ok) {
         const data: SGDBGrid = await res.json();
         return props.thumb ? data.thumbnail : data.url;
