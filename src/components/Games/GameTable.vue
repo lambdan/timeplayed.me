@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import type { API_Games, GameWithStats, User } from "../../models/models";
 import GameRow from "./GameRow.vue";
-import { sleep } from "../../utils";
+import { cacheFetch, sleep } from "../../utils";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 const props = withDefaults(
   defineProps<{
@@ -35,16 +35,17 @@ if (props.user) {
 }
 
 async function fetchGames() {
+  const CACHE_LIFETIME = 30_000;
   loading.value = true;
   games.value = [];
 
   const fetchedGames: GameWithStats[] = [];
-  let res = await fetch(`${baseUrl.value}`);
+  let res = await cacheFetch(`${baseUrl.value}`, CACHE_LIFETIME);
   console.log("Fetching games from", res.url);
   let data = (await res.json()) as API_Games;
   fetchedGames.push(...data.data);
   while (fetchedGames.length < data._total) {
-    res = await fetch(`${baseUrl.value}?offset=${fetchedGames.length}`);
+    res = await cacheFetch(`${baseUrl.value}?offset=${fetchedGames.length}`, CACHE_LIFETIME);
     console.log("Fetching games from", res.url);
     data = (await res.json()) as API_Games;
     fetchedGames.push(...data.data);

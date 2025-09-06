@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import type { User } from "../models/models";
+import { cacheFetch } from "../utils";
 
 const props = withDefaults(
   defineProps<{ user: User; maxWidth?: number; classes?: string[] }>(),
@@ -16,7 +17,10 @@ const FALLBACK = `https://cdn.discordapp.com/embed/avatars/${
 const avatarUrl = ref<string>(FALLBACK);
 
 onMounted(async () => {
-  const res = await fetch(`/api/discord/${props.user.id}/avatar`);
+  const res = await cacheFetch(
+    `/api/discord/${props.user.id}/avatar`,
+    1000 * 60 * 5
+  );
   if (res.ok) {
     const response: { url: string } = await res.json();
     avatarUrl.value = response.url;
