@@ -19,14 +19,18 @@ const props = withDefaults(
 
 const show = ref(props.showEmpty || props.platform.total_playtime > 0);
 
-onMounted(async () => {
-});
+onMounted(async () => {});
 </script>
 
-<template >
+<template>
   <div class="row align-items-center mb-2 text-center" v-if="show">
     <div class="col-lg-1">
-      <PlatformBadge :platform="props.platform.platform" :showName="true" />
+      <a
+        class="text-decoration-none link-primary"
+        :href="`/platforms/${props.platform.platform.id}`"
+      >
+        <PlatformBadge :platform="props.platform.platform" :showName="true" />
+      </a>
     </div>
 
     <div class="col">

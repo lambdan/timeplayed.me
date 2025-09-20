@@ -6,6 +6,7 @@ import UserListPage from "../views/UserListPage.vue";
 import GameListPage from "../views/GameListPage.vue";
 import PlatformListPage from "../views/PlatformListPage.vue";
 import GamePage from "../views/GamePage.vue";
+import PlatformPage from "../views/PlatformPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -23,6 +24,11 @@ const routes = [
   { path: "/users", component: UserListPage },
   { path: "/games", component: GameListPage },
   { path: "/platforms", component: PlatformListPage },
+  {
+    path: "/platforms/:id",
+    name: "PlatformPage",
+    component: PlatformPage,
+  },
 ];
 
 export const router = createRouter({

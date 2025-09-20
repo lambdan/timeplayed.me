@@ -133,3 +133,4 @@ docker-compose.yml
 dev-compose.yml
 build-test
 *.sql
+.pg-data/
