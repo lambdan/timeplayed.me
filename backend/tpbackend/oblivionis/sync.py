@@ -21,7 +21,7 @@ class PassedActivity(TypedDict):
 
 def parseActivity(activity: PassedActivity) -> bool:
     try:
-        logger.info("Parsing activity: %s", activity)
+        logger.info("Syncing activity: %s", activity)
         if activity["duration"] < MINIMUM_SESSION_LENGTH:
             logger.info("Skipping too short session...")
             return True
@@ -29,21 +29,24 @@ def parseActivity(activity: PassedActivity) -> bool:
         user, created = User.get_or_create(id=activity["user_id"], name=activity["user_name"])
         if created:
             logger.info("Added new user %s to database", user.name)
+
         game, created = Game.get_or_create(name=activity["game_name"])
         if created:
             logger.info("Added new game %s to database", game.name)
 
         platform, created = Platform.get_or_create(abbreviation=activity["platform"])
         if created:
-            logger.info("Added new platform %s to database", platform.name)
+            logger.info("Added new platform %s to database", platform.abbreviation)
 
         success = operations.add_session(user=user, game=game, timestamp=activity["dt"], seconds=activity["duration"], platform=platform)
         if success[0]:
+            logger.info("Activity synced successfully")
             return True
-        logger.error("Failed to add session: %s", success[1])
+        
+        logger.error("Error when syncing activity: %s", success[1])
         return False
     except Exception as e:
-        logger.error("Failed to parse activity: %s", e)
+        logger.error("Unhandled exception when syncing: %s", e)
         return False
 
 async def start():
@@ -59,7 +62,7 @@ async def start():
                 "user_id": o.user.id,
                 "game_name": o.game.name,
                 "duration": o.seconds,
-                "platform": "pc" # TODO upstream
+                "platform": o.platform
             })
             if success:
                 parsedIds.append(i)
