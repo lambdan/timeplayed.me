@@ -1,7 +1,6 @@
+# https://github.com/Hamuko/oblivionis/blob/master/oblivionis/storage.py
 import datetime
 import os
-
-# https://github.com/Hamuko/oblivionis/blob/master/oblivionis/storage.py
 
 from peewee import (
     CharField,
@@ -13,7 +12,7 @@ from peewee import (
 )
 
 db = PostgresqlDatabase(
-    "oblivionis",
+    os.environ.get("DB_NAME"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
     host=os.environ.get("DB_HOST"),

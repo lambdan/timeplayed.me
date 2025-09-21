@@ -1,0 +1,63 @@
+volumes:
+  db:
+
+networks:
+  nginxnet:
+    external:  true
+  composenet:
+    driver: bridge
+
+services:
+  oblivionis:
+    image: ghcr.io/hamuko/oblivionis:latest
+    networks:
+      - composenet
+    environment:
+      DB_HOST: postgres
+      DB_NAME: oblivionis
+      DB_USER: x
+      DB_PASSWORD: x
+      TOKEN: x # Discord token
+    depends_on:
+      - postgres
+    restart: always
+
+  backend:
+    image: ghcr.io/lambdan/timeplayed.me-backend:latest
+    networks:
+      - composenet
+    environment:
+      DB_HOST: postgres
+      DB_NAME: storage_v2
+      DB_USER: x
+      DB_PASSWORD: x
+      DISCORD_TOKEN: x
+      ADMINS: "x,y" # Discord user id of admins
+      SGDB_TOKEN: x
+    restart: always
+    depends_on:
+      - postgres
+
+  frontend:
+    image: ghcr.io/lambdan/timeplayed.me-frontend:latest
+    hostname: timeplayedme
+    restart: always
+    depends_on:
+      - backend
+    logging:
+      driver: local
+    networks:
+      - nginxnet
+      - composenet
+
+  postgres:
+    image: postgres:17.2
+    restart: always
+    networks:
+      - composenet
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: x
+      POSTGRES_PASSWORD: x
+      POSTGRES_DB: oblivionis # also need to create storage_v2

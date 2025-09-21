@@ -4,8 +4,6 @@ import logging
 from tpbackend import utils
 from tpbackend.storage.reset_sequence import reset_sequences
 
-DB_NAME="storage_v2"
-
 logger = logging.getLogger("storage_v2")
 
 from peewee import (
@@ -22,7 +20,7 @@ from peewee import (
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 
 db = PostgresqlExtDatabase(
-    DB_NAME,
+    os.environ.get("DB_NAME"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
     host=os.environ.get("DB_HOST"),
@@ -86,7 +84,7 @@ class DiscordHistory(BaseModel):
 
 def connect_db():
     if db.connect():
-        logger.info("Connected to database %s", DB_NAME)
+        logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
         reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory])
-    
+
