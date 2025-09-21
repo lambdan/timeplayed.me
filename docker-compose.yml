@@ -28,6 +28,7 @@ services:
       - composenet
     environment:
       DB_HOST: postgres
+      DB_NAME: oblivionis # keeping same key as oblivionis so model file can be synced easily
       DB_NAME_TIMEPLAYED: storage_v2
       DB_USER: x
       DB_PASSWORD: x
