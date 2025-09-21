@@ -20,7 +20,7 @@ from peewee import (
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 
 db = PostgresqlExtDatabase(
-    os.environ.get("DB_NAME"),
+    os.environ.get("DB_NAME_TIMEPLAYED"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
     host=os.environ.get("DB_HOST"),

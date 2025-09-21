@@ -28,7 +28,7 @@ services:
       - composenet
     environment:
       DB_HOST: postgres
-      DB_NAME: storage_v2
+      DB_NAME_TIMEPLAYED: storage_v2
       DB_USER: x
       DB_PASSWORD: x
       DISCORD_TOKEN: x
