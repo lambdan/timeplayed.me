@@ -14,7 +14,7 @@ function getIcon() {
   if (props.platform.abbreviation.startsWith("ps")) {
     return "bi-playstation";
   }
-  if (props.platform.abbreviation.startsWith("xbox")) {
+  if (props.platform.abbreviation.startsWith("xbox") || props.platform.abbreviation === "x360") {
     return "bi-xbox";
   }
   if (props.platform.abbreviation.includes("switch")) {
@@ -48,7 +48,7 @@ function color() {
     return "bg-xbox";
   }
 
-  if (props.platform.abbreviation.includes("xbox")) {
+  if (props.platform.abbreviation.includes("xbox") || props.platform.abbreviation === "x360") {
     return "bg-success";
   }
 
