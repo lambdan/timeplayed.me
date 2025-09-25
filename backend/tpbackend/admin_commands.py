@@ -184,6 +184,9 @@ def adm_add_platform(message: str) -> str:
     # !addplatform <platform_abbreviation> <platform_name>
     parts = message.removeprefix("!addplatform ").strip().split()
 
+    if len(parts) < 2:
+        return "ERROR: Invalid command format. Use: `!addplatform <platform_abbreviation> <platform_name>`"
+
     abbr = parts.pop(0)
     name = " ".join(parts).strip()
 
