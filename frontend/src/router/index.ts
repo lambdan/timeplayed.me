@@ -7,9 +7,15 @@ import GameListPage from "../views/GameListPage.vue";
 import PlatformListPage from "../views/PlatformListPage.vue";
 import GamePage from "../views/GamePage.vue";
 import PlatformPage from "../views/PlatformPage.vue";
+import YearRecapUser from "../views/YearRecapUser.vue";
 
 const routes = [
   { path: "/", component: HomePage },
+  {
+    path: "/user/:id/recap/:year",
+    name: "UserRecap",
+    component: YearRecapUser,
+  },
   {
     path: "/user/:id",
     name: "UserPage",

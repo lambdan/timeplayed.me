@@ -11,6 +11,9 @@ import PlatformTable from "../components/Platforms/PlatformTable.vue";
 const route = useRoute();
 const apiUser = ref<UserWithStats>();
 
+const showRecap = ref(false);
+const recapYear = ref(new Date().getFullYear());
+
 // Toggle state for cards (activity, playtime, games, platforms)
 const showActivity = ref(true);
 const showPlaytime = ref(false);
@@ -28,6 +31,9 @@ onMounted(async () => {
   const userId = route.params.id as string;
   const userRes = await fetch(`/api/users/${userId}`);
   apiUser.value = await userRes.json();
+
+  const month = new Date().getMonth() + 1; // its zero indexed because JS is hillarious
+  showRecap.value = month === 12 || month === 1;
 });
 </script>
 
@@ -62,6 +68,12 @@ onMounted(async () => {
     >
       Platforms
     </button>
+    <a :href="`/user/${route.params.id}/recap/${recapYear}`" v-if="showRecap">
+      <button class="btn btn-success">
+        Recap {{ recapYear }}
+      </button>
+    </a>
+
   </div>
   <RecentActivityCard
     v-if="apiUser && showActivity"
