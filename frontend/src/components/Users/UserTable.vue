@@ -11,6 +11,7 @@ const props = withDefaults(
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     showDateRange?: boolean;
+    startingRelativeDays?: number;
   }>(),
   {
     showExpand: false,
@@ -29,6 +30,7 @@ const localGame = ref(props.game);
 const localBefore = ref<Date|undefined>();
 const localAfter = ref<Date|undefined>();
 const showDateRange = ref<boolean>(props.showDateRange || false);
+const startingRelativeDays = ref<number|undefined>(props.startingRelativeDays);
 
 async function fetchAllTheThings() {
   if (loading.value) {
@@ -126,7 +128,7 @@ onMounted(() => {
   <DateRangerPicker class="mb-2" v-if="showDateRange"
     @update:before="(val: Date) => { localBefore = val; fetchAllTheThings(); }"
     @update:after="(val: Date) => { localAfter = val; fetchAllTheThings(); }"
-    :relativeDays="30"
+    :relativeDays="startingRelativeDays"
   />
 
   <!-- <ColorSpinners v-if="loading" /> -->

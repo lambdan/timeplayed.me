@@ -3,7 +3,7 @@ import { defineProps, defineEmits, ref, onMounted } from "vue";
 
 
 const localRelativeMode = ref(false);
-const localRelativeDays = ref(30);
+const localRelativeDays = ref<number|undefined>();
 const localBefore = ref<Date>(new Date());
 const localAfter = ref<Date>(new Date(0));
 
@@ -40,11 +40,17 @@ onMounted(() => {
         localRelativeMode.value = false;
         setBefore(props.before);
         setAfter(props.after);
-    } else  {
-        localRelativeDays.value = props.relativeDays || 30;
+    } else if (props.relativeDays) {
+        localRelativeDays.value = props.relativeDays;
         localRelativeMode.value = true;
         setBefore(new Date());
         setAfter(new Date(nowMinus(props.relativeDays!)));
+    } else {
+        // default to all time
+        localRelativeMode.value = true;
+        localRelativeDays.value = 0;
+        setBefore(new Date());
+        setAfter(new Date(0));
     }
 });
 </script>
