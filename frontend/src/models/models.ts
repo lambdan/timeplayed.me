@@ -144,7 +144,7 @@ export interface ActivitiesQuery {
   user?: number;
   game?: number;
   platform?: number;
-  before?: number;
-  after?: number;
+  before?: number | Date;
+  after?: number | Date;
   order?: "asc" | "desc";
 }

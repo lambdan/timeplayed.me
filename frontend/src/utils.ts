@@ -104,6 +104,14 @@ export async function cacheFetch(
 
 // this should probably a service...
 export async function fetchActivities(params: ActivitiesQuery): Promise<API_Activities> {
+
+  if (params.after && params.after instanceof Date) {
+    params.after = params.after.getTime();
+  }
+  if (params.before && params.before instanceof Date) {
+    params.before = params.before.getTime();
+  }
+
   let url = "/api/activities?";
   const queryParts: string[] = [];
   for (const key in params) {
