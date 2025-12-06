@@ -48,23 +48,36 @@ def fixDatetime(data):
     if isinstance(data, list):
         return [fixDatetime(item) for item in data]
 
+def get_public_user(userId: int) -> User | None:
+    user = User.get_or_none(User.id == userId)
+    if not user:
+        return None
+    return model_to_dict(user, exclude=[User.bot_commands_blocked, User.default_platform])  # type: ignore
+
+def clean_activity(activity: Activity | dict) -> dict:
+    if not isinstance(activity, dict):
+        activity = model_to_dict(activity)
+    if "user" in activity and isinstance(activity["user"], dict):
+        activity["user"].pop("bot_commands_blocked", None)
+        activity["user"].pop("default_platform", None)
+    return activity
 
 @app.get("/api/users/{userId}")
 def get_user(userId: int):
-    user = User.get_or_none(User.id == userId)
+    user = get_public_user(userId)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    total_activities = get_activity_count(userId=user.id)
+    total_activities = get_activity_count(userId=userId)
     if total_activities == 0:
         logger.warning("User %s has no activities, returning 404", user.id)
         raise HTTPException(status_code=404, detail="User not found")
 
     data: UserWithStats = {
-        "user": model_to_dict(user, exclude=[User.bot_commands_blocked, User.default_platform]),  # type: ignore
-        "last_played": get_last_activity(userid=user.id)["timestamp"], # type: ignore
+        "user": user,
+        "last_played": get_last_activity(userid=userId)["timestamp"], # type: ignore
         "total_activities":  total_activities,
-        "total_playtime":  get_total_playtime(userId=user.id),
+        "total_playtime":  get_total_playtime(userId=userId),
     }
     return fixDatetime(data)
 
@@ -88,7 +101,7 @@ def get_users(offset=0, limit=25):
 @app.get("/api/users/{userId}/games")
 def get_user_games(userId: int, offset = 0, limit = 25):
     limit, offset = validateLimitOffset(limit, offset)
-    user = User.get_or_none(User.id == userId)
+    user = get_public_user(userId)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -97,12 +110,12 @@ def get_user_games(userId: int, offset = 0, limit = 25):
     games = games[int(offset):int(offset) + int(limit)]  # type: ignore
     response = []
     for game in games:
-        game_data = get_game(gameId=game.game.id, userId=user.id)
+        game_data = get_game(gameId=game.game.id, userId=userId)
         response.append(game_data)
 
     paginatedResponse: PaginatedResponse = {
         "data": response,
-        "_total": get_game_count(userId=user.id),
+        "_total": get_game_count(userId=userId),
         "_offset": offset,
         "_limit": limit,
     }
@@ -111,35 +124,38 @@ def get_user_games(userId: int, offset = 0, limit = 25):
 
 @app.get("/api/users/{userId}/platforms")
 def get_user_platforms(userId: int):
-    user = User.get_or_none(User.id == userId) # type: ignore
+    user = get_public_user(userId)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     platforms = []
     for platform in Platform.select():
-        total_playtime = get_total_playtime(userId=user.id, platformId=platform.id)
+        total_playtime = get_total_playtime(userId=userId, platformId=platform.id)
         if total_playtime > 0:
             platforms.append({
                 "platform": model_to_dict(platform),  # type: ignore
                 "total_playtime": total_playtime,
-                "last_played": get_last_activity(userid=user.id, platformid=platform.id)["timestamp"], # type: ignore
-                "total_sessions": get_activity_count(userId=user.id, platformId=platform.id),
-                "percent": total_playtime / get_total_playtime(userId=user.id) if get_total_playtime(userId=user.id) > 0 else 0
+                "last_played": get_last_activity(userid=userId, platformid=platform.id)["timestamp"], # type: ignore
+                "total_sessions": get_activity_count(userId=userId, platformId=platform.id),
+                "percent": total_playtime / get_total_playtime(userId=userId) if get_total_playtime(userId=userId) > 0 else 0
             })
     return fixDatetime(platforms)
 
 
 @app.get("/api/users/{user_id}/stats")
 def get_user_stats(user_id: int):
-    user = User.get_or_none(User.id == user_id)
+    user = User.get_or_none(User.id == user_id) # type: ignore
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     oldest_activity = Activity.select().where(Activity.user == user).order_by(Activity.timestamp.asc()).first()
     newest_activity = Activity.select().where(Activity.user == user).order_by(Activity.timestamp.desc()).first()
-    total_playtime = get_total_playtime(userId=user.id)
-    total_activities = get_activity_count(userId=user.id)
-    total_games = get_game_count(userId=user.id)
-    total_platforms = get_platform_count(userId=user.id)
+    total_playtime = get_total_playtime(userId=user_id)
+    total_activities = get_activity_count(userId=user_id)
+    total_games = get_game_count(userId=user_id)
+    total_platforms = get_platform_count(userId=user_id)
+
+    oldest_activity = clean_activity(oldest_activity) if oldest_activity else None
+    newest_activity = clean_activity(newest_activity) if newest_activity else None
 
     return fixDatetime({
         "total": {
@@ -148,8 +164,8 @@ def get_user_stats(user_id: int):
             "games": total_games,
             "platforms": total_platforms
         },
-        "oldest_activity": model_to_dict(oldest_activity) if oldest_activity else None,
-        "newest_activity": model_to_dict(newest_activity) if newest_activity else None,
+        "oldest_activity": oldest_activity,
+        "newest_activity": newest_activity,
         "active_days": Activity.select(fn.COUNT(fn.DISTINCT(fn.DATE(Activity.timestamp)))).where(Activity.user == user).scalar(),
         "average": {
             "seconds_per_game": total_playtime / total_games if total_games > 0 else 0,
@@ -172,8 +188,9 @@ def list_activities(offset = 0, limit = 25, order = "desc", user: int | None = N
             (Activity.game == game) if game is not None else True,
             (Activity.platform == platform) if platform is not None else True
         )]
+    cleaned_activities = [clean_activity(activity) for activity in activities]
     response = {
-        "data": activities,
+        "data": cleaned_activities,
         "_total": Activity.select().where(
             (Activity.user == user) if user is not None else True,
             (Activity.game == game) if game is not None else True,
@@ -213,10 +230,10 @@ def get_last_activity(userid: int | None = None, gameid: int | None = None, plat
 
     return fixDatetime(model_to_dict(last_activity))
 
-@app.get("/api/activities/live")
+@app.get("/api/activities_live")
 def get_live_activities():
     live_activities = LiveActivity.select()
-    return fixDatetime([model_to_dict(activity) for activity in live_activities])
+    return fixDatetime([clean_activity(activity) for activity in live_activities])
 
 ##############
 # Games
@@ -276,8 +293,8 @@ def get_game_stats(game_id: int):
         "activity_count": activity_count,
         "platform_count": platform_count,
         "player_count": player_count,
-        "oldest_activity": model_to_dict(oldest_activity) if oldest_activity else None,
-        "newest_activity": model_to_dict(newest_activity) if newest_activity else None,
+        "oldest_activity": clean_activity(model_to_dict(oldest_activity)) if oldest_activity else None,
+        "newest_activity": clean_activity(model_to_dict(newest_activity)) if newest_activity else None,
     })
 
 @app.get("/api/games/{gameId}/players")
@@ -291,7 +308,7 @@ def get_game_players(gameId: int):
         total_playtime = get_total_playtime(userId=user.id, gameId=game.id)
         if total_playtime > 0:
             players.append({
-                "user": model_to_dict(user),  # type: ignore
+                "user": get_public_user(user.id),
                 "total_playtime": total_playtime,
                 "last_played": get_last_activity(userid=user.id, gameid=game.id)["timestamp"], # type: ignore
                 "total_sessions": get_activity_count(userId=user.id, gameId=game.id),
