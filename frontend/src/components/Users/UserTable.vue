@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
+import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import { fetchActivities, sleep } from "../../utils";
 import type { Activity, API_Activities, API_Users, Game, UserWithStats } from "../../models/models";
 import UserRow from "./UserRow.vue";
@@ -117,16 +118,23 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
-  fetchAllTheThings();
+  //fetchAllTheThings(); // DateRangePicker triggers it
 });
 </script>
 
 <template>
-  <ColorSpinners v-if="loading" />
+  <DateRangerPicker class="mb-2"
+    @update:before="(val: Date) => { localBefore = val.getTime(); fetchAllTheThings(); }"
+    @update:after="(val: Date) => { localAfter = val.getTime(); fetchAllTheThings(); }"
+    :relativeDays="30"
+  />
+
+  <!-- <ColorSpinners v-if="loading" /> -->
   <p v-if="loading" class="text-center">
     Loading... {{ loadingProgress.toFixed(0) }}%
   </p>
 
+  
   <template v-else-if="displayedUsers.length > 0">
     <UserRow
       v-for="user in displayedUsers"
@@ -135,5 +143,5 @@ onMounted(() => {
       :showExpand="props.showExpand"
     />
   </template>
-  <div v-else class="text-center text-muted">No platforms found.</div>
+  <div v-else class="text-center text-muted">Nothing found</div>
 </template>

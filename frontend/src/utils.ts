@@ -113,7 +113,7 @@ export async function fetchActivities(params: ActivitiesQuery): Promise<API_Acti
     }
   }
   url += queryParts.join("&");
-  console.log("Fetching activities", url, params);
+  console.log("Fetching activities", params, url);
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch activities: ${res.status} ${res.statusText}`);
