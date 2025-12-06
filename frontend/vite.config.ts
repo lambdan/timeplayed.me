@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      "/api": "https://timeplayed.me",
+      "/api": "http://localhost:8000", // to work against local backend
+      //"/api": "https://timeplayed.me", // to work against prod
     },
   },
 });
