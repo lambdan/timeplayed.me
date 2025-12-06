@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
-import { cacheFetch } from "../../utils";
-
-const FALLBACK = "https://placehold.co/267x400?text=No+Image";
+import { cacheFetch, getGameCoverUrl } from "../../utils";
 
 const props = withDefaults(
   defineProps<{
@@ -11,11 +9,13 @@ const props = withDefaults(
     thumb?: boolean;
     clickable?: boolean;
     maxHeight?: number;
+    maxWidth?: number;
   }>(),
   {
     thumb: false,
     clickable: true,
-    maxHeight: 400,
+    maxWidth: 0,
+    maxHeight: 400
   }
 );
 
@@ -24,53 +24,9 @@ const clickable = ref(props.clickable);
 const imageUrl = ref<string>("");
 const loading = ref(true);
 
-async function getCover(): Promise<string> {
-  if (props.game.image_url) {
-    return props.game.image_url;
-  }
-
-  if (props.game.steam_id) {
-    return `https://shared.steamstatic.com/store_item_assets/steam/apps/${props.game.steam_id}/library_600x900.jpg`;
-  }
-
-  if (props.game.sgdb_id) {
-    const res = await cacheFetch(
-      `/api/sgdb/grids/${props.game.sgdb_id}/best`,
-      CACHE_LIFETIME
-    );
-    if (res.ok) {
-      const data: SGDBGrid = await res.json();
-      return props.thumb ? data.thumbnail : data.url;
-    }
-    return FALLBACK;
-  }
-
-  // search
-  const searchRes = await cacheFetch(
-    `/api/sgdb/search?query=${encodeURIComponent(props.game.name)}`,
-    CACHE_LIFETIME
-  );
-
-  if (searchRes.ok) {
-    const searchData: SGDBGame[] = await searchRes.json();
-    if (searchData.length > 0) {
-      const gameId = searchData[0].id;
-      const res = await cacheFetch(
-        `/api/sgdb/grids/${gameId}/best`,
-        CACHE_LIFETIME
-      );
-      if (res.ok) {
-        const data: SGDBGrid = await res.json();
-        return props.thumb ? data.thumbnail : data.url;
-      }
-    }
-  }
-
-  return FALLBACK;
-}
 
 onMounted(async () => {
-  imageUrl.value = await getCover();
+  imageUrl.value = await getGameCoverUrl(props.game.id, props.thumb);
   loading.value = false;
 });
 </script>
@@ -84,7 +40,10 @@ onMounted(async () => {
           v-show="!loading"
           :src="`${imageUrl}`"
           class="img-fluid"
-          :style="{ maxHeight: props.maxHeight + 'px' }"
+          :style="{
+            maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
+            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined
+          }"
         />
       </a>
     </template>
@@ -95,7 +54,10 @@ onMounted(async () => {
           v-show="!loading"
           :src="`${imageUrl}`"
           class="img-fluid"
-          :style="{ maxHeight: props.maxHeight + 'px' }"
+          :style="{
+            maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
+            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined
+          }"
         />
       </div>
     </template>

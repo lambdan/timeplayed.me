@@ -141,10 +141,11 @@ export interface GameStats {
 export interface ActivitiesQuery {
   offset?: number;
   limit?: number;
-  user?: number;
-  game?: number;
-  platform?: number;
+  userId?: string;
+  gameId?: string;
+  platformId?: string;
   before?: number | Date;
   after?: number | Date;
   order?: "asc" | "desc";
 }
+

@@ -48,7 +48,7 @@ async function fetchAllTheThings() {
       after: localAfter.value,
       limit: 500,
       offset: allActivity.length,
-      game: localGame.value ? localGame.value.id : undefined,
+      gameId: localGame.value ? localGame.value.id.toString() : undefined,
     });
     allActivity.push(...activities.data);
     loadingProgress.value = Math.min(

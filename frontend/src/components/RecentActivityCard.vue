@@ -30,8 +30,8 @@ async function fetchActivities(limit?: number, offsetVal = 0) {
   const data = await FU({
     limit,
     offset: offsetVal,
-    game: props.game ? props.game.id : undefined,
-    user: props.user ? props.user.id : undefined
+    gameId: props.game ? props.game.id.toString() : undefined,
+    userId: props.user ? props.user.id.toString() : undefined
   });
   const newActivities = data.data.map((activity: any) => ({
     ...activity,

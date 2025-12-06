@@ -1,4 +1,4 @@
-import type { ActivitiesQuery, API_Activities } from "./models/models";
+import type { ActivitiesQuery, API_Activities, Game, SGDBGame, SGDBGrid, User } from "./models/models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -77,18 +77,12 @@ export async function cacheFetch(
       const parsed = JSON.parse(cached) as CacheEntry;
       const age = Date.now() - parsed.timestamp;
       if (age < maxAge) {
-        //console.log("cacheFetch: Returning cached", url);
+        console.log("cacheFetch: cache hit", url);
         return new Response(parsed.body, {
           headers: parsed.headers || { "content-type": "application/json" },
         });
       }
-    } catch {
-      console.error(
-        "cacheFetch: Failed to parse cached response for key:",
-        cacheKey
-      );
-      // Ignore parse errors and proceed to fetch
-    }
+    } catch {}
   }
   console.log("cacheFetch: Fetching", url);
   const res = await fetch(url);
@@ -100,10 +94,8 @@ export async function cacheFetch(
   const entry: CacheEntry = { timestamp: Date.now(), body, headers };
   try {
     sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
-  } catch (err) {
-    console.warn("cacheFetch: Failed to store cache for key:", cacheKey, err);
-    // Ignore storage errors
-  }
+    console.log("cacheFetch: Stored", cacheKey);
+  } catch (err) {}
   return res;
 }
 
@@ -125,20 +117,103 @@ export async function fetchActivities(params: ActivitiesQuery): Promise<API_Acti
     params.after = Math.ceil(params.after / ROUNDING) * ROUNDING;
   }
 
+  const apiParams = {
+    user: params.userId,
+    game: params.gameId,
+    platform: params.platformId,
+    offset: params.offset,
+    limit: params.limit,
+    before: params.before,
+    after: params.after,
+    order: params.order,
+  }
+
   let url = "/api/activities?";
   const queryParts: string[] = [];
-  for (const key in params) {
-    const value = (params as any)[key];
+  for (const key in apiParams) {
+    const value = (apiParams as any)[key];
     if (value !== undefined) {
       queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
     }
   }
   url += queryParts.join("&");
-  console.log("Fetching activities", params, url);
+  console.log("Fetching activities", apiParams, url);
   const res = await cacheFetch(url, ROUNDING);
   if (!res.ok) {
-    throw new Error(`Failed to fetch activities: ${res.status} ${res.statusText}`);
+    throw new Error(`Failed to fetch activities`);
+  }
+  return await res.json() as API_Activities;
+}
+
+export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<string> {
+  const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
+  const gameInfo = await cacheFetch(
+    `/api/games/${gameId}`,
+    CACHE_LIFETIME
+  );
+  const gameData = (await gameInfo.json() as any).game as Game;
+
+  const FALLBACK = "https://placehold.co/267x400?text=No+Image";
+  if (gameData.image_url) {
+    return gameData.image_url;
+  }
+
+  if (gameData.steam_id) {
+    return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
+  }
+
+  if (gameData.sgdb_id) {
+    const res = await cacheFetch(
+      `/api/sgdb/grids/${gameData.sgdb_id}/best`,
+      CACHE_LIFETIME
+    );
+    if (res.ok) {
+      const data: SGDBGrid = await res.json();
+      return thumbnail ? data.thumbnail : data.url;
+    }
+    return FALLBACK;
+  }
+
+  // search
+  const searchRes = await cacheFetch(
+    `/api/sgdb/search?query=${encodeURIComponent(gameData.name)}`,
+    CACHE_LIFETIME
+  );
+
+  if (searchRes.ok) {
+    const searchData: SGDBGame[] = await searchRes.json();
+    if (searchData.length > 0) {
+      const gameId = searchData[0].id;
+      const res = await cacheFetch(
+        `/api/sgdb/grids/${gameId}/best`,
+        CACHE_LIFETIME
+      );
+      if (res.ok) {
+        const data: SGDBGrid = await res.json();
+        return thumbnail ? data.thumbnail : data.url;
+      }
+    }
+  }
+
+  return FALLBACK;
+}
+
+export async function fetchUserInfo(userId: string): Promise<User> {
+  const CACHE_LIFETIME = 1000 * 60 * 10; // 10 minutes
+  const res = await cacheFetch(
+    `/api/users/${userId}`,
+    CACHE_LIFETIME
+  );
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user info for user ${userId}`);
   }
   const data = await res.json();
-  return data as API_Activities;
+  return data.user as User;
+}
+
+export function iso8601Date(date: Date | number): string {
+  if (typeof date === "number") {
+    date = new Date(date);
+  }
+  return date.toISOString().slice(0, 10);
 }
