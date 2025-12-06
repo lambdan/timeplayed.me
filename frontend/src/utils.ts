@@ -98,18 +98,31 @@ export async function cacheFetch(
     headers[key] = value;
   });
   const entry: CacheEntry = { timestamp: Date.now(), body, headers };
-  sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
+  } catch (err) {
+    console.warn("cacheFetch: Failed to store cache for key:", cacheKey, err);
+    // Ignore storage errors
+  }
   return res;
 }
 
 // this should probably a service...
 export async function fetchActivities(params: ActivitiesQuery): Promise<API_Activities> {
-
+  const ROUNDING = 1000 * 60;
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
   if (params.before && params.before instanceof Date) {
     params.before = params.before.getTime();
+  }
+
+  if (params.before) {
+    // round of milliseconds so cache can be hit...
+    params.before = Math.floor(params.before / ROUNDING) * ROUNDING;
+  }
+  if (params.after) {
+    params.after = Math.ceil(params.after / ROUNDING) * ROUNDING;
   }
 
   let url = "/api/activities?";
@@ -122,7 +135,7 @@ export async function fetchActivities(params: ActivitiesQuery): Promise<API_Acti
   }
   url += queryParts.join("&");
   console.log("Fetching activities", params, url);
-  const res = await fetch(url);
+  const res = await cacheFetch(url, ROUNDING);
   if (!res.ok) {
     throw new Error(`Failed to fetch activities: ${res.status} ${res.statusText}`);
   }
