@@ -179,26 +179,44 @@ def get_user_stats(user_id: int):
 #################
 
 @app.get("/api/activities")
-def list_activities(offset = 0, limit = 25, order = "desc", user: int | None = None, game: int | None = None, platform: int | None = None):
+def list_activities(
+    offset=0, limit=25, order="desc",
+    user: int | None = None, game: int | None = None,
+    platform: int | None = None, before: int | None = None, after: int | None = None
+):
     limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
-    activities = [model_to_dict(activity) for activity in 
-        Activity.select().offset(offset).limit(limit).order_by(Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc())
-        .where(
-            (Activity.user == user) if user is not None else True,
-            (Activity.game == game) if game is not None else True,
-            (Activity.platform == platform) if platform is not None else True
-        )]
-    cleaned_activities = [clean_activity(activity) for activity in activities]
+
+    before_dt = datetime.datetime.fromtimestamp(before / 1000) if before is not None else None
+    after_dt = datetime.datetime.fromtimestamp(after / 1000) if after is not None else None
+
+    # Build filters once
+    filters = []
+    if user is not None:
+        filters.append(Activity.user == user)
+    if game is not None:
+        filters.append(Activity.game == game)
+    if platform is not None:
+        filters.append(Activity.platform == platform)
+    if before_dt is not None:
+        filters.append(Activity.timestamp <= before_dt) # type: ignore
+    if after_dt is not None:
+        filters.append(Activity.timestamp >= after_dt) # type: ignore
+
+    query = Activity.select()
+    if filters:
+        query = query.where(*filters)
+    query = query.order_by(Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc()).offset(offset).limit(limit)
+
+    total_count = Activity.select().where(*filters).count() if filters else Activity.select().count()
+
     response = {
-        "data": cleaned_activities,
-        "_total": Activity.select().where(
-            (Activity.user == user) if user is not None else True,
-            (Activity.game == game) if game is not None else True,
-            (Activity.platform == platform) if platform is not None else True
-        ).count(),
+        "data": [clean_activity(activity) for activity in query],
+        "_total": total_count,
         "_offset": offset,
         "_limit": limit,
-        "_order": order
+        "_order": order,
+        "_before": before_dt.isoformat() if before_dt else None,
+        "_after": after_dt.isoformat() if after_dt else None,
     }
     return fixDatetime(response)
 
