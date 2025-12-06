@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import ColorSpinners from "../Misc/ColorSpinners.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import { fetchActivities, sleep } from "../../utils";
 import type { Activity, API_Activities, API_Users, Game, UserWithStats } from "../../models/models";
@@ -11,16 +10,13 @@ const props = withDefaults(
     showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
-    before?: number;
-    after?: number;
+    showDateRange?: boolean;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     game: undefined,
-    before: undefined,
-    after: undefined,
   }
 );
 
@@ -29,14 +25,16 @@ const displayedUsers = ref<UserWithStats[]>([]);
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
-const localBefore = ref(props.before);
-const localAfter = ref(props.after);
 const localGame = ref(props.game);
+const localBefore = ref<Date|undefined>();
+const localAfter = ref<Date|undefined>();
+const showDateRange = ref<boolean>(props.showDateRange || false);
 
 async function fetchAllTheThings() {
   if (loading.value) {
     return; // already running
   }
+  loadingProgress.value = 0;
   loading.value = true;
   displayedUsers.value = [];
   const allActivity: Activity[] = [];
@@ -51,11 +49,11 @@ async function fetchAllTheThings() {
       game: localGame.value ? localGame.value.id : undefined,
     });
     allActivity.push(...activities.data);
-    needToFetch = activities._total > allActivity.length;
     loadingProgress.value = Math.min(
       100,
       (allActivity.length / activities._total) * 100
     );
+    needToFetch = activities._total > allActivity.length;
   }
 
   // build UserWithStats
@@ -118,14 +116,16 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
-  //fetchAllTheThings(); // DateRangePicker triggers it
+  if (!showDateRange.value) {
+    fetchAllTheThings();
+  } // else DateRange will trigger it 
 });
 </script>
 
 <template>
-  <DateRangerPicker class="mb-2"
-    @update:before="(val: Date) => { localBefore = val.getTime(); fetchAllTheThings(); }"
-    @update:after="(val: Date) => { localAfter = val.getTime(); fetchAllTheThings(); }"
+  <DateRangerPicker class="mb-2" v-if="showDateRange"
+    @update:before="(val: Date) => { localBefore = val; fetchAllTheThings(); }"
+    @update:after="(val: Date) => { localAfter = val; fetchAllTheThings(); }"
     :relativeDays="30"
   />
 

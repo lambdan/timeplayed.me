@@ -17,7 +17,7 @@ const props = withDefaults(
   <div class="card p-0">
     <h2 class="card-header">Top players</h2>
     <div class="card-body">
-      <UserTable :game="game" :sort="'playtime'" :order="'desc'" />
+      <UserTable :game="game" :sort="'playtime'" :order="'desc'" :show-date-range="true" />
     </div>
   </div>
 </template>

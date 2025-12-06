@@ -51,6 +51,7 @@ function setOrder(newOrder: string) {
         :showExpand="props.showExpand"
         :sort="localSort"
         :order="localOrder"
+        :showDateRange="false"
       />
     </div>
   </div>
