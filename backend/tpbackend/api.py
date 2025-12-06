@@ -202,12 +202,6 @@ def list_activities(offset = 0, limit = 25, order = "desc", user: int | None = N
     }
     return fixDatetime(response)
 
-
-@app.get("/api/activities/{activity_id}")
-def get_activity(activity_id: int):
-    activity = Activity.get_or_none(Activity.id == activity_id) # type: ignore
-    return fixDatetime(model_to_dict(activity)) if activity else {"error": "Not found"}
-
 @app.get("/api/activities/last")
 def get_last_activity(userid: int | None = None, gameid: int | None = None, platformid: int | None = None):
     """
@@ -230,10 +224,15 @@ def get_last_activity(userid: int | None = None, gameid: int | None = None, plat
 
     return fixDatetime(model_to_dict(last_activity))
 
-@app.get("/api/activities_live")
+@app.get("/api/activities/live")
 def get_live_activities():
     live_activities = LiveActivity.select()
     return fixDatetime([clean_activity(activity) for activity in live_activities])
+
+@app.get("/api/activities/{activity_id}")
+def get_activity(activity_id: int):
+    activity = Activity.get_or_none(Activity.id == activity_id) # type: ignore
+    return fixDatetime(model_to_dict(activity)) if activity else {"error": "Not found"}
 
 ##############
 # Games

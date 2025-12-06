@@ -17,12 +17,13 @@ def dm_help(isAdmin: bool) -> str:
 # Manual entries:
 - `!add "Game Name"|alias <duration> [datetime]` - Add a session of specified duration
 - `!start "Game Name"|alias [platform] [datetime]`
-- `!stop` - Stop the current manually started session
-- `!time` - Show the current running session time (if any)
+- `!stop` - Stop and save the manual session
+- `!abort` - Abort (dont save) the manual session
+- `!time` - Show the current duration of the manual session
 
 # Maintenance:
-- `!last [n]` - Shows your last n sessions (default is 1, max is 10)
-- `!merge <game_id1> <game_id2>` - Merge game_id1 into game_id2 (only affects your sessions)
+- `!last [n]` - List your last n activities
+- `!merge <game_id1> <game_id2>` - Merge game_id1 into game_id2 (only affects you)
 - `!remove <session_id>` - Remove session with id
 - `!setdate <session_id> <datetime>` - Change date of a session
 
@@ -131,7 +132,7 @@ def dm_start_session(user: User, msg: str) -> str:
         platform=platform,
         started=timestamp
     )
-    return f"⏱️ Started playing **{game.name}** on **{platform.abbreviation}** at {timestamp.isoformat()}.\nSend `!stop` to end the session."
+    return f"⏱️ Started playing **{game.name}** on **{platform.abbreviation}** at {timestamp.isoformat()}.\nSend `!stop` to end the session, or `!abort` to abort it."
 
 def dm_stop_session(user: User, message: discord.Message) -> str:
     # !stop
@@ -177,6 +178,14 @@ def dm_time_session(user: User, message: discord.Message) -> str:
     seconds = int(duration.total_seconds())
     
     return f"⏱️ You have been playing for {utils.secsToHHMMSS(seconds)}. \nSend `!stop` to end the session."
+
+def dm_abort_session(user: User, message: discord.Message) -> str:
+    # !stop
+    live = LiveActivity.get_or_none(LiveActivity.user == user)
+    if not live:
+        return "You don't have a session running"
+    live.delete_instance()  # Remove the live session from db
+    return "Session aborted"
 
 def dm_merge_game(user: User, message: discord.Message) -> str:
     # !merge 123 456 
@@ -405,6 +414,8 @@ def dm_receive(message: discord.Message) -> str:
         return dm_stop_session(user, message)
     elif first == "!time":
         return dm_time_session(user, message)
+    elif first == "!abort":
+        return dm_abort_session(user, message)
     elif first == "!merge":
         return dm_merge_game(user, message)
     elif first == "!remove":
