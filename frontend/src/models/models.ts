@@ -52,6 +52,8 @@ export interface API_Paginated {
 
 export interface API_Activities extends API_Paginated {
   data: Activity[];
+  _before: string | null;
+  _after: string | null;
 }
 
 export interface UserWithStats {
@@ -134,4 +136,15 @@ export interface GameStats {
   player_count: number;
   oldest_activity: Activity;
   newest_activity: Activity;
+}
+
+export interface ActivitiesQuery {
+  offset?: number;
+  limit?: number;
+  user?: number;
+  game?: number;
+  platform?: number;
+  before?: number;
+  after?: number;
+  order?: "asc" | "desc";
 }

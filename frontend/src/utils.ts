@@ -1,3 +1,5 @@
+import type { ActivitiesQuery, API_Activities } from "./models/models";
+
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
   if (typeof date === "number") {
@@ -98,4 +100,24 @@ export async function cacheFetch(
   const entry: CacheEntry = { timestamp: Date.now(), body, headers };
   sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
   return res;
+}
+
+// this should probably a service...
+export async function fetchActivities(params: ActivitiesQuery): Promise<API_Activities> {
+  let url = "/api/activities?";
+  const queryParts: string[] = [];
+  for (const key in params) {
+    const value = (params as any)[key];
+    if (value !== undefined) {
+      queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    }
+  }
+  url += queryParts.join("&");
+  console.log("Fetching activities", url, params);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch activities: ${res.status} ${res.statusText}`);
+  }
+  const data = await res.json();
+  return data as API_Activities;
 }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Activity, API_Activities, Game, User } from "../models/models";
+import type { Activity, Game, User } from "../models/models";
 import UserPageActivityRow from "./ActivityRows/UserPageActivityRow.vue";
 import FrontPageActivityRow from "./ActivityRows/FrontPageActivityRow.vue";
 import GamePageActivityRow from "./ActivityRows/GamePageActivityRow.vue";
+import { fetchActivities as FU } from "../utils";
 
 const props = withDefaults(
   defineProps<{
@@ -26,24 +27,12 @@ const loading = ref(false);
 const hasMore = ref(true);
 
 async function fetchActivities(limit?: number, offsetVal = 0) {
-  const params = [];
-  if (props.user) {
-    params.push(`user=${props.user.id}`);
-  }
-  if (props.game) {
-    params.push(`game=${props.game.id}`);
-  }
-  if (limit) {
-    params.push(`limit=${limit}`);
-  }
-  if (offsetVal) {
-    params.push(`offset=${offsetVal}`);
-  }
-
-  loading.value = true;
-  const res = await fetch(`/api/activities?${params.join("&")}`);
-  const data: API_Activities = await res.json();
-
+  const data = await FU({
+    limit,
+    offset: offsetVal,
+    game: props.game ? props.game.id : undefined,
+    user: props.user ? props.user.id : undefined
+  });
   const newActivities = data.data.map((activity: any) => ({
     ...activity,
     createdAt: new Date(activity.timestamp),
