@@ -30,7 +30,6 @@ export async function buildGamesList(activities: Activity[]): Promise<RecapGameE
                 percentage: 0,
                 activity_count: 0,
                 average_session_seconds: 0,
-                cover_art: await getGameCoverUrl(gameId),
             });
         }
         const entry = gamesMap.get(gameId.toString());

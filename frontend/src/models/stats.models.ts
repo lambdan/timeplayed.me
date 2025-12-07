@@ -7,7 +7,6 @@ export interface RecapGameEntry {
     percentage: number;
     activity_count: number;
     average_session_seconds: number;
-    cover_art: string;
 }
 
 export interface RecapPlatformEntry {
