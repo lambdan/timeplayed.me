@@ -178,16 +178,29 @@ def get_user_stats(user_id: int):
 # Activities
 #################
 
+CACHE_ACTIVITIES = {}
+
 @app.get("/api/activities")
 def list_activities(
     offset=0, limit=25, order="desc",
     user: int | None = None, game: int | None = None,
-    platform: int | None = None, before: int | None = None, after: int | None = None
+    platform: int | None = None, before = 0, after = 0
 ):
-    limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
+    before, after = int(before), int(after)
+    if before <= 0:
+        before = time.time() * 1000
+    # round before/after to nearest minute to improve cache hits
+    before = (before // 60000) * 60000
+    after = (after // 60000) * 60000
+    before,after = int(before), int(after)
 
-    before_dt = datetime.datetime.fromtimestamp(before / 1000) if before is not None else None
-    after_dt = datetime.datetime.fromtimestamp(after / 1000) if after is not None else None
+    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    if cache_key in CACHE_ACTIVITIES:
+        return CACHE_ACTIVITIES[cache_key]
+    
+    limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
+    before_dt = datetime.datetime.fromtimestamp(before / 1000)
+    after_dt = datetime.datetime.fromtimestamp(after / 1000)
 
     # Build filters once
     filters = []
@@ -197,10 +210,9 @@ def list_activities(
         filters.append(Activity.game == game)
     if platform is not None:
         filters.append(Activity.platform == platform)
-    if before_dt is not None:
-        filters.append(Activity.timestamp <= before_dt) # type: ignore
-    if after_dt is not None:
-        filters.append(Activity.timestamp >= after_dt) # type: ignore
+    
+    filters.append(Activity.timestamp <= before_dt) # type: ignore
+    filters.append(Activity.timestamp >= after_dt) # type: ignore
 
     query = Activity.select()
     if filters:
@@ -215,10 +227,17 @@ def list_activities(
         "_offset": offset,
         "_limit": limit,
         "_order": order,
-        "_before": before_dt.isoformat() if before_dt else None,
-        "_after": after_dt.isoformat() if after_dt else None,
+        "_before": before_dt.isoformat(),
+        "_after": after_dt.isoformat(),
     }
-    return fixDatetime(response)
+    response = fixDatetime(response)
+    
+    if len(CACHE_ACTIVITIES) > 200:
+        CACHE_ACTIVITIES.clear()
+        logger.warning("Cache size exceeded, evicted all entries")
+
+    CACHE_ACTIVITIES[cache_key] = response
+    return response
 
 @app.get("/api/activities/last")
 def get_last_activity(userid: int | None = None, gameid: int | None = None, platformid: int | None = None):
