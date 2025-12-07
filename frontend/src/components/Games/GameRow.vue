@@ -14,7 +14,7 @@ onMounted(async () => {});
 <template>
   <div class="row align-items-center mb-2" :title="'Game ID ' + game.game.id">
     <div class="col col-lg-1">
-      <GameCover :game="game.game" :thumb="true" :maxHeight="100" />
+      <GameCover :gameId="game.game.id" :thumb="true" :maxHeight="100" />
     </div>
 
     <div class="col text-start">

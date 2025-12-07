@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { User, type Activity, type API_Activities, type UserWithStats } from "../models/models";
+import { type Activity, type API_Activities, type User, type UserWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 import { fetchActivities, fetchUserInfo, iso8601Date } from "../utils";
-import { RecapPlatformEntry, type RecapGameEntry } from "../models/stats.models";
+import { type RecapGameEntry, type RecapPlatformEntry } from "../models/stats.models";
 import { buildGamesList, buildPlatformsList } from "../utils.stats";
 import DiscordAvatar from "../components/DiscordAvatar.vue";
 import GameCover from "../components/Games/GameCover.vue";
@@ -360,7 +360,7 @@ onMounted(async () => {
               idx === 2 ? '0 0 10px ' + BRONZE : ''
         }"
       >
-        <GameCover :game="{ id: game.id, name: game.name }" :thumb="true" :maxWidth="200" class="mb-2" />
+        <GameCover :gameId="game.id" :thumb="true" :maxWidth="200" class="mb-2" />
         <h3>
         <a :href="`/game/${game.id}`" style="color: inherit; text-decoration: none;">
           <i :style="{
@@ -385,7 +385,7 @@ onMounted(async () => {
       :key="game.id"
       >
       <div class="card h-100 text-center p-2" style="min-width: 0;">
-        <GameCover :game="{ id: game.id, name: game.name }" :thumb="true" :maxWidth="100" class="mb-2" />
+        <GameCover :gameId="game.id" :thumb="true" :maxWidth="100" class="mb-2" />
         <h5>
         <a :href="`/game/${game.id}`" style="color: inherit; text-decoration: none;">
           <i>{{ game.name }}</i>

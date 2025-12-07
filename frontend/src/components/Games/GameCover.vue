@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Game, SGDBGame, SGDBGrid } from "../../models/models";
-import { cacheFetch, getGameCoverUrl } from "../../utils";
+import type { Game } from "../../models/models";
+import {  getGameCoverUrl } from "../../utils";
 
 const props = withDefaults(
   defineProps<{
-    game: Game;
+    gameId: number;
     thumb?: boolean;
     clickable?: boolean;
     maxHeight?: number;
@@ -26,7 +26,7 @@ const loading = ref(true);
 
 
 onMounted(async () => {
-  imageUrl.value = await getGameCoverUrl(props.game.id, props.thumb);
+  imageUrl.value = await getGameCoverUrl(props.gameId, props.thumb);
   loading.value = false;
 });
 </script>
@@ -34,7 +34,7 @@ onMounted(async () => {
 <template>
   <div style="display: inline-block; position: relative">
     <template v-if="clickable">
-      <a :href="`/game/${props.game.id}`">
+      <a :href="`/game/${props.gameId}`">
         <div v-if="loading" class="spinner-border" role="status"></div>
         <img
           v-show="!loading"

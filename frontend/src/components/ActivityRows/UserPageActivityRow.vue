@@ -26,7 +26,7 @@ function toggleExpand() {
     :title="'Activity ID ' + activity.id"
   >
     <div class="col col-lg-1">
-      <GameCover :game="activity.game" :thumb="true" />
+      <GameCover :gameId="activity.game.id" :thumb="true" />
     </div>
 
     <div class="col text-start">

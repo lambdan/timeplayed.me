@@ -28,7 +28,7 @@ function toggleExpand() {
     <UserColumn :user="activity.user" class="col-lg-3" />
 
     <div class="col d-none d-lg-block col-lg-1">
-      <GameCover :game="activity.game" :thumb="true" :maxHeight="100" />
+      <GameCover :gameId="activity.game.id" :thumb="true" :maxHeight="100" />
     </div>
 
     <div class="col text-start">

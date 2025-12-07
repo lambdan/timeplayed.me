@@ -48,7 +48,7 @@ onMounted(async () => {
             style="box-shadow: none"
           >
             <GameCover
-              :game="game"
+              :gameId="game.id"
               :thumb="false"
               :clickable="false"
               style="
