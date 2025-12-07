@@ -95,24 +95,35 @@ function longestStreak(activities: Activity[]): number {
     return 0;
   }
 
-  // Sort activities by timestamp
-  const sortedActivities = activities.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  // Get unique days the user played something
+  const uniqueDays = Array.from(
+    new Set(
+      activities
+        .map(a => {
+          const d = new Date(a.timestamp);
+          // Use UTC to avoid timezone issues
+          return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+        })
+    )
+  ).sort();
+
+  if (uniqueDays.length === 0) {
+    return 0;
+  }
 
   let longestStreak = 1;
   let currentStreak = 1;
 
-  for (let i = 1; i < sortedActivities.length; i++) {
-    const prevDate = new Date(sortedActivities[i - 1].timestamp);
-    const currentDate = new Date(sortedActivities[i].timestamp);
-
-    // Check if current activity is the next day after the previous activity
-    const diffInTime = currentDate.getTime() - prevDate.getTime();
+  for (let i = 1; i < uniqueDays.length; i++) {
+    const prev = new Date(uniqueDays[i - 1]);
+    const curr = new Date(uniqueDays[i]);
+    const diffInTime = curr.getTime() - prev.getTime();
     const diffInDays = diffInTime / (1000 * 3600 * 24);
 
     if (diffInDays === 1) {
       currentStreak++;
-    } else if (diffInDays > 1) {
-      currentStreak = 1; // Reset streak
+    } else {
+      currentStreak = 1;
     }
 
     if (currentStreak > longestStreak) {
