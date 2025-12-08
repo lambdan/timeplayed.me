@@ -46,7 +46,7 @@ async function fetchAllTheThings() {
     const activities = await fetchActivities({
       before: localBefore.value,
       after: localAfter.value,
-      limit: 500,
+      limit: 250,
       offset: allActivity.length,
       gameId: localGame.value ? localGame.value.id.toString() : undefined,
     });
@@ -126,8 +126,8 @@ onMounted(() => {
 
 <template>
   <DateRangerPicker class="mb-2" v-if="showDateRange"
-    @update:before="(val: Date) => { localBefore = val; fetchAllTheThings(); }"
-    @update:after="(val: Date) => { localAfter = val; fetchAllTheThings(); }"
+    @update:before="(val: Date|undefined) => { localBefore = val; fetchAllTheThings(); }"
+    @update:after="(val: Date|undefined) => { localAfter = val; fetchAllTheThings(); }"
     :relativeDays="startingRelativeDays"
   />
 

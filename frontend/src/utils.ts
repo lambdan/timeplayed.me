@@ -77,14 +77,13 @@ export async function cacheFetch(
       const parsed = JSON.parse(cached) as CacheEntry;
       const age = Date.now() - parsed.timestamp;
       if (age < maxAge) {
-        console.log("cacheFetch: cache hit", url);
+        // hit cache
         return new Response(parsed.body, {
-          headers: parsed.headers || { "content-type": "application/json" },
+          headers: parsed.headers || { "Content-Type": "application/json" },
         });
       }
     } catch {}
   }
-  console.log("cacheFetch: Fetching", url);
   const res = await fetch(url);
   const body = await res.clone().text();
   const headers: Record<string, string> = {};
@@ -93,28 +92,19 @@ export async function cacheFetch(
   });
   const entry: CacheEntry = { timestamp: Date.now(), body, headers };
   try {
+    // store
     sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
-    console.log("cacheFetch: Stored", cacheKey);
   } catch (err) {}
   return res;
 }
 
 // this should probably a service...
 export async function fetchActivities(params: ActivitiesQuery): Promise<API_Activities> {
-  const ROUNDING = 1000 * 60;
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
   if (params.before && params.before instanceof Date) {
     params.before = params.before.getTime();
-  }
-
-  if (params.before) {
-    // round of milliseconds so cache can be hit...
-    params.before = Math.floor(params.before / ROUNDING) * ROUNDING;
-  }
-  if (params.after) {
-    params.after = Math.ceil(params.after / ROUNDING) * ROUNDING;
   }
 
   const apiParams = {
@@ -138,7 +128,7 @@ export async function fetchActivities(params: ActivitiesQuery): Promise<API_Acti
   }
   url += queryParts.join("&");
   console.log("Fetching activities", apiParams, url);
-  const res = await cacheFetch(url, ROUNDING);
+  const res = await cacheFetch(url, 60*1000); // 1 minute cache
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
