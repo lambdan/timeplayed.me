@@ -308,7 +308,7 @@ async function _fetchActivities() {
       userId: refUserId.value + "",
       after: startDate,
       before: endDate,
-      limit: 500,
+      limit: 100,
       offset: activities.value.length,
     });
     activities.value.push(...fetchedActivities.data);
@@ -338,7 +338,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="loading">Loading... {{ Math.round(loadingProgress) }}%</div>
+  <div v-if="loading" class="mt-4 mb-4 text-center">
+    <h2>Loading... {{ Math.round(loadingProgress) }}%</h2>
+  </div>
   <div v-else>
     <div class="row mb-3 justify-content-center text-center">
       <DiscordAvatar v-if="userInfo" :user="userInfo" :max-width="300" class="mb-3 mx-auto" />

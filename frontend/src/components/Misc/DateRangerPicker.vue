@@ -19,6 +19,7 @@ const RELATIVE_VALUES: RelativeOption[] = [
   //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
   { label: "Last 24 hours", milliseconds: ONE_HOUR * 24 },
   { label: "Last 7 days", milliseconds: ONE_DAY * 7 },
+  { label: "Last 14 days", milliseconds: ONE_DAY * 14 },
   { label: "Last 30 days", milliseconds: ONE_DAY * 30 },
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
@@ -107,7 +108,7 @@ onMounted(() => {
       class="form-control"
       :value="refAfter ? iso8601(refAfter,false) : ''"
       @change="setAfter(new Date(($event.target as HTMLInputElement)?.value))"/>
-    <span class="input-group-text">to</span>
+    <span class="input-group-text">-</span>
     <input
       id="before"
       type="date"

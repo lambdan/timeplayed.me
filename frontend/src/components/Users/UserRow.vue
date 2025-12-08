@@ -11,9 +11,11 @@ const props = withDefaults(
   defineProps<{
     user: UserWithStats;
     showExpand?: boolean;
+    showLastPlayed?: boolean;
   }>(),
   {
     showExpand: false,
+    showLastPlayed: true,
   }
 );
 
@@ -30,14 +32,14 @@ onMounted(async () => {});
   <div class="row align-items-center mb-2 text-center">
     <UserColumn :user="user.user" class="col-lg-3" />
 
-    <div class="col">
+    <div class="col" v-if="props.showLastPlayed">
       Last played<br /><CalendarBadge
         :date="new Date(props.user.last_played)"
       />
     </div>
 
     <div class="col">
-      Total playtime<br />
+      Time played<br />
       <DurationBadge :secs="props.user.total_playtime" />
     </div>
   </div>

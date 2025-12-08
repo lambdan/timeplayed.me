@@ -12,12 +12,14 @@ const props = withDefaults(
     sort?: "recency" | "playtime" | "name";
     showDateRange?: boolean;
     startingRelativeDays?: number;
+    showLastPlayed?: boolean;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     game: undefined,
+    showLastPlayed: true,
   }
 );
 
@@ -46,7 +48,7 @@ async function fetchAllTheThings() {
     const activities = await fetchActivities({
       before: localBefore.value,
       after: localAfter.value,
-      limit: 250,
+      limit: 100,
       offset: allActivity.length,
       gameId: localGame.value ? localGame.value.id.toString() : undefined,
     });
@@ -143,6 +145,7 @@ onMounted(() => {
       :key="user.user.id"
       :user="user"
       :showExpand="props.showExpand"
+      :showLastPlayed="props.showLastPlayed"
     />
   </template>
   <div v-else class="text-center text-muted">Nothing found</div>
