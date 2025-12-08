@@ -178,6 +178,11 @@ def get_user_stats(user_id: int):
 # Activities
 #################
 
+def validateTS(ts) -> int | None:
+    if isinstance(ts, int) and ts > 0:
+        return ts
+    return None
+
 CACHE_ACTIVITIES = {}
 
 @app.get("/api/activities")
@@ -187,6 +192,7 @@ def list_activities(
     platform: int | None = None, before = None, after = None
 ):
     limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
+    before, after = validateTS(before), validateTS(after)
     # check how many activities there are in total
     # if it changes, cache is not valid anymore
     all_activities_count = Activity.select().count()

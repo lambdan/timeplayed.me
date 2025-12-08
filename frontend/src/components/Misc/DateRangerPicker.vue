@@ -43,24 +43,18 @@ function setBefore(newBefore: Date|undefined) {
   if (refRelativeMode.value) {
     newBefore = undefined; // before is not needed for relative mode
   } else if (newBefore) {
-    newBefore = roundOffDate(newBefore);
+    // inclusive date picker handling: set to end of day
+    newBefore.setHours(23, 59, 59, 999);
   }
   refBefore.value = newBefore;
   emit("update:before", newBefore);
 }
 
 function setAfter(newAfter: Date) {
-  newAfter = roundOffDate(newAfter);
+  // inclusive date picker handling: set to start of day
+  newAfter.setHours(0, 0, 0, 0);
   refAfter.value = newAfter;
   emit("update:after", newAfter);
-}
-
-function roundOffDate(date: Date): Date {
-  const rounded = new Date(date.getTime());
-  rounded.setSeconds(0);
-  rounded.setMilliseconds(0);
-  //rounded.setMinutes(Math.floor(rounded.getMinutes() / 5) * 5);
-  return rounded;
 }
 
 function iso8601(date: Date, includeTime = true): string {
