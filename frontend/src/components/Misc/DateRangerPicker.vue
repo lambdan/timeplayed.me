@@ -2,16 +2,35 @@
 import { defineProps, defineEmits, ref, onMounted } from "vue";
 
 const refRelativeMode = ref(false);
-const refRelativeDays = ref<number|undefined>();
+const refRelativeHours = ref<number>();
 const refBefore = ref<Date|undefined>(new Date());
 const refAfter = ref<Date|undefined>(new Date("2025-01-20T00:00:00Z")); // timeplayed start date
 
-const ONE_DAY = 24 * 60 * 60 * 1000;
+const ONE_HOUR = 60 * 60 * 1000;
+const ONE_DAY = 24 * ONE_HOUR;
+
+interface RelativeOption {
+  label: string;
+  milliseconds: number;
+}
+
+const RELATIVE_VALUES: RelativeOption[] = [
+  //{ label: "Last hour", milliseconds: ONE_HOUR },
+  //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
+  { label: "Last 24 hours", milliseconds: ONE_HOUR * 24 },
+  { label: "Last 7 days", milliseconds: ONE_DAY * 7 },
+  { label: "Last 30 days", milliseconds: ONE_DAY * 30 },
+  { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
+  { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
+  { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
+  { label: "All time", milliseconds: 0 },
+];
 
 const props = defineProps<{
   before?: Date;
   after?: Date;
   relativeDays?: number;
+  relativeHours?: number;
 }>();
 
 const emit = defineEmits<{
@@ -43,10 +62,6 @@ function roundOffDate(date: Date): Date {
   return rounded;
 }
 
-function nowMinus(days: number): number {
-  return Date.now() - (days * ONE_DAY);
-}
-
 function iso8601(date: Date, includeTime = true): string {
   if (!includeTime) {
     return date.toISOString().slice(0,10); // YYYY-MM-DD
@@ -62,15 +77,19 @@ onMounted(() => {
     refRelativeMode.value = false;
     setBefore(props.before);
     setAfter(props.after);
-  } else if (props.relativeDays !== undefined) {
-    refRelativeDays.value = props.relativeDays;
+  } else if (props.relativeDays !== undefined || props.relativeHours !== undefined) {
     refRelativeMode.value = true;
+    if (props.relativeDays) {
+      refRelativeHours.value = 24 * props.relativeDays;
+    } else {
+      refRelativeHours.value = props.relativeHours;
+    }
     setBefore(undefined);
-    setAfter(new Date(nowMinus(props.relativeDays!)));
+    setAfter(new Date(Date.now() - refRelativeHours.value! * ONE_HOUR));
   } else {
     // default to all time
     refRelativeMode.value = true;
-    refRelativeDays.value = 0;
+    refRelativeHours.value = 0;
     setBefore(undefined);
     setAfter(new Date(0));
   }
@@ -121,48 +140,30 @@ onMounted(() => {
       class="form-select"
       @change="
         e => {
-        let after = Date.now();
-        switch ((e.target as HTMLSelectElement).value) {
-          case '1':
-          after -= ONE_DAY;
-          break;
-          case '7':
-          after -= ONE_DAY * 7;
-          break;
-          case '30':
-          after -= ONE_DAY * 30;
-          break;
-          case '90':
-          after -= ONE_DAY * 90;
-          break;
-          case '365':
-          after -= ONE_DAY * 365;
-          break;
-          default:
-          after = 0; // all time
-          break;
-        }
-        setAfter(new Date(after));
-        setBefore(undefined);
+          const val = (e.target as HTMLSelectElement).value;
+          if (val === '0') {
+            // all time
+            setAfter(new Date(0));
+          } else {
+            setAfter(new Date(Date.now() - parseInt(val)));
+          }
+          setBefore(undefined);
         }
       "
-      v-model="refRelativeDays"
+      :value="refRelativeHours ? refRelativeHours * ONE_HOUR : '0'"
       >
-      <option value="1">Last day</option>
-      <option value="7">Last 7 days</option>
-      <option value="30">Last 30 days</option>
-      <option value="90">Last 90 days</option>
-      <option value="365">Last 365 days</option>
-      <option value="0">All time</option>
+      <option v-for="option in RELATIVE_VALUES" :key="option.label" :value="option.milliseconds">
+        {{ option.label }}
+      </option>
       </select>
       <button
       class="btn btn-sm btn-outline-primary"
       @click="
         refRelativeMode = !refRelativeMode;
         if (!refRelativeMode) {
-        setBefore(new Date());
+          setBefore(new Date());
         } else {
-        setBefore(undefined);
+          setBefore(undefined);
         }
       "
       type="button"
