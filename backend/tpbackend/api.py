@@ -181,6 +181,10 @@ def get_user_stats(user_id: int):
 def validateTS(ts) -> int | None:
     if isinstance(ts, int) and ts > 0:
         return ts
+    try:
+        return validateTS(int(ts))
+    except:
+        pass
     return None
 
 CACHE_ACTIVITIES = {}
