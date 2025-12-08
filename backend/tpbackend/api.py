@@ -184,23 +184,22 @@ CACHE_ACTIVITIES = {}
 def list_activities(
     offset=0, limit=25, order="desc",
     user: int | None = None, game: int | None = None,
-    platform: int | None = None, before = 0, after = 0
+    platform: int | None = None, before = None, after = None
 ):
-    before, after = int(before), int(after)
-    if before <= 0:
-        before = time.time() * 1000
-    # round before/after to nearest minute to improve cache hits
-    before = (before // 60000) * 60000
-    after = (after // 60000) * 60000
-    before,after = int(before), int(after)
-
-    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
+    # check how many activities there are in total
+    # if it changes, cache is not valid anymore
+    all_activities_count = Activity.select().count()
+    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{all_activities_count}"
     if cache_key in CACHE_ACTIVITIES:
+        logger.warning("Cache hit: %s", cache_key)
         return CACHE_ACTIVITIES[cache_key]
     
-    limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
-    before_dt = datetime.datetime.fromtimestamp(before / 1000)
-    after_dt = datetime.datetime.fromtimestamp(after / 1000)
+    before_dt, after_dt = None, None
+    if before:
+        before_dt = datetime.datetime.fromtimestamp(int(before) / 1000)
+    if after:
+        after_dt = datetime.datetime.fromtimestamp(int(after) / 1000)
 
     # Build filters once
     filters = []
@@ -211,8 +210,10 @@ def list_activities(
     if platform is not None:
         filters.append(Activity.platform == platform)
     
-    filters.append(Activity.timestamp <= before_dt) # type: ignore
-    filters.append(Activity.timestamp >= after_dt) # type: ignore
+    if before_dt:
+        filters.append(Activity.timestamp <= before_dt) # type: ignore
+    if after_dt:
+        filters.append(Activity.timestamp >= after_dt) # type: ignore
 
     query = Activity.select()
     if filters:
@@ -227,14 +228,14 @@ def list_activities(
         "_offset": offset,
         "_limit": limit,
         "_order": order,
-        "_before": before_dt.isoformat(),
-        "_after": after_dt.isoformat(),
+        "_before": before_dt.isoformat() if before_dt else None,
+        "_after": after_dt.isoformat() if after_dt else None,
     }
     response = fixDatetime(response)
     
-    if len(CACHE_ACTIVITIES) > 200:
+    if len(CACHE_ACTIVITIES) > 1000:
+        logger.warning("Cache size exceeded !!!!! Clearing")
         CACHE_ACTIVITIES.clear()
-        logger.warning("Cache size exceeded, evicted all entries")
 
     CACHE_ACTIVITIES[cache_key] = response
     return response
