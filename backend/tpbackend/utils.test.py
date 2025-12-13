@@ -5,8 +5,10 @@ import tpbackend.utils as utils
 
 # TODO: Proper python test framework?
 
+
 def fail():
     sys.exit(1)
+
 
 def stringEq(s1: str, s2: str, msg: str):
     print(f"{msg}", end="... ")
@@ -15,6 +17,7 @@ def stringEq(s1: str, s2: str, msg: str):
         fail()
     else:
         print("✅")
+
 
 def dtEqual(dt1: datetime.datetime | None, dt2: datetime.datetime | None, msg: str):
     print(f"{msg}", end="... ")
@@ -33,6 +36,7 @@ def dtEqual(dt1: datetime.datetime | None, dt2: datetime.datetime | None, msg: s
         return
     print("✅")
 
+
 ############
 # datetimes
 ############
@@ -44,23 +48,68 @@ dtEqual(utils.now(), datetime.datetime.now(datetime.UTC), "utils.now() is now")
 
 print("utils.datetimeParse")
 
-dtEqual(utils.datetimeParse("2023-10-01T12:00:00Z"), datetime.datetime(2023, 10, 1, 12, 0, tzinfo=datetime.UTC), "absolute js format")
-dtEqual(utils.datetimeParse("-1h30m5s"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=1, minutes=30, seconds=5), "hours, minutes, seconds")
-dtEqual(utils.datetimeParse("-666s"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=666), "just seconds")
-dtEqual(utils.datetimeParse("-666h"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666), "just hours")
-dtEqual(utils.datetimeParse("-666m"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=666), "just mins")
-dtEqual(utils.datetimeParse("-666m666s"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=666,seconds=666), "just mins and seconds")
-dtEqual(utils.datetimeParse("-666h666s"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666,seconds=666), "just hours and seconds")
-dtEqual(utils.datetimeParse("-666h666m"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666,minutes=666), "just hours and minutes")
+dtEqual(
+    utils.datetimeParse("2023-10-01T12:00:00Z"),
+    datetime.datetime(2023, 10, 1, 12, 0, tzinfo=datetime.UTC),
+    "absolute js format",
+)
+dtEqual(
+    utils.datetimeParse("-1h30m5s"),
+    datetime.datetime.now(datetime.UTC)
+    - datetime.timedelta(hours=1, minutes=30, seconds=5),
+    "hours, minutes, seconds",
+)
+dtEqual(
+    utils.datetimeParse("-666s"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=666),
+    "just seconds",
+)
+dtEqual(
+    utils.datetimeParse("-666h"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666),
+    "just hours",
+)
+dtEqual(
+    utils.datetimeParse("-666m"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=666),
+    "just mins",
+)
+dtEqual(
+    utils.datetimeParse("-666m666s"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=666, seconds=666),
+    "just mins and seconds",
+)
+dtEqual(
+    utils.datetimeParse("-666h666s"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666, seconds=666),
+    "just hours and seconds",
+)
+dtEqual(
+    utils.datetimeParse("-666h666m"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=666, minutes=666),
+    "just hours and minutes",
+)
 
 # hh:mm:ss format
 
-dtEqual(utils.datetimeParse("-00:01:01"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1, seconds=1), "-00:00:01")
+dtEqual(
+    utils.datetimeParse("-00:01:01"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=1, seconds=1),
+    "-00:00:01",
+)
 
-dtEqual(utils.datetimeParse("-01:01:01"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=1, minutes=1, seconds=1), "-00:00:01")
+dtEqual(
+    utils.datetimeParse("-01:01:01"),
+    datetime.datetime.now(datetime.UTC)
+    - datetime.timedelta(hours=1, minutes=1, seconds=1),
+    "-00:00:01",
+)
 
-dtEqual(utils.datetimeParse("-00:00:01"), datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=1), "-00:00:01")
-
+dtEqual(
+    utils.datetimeParse("-00:00:01"),
+    datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=1),
+    "-00:00:01",
+)
 
 
 ###########
@@ -82,7 +131,8 @@ stringEq(utils.secsToHHMMSS(-3600), "00:00:00", "(-3600)")
 # secsFromString
 ###############
 
-print ("secsFromString")
+print("secsFromString")
+
 
 def secsFromStringTest(input_str: str, expected: int | None):
     print(f"{input_str}", end="... ")
@@ -92,6 +142,7 @@ def secsFromStringTest(input_str: str, expected: int | None):
         fail()
     else:
         print("✅")
+
 
 secsFromStringTest("01:30:45", 5445)
 secsFromStringTest("00:00:00", 0)
@@ -109,9 +160,10 @@ secsFromStringTest("1h30m45s", 5445)
 # parseRange
 ##################
 
-print ("parseRange")
+print("parseRange")
 
-def parseRangeTest(input_str: str, expected: tuple|None):
+
+def parseRangeTest(input_str: str, expected: tuple | None):
     print(f"{input_str}", end="... ")
     try:
         result = utils.parseRange(input_str)
@@ -123,6 +175,7 @@ def parseRangeTest(input_str: str, expected: tuple|None):
     except Exception as e:
         print(f"❌ Exception: {e}")
         fail()
+
 
 parseRangeTest("1-10", (1, 10))
 parseRangeTest("5-15", (5, 15))
@@ -142,7 +195,7 @@ parseRangeTest("-1", None)
 print("normalizeQuotes")
 
 stringEq(utils.normalizeQuotes('Hello "World"'), 'Hello "World"', "good quotes")
-stringEq(utils.normalizeQuotes('Hello “World”'), 'Hello "World"', "fancy quotes")
+stringEq(utils.normalizeQuotes("Hello “World”"), 'Hello "World"', "fancy quotes")
 stringEq(utils.normalizeQuotes("It's a test"), "It's a test", "apostrophe")
 stringEq(utils.normalizeQuotes("‘Hello’"), "'Hello'", "fancy apostrophe")
 stringEq(utils.normalizeQuotes("`Hello`"), "'Hello'", "backticks")
@@ -153,6 +206,7 @@ stringEq(utils.normalizeQuotes("´Hello´"), "'Hello'", "accented quotes")
 ########################
 
 print("validateDate")
+
 
 def validateDateTest(input_date: datetime.datetime, ok: bool):
     print(f"{input_date.isoformat()}", end="... ")
@@ -166,6 +220,7 @@ def validateDateTest(input_date: datetime.datetime, ok: bool):
     except Exception as e:
         print(f"❌ Exception: {e}")
         fail()
+
 
 validateDateTest(datetime.datetime(2025, 1, 20, tzinfo=datetime.UTC), True)
 validateDateTest(datetime.datetime(2025, 1, 19, tzinfo=datetime.UTC), False)

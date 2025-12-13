@@ -10,6 +10,9 @@ RUN python -m venv .venv && \
 
 COPY tpbackend /app/tpbackend
 
+# Check formatting has been applied
+RUN python -m venv .venv && .venv/bin/python -m black --check /app/tpbackend
+
 ENV PATH="/app/.venv/bin:$PATH"
 
 CMD ["python", "-m", "tpbackend.main"]

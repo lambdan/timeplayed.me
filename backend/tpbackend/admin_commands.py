@@ -36,7 +36,10 @@ ADMIN_HELP = """☢️
 - `!uptime`
 """
 
-def adm_tree(message: discord.Message, user: User, first: str, content: str) -> str | None:
+
+def adm_tree(
+    message: discord.Message, user: User, first: str, content: str
+) -> str | None:
     """
     Admin command dispatcher. Returns None if the command is not recognized.
     """
@@ -74,7 +77,7 @@ def adm_tree(message: discord.Message, user: User, first: str, content: str) -> 
         duration = datetime.datetime.now(datetime.UTC) - started
         return f"Bot uptime: {utils.secsToHHMMSS(int(duration.total_seconds()))}"
     return None
-    
+
 
 def adm_set_game_image(message: str) -> str:
     # !setgameimage <game_id> <image_url|null>
@@ -82,7 +85,7 @@ def adm_set_game_image(message: str) -> str:
     parts = message.removeprefix("!setgameimage ").strip().split()
     if len(parts) != 2:
         return "Invalid command format. Use: `!setgameimage <game_id> <image_url>`"
-    game = Game.get_or_none(Game.id == int(parts[0])) # type: ignore
+    game = Game.get_or_none(Game.id == int(parts[0]))  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {parts[0]} not found."
     image_url = parts[1]
@@ -93,7 +96,6 @@ def adm_set_game_image(message: str) -> str:
     return f"OK, updated game image for game **{game.name}**"
 
 
-
 def adm_set_steam_id(message: str) -> str:
     # !setsteamid <game:id> <steam_id>
     parts = message.removeprefix("!setsteamid ").strip().split()
@@ -101,11 +103,12 @@ def adm_set_steam_id(message: str) -> str:
         return "Invalid command format. Use: `!setsteamid <game_id> <steam_id>`"
     game_id = int(parts[0])
     steam_id = None if parts[1] == "null" else int(parts[1])
-    game = Game.get_or_none(Game.id == game_id) # type: ignore
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {game_id} not found."
-    Game.update(steam_id=steam_id).where(Game.id == game.id).execute() # type: ignore
+    Game.update(steam_id=steam_id).where(Game.id == game.id).execute()  # type: ignore
     return f"OK! Set Steam ID {steam_id} for game {game.name}"
+
 
 def adm_set_sgdb_id(message: str) -> str:
     # !setsgdbid <game:id> <sgdb_id>
@@ -114,11 +117,12 @@ def adm_set_sgdb_id(message: str) -> str:
         return "ERROR: Invalid command format"
     game_id = int(parts[0])
     sgdb_id = None if parts[1] == "null" else int(parts[1])
-    game = Game.get_or_none(Game.id == game_id) # type: ignore
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {game_id} not found."
-    Game.update(sgdb_id=sgdb_id).where(Game.id == game.id).execute() # type: ignore
+    Game.update(sgdb_id=sgdb_id).where(Game.id == game.id).execute()  # type: ignore
     return f"OK! **{game.name}** SGDB ID = **{sgdb_id}**"
+
 
 def adm_add_alias(message: str) -> str:
     # !addalias <game_id> <alias>
@@ -132,8 +136,8 @@ def adm_add_alias(message: str) -> str:
     aliasedGame = operations.get_game_by_alias(alias)
     if aliasedGame:
         return f"ERROR: Alias '{alias}' already exists for game {aliasedGame.name} (ID {aliasedGame})."
-    
-    game = Game.get_or_none(Game.id == game_id) # type: ignore
+
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {game_id} not found."
     if game.aliases and alias in game.aliases:
@@ -144,6 +148,7 @@ def adm_add_alias(message: str) -> str:
     game.save()
     return f"OK! Added alias '{alias}' for game {game.name}"
 
+
 def adm_del_alias(message: str) -> str:
     # !delalias <game_id> <alias>
     parts = message.removeprefix("!delalias ").strip().split()
@@ -151,7 +156,7 @@ def adm_del_alias(message: str) -> str:
         return "ERROR: Invalid command format. Use: `!delalias <game_id> <alias>`"
     game_id = int(parts.pop(0))
     alias = " ".join(parts).strip()
-    game = Game.get_or_none(Game.id == game_id) # type: ignore
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {game_id} not found."
     if not game.aliases or alias not in game.aliases:
@@ -160,25 +165,29 @@ def adm_del_alias(message: str) -> str:
     game.save()
     return f"OK! Removed alias '{alias}' from game {game.name}"
 
+
 def adm_set_game_release_year(message: str) -> str:
     # !setgamereleaseyear <game_id> <year>
     parts = message.removeprefix("!setgamereleaseyear ").strip().split()
     if len(parts) != 2:
-        return "ERROR: Invalid command format. Use: `!setgamereleaseyear <game_id> <year>`"
+        return (
+            "ERROR: Invalid command format. Use: `!setgamereleaseyear <game_id> <year>`"
+        )
     game_id = int(parts[0])
     year = int(parts[1])
 
     year_now = datetime.datetime.now(datetime.UTC).year
     if year < 1950 or year > year_now:
         return f"ERROR: Invalid year {year}. It should be between 1950 and {year_now}."
-    
-    game = Game.get_or_none(Game.id == game_id) # type: ignore
+
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {game_id} not found."
-    
+
     game.release_year = year
     game.save()
     return f"OK! Set release year {year} for game {game.name}"
+
 
 def adm_add_platform(message: str) -> str:
     # !addplatform <platform_abbreviation> <platform_name>
@@ -199,6 +208,7 @@ def adm_add_platform(message: str) -> str:
     reply.append(f"Abbreviation: **{abbr}**, Name: **{name}**")
     return "\n".join(reply)
 
+
 def adm_del_platform(message: str) -> str:
     # !delplatform <platform_abbreviation>
     parts = message.removeprefix("!delplatform ").strip().split()
@@ -207,18 +217,20 @@ def adm_del_platform(message: str) -> str:
     platform = Platform.get_or_none(Platform.abbreviation == abbr)
     if platform is None:
         return "Platform not found"
-    
+
     platform.delete_instance()
     return "OK, deleted platform " + abbr
+
 
 def adm_delete_activity(message: str) -> str:
     # !adm_remove <activity_id>
     i = int(message.split()[1].strip())
-    activity = Activity.get_or_none(Activity.id == i) # type: ignore
+    activity = Activity.get_or_none(Activity.id == i)  # type: ignore
     if activity is None:
         return f"ERROR: Activity with ID {i} not found."
     activity.delete_instance()
     return f"OK! Deleted activity {i}"
+
 
 def adm_toggle_block_commands(requester: User, message: str) -> str:
     # !adm_toggleblockcommands <user_id>
@@ -231,25 +243,31 @@ def adm_toggle_block_commands(requester: User, message: str) -> str:
     user.bot_commands_blocked = not user.bot_commands_blocked
     user.save()
     status = "blocked 🛑" if user.bot_commands_blocked else "unblocked ✅"
-    return f"OK! User {user.name} (ID {user.id}) is now {status} from using bot commands."
+    return (
+        f"OK! User {user.name} (ID {user.id}) is now {status} from using bot commands."
+    )
+
 
 def adm_add_game(message: str) -> str:
     # !addgame <name>
     name = message.removeprefix("!addgame ").strip()
     if len(name) == 0:
         return "ERROR: Invalid command format. Use: `!addgame <name>` (no quotes)"
-    
+
     # check if any game already uses this name
     existingGame = Game.get_or_none(Game.name == name)
     if existingGame:
-        return f"ERROR: Game with name '{name}' already exists with ID {existingGame.id}."
-    
+        return (
+            f"ERROR: Game with name '{name}' already exists with ID {existingGame.id}."
+        )
+
     game = Game.create(name=name)
     return f"OK! Added new game **{game.name}** with ID {game.id}"
 
+
 def adm_del_game(msg: str) -> str:
     i = int(msg.split()[1].strip())
-    game = Game.get_or_none(Game.id == i) # type: ignore
+    game = Game.get_or_none(Game.id == i)  # type: ignore
     if game is None:
         return f"ERROR: Game with ID {i} not found."
     activities = Activity.select().where(Activity.game == game)
@@ -258,6 +276,7 @@ def adm_del_game(msg: str) -> str:
     game.delete_instance()
     return f"OK! Deleted game {i}"
 
+
 def adm_list_users() -> str:
     users = User.select()
     # - 123456789 | **djs** | admin  ✅❌ | bot_commands_blocked ✅❌
@@ -265,6 +284,8 @@ def adm_list_users() -> str:
     out = ""
     for user in users:
         admin = "admin " + ("✅" if commands.is_admin(user) else "❌")
-        commandsBlocked = "bot_commands_blocked " + ("✅" if user.bot_commands_blocked else "❌")
+        commandsBlocked = "bot_commands_blocked " + (
+            "✅" if user.bot_commands_blocked else "❌"
+        )
         out += f"- `{user.id}` **{user.name}** :: {admin} :: {commandsBlocked}\n"
     return out

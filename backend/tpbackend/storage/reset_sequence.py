@@ -1,6 +1,8 @@
 import logging
 from peewee import fn
+
 logger = logging.getLogger("reset_sequence")
+
 
 def reset_sequence(model):
     table = model._meta.table_name
@@ -12,6 +14,7 @@ def reset_sequence(model):
         f"SELECT setval('{sequence_name}', {new_max_id}, false);"
     )
     logger.info(f"Reset sequence for {table} to {new_max_id}.")
+
 
 def reset_sequences(list_of_models):
     for model in list_of_models:

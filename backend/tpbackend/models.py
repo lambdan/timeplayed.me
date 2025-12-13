@@ -8,11 +8,13 @@ class ActivityAssets(TypedDict):
     small_image_url: str | None
     large_image_url: str | None
 
+
 class PaginatedResponse(TypedDict):
-    data: Any = None # type: ignore
+    data: Any = None  # type: ignore
     _total: int
     _offset: int
     _limit: int
+
 
 class PlatformWithStats(TypedDict):
     platform: Platform
@@ -21,11 +23,13 @@ class PlatformWithStats(TypedDict):
     total_playtime: int
     percent: float
 
+
 class UserWithStats(TypedDict):
     user: User
     last_played: datetime.datetime | None
     total_sessions: int
     total_playtime: int
+
 
 class GameWithStats(TypedDict):
     game: Game

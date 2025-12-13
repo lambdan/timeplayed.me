@@ -23,4 +23,6 @@ elif LOGLEVEL_ENV == "DEBUG":
 else:
     LOGLEVEL = logging.INFO
 
-logging.basicConfig(level=LOGLEVEL, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=LOGLEVEL, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)

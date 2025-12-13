@@ -3,16 +3,18 @@ import logging
 
 logger = logging.getLogger("utils")
 
+
 def now() -> datetime.datetime:
     """
     Shortcut for current time in UTC
     """
     return datetime.datetime.now(datetime.UTC)
 
+
 def datetimeParse(s: str) -> datetime.datetime | None:
     """
-    Parses an datetime from a JS-like ISO8601 string (`YYYY-MM-DDTHH:MM:SSZ`) 
-    or 
+    Parses an datetime from a JS-like ISO8601 string (`YYYY-MM-DDTHH:MM:SSZ`)
+    or
     relative time (-1h30m5s)
     """
     if s.startswith("-"):
@@ -25,7 +27,9 @@ def datetimeParse(s: str) -> datetime.datetime | None:
             hours = int(parts[0])
             minutes = int(parts[1])
             seconds = int(parts[2])
-            return now() - datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            return now() - datetime.timedelta(
+                hours=hours, minutes=minutes, seconds=seconds
+            )
         hours = 0
         mins = 0
         secs = 0
@@ -49,6 +53,7 @@ def datetimeParse(s: str) -> datetime.datetime | None:
     except Exception as e:
         return None
 
+
 def secsToHHMMSS(secs: int) -> str:
     """
     Returns a string in HH:MM:SS format
@@ -63,6 +68,7 @@ def secsToHHMMSS(secs: int) -> str:
     except Exception as e:
         logger.error("Error converting seconds to HH:MM:SS format: %s", e)
         return "00:00:00"
+
 
 def secsFromString(s: str) -> int | None:
     """
@@ -98,8 +104,9 @@ def secsFromString(s: str) -> int | None:
         logger.error("Error parsing duration string '%s': %s", s, e)
         return None
 
+
 def parseRange(s: str) -> tuple[int, int] | None:
-    """ 
+    """
     Attempts to parse a range in the format a-b
     """
     try:
@@ -112,11 +119,21 @@ def parseRange(s: str) -> tuple[int, int] | None:
     except Exception as e:
         return None
 
+
 def normalizeQuotes(s: str) -> str:
     """
     Remove dumb Apple quotes and replaces them with standard quotes
     """
-    return s.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'").replace("’", "'").replace("`", "'").replace("´", "'")
+    return (
+        s.replace("“", '"')
+        .replace("”", '"')
+        .replace("‘", "'")
+        .replace("’", "'")
+        .replace("’", "'")
+        .replace("`", "'")
+        .replace("´", "'")
+    )
+
 
 def validateDate(date: datetime.datetime) -> str:
     """
@@ -125,11 +142,12 @@ def validateDate(date: datetime.datetime) -> str:
     now = datetime.datetime.now(datetime.UTC)
     if date > now:
         return "Date cannot be in the future"
-    
+
     if date < datetime.datetime(2025, 1, 20, tzinfo=datetime.UTC):
         return "Date cannot be before 2025-01-20 (timeplayed started then!)"
-    
+
     return "OK"
+
 
 def clamp(x: int, minimum: int, maximum: int) -> int:
     """
@@ -137,11 +155,13 @@ def clamp(x: int, minimum: int, maximum: int) -> int:
     """
     return max(int(minimum), min(int(x), int(maximum)))
 
+
 def max_int(x: int, minimum: int) -> int:
     """
     Like regular max but ensures both are ints
     """
     return max(int(minimum), int(x))
+
 
 def today() -> str:
     """
@@ -149,11 +169,13 @@ def today() -> str:
     """
     return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d")
 
+
 def thisHour() -> str:
     """
     Returns the current hour in the format YYYY-MM-DD_HH
     """
     return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d_%H")
+
 
 def validateTS(ts) -> int:
     """
