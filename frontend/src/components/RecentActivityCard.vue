@@ -10,7 +10,7 @@ const props = withDefaults(
   defineProps<{
     user?: User;
     game?: Game;
-    limit: number;
+    limit?: number;
     showExpand?: boolean;
   }>(),
   {
@@ -26,7 +26,7 @@ const offset = ref(0);
 const loading = ref(false);
 const hasMore = ref(true);
 
-async function fetchActivities(limit?: number, offsetVal = 0) {
+async function fetchActivities(limit: number, offsetVal = 0) {
   const data = await FU({
     limit,
     offset: offsetVal,

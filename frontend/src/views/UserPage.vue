@@ -77,7 +77,6 @@ onMounted(async () => {
   </div>
   <RecentActivityCard
     v-if="apiUser && showActivity"
-    :limit="5"
     :user="apiUser.user"
     :showExpand="true"
     class="mb-4"

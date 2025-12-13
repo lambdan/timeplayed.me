@@ -139,8 +139,8 @@ export interface GameStats {
 }
 
 export interface ActivitiesQuery {
-  offset?: number;
-  limit?: number;
+  offset: number;
+  limit: number;
   userId?: string;
   gameId?: string;
   platformId?: string;

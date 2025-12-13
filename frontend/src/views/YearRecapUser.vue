@@ -308,7 +308,7 @@ async function _fetchActivities() {
       userId: refUserId.value + "",
       after: startDate,
       before: endDate,
-      limit: 100,
+      limit: 500,
       offset: activities.value.length,
     });
     activities.value.push(...fetchedActivities.data);
