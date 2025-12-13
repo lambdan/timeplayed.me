@@ -23,7 +23,7 @@ ChartJS.register(
   PointElement,
   CategoryScale,
   LinearScale,
-  Filler
+  Filler,
 );
 
 interface ChartResponse {
@@ -100,7 +100,7 @@ const props = withDefaults(
     user: undefined,
     game: undefined,
     platform: undefined,
-  }
+  },
 );
 
 onMounted(async () => {
@@ -116,7 +116,7 @@ onMounted(async () => {
   }
 
   const res = await fetch(
-    "/api/stats/chart/playtime_by_day?" + params.join("&")
+    "/api/stats/chart/playtime_by_day?" + params.join("&"),
   );
 
   const data = (await res.json()) as ChartResponse;

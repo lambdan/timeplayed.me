@@ -7,7 +7,7 @@ const props = withDefaults(
   defineProps<{ date: Date | number; absolute?: boolean }>(),
   {
     absolute: false,
-  }
+  },
 );
 
 const showAbsolute = ref(props.absolute);
@@ -19,7 +19,8 @@ function toggle() {
 }
 
 function text(): string {
-  const reallyDate = typeof props.date === "number" ? new Date(props.date) : props.date;
+  const reallyDate =
+    typeof props.date === "number" ? new Date(props.date) : props.date;
   if (reallyDate.getTime() === 0) {
     return "?";
   }

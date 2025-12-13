@@ -34,7 +34,7 @@ function toggleColumn(column: "stats" | "metadata" | "platforms") {
 onMounted(async () => {
   platform.value = props.platform;
   const res = await fetch(
-    `/api/activities?platform=${props.platform.platform.id}&limit=1000`
+    `/api/activities?platform=${props.platform.platform.id}&limit=1000`,
   );
   const data = (await res.json()) as Activity[];
   console.log("DATA", data);

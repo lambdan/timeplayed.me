@@ -14,7 +14,7 @@ const props = withDefaults(
   {
     showLastPlayed: true,
     showEmpty: false,
-  }
+  },
 );
 
 const show = ref(props.showEmpty || props.platform.total_playtime > 0);

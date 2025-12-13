@@ -7,7 +7,7 @@ const props = withDefaults(
   defineProps<{
     user: User;
   }>(),
-  {}
+  {},
 );
 
 const expanded = ref(false);

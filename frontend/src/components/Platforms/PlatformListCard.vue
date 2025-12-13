@@ -18,7 +18,7 @@ const props = withDefaults(
     user: undefined,
     game: undefined,
     showSortButtons: true,
-  }
+  },
 );
 
 const localSort = ref(props.sort);

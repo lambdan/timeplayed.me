@@ -50,18 +50,30 @@ onMounted(async () => {
       </p>
       <hr />
       <!-- <p>Check the <a href="/news">news page</a> to see what's new!</p> -->
-      <div v-if="new Date().getMonth() === 11 || new Date().getMonth() === 0"> <!-- december or january -->
+      <div v-if="new Date().getMonth() === 11 || new Date().getMonth() === 0">
+        <!-- december or january -->
         <marquee behavior="scroll" direction="left" scrollamount="16">
           <!-- if december, show current year. if january, show previous year -->
-          <h2>{{ new Date().getMonth() === 11 ? new Date().getFullYear() : new Date().getFullYear() - 1 }} Year Recap now available! Look for a green button in your profile!</h2>
-          <small>Yes this is a &lt;marquee&gt; in the year {{ new Date().getFullYear() }}. But you paid attention to it didn't you.</small>
+          <h2>
+            {{
+              new Date().getMonth() === 11
+                ? new Date().getFullYear()
+                : new Date().getFullYear() - 1
+            }}
+            Year Recap now available! Look for a green button in your profile!
+          </h2>
+          <small
+            >Yes this is a &lt;marquee&gt; in the year
+            {{ new Date().getFullYear() }}. But you paid attention to it didn't
+            you.</small
+          >
         </marquee>
       </div>
     </div>
   </div>
 
   <div class="card mt-4 p-0 mb-4">
-    <PlaytimeChart  />
+    <PlaytimeChart />
   </div>
   <div class="row">
     <div class="col mb-4">

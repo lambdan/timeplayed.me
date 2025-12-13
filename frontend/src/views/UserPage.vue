@@ -69,11 +69,8 @@ onMounted(async () => {
       Platforms
     </button>
     <a :href="`/user/${route.params.id}/recap/${recapYear}`" v-if="showRecap">
-      <button class="btn btn-success">
-        Recap {{ recapYear }}
-      </button>
+      <button class="btn btn-success">Recap {{ recapYear }}</button>
     </a>
-
   </div>
   <RecentActivityCard
     v-if="apiUser && showActivity"

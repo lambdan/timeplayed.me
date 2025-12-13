@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { type Activity, type API_Activities, type User, type UserWithStats } from "../models/models";
+import {
+  type Activity,
+  type API_Activities,
+  type User,
+  type UserWithStats,
+} from "../models/models";
 import { useRoute } from "vue-router";
 import { fetchActivities, fetchUserInfo, iso8601Date } from "../utils";
-import { type RecapGameEntry, type RecapPlatformEntry } from "../models/stats.models";
+import {
+  type RecapGameEntry,
+  type RecapPlatformEntry,
+} from "../models/stats.models";
 import { buildGamesList, buildPlatformsList } from "../utils.stats";
 import DiscordAvatar from "../components/DiscordAvatar.vue";
 import GameCover from "../components/Games/GameCover.vue";
@@ -26,7 +34,9 @@ const GOLD = "#FFD700";
 const SILVER = "#C0C0C0";
 const BRONZE = "#CD7F32";
 
-function mostPlayedWeekdays(activities: Activity[]): { day: string; seconds: number; percentage: number }[] {
+function mostPlayedWeekdays(
+  activities: Activity[],
+): { day: string; seconds: number; percentage: number }[] {
   const daySeconds: { [key: string]: number } = {
     Sunday: 0,
     Monday: 0,
@@ -55,7 +65,9 @@ function mostPlayedWeekdays(activities: Activity[]): { day: string; seconds: num
   return result;
 }
 
-function mostPlayedMonths(activities: Activity[]): { month: string; seconds: number; percentage: number }[] {
+function mostPlayedMonths(
+  activities: Activity[],
+): { month: string; seconds: number; percentage: number }[] {
   const monthSeconds: { [key: string]: number } = {
     January: 0,
     February: 0,
@@ -82,7 +94,8 @@ function mostPlayedMonths(activities: Activity[]): { month: string; seconds: num
   const result = Object.keys(monthSeconds).map((month) => ({
     month,
     seconds: monthSeconds[month],
-    percentage: totalSeconds > 0 ? (monthSeconds[month] / totalSeconds) * 100 : 0,
+    percentage:
+      totalSeconds > 0 ? (monthSeconds[month] / totalSeconds) * 100 : 0,
   }));
 
   result.sort((a, b) => b.seconds - a.seconds);
@@ -98,13 +111,12 @@ function longestStreak(activities: Activity[]): number {
   // Get unique days the user played something
   const uniqueDays = Array.from(
     new Set(
-      activities
-        .map(a => {
-          const d = new Date(a.timestamp);
-          // Use UTC to avoid timezone issues
-          return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
-        })
-    )
+      activities.map((a) => {
+        const d = new Date(a.timestamp);
+        // Use UTC to avoid timezone issues
+        return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+      }),
+    ),
   ).sort();
 
   if (uniqueDays.length === 0) {
@@ -141,7 +153,12 @@ function longestBreak(activities: Activity[]): number {
   }
 
   // Sort activities by timestamp
-  const sortedActivities = activities.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sortedActivities = activities
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
 
   let longestBreak = 0;
 
@@ -162,7 +179,9 @@ function longestBreak(activities: Activity[]): number {
 }
 
 /** Most popular game each month */
-function mostPopularGameByMonth(activities: Activity[]): { [key: string]: string } {
+function mostPopularGameByMonth(activities: Activity[]): {
+  [key: string]: string;
+} {
   const monthGameMap: { [key: string]: { [gameId: number]: number } } = {};
 
   for (const activity of activities) {
@@ -188,7 +207,7 @@ function mostPopularGameByMonth(activities: Activity[]): { [key: string]: string
       }
     }
     if (topGameId !== null) {
-      const topGame = activities.find(a => a.game.id === topGameId)?.game;
+      const topGame = activities.find((a) => a.game.id === topGameId)?.game;
       if (topGame) {
         result[month] = topGame.name;
       }
@@ -196,7 +215,20 @@ function mostPopularGameByMonth(activities: Activity[]): { [key: string]: string
   }
   // reverse order to have Jan-Dec
   const orderedMonths = Object.keys(result).sort((a, b) => {
-    const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthOrder = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     return monthOrder.indexOf(a) - monthOrder.indexOf(b);
   });
   const orderedResult: { [key: string]: string } = {};
@@ -207,7 +239,9 @@ function mostPopularGameByMonth(activities: Activity[]): { [key: string]: string
 }
 
 /** Duration played each month */
-function durationPlayedByMonth(activities: Activity[]): { [key: string]: number } {
+function durationPlayedByMonth(activities: Activity[]): {
+  [key: string]: number;
+} {
   const monthDurationMap: { [key: string]: number } = {};
 
   for (const activity of activities) {
@@ -221,7 +255,20 @@ function durationPlayedByMonth(activities: Activity[]): { [key: string]: number 
 
   // reverse order to have Jan-Dec
   const orderedMonths = Object.keys(monthDurationMap).sort((a, b) => {
-    const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthOrder = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     return monthOrder.indexOf(a) - monthOrder.indexOf(b);
   });
   const orderedResult: { [key: string]: number } = {};
@@ -249,8 +296,11 @@ function longestSession(activities: Activity[]): Activity {
 }
 
 /** Most played platform each month */
-function mostPlayedPlatformByMonth(activities: Activity[]): { [key: string]: string } {
-  const monthPlatformMap: { [key: string]: { [platform: string]: number } } = {};
+function mostPlayedPlatformByMonth(activities: Activity[]): {
+  [key: string]: string;
+} {
+  const monthPlatformMap: { [key: string]: { [platform: string]: number } } =
+    {};
 
   for (const activity of activities) {
     const date = new Date(activity.timestamp);
@@ -282,8 +332,18 @@ function mostPlayedPlatformByMonth(activities: Activity[]): { [key: string]: str
 
   // Order months Jan-Dec
   const monthOrder = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const orderedResult: { [key: string]: string } = {};
   for (const month of monthOrder) {
@@ -303,7 +363,7 @@ async function _fetchActivities() {
   const endDate = new Date(Date.UTC(refYear.value + 1, 0, 1, 0, 0, 0));
   loadingProgress.value = 0;
 
-  while(true) {
+  while (true) {
     const fetchedActivities = await fetchActivities({
       userId: refUserId.value + "",
       after: startDate,
@@ -312,7 +372,10 @@ async function _fetchActivities() {
       offset: activities.value.length,
     });
     activities.value.push(...fetchedActivities.data);
-    loadingProgress.value = Math.min(100, (activities.value.length / fetchedActivities._total) * 100);
+    loadingProgress.value = Math.min(
+      100,
+      (activities.value.length / fetchedActivities._total) * 100,
+    );
     if (activities.value.length >= fetchedActivities._total) {
       break;
     }
@@ -343,237 +406,344 @@ onMounted(async () => {
   </div>
   <div v-else>
     <div class="row mb-3 justify-content-center text-center">
-      <DiscordAvatar v-if="userInfo" :user="userInfo" :max-width="300" class="mb-3 mx-auto" />
+      <DiscordAvatar
+        v-if="userInfo"
+        :user="userInfo"
+        :max-width="300"
+        class="mb-3 mx-auto"
+      />
       <h1 class="w-100">{{ userInfo?.name }}</h1>
       <h1 class="w-100">Recap for {{ refYear }}</h1>
       <h4>
-        Played a total of <b class="text-warning">{{ (totalSeconds / 3600).toFixed(0) }} hours</b> over <b class="text-warning">{{ gamesCount }} games</b> in <b class="text-warning">{{ refYear }}</b>
+        Played a total of
+        <b class="text-warning">{{ (totalSeconds / 3600).toFixed(0) }} hours</b>
+        over <b class="text-warning">{{ gamesCount }} games</b> in
+        <b class="text-warning">{{ refYear }}</b>
       </h4>
     </div>
-    <hr>
+    <hr />
 
     <h1 class="text-center mb-4">Most played games</h1>
 
     <!-- top 3 row -->
     <div class="row mt-4 mb-4">
       <div
-      class="col justify-content-center text-center"
-      v-for="(game, idx) in gamesList.slice(0,3)"
-      :key="game.id"
+        class="col justify-content-center text-center"
+        v-for="(game, idx) in gamesList.slice(0, 3)"
+        :key="game.id"
       >
-      <div
-        class="card h-100 text-center p-2"
-        :style="{
-        minWidth: 0,
-        border: idx === 0 ? '2px solid ' + GOLD :
-             idx === 1 ? '2px solid ' + SILVER :
-             idx === 2 ? '2px solid ' + BRONZE : '',
-        boxShadow: idx === 0 ? '0 0 10px ' + GOLD :
-              idx === 1 ? '0 0 10px ' + SILVER :
-              idx === 2 ? '0 0 10px ' + BRONZE : ''
-        }"
-      >
-        <GameCover :gameId="game.id" :thumb="true" :maxWidth="200" class="mb-2" />
-        <h3>
-        <a :href="`/game/${game.id}`" style="color: inherit; text-decoration: none;">
-          <i :style="{
-          color: idx === 0 ? GOLD :
-               idx === 1 ? SILVER :
-               idx === 2 ? BRONZE : 'inherit'
-          }">
-          {{ game.name }}
-          </i>
-        </a>
-        </h3>
-        <h4>{{ (game.seconds / 3600).toFixed(0) }} hours</h4>
-      </div>
+        <div
+          class="card h-100 text-center p-2"
+          :style="{
+            minWidth: 0,
+            border:
+              idx === 0
+                ? '2px solid ' + GOLD
+                : idx === 1
+                  ? '2px solid ' + SILVER
+                  : idx === 2
+                    ? '2px solid ' + BRONZE
+                    : '',
+            boxShadow:
+              idx === 0
+                ? '0 0 10px ' + GOLD
+                : idx === 1
+                  ? '0 0 10px ' + SILVER
+                  : idx === 2
+                    ? '0 0 10px ' + BRONZE
+                    : '',
+          }"
+        >
+          <GameCover
+            :gameId="game.id"
+            :thumb="true"
+            :maxWidth="200"
+            class="mb-2"
+          />
+          <h3>
+            <a
+              :href="`/game/${game.id}`"
+              style="color: inherit; text-decoration: none"
+            >
+              <i
+                :style="{
+                  color:
+                    idx === 0
+                      ? GOLD
+                      : idx === 1
+                        ? SILVER
+                        : idx === 2
+                          ? BRONZE
+                          : 'inherit',
+                }"
+              >
+                {{ game.name }}
+              </i>
+            </a>
+          </h3>
+          <h4>{{ (game.seconds / 3600).toFixed(0) }} hours</h4>
+        </div>
       </div>
     </div>
 
     <!-- 4-10 row -->
     <div class="row">
       <div
-      class="col justify-content-center text-center"
-      v-for="(game, idx) in gamesList.slice(3,10)"
-      :key="game.id"
+        class="col justify-content-center text-center"
+        v-for="(game, idx) in gamesList.slice(3, 10)"
+        :key="game.id"
       >
-      <div class="card h-100 text-center p-2" style="min-width: 0;">
-        <GameCover :gameId="game.id" :thumb="true" :maxWidth="100" class="mb-2" />
-        <h5>
-        <a :href="`/game/${game.id}`" style="color: inherit; text-decoration: none;">
-          <i>{{ game.name }}</i>
-        </a>
-        </h5>
-        <h6>{{ (game.seconds / 3600).toFixed(0) }} hours</h6>
-      </div>
+        <div class="card h-100 text-center p-2" style="min-width: 0">
+          <GameCover
+            :gameId="game.id"
+            :thumb="true"
+            :maxWidth="100"
+            class="mb-2"
+          />
+          <h5>
+            <a
+              :href="`/game/${game.id}`"
+              style="color: inherit; text-decoration: none"
+            >
+              <i>{{ game.name }}</i>
+            </a>
+          </h5>
+          <h6>{{ (game.seconds / 3600).toFixed(0) }} hours</h6>
+        </div>
       </div>
     </div>
 
-    <hr>
-    
+    <hr />
+
     <div class="row mt-4 mb-4">
       <h2 class="w-100 text-center">Played platforms</h2>
-      <p class="text-muted text-center w-100 mb-4">(And their most played game)</p>
+      <p class="text-muted text-center w-100 mb-4">
+        (And their most played game)
+      </p>
       <div class="row">
-      <div
-        class="col-6 col-sm-4 col-md-3 col-lg-2 mb-2"
-        v-for="(platform, idx) in platformsList"
-        :key="platform.name"
-      >
         <div
-        class="card h-100 text-center p-1"
-        :style="{
-          minWidth: 0,
-          fontSize: '0.9rem',
-          border: idx === 0 ? '2px solid ' + GOLD :
-             idx === 1 ? '2px solid ' + SILVER :
-             idx === 2 ? '2px solid ' + BRONZE : '',
-          boxShadow: idx === 0 ? '0 0 10px ' + GOLD :
-              idx === 1 ? '0 0 10px ' + SILVER :
-              idx === 2 ? '0 0 10px ' + BRONZE : ''
-        }"
+          class="col-6 col-sm-4 col-md-3 col-lg-2 mb-2"
+          v-for="(platform, idx) in platformsList"
+          :key="platform.name"
         >
-        <div class="card-body p-2">
-          <h6
-          class="card-title mb-1"
-          :style="{
-            fontSize: '1rem',
-            color: idx === 0 ? GOLD :
-               idx === 1 ? SILVER :
-               idx === 2 ? BRONZE : 'inherit'
-          }"
+          <div
+            class="card h-100 text-center p-1"
+            :style="{
+              minWidth: 0,
+              fontSize: '0.9rem',
+              border:
+                idx === 0
+                  ? '2px solid ' + GOLD
+                  : idx === 1
+                    ? '2px solid ' + SILVER
+                    : idx === 2
+                      ? '2px solid ' + BRONZE
+                      : '',
+              boxShadow:
+                idx === 0
+                  ? '0 0 10px ' + GOLD
+                  : idx === 1
+                    ? '0 0 10px ' + SILVER
+                    : idx === 2
+                      ? '0 0 10px ' + BRONZE
+                      : '',
+            }"
           >
-          {{ platform.name }}
-          </h6>
-          <div class="card-text mb-1" style="font-size: 0.95em;">
-          <b>{{ (platform.seconds / 3600).toFixed(0) }} hours</b>
-          <br>
-          <span class="text-muted">({{ platform.percentage.toFixed(0) }}%)</span>
+            <div class="card-body p-2">
+              <h6
+                class="card-title mb-1"
+                :style="{
+                  fontSize: '1rem',
+                  color:
+                    idx === 0
+                      ? GOLD
+                      : idx === 1
+                        ? SILVER
+                        : idx === 2
+                          ? BRONZE
+                          : 'inherit',
+                }"
+              >
+                {{ platform.name }}
+              </h6>
+              <div class="card-text mb-1" style="font-size: 0.95em">
+                <b>{{ (platform.seconds / 3600).toFixed(0) }} hours</b>
+                <br />
+                <span class="text-muted"
+                  >({{ platform.percentage.toFixed(0) }}%)</span
+                >
+              </div>
+              <hr class="my-1" />
+              <small class="text-muted">{{ platform.most_played_game }}</small>
+            </div>
           </div>
-          <hr class="my-1">
-          <small class="text-muted">{{ platform.most_played_game }}</small>
         </div>
-        </div>
-      </div>
       </div>
     </div>
 
-    <hr>
+    <hr />
 
     <div class="row mt-4 mb-4">
       <h2 class="mb-4 w-100 text-center">Miscellaneous Stats</h2>
       <!-- 3 columns: Streaks & Session -->
       <div class="col-12 col-md-4 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-        <h6 class="card-title mb-2 text-primary">Longest streak</h6>
-        <div class="display-6 fw-bold mb-1">{{ longestStreak(activities) }} days</div>
-        <small class="text-muted">Played something this many days in a row</small>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <h6 class="card-title mb-2 text-primary">Longest streak</h6>
+            <div class="display-6 fw-bold mb-1">
+              {{ longestStreak(activities) }} days
+            </div>
+            <small class="text-muted"
+              >Played something this many days in a row</small
+            >
+          </div>
         </div>
-      </div>
       </div>
       <div class="col-12 col-md-4 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-        <h6 class="card-title mb-2 text-danger">Longest break</h6>
-        <div class="display-6 fw-bold mb-1">{{ longestBreak(activities) }} days</div>
-        <small class="text-muted">No games played for this many days in a row</small>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <h6 class="card-title mb-2 text-danger">Longest break</h6>
+            <div class="display-6 fw-bold mb-1">
+              {{ longestBreak(activities) }} days
+            </div>
+            <small class="text-muted"
+              >No games played for this many days in a row</small
+            >
+          </div>
         </div>
-      </div>
       </div>
       <div class="col-12 col-md-4 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-        <h6 class="card-title mb-2 text-success">Longest session</h6>
-        <div class="display-6 fw-bold mb-1">{{ (refLongestSession?.seconds! / 3600).toFixed(0) }} hours</div>
-        <small class="text-muted">
-          <i>{{ refLongestSession?.game.name }}</i> on {{ iso8601Date(refLongestSession?.timestamp!) }}
-        </small>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body text-center">
+            <h6 class="card-title mb-2 text-success">Longest session</h6>
+            <div class="display-6 fw-bold mb-1">
+              {{ (refLongestSession?.seconds! / 3600).toFixed(0) }} hours
+            </div>
+            <small class="text-muted">
+              <i>{{ refLongestSession?.game.name }}</i> on
+              {{ iso8601Date(refLongestSession?.timestamp!) }}
+            </small>
+          </div>
         </div>
-      </div>
       </div>
 
       <!-- 2 columns: Most played game/platform each month -->
       <div class="col-12 col-md-6 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-        <h6 class="card-title mb-3 text-info text-center">Most played game each month</h6>
-        <ul class="list-group list-group-flush">
-          <li v-for="(game, month) in mostPopularGameByMonth(activities)" :key="month" class="list-group-item py-1 px-2">
-          <span class="fw-bold">{{ month }}</span>
-           
-          <span>{{ game }}</span>
-          </li>
-        </ul>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title mb-3 text-info text-center">
+              Most played game each month
+            </h6>
+            <ul class="list-group list-group-flush">
+              <li
+                v-for="(game, month) in mostPopularGameByMonth(activities)"
+                :key="month"
+                class="list-group-item py-1 px-2"
+              >
+                <span class="fw-bold">{{ month }}</span>
+                 
+                <span>{{ game }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
       </div>
       <div class="col-12 col-md-6 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-        <h6 class="card-title mb-3 text-info text-center">Most played platform each month</h6>
-        <ul class="list-group list-group-flush">
-          <li v-for="(platform, month) in mostPlayedPlatformByMonth(activities)" :key="month" class="list-group-item py-1 px-2">
-          <span class="fw-bold">{{ month }}</span>
-           
-          <span>{{ platform }}</span>
-          </li>
-        </ul>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title mb-3 text-info text-center">
+              Most played platform each month
+            </h6>
+            <ul class="list-group list-group-flush">
+              <li
+                v-for="(platform, month) in mostPlayedPlatformByMonth(
+                  activities,
+                )"
+                :key="month"
+                class="list-group-item py-1 px-2"
+              >
+                <span class="fw-bold">{{ month }}</span>
+                 
+                <span>{{ platform }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
       </div>
 
       <!-- 2 columns: Most played months / weekdays -->
       <div class="col-12 col-md-6 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-        <h6 class="card-title mb-3 text-center">Most played months</h6>
-        <ul class="list-group list-group-flush">
-          <li
-          v-for="(item, idx) in mostPlayedMonths(activities)"
-          :key="item.month"
-          class="list-group-item py-1 px-2"
-          >
-          <span class="fw-bold" :style="{
-            color: idx === 0 ? GOLD :
-            idx === 1 ? SILVER :
-            idx === 2 ? BRONZE : 'inherit'
-          }">
-            {{ item.month }}
-          </span>
-           
-          <span>{{ (item.seconds / 3600).toFixed(0) }} hours ({{ item.percentage.toFixed(0) }}%)</span>
-          </li>
-        </ul>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title mb-3 text-center">Most played months</h6>
+            <ul class="list-group list-group-flush">
+              <li
+                v-for="(item, idx) in mostPlayedMonths(activities)"
+                :key="item.month"
+                class="list-group-item py-1 px-2"
+              >
+                <span
+                  class="fw-bold"
+                  :style="{
+                    color:
+                      idx === 0
+                        ? GOLD
+                        : idx === 1
+                          ? SILVER
+                          : idx === 2
+                            ? BRONZE
+                            : 'inherit',
+                  }"
+                >
+                  {{ item.month }}
+                </span>
+                 
+                <span
+                  >{{ (item.seconds / 3600).toFixed(0) }} hours ({{
+                    item.percentage.toFixed(0)
+                  }}%)</span
+                >
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
       </div>
       <div class="col-12 col-md-6 mb-3">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-        <h6 class="card-title mb-3 text-center">Most played weekdays</h6>
-        <ul class="list-group list-group-flush">
-          <li
-          v-for="(day, idx) in mostPlayedWeekdays(activities)"
-          :key="day.day"
-          class="list-group-item py-1 px-2"
-          >
-          <span class="fw-bold" :style="{
-            color: idx === 0 ? GOLD :
-            idx === 1 ? SILVER :
-            idx === 2 ? BRONZE : 'inherit'
-          }">
-            {{ day.day }}
-          </span>
-           
-          <span>{{ (day.seconds / 3600).toFixed(0) }} hours ({{ day.percentage.toFixed(0) }}%)</span>
-          </li>
-        </ul>
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title mb-3 text-center">Most played weekdays</h6>
+            <ul class="list-group list-group-flush">
+              <li
+                v-for="(day, idx) in mostPlayedWeekdays(activities)"
+                :key="day.day"
+                class="list-group-item py-1 px-2"
+              >
+                <span
+                  class="fw-bold"
+                  :style="{
+                    color:
+                      idx === 0
+                        ? GOLD
+                        : idx === 1
+                          ? SILVER
+                          : idx === 2
+                            ? BRONZE
+                            : 'inherit',
+                  }"
+                >
+                  {{ day.day }}
+                </span>
+                 
+                <span
+                  >{{ (day.seconds / 3600).toFixed(0) }} hours ({{
+                    day.percentage.toFixed(0)
+                  }}%)</span
+                >
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-      </div>
     </div>
-
   </div>
-
 </template>

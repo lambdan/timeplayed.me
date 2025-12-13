@@ -1,4 +1,11 @@
-import type { ActivitiesQuery, API_Activities, Game, SGDBGame, SGDBGrid, User } from "./models/models";
+import type {
+  ActivitiesQuery,
+  API_Activities,
+  Game,
+  SGDBGame,
+  SGDBGrid,
+  User,
+} from "./models/models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -63,7 +70,7 @@ export function sleep(ms: number): Promise<void> {
  */
 export async function cacheFetch(
   url: string,
-  maxAge: number
+  maxAge: number,
 ): Promise<Response> {
   interface CacheEntry {
     timestamp: number;
@@ -99,7 +106,9 @@ export async function cacheFetch(
 }
 
 // this should probably a service...
-export async function fetchActivities(params: ActivitiesQuery): Promise<API_Activities> {
+export async function fetchActivities(
+  params: ActivitiesQuery,
+): Promise<API_Activities> {
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
@@ -116,32 +125,34 @@ export async function fetchActivities(params: ActivitiesQuery): Promise<API_Acti
     before: params.before,
     after: params.after,
     order: params.order,
-  }
+  };
 
   let url = "/api/activities?";
   const queryParts: string[] = [];
   for (const key in apiParams) {
     const value = (apiParams as any)[key];
     if (value !== undefined) {
-      queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+      queryParts.push(
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+      );
     }
   }
   url += queryParts.join("&");
   console.log("Fetching activities", apiParams, url);
-  const res = await cacheFetch(url, 60*1000); // 1 minute cache
+  const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
-  return await res.json() as API_Activities;
+  return (await res.json()) as API_Activities;
 }
 
-export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<string> {
+export async function getGameCoverUrl(
+  gameId: number,
+  thumbnail = false,
+): Promise<string> {
   const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
-  const gameInfo = await cacheFetch(
-    `/api/games/${gameId}`,
-    CACHE_LIFETIME
-  );
-  const gameData = (await gameInfo.json() as any).game as Game;
+  const gameInfo = await cacheFetch(`/api/games/${gameId}`, CACHE_LIFETIME);
+  const gameData = ((await gameInfo.json()) as any).game as Game;
 
   const FALLBACK = "https://placehold.co/267x400?text=No+Image";
   if (gameData.image_url) {
@@ -155,7 +166,7 @@ export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<
   if (gameData.sgdb_id) {
     const res = await cacheFetch(
       `/api/sgdb/grids/${gameData.sgdb_id}/best`,
-      CACHE_LIFETIME
+      CACHE_LIFETIME,
     );
     if (res.ok) {
       const data: SGDBGrid = await res.json();
@@ -167,7 +178,7 @@ export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<
   // search
   const searchRes = await cacheFetch(
     `/api/sgdb/search?query=${encodeURIComponent(gameData.name)}`,
-    CACHE_LIFETIME
+    CACHE_LIFETIME,
   );
 
   if (searchRes.ok) {
@@ -176,7 +187,7 @@ export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<
       const gameId = searchData[0].id;
       const res = await cacheFetch(
         `/api/sgdb/grids/${gameId}/best`,
-        CACHE_LIFETIME
+        CACHE_LIFETIME,
       );
       if (res.ok) {
         const data: SGDBGrid = await res.json();
@@ -190,10 +201,7 @@ export async function getGameCoverUrl(gameId: number, thumbnail=false): Promise<
 
 export async function fetchUserInfo(userId: string): Promise<User> {
   const CACHE_LIFETIME = 1000 * 60 * 10; // 10 minutes
-  const res = await cacheFetch(
-    `/api/users/${userId}`,
-    CACHE_LIFETIME
-  );
+  const res = await cacheFetch(`/api/users/${userId}`, CACHE_LIFETIME);
   if (!res.ok) {
     throw new Error(`Failed to fetch user info for user ${userId}`);
   }

@@ -18,7 +18,7 @@ const props = withDefaults(
     limit: 25,
     user: undefined,
     game: undefined,
-  }
+  },
 );
 
 const activities = ref<Activity[]>([]);
@@ -31,7 +31,7 @@ async function fetchActivities(limit: number, offsetVal = 0) {
     limit,
     offset: offsetVal,
     gameId: props.game ? props.game.id.toString() : undefined,
-    userId: props.user ? props.user.id.toString() : undefined
+    userId: props.user ? props.user.id.toString() : undefined,
   });
   const newActivities = data.data.map((activity: any) => ({
     ...activity,

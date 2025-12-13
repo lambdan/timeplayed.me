@@ -148,4 +148,3 @@ export interface ActivitiesQuery {
   after?: number | Date;
   order?: "asc" | "desc";
 }
-

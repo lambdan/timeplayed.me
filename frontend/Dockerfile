@@ -10,6 +10,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 # copy in rest of src
 COPY . .
+# check formatting
+RUN npx prettier --check src
 # build
 RUN npm run build
 

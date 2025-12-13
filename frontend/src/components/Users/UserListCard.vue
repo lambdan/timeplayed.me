@@ -14,7 +14,7 @@ const props = withDefaults(
     showExpand: false,
     order: "desc",
     sort: "recency",
-  }
+  },
 );
 
 const localSort = ref(props.sort);

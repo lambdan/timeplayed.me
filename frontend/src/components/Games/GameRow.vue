@@ -7,7 +7,6 @@ import DurationBadge from "../Badges/DurationBadge.vue";
 
 const props = withDefaults(defineProps<{ game: GameWithStats }>(), {});
 
-
 onMounted(async () => {});
 </script>
 

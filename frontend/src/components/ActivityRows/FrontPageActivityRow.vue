@@ -11,7 +11,7 @@ const props = withDefaults(
   defineProps<{ activity: Activity; showExpand?: boolean }>(),
   {
     showExpand: false,
-  }
+  },
 );
 const expanded = ref(false);
 

@@ -18,7 +18,7 @@ const props = withDefaults(
     sort: "recency",
     user: undefined,
     limit: 10,
-  }
+  },
 );
 
 const localSort = ref(props.sort);

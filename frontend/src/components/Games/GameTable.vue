@@ -18,7 +18,7 @@ const props = withDefaults(
     sort: "recency",
     user: undefined,
     limit: 10,
-  }
+  },
 );
 
 const limit = ref(props.limit);
@@ -45,7 +45,10 @@ async function fetchGames() {
   let data = (await res.json()) as API_Games;
   fetchedGames.push(...data.data);
   while (fetchedGames.length < data._total) {
-    res = await cacheFetch(`${baseUrl.value}?offset=${fetchedGames.length}`, CACHE_LIFETIME);
+    res = await cacheFetch(
+      `${baseUrl.value}?offset=${fetchedGames.length}`,
+      CACHE_LIFETIME,
+    );
     console.log("Fetching games from", res.url);
     data = (await res.json()) as API_Games;
     fetchedGames.push(...data.data);
@@ -103,11 +106,7 @@ onMounted(() => {
 <template>
   <ColorSpinners v-if="loading" />
   <template v-else-if="games.length > 0">
-    <GameRow
-      v-for="game in displayedGames"
-      :key="game.game.id"
-      :game="game"
-    />
+    <GameRow v-for="game in displayedGames" :key="game.game.id" :game="game" />
 
     <div class="text-center">
       <button

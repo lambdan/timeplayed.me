@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Game } from "../../models/models";
-import {  getGameCoverUrl } from "../../utils";
+import { getGameCoverUrl } from "../../utils";
 
 const props = withDefaults(
   defineProps<{
@@ -15,15 +15,14 @@ const props = withDefaults(
     thumb: false,
     clickable: true,
     maxWidth: 0,
-    maxHeight: 400
-  }
+    maxHeight: 400,
+  },
 );
 
 const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
 const clickable = ref(props.clickable);
 const imageUrl = ref<string>("");
 const loading = ref(true);
-
 
 onMounted(async () => {
   imageUrl.value = await getGameCoverUrl(props.gameId, props.thumb);
@@ -42,7 +41,7 @@ onMounted(async () => {
           class="img-fluid"
           :style="{
             maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
-            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined
+            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
           }"
         />
       </a>
@@ -56,7 +55,7 @@ onMounted(async () => {
           class="img-fluid"
           :style="{
             maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
-            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined
+            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
           }"
         />
       </div>

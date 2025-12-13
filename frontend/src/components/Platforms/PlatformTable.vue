@@ -25,7 +25,7 @@ const props = withDefaults(
     user: undefined,
     game: undefined,
     showLastPlayed: true,
-  }
+  },
 );
 
 const platforms = ref<PlatformWithStats[]>([]);

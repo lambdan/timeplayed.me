@@ -16,7 +16,7 @@ const props = withDefaults(
   {
     showExpand: false,
     showLastPlayed: true,
-  }
+  },
 );
 
 const expanded = ref(false);

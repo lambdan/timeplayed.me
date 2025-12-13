@@ -8,7 +8,7 @@ const props = withDefaults(
   {
     maxWidth: 75,
     classes: () => ["img-thumbnail", "img-fluid", "rounded-circle"],
-  }
+  },
 );
 
 const FALLBACK = `https://cdn.discordapp.com/embed/avatars/${
@@ -19,7 +19,7 @@ const avatarUrl = ref<string>(FALLBACK);
 onMounted(async () => {
   const res = await cacheFetch(
     `/api/discord/${props.user.id}/avatar`,
-    1000 * 60 * 5
+    1000 * 60 * 5,
   );
   if (res.ok) {
     const response: { url: string } = await res.json();
