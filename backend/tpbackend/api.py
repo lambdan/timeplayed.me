@@ -3,6 +3,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from playhouse.shortcuts import model_to_dict
 from peewee import fn
+from tpbackend.utils import clamp, max_int as max, today, thisHour, validateTS
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.models import GameWithStats, PaginatedResponse, PlatformWithStats, UserWithStats
@@ -16,12 +17,6 @@ app = FastAPI()
 CACHE = {}
 CACHE_MAX = int(os.environ.get("CACHE_MAX", 1000))
 CACHE_FLUSHES = 0
-
-def today() -> str:
-    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d")
-
-def thisHour() -> str:
-    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d_%H")
 
 def cacheGet(key: str):
     """
@@ -44,21 +39,7 @@ def cacheSetReturn(key: str, value):
     CACHE[key] = value
     return value
 
-def validateLimitOffset(limit: int|str, offset: int|str, maxLimit=50) -> tuple[int, int]:
-    """
-    Returns `[ limit , offset ]`
-    """
-    try:
-        offset = max(0, int(offset))
-    except:
-        offset = 0
 
-    try:
-        limit = max(1, min(maxLimit, int(limit)))
-    except:
-        limit = maxLimit
-    
-    return limit, offset
 
 def fixDatetime(data):
     """
@@ -92,6 +73,11 @@ def clean_activity(activity: Activity | dict) -> dict:
         activity["user"].pop("default_platform", None)
     return activity
 
+####################
+# Users
+####################
+
+
 @app.get("/api/users/{userId}")
 def get_user(userId: int):
     user = get_public_user(userId)
@@ -113,7 +99,8 @@ def get_user(userId: int):
 
 @app.get("/api/users")
 def get_users(offset=0, limit=25):
-    limit, offset = validateLimitOffset(limit, offset)
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
     response: PaginatedResponse = {
         "data": [],
         "_total": get_user_count(),
@@ -130,14 +117,15 @@ def get_users(offset=0, limit=25):
 
 @app.get("/api/users/{userId}/games")
 def get_user_games(userId: int, offset = 0, limit = 25):
-    limit, offset = validateLimitOffset(limit, offset)
+    offset = max(0, offset)
+    limit = clamp(limit, 1, 100)
     user = get_public_user(userId)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     # Could not get .offset and .limit to work with distinct so have to do a extra step
     games = Activity.select(Activity.game).where(Activity.user == userId).distinct()
-    games = games[int(offset):int(offset) + int(limit)]  # type: ignore
+    games = games[offset:offset + limit]  # type: ignore
     response = []
     for game in games:
         game_data = get_game(gameId=game.game.id, userId=userId)
@@ -208,14 +196,7 @@ def get_user_stats(user_id: int):
 # Activities
 #################
 
-def validateTS(ts) -> int | None:
-    if isinstance(ts, int) and ts > 0:
-        return ts
-    try:
-        return validateTS(int(ts))
-    except:
-        pass
-    return None
+
 
 @app.get("/api/activities")
 def list_activities(
@@ -223,7 +204,8 @@ def list_activities(
     user: int | None = None, game: int | None = None,
     platform: int | None = None, before = None, after = None
 ):
-    limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
+    limit = clamp(limit, 1, 500)
+    offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
     # use activity count in cache_key to invalidate cache when new activities are added/removed
     activity_count = get_activity_count(userId=user, gameId=game, platformId=platform)
@@ -235,9 +217,9 @@ def list_activities(
     
     before_dt, after_dt = None, None
     if before:
-        before_dt = datetime.datetime.fromtimestamp(int(before) / 1000)
+        before_dt = datetime.datetime.fromtimestamp(before / 1000)
     if after:
-        after_dt = datetime.datetime.fromtimestamp(int(after) / 1000)
+        after_dt = datetime.datetime.fromtimestamp(after / 1000)
 
     # Build filters once
     filters = []
@@ -310,11 +292,12 @@ def get_activity(activity_id: int):
 
 @app.get("/api/games")
 def get_games(limit = 25, offset = 0):
-    limit, offset = validateLimitOffset(limit, offset)
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
 
     # Could not get .offset and .limit to work with distinct so have to do a extra step
     games = Activity.select(Activity.game).distinct()
-    games = games[int(offset):int(offset) + int(limit)]  # type: ignore
+    games = games[offset:offset + limit]  # type: ignore
     response = []
     for game in games:
         game_data = get_game(gameId=game.game.id)
@@ -426,7 +409,8 @@ def get_platform(platform_id: int):
 
 @app.get("/api/platforms")
 def list_platforms(offset=0, limit=25):
-    limit, offset = validateLimitOffset(limit, offset)
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
     platforms = Platform.select().limit(limit).offset(offset)
 
     response: PaginatedResponse = {

@@ -131,3 +131,40 @@ def validateDate(date: datetime.datetime) -> str:
     
     return "OK"
 
+def clamp(x: int, minimum: int, maximum: int) -> int:
+    """
+    Clamps x between minimum and maximum
+    """
+    return max(int(minimum), min(int(x), int(maximum)))
+
+def max_int(x: int, minimum: int) -> int:
+    """
+    Like regular max but ensures both are ints
+    """
+    return max(int(minimum), int(x))
+
+def today() -> str:
+    """
+    Returns the current date in the format YYYY-MM-DD
+    """
+    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d")
+
+def thisHour() -> str:
+    """
+    Returns the current hour in the format YYYY-MM-DD_HH
+    """
+    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d_%H")
+
+def validateTS(ts) -> int:
+    """
+    Validates a timestamp (int > 0).
+    Also tries to convert to int if possible.
+    Returns 0 on failure
+    """
+    if isinstance(ts, int) and ts > 0:
+        return ts
+    try:
+        return validateTS(int(ts))
+    except:
+        pass
+    return 0
