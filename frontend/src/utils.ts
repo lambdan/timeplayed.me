@@ -26,7 +26,7 @@ export function formatDuration(secs?: number): string {
     .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
-export function timeAgo(other?: Date | number): string {
+export function timeAgo(other?: Date | number, short = false): string {
   if (!other) return "";
 
   if (typeof other === "number") {
@@ -36,7 +36,7 @@ export function timeAgo(other?: Date | number): string {
   const now = new Date();
   const seconds = Math.floor((now.getTime() - other.getTime()) / 1000);
 
-  const intervals = [
+  let intervals = [
     { label: "year", seconds: 31536000 },
     { label: "month", seconds: 2592000 },
     { label: "day", seconds: 86400 },
@@ -44,13 +44,28 @@ export function timeAgo(other?: Date | number): string {
     { label: "minute", seconds: 60 },
     { label: "second", seconds: 1 },
   ];
+  if (short) {
+    intervals = [
+      { label: "y", seconds: 31536000 },
+      { label: "mo", seconds: 2592000 },
+      { label: "d", seconds: 86400 },
+      { label: "h", seconds: 3600 },
+      { label: "m", seconds: 60 },
+      { label: "s", seconds: 1 },
+    ];
+  }
 
   for (const i of intervals) {
     const count = Math.floor(seconds / i.seconds);
-    if (count > 0) return `${count} ${i.label}${count !== 1 ? "s" : ""} ago`;
+    if (count > 0 && !short) {
+      return `${count} ${i.label}${count !== 1 ? "s" : ""} ago`;
+    }
+    if (count > 0 && short) {
+      return `${count}${i.label} ago`;
+    }
   }
 
-  return "just now";
+  return "now";
 }
 
 export function toUTCDate(s: string): Date {

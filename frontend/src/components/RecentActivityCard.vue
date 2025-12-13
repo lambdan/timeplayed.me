@@ -4,7 +4,13 @@ import type { Activity, Game, User } from "../models/models";
 import UserPageActivityRow from "./ActivityRows/UserPageActivityRow.vue";
 import FrontPageActivityRow from "./ActivityRows/FrontPageActivityRow.vue";
 import GamePageActivityRow from "./ActivityRows/GamePageActivityRow.vue";
-import { fetchActivities as FU } from "../utils";
+import UserColumn from "./Users/UserColumn.vue";
+import CalendarBadge from "./Badges/CalendarBadge.vue";
+import DiscordAvatar from "./DiscordAvatar.vue";
+import { fetchActivities as FU, formatDuration } from "../utils";
+import GameCover from "./Games/GameCover.vue";
+import type GameCoverVue from "./Games/GameCover.vue";
+import RowV2 from "./ActivityRows/RowV2.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -53,6 +59,16 @@ function loadMore() {
   fetchActivities(props.limit, offset.value);
 }
 
+function getContext(): "userPage" | "gamePage" | "frontPage" {
+  if (props.user && !props.game) {
+    return "userPage";
+  } else if (props.game && !props.user) {
+    return "gamePage";
+  } else {
+    return "frontPage";
+  }
+}
+
 onMounted(() => {
   fetchActivities(props.limit, 0);
 });
@@ -62,7 +78,17 @@ onMounted(() => {
   <div class="card p-0">
     <h2 class="card-header">Activity</h2>
     <div class="card-body">
-      <FrontPageActivityRow
+      <table class="table table-sm table-hover table-responsive">
+        <tbody>
+          <RowV2
+            v-for="activity in activities"
+            :key="activity.id"
+            :activity="activity"
+            :context="getContext()"
+          />
+        </tbody>
+      </table>
+      <!--      <FrontPageActivityRow
         v-if="!props.user && !props.game"
         v-for="activity in activities"
         :key="activity.id"
@@ -82,7 +108,7 @@ onMounted(() => {
         :key="activity.id"
         :activity="activity"
         :showExpand="showExpand"
-      />
+      />-->
 
       <div class="text-center my-2">
         <button v-if="loading" class="btn btn-primary" type="button" disabled>
