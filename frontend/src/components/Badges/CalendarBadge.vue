@@ -25,7 +25,8 @@ function text(): string {
     return "?";
   }
   if (showAbsolute.value) {
-    return reallyDate.toISOString();
+    return reallyDate.toLocaleString();
+    //return reallyDate.toISOString();
   }
   return timeAgo(reallyDate);
 }
