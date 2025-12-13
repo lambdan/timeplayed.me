@@ -48,7 +48,7 @@ async function fetchAllTheThings() {
     const activities = await fetchActivities({
       before: localBefore.value,
       after: localAfter.value,
-      limit: 500,
+      limit: 200,
       offset: allActivity.length,
       gameId: localGame.value ? localGame.value.id.toString() : undefined,
     });
