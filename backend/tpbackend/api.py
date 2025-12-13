@@ -1,18 +1,48 @@
 import datetime
+import os
 from fastapi import FastAPI, HTTPException
 from playhouse.shortcuts import model_to_dict
 from peewee import fn
-
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.models import GameWithStats, PaginatedResponse, PlatformWithStats, UserWithStats
 from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
-import time
 import logging
 
 logger = logging.getLogger("api")
 
 app = FastAPI()
+
+CACHE = {}
+CACHE_MAX = int(os.environ.get("CACHE_MAX", 1000))
+CACHE_FLUSHES = 0
+
+def today() -> str:
+    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d")
+
+def thisHour() -> str:
+    return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d_%H")
+
+def cacheGet(key: str):
+    """
+    Gets value from cache. Returns None if not found.
+    """
+    if key in CACHE:
+        logger.info("Cache hit: %s", key)
+        return CACHE[key]
+    return None
+
+def cacheSetReturn(key: str, value):
+    """
+    Sets value in cache. Flushes if size exceeded. Returns same value.
+    """
+    if len(CACHE) > CACHE_MAX:
+        global CACHE_FLUSHES
+        CACHE_FLUSHES += 1
+        logger.info("Cache size exceeded, flushing for the %s'th time 🚽", CACHE_FLUSHES)
+        CACHE.clear()
+    CACHE[key] = value
+    return value
 
 def validateLimitOffset(limit: int|str, offset: int|str, maxLimit=50) -> tuple[int, int]:
     """
@@ -187,8 +217,6 @@ def validateTS(ts) -> int | None:
         pass
     return None
 
-CACHE_ACTIVITIES = {}
-
 @app.get("/api/activities")
 def list_activities(
     offset=0, limit=25, order="desc",
@@ -201,9 +229,9 @@ def list_activities(
     activity_count = get_activity_count(userId=user, gameId=game, platformId=platform)
     cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}"
     logger.debug("Cache key: %s", cache_key)
-    if cache_key in CACHE_ACTIVITIES:
-        logger.debug("Cache hit: %s", cache_key)
-        return CACHE_ACTIVITIES[cache_key]
+    cached = cacheGet(cache_key)
+    if cached:
+        return cached
     
     before_dt, after_dt = None, None
     if before:
@@ -242,13 +270,7 @@ def list_activities(
         "_after": after_dt.isoformat() if after_dt else None,
     }
     response = fixDatetime(response)
-    
-    if len(CACHE_ACTIVITIES) > 1000:
-        logger.info("Cache size exceeded, flushing")
-        CACHE_ACTIVITIES.clear()
-
-    CACHE_ACTIVITIES[cache_key] = response
-    return response
+    return cacheSetReturn(cache_key, response)
 
 @app.get("/api/activities/last")
 def get_last_activity(userid: int | None = None, gameid: int | None = None, platformid: int | None = None):
@@ -528,37 +550,48 @@ def get_playtime_by_day(userId: int | None = None, gameId: int | None = None, pl
 # SteamGridDB
 ###############
 
+
 @app.get("/api/sgdb/search")
 def search_sgdb(query: str):
-    return steamgriddb.search(query)
+    cache_key = f"sgdb_search_{query}_{today()}"
+    cached = cacheGet(cache_key)
+    if cached:
+        return cached
+    return cacheSetReturn(cache_key, steamgriddb.search(query))
 
 @app.get("/api/sgdb/grids/{game_id}")
 def grid_sgdb(game_id: int):
-    grids = steamgriddb.get_grids(game_id)
-    return grids 
+    cache_key = f"sgdb_grids_{game_id}_{today()}"
+    cached = cacheGet(cache_key)
+    if cached:
+        return cached
+    return cacheSetReturn(cache_key, steamgriddb.get_grids(game_id))
 
 @app.get("/api/sgdb/grids/{game_id}/best")
 def best_grid_sgdb(game_id: int):
+    cache_key = f"sgdb_best_grid_{game_id}_{today()}"
+    cached = cacheGet(cache_key)
+    if cached:
+        return cached
+    
     best = steamgriddb.get_best_grid(game_id)
     if not best:
         raise HTTPException(status_code=404, detail="Not found")
-    return best
+
+    return cacheSetReturn(cache_key, best)
 
 ###############
 # Discord
 ###############
 
-discord_avatar_cache = {}
 @app.get("/api/discord/{discord_user_id}/avatar")
 def get_discord_avatar(discord_user_id: int):
-    now = time.time()
-    cache_entry = discord_avatar_cache.get(discord_user_id)
-    if cache_entry:
-        url, timestamp = cache_entry
-        if now - timestamp < 3600:  # 1 hour cache
-            logger.debug("Returning cached avatar for user %s", discord_user_id)
-            return {"url": url}
+    cache_key = f"discord_avatar_{discord_user_id}_{today()}"
+    cached = cacheGet(cache_key)
+    if cached:
+        return cached
+    
     logger.debug("Fetching avatar for user %s from Discord", discord_user_id)
     url = bot.avatar_from_discord_user_id(discord_user_id)
-    discord_avatar_cache[discord_user_id] = (url, now)
-    return {"url": url}
+    res = {"url": url}
+    return cacheSetReturn(cache_key, res)
