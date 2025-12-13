@@ -556,11 +556,16 @@ def best_grid_sgdb(game_id: int):
     cache_key = f"sgdb_best_grid_{game_id}_{today()}"
     cached = cacheGet(cache_key)
     if cached:
+        if isinstance(cached, HTTPException):
+            logger.warning("Returning a cached exception! 🤔 %s", cache_key)
+            raise cached
         return cached
     
     best = steamgriddb.get_best_grid(game_id)
     if not best:
-        raise HTTPException(status_code=404, detail="Not found")
+        # caching an exception seems cursed...
+        logger.warning("CACHING AN EXCEPTION! 🤔 %s", cache_key)
+        raise cacheSetReturn(cache_key, HTTPException(status_code=404, detail="Not found"))
 
     return cacheSetReturn(cache_key, best)
 
