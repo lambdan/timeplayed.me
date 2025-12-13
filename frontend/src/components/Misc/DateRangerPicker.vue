@@ -17,9 +17,9 @@ interface RelativeOption {
 const RELATIVE_VALUES: RelativeOption[] = [
   //{ label: "Last hour", milliseconds: ONE_HOUR },
   //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
-  { label: "Last 24 hours", milliseconds: ONE_HOUR * 24 },
+  //{ label: "Last day", milliseconds: ONE_HOUR * 24 },
   { label: "Last 7 days", milliseconds: ONE_DAY * 7 },
-  { label: "Last 14 days", milliseconds: ONE_DAY * 14 },
+  //{ label: "Last 14 days", milliseconds: ONE_DAY * 14 },
   { label: "Last 30 days", milliseconds: ONE_DAY * 30 },
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
