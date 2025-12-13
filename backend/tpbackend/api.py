@@ -197,12 +197,12 @@ def list_activities(
 ):
     limit, offset = validateLimitOffset(limit, offset, maxLimit=500)
     before, after = validateTS(before), validateTS(after)
-    # check how many activities there are in total
-    # if it changes, cache is not valid anymore
-    all_activities_count = Activity.select().count()
-    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{all_activities_count}"
+    # use activity count in cache_key to invalidate cache when new activities are added/removed
+    activity_count = get_activity_count(userId=user, gameId=game, platformId=platform)
+    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}"
+    logger.debug("Cache key: %s", cache_key)
     if cache_key in CACHE_ACTIVITIES:
-        logger.warning("Cache hit: %s", cache_key)
+        logger.debug("Cache hit: %s", cache_key)
         return CACHE_ACTIVITIES[cache_key]
     
     before_dt, after_dt = None, None
@@ -244,7 +244,7 @@ def list_activities(
     response = fixDatetime(response)
     
     if len(CACHE_ACTIVITIES) > 1000:
-        logger.warning("Cache size exceeded !!!!! Clearing")
+        logger.info("Cache size exceeded, flushing")
         CACHE_ACTIVITIES.clear()
 
     CACHE_ACTIVITIES[cache_key] = response
