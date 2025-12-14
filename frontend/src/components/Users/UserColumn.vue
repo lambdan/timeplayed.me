@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { User } from "../../models/models";
 import DiscordAvatar from "../DiscordAvatar.vue";
+import type { User } from "../../api.models";
 
 const props = withDefaults(
   defineProps<{

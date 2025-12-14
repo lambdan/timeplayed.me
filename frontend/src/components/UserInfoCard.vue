@@ -2,9 +2,9 @@
 import { onMounted, ref } from "vue";
 import { formatDate, timeAgo, formatDuration } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
-import type { UserModelV2, UserWithStats } from "../models/user.models";
+import type { User, UserWithStats } from "../api.models";
 
-const props = defineProps<{ user: UserModelV2 }>();
+const props = defineProps<{ user: User }>();
 
 const stats = ref<UserWithStats>();
 const loadingStats = ref(true);

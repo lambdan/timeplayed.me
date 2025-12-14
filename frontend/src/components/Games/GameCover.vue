@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Game } from "../../models/models";
 import { getGameCoverUrl } from "../../utils";
 
 const props = withDefaults(

@@ -2,15 +2,14 @@
 import { ref } from "vue";
 import PlatformTable from "./PlatformTable.vue";
 import SortOrderButtons from "../Misc/SortOrderButtons.vue";
-import type { UserModelV2 } from "../../models/user.models";
-import type { GameModelV2 } from "../../models/game.models";
+import type { Game, User } from "../../api.models";
 
 const props = withDefaults(
   defineProps<{
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
-    user?: UserModelV2;
-    game?: GameModelV2;
+    user?: User;
+    game?: Game;
     showSortButtons?: boolean;
   }>(),
   {

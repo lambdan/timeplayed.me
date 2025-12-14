@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { User } from "../../models/models";
 import GameTable from "./GameTable.vue";
 import SortOrderButtons from "../Misc/SortOrderButtons.vue";
+import type { User } from "../../api.models";
 
 const props = withDefaults(
   defineProps<{

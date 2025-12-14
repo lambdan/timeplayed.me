@@ -3,9 +3,9 @@ import { onMounted, ref } from "vue";
 import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
-import type { GameModelV2, GameWithStats } from "../models/game.models";
+import type { Game, GameWithStats } from "../api.models";
 
-const props = defineProps<{ game: GameModelV2 }>();
+const props = defineProps<{ game: Game }>();
 
 const stats = ref<GameWithStats>();
 const loadingStats = ref(true);

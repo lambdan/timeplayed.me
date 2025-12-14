@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
-import type { User } from "../models/models";
 import { cacheFetch } from "../utils";
-import type { UserModelV2 } from "../models/user.models";
+import type { User } from "../api.models";
 
 const props = withDefaults(
-  defineProps<{ user: UserModelV2; maxWidth?: number; classes?: string[] }>(),
+  defineProps<{ user: User; maxWidth?: number; classes?: string[] }>(),
   {
     maxWidth: 75,
     classes: () => ["img-thumbnail", "img-fluid", "rounded-circle"],

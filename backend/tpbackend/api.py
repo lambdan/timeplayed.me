@@ -2,14 +2,13 @@ import datetime
 import os
 from typing import Literal
 from fastapi import FastAPI, HTTPException
-from playhouse.shortcuts import model_to_dict
 from peewee import fn
 from tpbackend.api_models import (
     GameWithStats,
     PaginatedActivities,
     PaginatedGameWithStats,
-    PaginatedPlatforms,
-    PaginatedSummarizedUsers,
+    PaginatedPlatformsWithStats,
+    PaginatedUserWithStats,
     PlatformWithStats,
     PublicActivityModel,
     PublicGameModel,
@@ -148,7 +147,7 @@ def user_has_activities(userId: int | str) -> bool:
     return any_activity != None
 
 
-@app.get("/api/users", tags=["users"], response_model=PaginatedSummarizedUsers)
+@app.get("/api/users", tags=["users"], response_model=PaginatedUserWithStats)
 def get_users(
     offset=0,
     limit=25,
@@ -156,7 +155,7 @@ def get_users(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
-) -> PaginatedSummarizedUsers:
+) -> PaginatedUserWithStats:
     """
     Get summarized users. Can also filter by gameId and platformId, and set a before/after timestamp to get a range.
     """
@@ -204,7 +203,7 @@ def get_users(
         except Exception as e:
             logger.warning("Skipping user %s in get_users: %s", userId, e)
             continue
-    return PaginatedSummarizedUsers(
+    return PaginatedUserWithStats(
         data=data,
         total=total,
         offset=offset,
@@ -385,21 +384,59 @@ def get_activity(activity_id: int) -> PublicActivityModel:
 
 
 @app.get("/api/games", tags=["games"], response_model=PaginatedGameWithStats)
-def get_games(limit=25, offset=0):
+def get_games(
+    offset=0,
+    limit=25,
+    userId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> PaginatedGameWithStats:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
+    before, after = validateTS(before), validateTS(after)
 
-    # Could not get .offset and .limit to work with distinct so have to do a extra step
-    games = Activity.select(Activity.game).distinct()
-    games = games[offset : offset + limit]  # type: ignore
-    response = []
-    for game in games:
-        game_data = get_game(gameId=game.game.id)
-        response.append(game_data)
+    filters = []
+    if userId:
+        filters.append(Activity.user == userId)
+    if platformId:
+        filters.append(Activity.platform == platformId)
+    if before:
+        before_dt = datetime.datetime.fromtimestamp(before / 1000)
+        filters.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after:
+        after_dt = datetime.datetime.fromtimestamp(after / 1000)
+        filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    query = Activity.select()
+    if len(filters) > 0:
+        query = query.where(*filters)
+    query = query.order_by(Activity.game.asc()).distinct(Activity.game)
+    activities = query[offset : offset + limit]  # type: ignore
+
+    total = get_game_count(
+        userId=userId, platformId=platformId, before=before, after=after
+    )
+
+    data = []
+    for a in activities:
+        gameId = int(a.game.id)
+        try:
+            data.append(
+                get_game(
+                    userId=userId,
+                    gameId=gameId,
+                    # platformId=platformId,
+                    # before=before,
+                    # after=after,
+                )
+            )
+        except Exception as e:
+            logger.warning("Skipping game %s in get_games: %s", gameId, e)
+            continue
     return PaginatedGameWithStats(
-        data=response,
-        total=get_game_count(),
+        data=data,
+        total=total,
         offset=offset,
         limit=limit,
     )
@@ -476,13 +513,15 @@ def get_player_count(
 ##############
 
 
-@app.get("/api/platforms", tags=["platforms"], response_model=PaginatedPlatforms)
-def get_platforms(offset=0, limit=25) -> PaginatedPlatforms:
+@app.get(
+    "/api/platforms", tags=["platforms"], response_model=PaginatedPlatformsWithStats
+)
+def get_platforms(offset=0, limit=25) -> PaginatedPlatformsWithStats:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     platforms = Platform.select().limit(limit).offset(offset)
 
-    r = PaginatedPlatforms(
+    r = PaginatedPlatformsWithStats(
         data=[],
         total=Platform.select().count(),
         offset=offset,

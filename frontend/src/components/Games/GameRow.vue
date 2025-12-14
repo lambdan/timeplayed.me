@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { GameWithStats } from "../../models/models";
 import GameCover from "./GameCover.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
 import DurationBadge from "../Badges/DurationBadge.vue";
+import type { GameWithStats } from "../../api.models";
 
 const props = withDefaults(defineProps<{ game: GameWithStats }>(), {});
 
@@ -23,9 +23,9 @@ onMounted(async () => {});
         >{{ game.game.name }}</a
       >
       <br />
-      <CalendarBadge :date="game.last_played" title="Last played" />
+      <CalendarBadge v-if="game.newest_activity" :date="game.newest_activity.timestamp" title="Last played" />
        
-      <DurationBadge :secs="game.total_playtime" title="Total playtime" />
+      <DurationBadge :secs="game.totals.playtime_secs" title="Total playtime" />
     </div>
   </div>
   <hr />

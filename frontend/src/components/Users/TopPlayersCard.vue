@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Game, User } from "../../models/models";
 import { fetchUsers } from "../../utils";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import type { UserModelV2 } from "../../models/user.models";
+import type { Game, User } from "../../api.models";
 
 const props = defineProps<{
   game?: Game;
@@ -12,7 +11,7 @@ const props = defineProps<{
 }>();
 
 const _users = ref<
-  { user: UserModelV2; duration: number; count: number; last_played: Date }[]
+  { user: User; duration: number; count: number; last_played: Date }[]
 >([]);
 const _loading = ref(false);
 const _before = ref<Date | undefined>();
@@ -79,14 +78,7 @@ onMounted(() => {});
           />
         </tbody>
       </table>
-      <!--<UserTable
-        :game="game"
-        :sort="'playtime'"
-        :order="'desc'"
-        :show-date-range="true"
-        :starting-relative-days="props.startingRelativeDays"
-        :show-last-played="false"
-      /> -->
+      <p v-if ="!_loading && _users.length === 0" class="text-secondary">No one seems to have played this in the selected period</p>
     </div>
   </div>
 </template>

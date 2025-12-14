@@ -1,13 +1,8 @@
+import type { GameWithStats, PaginatedActivities, PaginatedUsersWithStats, SGDBGame, SGDBGrid, User } from "./api.models";
 import type {
   ActivitiesQuery,
-  API_Activities,
-  API_Users,
-  Game,
-  User,
   UsersQuery,
 } from "./models/models";
-import type { SGDBGame, SGDBGrid } from "./models/steamgriddb.models";
-import type { PaginatedUsersWithStats, UserModelV2 } from "./models/user.models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -126,7 +121,7 @@ export async function cacheFetch(
 // this should probably a service...
 export async function fetchActivities(
   params: ActivitiesQuery,
-): Promise<API_Activities> {
+): Promise<PaginatedActivities> {
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
@@ -162,7 +157,7 @@ export async function fetchActivities(
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
-  return (await res.json()) as API_Activities;
+  return await res.json();
 }
 
 // this should probably a service...
@@ -207,7 +202,7 @@ export async function getGameCoverUrl(
 ): Promise<string> {
   const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
   const gameInfo = await cacheFetch(`/api/game/${gameId}`, CACHE_LIFETIME);
-  const gameData = ((await gameInfo.json()) as any).game as Game;
+  const gameData = (await gameInfo.json() as GameWithStats).game;
 
   const FALLBACK = "https://placehold.co/267x400?text=No+Image";
   if (gameData.image_url) {
@@ -256,12 +251,12 @@ export async function getGameCoverUrl(
 
 export async function fetchUserInfo(userId: string): Promise<User> {
   const CACHE_LIFETIME = 1000 * 60 * 10; // 10 minutes
-  const res = await cacheFetch(`/api/users/${userId}`, CACHE_LIFETIME);
+  const res = await cacheFetch(`/api/user/${userId}`, CACHE_LIFETIME);
   if (!res.ok) {
     throw new Error(`Failed to fetch user info for user ${userId}`);
   }
   const data = await res.json();
-  return data.user as User;
+  return data;
 }
 
 export function iso8601Date(date: Date | number): string {

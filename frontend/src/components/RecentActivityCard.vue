@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import type { Game, User } from "../models/models";
 import { fetchActivities as FU, formatDuration } from "../utils";
 import RowV2 from "./ActivityRows/RowV2.vue";
-import type { ActivityModelV2 } from "../models/activity.models";
+import type { Activity } from "../api.models";
 
 const props = withDefaults(
   defineProps<{
@@ -20,7 +20,7 @@ const props = withDefaults(
   },
 );
 
-const activities = ref<ActivityModelV2[]>([]);
+const activities = ref<Activity[]>([]);
 const offset = ref(0);
 const loading = ref(false);
 const hasMore = ref(true);

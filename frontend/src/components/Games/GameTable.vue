@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { API_Games, GameWithStats, User } from "../../models/models";
 import GameRow from "./GameRow.vue";
 import { cacheFetch, sleep } from "../../utils";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
+import type { GameWithStats, PaginatedGamesWithStats, User } from "../../api.models";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -31,7 +31,15 @@ const localOrder = ref(props.order);
 const showAll = ref(false);
 
 if (props.user) {
-  baseUrl.value = `/api/users/${props.user.id}/games`;
+  baseUrl.value += `?userId=${props.user.id}`;
+}
+
+function getBaseUrl(): string {
+  if (props.user) {
+    return `/api/games?userId=${props.user.id}`;
+  } else {
+    return `/api/games`;
+  }
 }
 
 async function fetchGames() {
@@ -40,17 +48,17 @@ async function fetchGames() {
   games.value = [];
 
   const fetchedGames: GameWithStats[] = [];
-  let res = await cacheFetch(`${baseUrl.value}`, CACHE_LIFETIME);
+  let res = await fetch(`${getBaseUrl()}`);
   console.log("Fetching games from", res.url);
-  let data = (await res.json()) as API_Games;
+  let data = (await res.json()) as PaginatedGamesWithStats;
   fetchedGames.push(...data.data);
-  while (fetchedGames.length < data._total) {
+  while (fetchedGames.length < data.total) {
     res = await cacheFetch(
-      `${baseUrl.value}?offset=${fetchedGames.length}`,
+      `${getBaseUrl()}${props.user ? `&` : `?`}offset=${fetchedGames.length}`,
       CACHE_LIFETIME,
     );
     console.log("Fetching games from", res.url);
-    data = (await res.json()) as API_Games;
+    data = (await res.json()) as PaginatedGamesWithStats;
     fetchedGames.push(...data.data);
   }
   games.value = fetchedGames;
@@ -70,15 +78,16 @@ function updateDisplayedGames() {
 function sort() {
   if (localSort.value === "recency") {
     games.value.sort((a, b) => {
+      if (!a.newest_activity || !b.newest_activity) return 0;
       return localOrder.value === "asc"
-        ? a.last_played - b.last_played
-        : b.last_played - a.last_played;
+        ? a.newest_activity.timestamp - b.newest_activity.timestamp
+        : b.newest_activity.timestamp - a.newest_activity.timestamp;
     });
   } else if (localSort.value === "playtime") {
     games.value.sort((a, b) => {
       return localOrder.value === "asc"
-        ? a.total_playtime - b.total_playtime
-        : b.total_playtime - a.total_playtime;
+        ? a.totals.playtime_secs - b.totals.playtime_secs
+        : b.totals.playtime_secs - a.totals.playtime_secs;
     });
   } else if (localSort.value === "name") {
     games.value.sort((a, b) => {
@@ -99,6 +108,7 @@ watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
 });
 
 onMounted(() => {
+  limit.value = props.limit || 10;
   fetchGames();
 });
 </script>

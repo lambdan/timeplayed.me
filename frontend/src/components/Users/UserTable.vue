@@ -2,14 +2,9 @@
 import { onMounted, ref, watch } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import { fetchActivities, sleep } from "../../utils";
-import type {
-  Activity,
-  API_Activities,
-  API_Users,
-  Game,
-  UserWithStats,
-} from "../../models/models";
+
 import UserRow from "./UserRow.vue";
+import type { Activity, Game, PaginatedUsersWithStats, UserWithStats } from "../../api.models";
 const props = withDefaults(
   defineProps<{
     game?: Game;
@@ -30,7 +25,7 @@ const props = withDefaults(
 );
 
 const loadingProgress = ref(0);
-const displayedUsers = ref<UserWithStats[]>([]);
+
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
@@ -42,7 +37,36 @@ const startingRelativeDays = ref<number | undefined>(
   props.startingRelativeDays,
 );
 
+const displayedUsers = ref<UserWithStats[]>([]);
+const _usersWithStats = ref<UserWithStats[]>([]);
+
 async function fetchAllTheThings() {
+  if (loading.value) {
+    return; // already running
+  }
+  loadingProgress.value = 0;
+  loading.value = true;
+  displayedUsers.value = [];
+  _usersWithStats.value = [];
+
+  let needToFetch = true;
+  while (needToFetch) {
+    const usersWithStatsBatch = await fetch(`/api/users?offset=${_usersWithStats.value.length}&limit=1`);
+    const usersWithStatsData = (await usersWithStatsBatch.json()) as PaginatedUsersWithStats;
+    _usersWithStats.value.push(...usersWithStatsData.data);
+    needToFetch = usersWithStatsData.total > _usersWithStats.value.length;
+    loadingProgress.value = Math.min(
+      100,
+      (_usersWithStats.value.length / usersWithStatsData.total) * 100,
+    );
+  }
+
+  displayedUsers.value = _usersWithStats.value;
+  sortDisplayed();
+  loading.value = false;
+}
+
+/*async function fetchAllTheThings() {
   if (loading.value) {
     return; // already running
   }
@@ -69,15 +93,12 @@ async function fetchAllTheThings() {
   }
 
   // build UserWithStats
-  const userMap: Map<number, UserWithStats> = new Map();
+  const userMap: Map<string, UserWithStats> = new Map();
   for (const activity of allActivity) {
     const userId = activity.user.id;
     if (!userMap.has(userId)) {
       userMap.set(userId, {
         user: activity.user,
-        total_playtime: 0,
-        last_played: 0,
-        total_activities: 0,
       });
     }
     const userStats = userMap.get(userId)!;
@@ -95,20 +116,21 @@ async function fetchAllTheThings() {
   }
   sortDisplayed();
   loading.value = false;
-}
+}*/
 
 function sortDisplayed() {
   if (localSort.value === "recency") {
     displayedUsers.value.sort((a, b) => {
+      if (!a.newest_activity || !b.newest_activity) return 0;
       return localOrder.value === "asc"
-        ? a.last_played - b.last_played
-        : b.last_played - a.last_played;
+        ? a.newest_activity.timestamp - b.newest_activity.timestamp
+        : b.newest_activity.timestamp - a.newest_activity.timestamp;
     });
   } else if (localSort.value === "playtime") {
     displayedUsers.value.sort((a, b) => {
       return localOrder.value === "asc"
-        ? a.total_playtime - b.total_playtime
-        : b.total_playtime - a.total_playtime;
+        ? a.totals.playtime_secs - b.totals.playtime_secs
+        : b.totals.playtime_secs - a.totals.playtime_secs;
     });
   } else if (localSort.value === "name") {
     displayedUsers.value.sort((a, b) => {

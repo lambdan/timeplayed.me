@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
 import DurationBadge from "../Badges/DurationBadge.vue";
-import type { PlatformWithStats } from "../../models/platform.models";
+import type { PlatformWithStats } from "../../api.models";
 
 const props = withDefaults(
   defineProps<{

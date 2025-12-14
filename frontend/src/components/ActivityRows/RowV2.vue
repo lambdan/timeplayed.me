@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Activity, User } from "../../models/models";
 import { formatDuration, timeAgo } from "../../utils";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
-import type { UserModelV2 } from "../../models/user.models";
-import type { ActivityModelV2 } from "../../models/activity.models";
+import type { Activity, User } from "../../api.models";
 
 const props = defineProps<{
-  activity?: ActivityModelV2;
-  user?: UserModelV2;
+  activity?: Activity;
+  user?: User;
   durationSeconds?: number;
   context?: "userPage" | "gamePage" | "frontPage";
 }>();
@@ -20,7 +18,7 @@ const _durationSeconds = ref(0);
 const _timeDisplayed = ref("");
 const _dateDisplayed = ref("");
 
-function setupActivity(activity: ActivityModelV2) {
+function setupActivity(activity: Activity) {
   function updateDate(d: Date) {
     _dateDisplayed.value = timeAgo(d, true);
   }

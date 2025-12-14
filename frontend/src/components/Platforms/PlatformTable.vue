@@ -3,16 +3,14 @@ import { onMounted, ref, watch } from "vue";
 import PlatformRow from "./PlatformRow.vue";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 import { sleep } from "../../utils";
-import type { PaginatedPlatforms, PlatformWithStats } from "../../models/platform.models";
-import type { UserModelV2 } from "../../models/user.models";
-import type { GameModelV2 } from "../../models/game.models";
+import type { Game, PaginatedPlatformsWithStats, PlatformWithStats, User } from "../../api.models";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
-    user?: UserModelV2;
-    game?: GameModelV2;
+    user?: User;
+    game?: Game;
     showLastPlayed?: boolean;
   }>(),
   {
@@ -35,12 +33,12 @@ async function fetchPlatforms() {
   platforms.value = [];
   const fetchedPlatforms: PlatformWithStats[] = [];
   let res = await fetch(`/api/platforms`);
-  let data = (await res.json()) as PaginatedPlatforms;
+  let data = (await res.json()) as PaginatedPlatformsWithStats;
   fetchedPlatforms.push(...data.data);
 
   while (fetchedPlatforms.length < data.total) {
     res = await fetch(`/api/platforms?offset=${fetchedPlatforms.length}`);
-    data = (await res.json()) as PaginatedPlatforms;
+    data = (await res.json()) as PaginatedPlatformsWithStats;
     fetchedPlatforms.push(...data.data);
   }
   platforms.value = fetchedPlatforms;
