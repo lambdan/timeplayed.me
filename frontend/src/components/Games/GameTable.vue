@@ -7,7 +7,7 @@ const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
     order?: "asc" | "desc";
-    sort?: "recency" | "playtime" | "name";
+    sort?: "recency" | "playtime" | "name" | "users";
     user?: User;
     platform?: Platform;
     limit?: number;
@@ -78,6 +78,12 @@ function sort() {
         ? a_name.localeCompare(b_name)
         : b_name.localeCompare(a_name);
     });
+  } else if (localSort.value === "users") {
+    _gamesData.value.sort((a, b) => {
+      return localOrder.value === "asc"
+        ? a.totals.user_count - b.totals.user_count
+        : b.totals.user_count - a.totals.user_count;
+    });
   }
   updateDisplayedGames();
 }
@@ -88,7 +94,7 @@ function sort() {
   sort();
 });*/
 
-function setSort(newSort: "recency" | "playtime" | "name") {
+function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   console.log("sort", newSort);
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
@@ -120,6 +126,7 @@ onMounted(() => {
               "
             />
           </th>
+          <th>Share</th>
           <th @click="setSort('playtime')">
             Playtime
             <i
@@ -135,6 +142,17 @@ onMounted(() => {
             <i
               :class="
                 localSort === 'recency'
+                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
+                  : ''
+              "
+            />
+          </th>
+
+          <th @click="setSort('users')">
+            Users
+            <i
+              :class="
+                localSort === 'users'
                   ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
                   : ''
               "

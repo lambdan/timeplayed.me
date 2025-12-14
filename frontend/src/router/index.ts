@@ -33,7 +33,7 @@ const routes = [
   { path: "/games", component: GameListPage },
   { path: "/platforms", component: PlatformListPage },
   {
-    path: "/platforms/:id",
+    path: "/platform/:id",
     name: "PlatformPage",
     component: PlatformPage,
   },

@@ -47,7 +47,7 @@ onMounted(async () => {
         <strong>Last Played:</strong>
         {{
           platform.newest_activity
-            ? new Date(platform.newest_activity.timestamp).toLocaleDateString()
+            ? new Date(platform.newest_activity.timestamp).toLocaleString()
             : "Never"
         }}
       </p>
@@ -55,7 +55,7 @@ onMounted(async () => {
         <strong>First Played:</strong>
         {{
           platform.oldest_activity
-            ? new Date(platform.oldest_activity.timestamp).toLocaleDateString()
+            ? new Date(platform.oldest_activity.timestamp).toLocaleString()
             : "Never"
         }}
       </p>

@@ -7,17 +7,25 @@ import PlatformBadge from "../Badges/PlatformBadge.vue";
 import type {
   Activity,
   GameWithStats,
+  PlatformWithStats,
   User,
   UserWithStats,
 } from "../../api.models";
+import type PlatformBadgeVue from "../Badges/PlatformBadge.vue";
 
 const props = defineProps<{
   activity?: Activity;
   game?: GameWithStats;
   user?: UserWithStats;
+  platform?: PlatformWithStats;
   durationSeconds?: number;
   date?: Date;
-  context?: "userPage" | "gamePage" | "frontPage" | "gameTable";
+  context?:
+    | "userPage"
+    | "gamePage"
+    | "frontPage"
+    | "gameTable"
+    | "platformTable";
 }>();
 
 const _id = ref<string | number>("");
@@ -99,6 +107,8 @@ onMounted(() => {
     _id.value = props.user.user.id;
   } else if (props.game) {
     _id.value = props.game.game.id;
+  } else if (props.platform) {
+    _id.value = props.platform.platform.id;
   }
 
   setupDuration();
@@ -118,6 +128,20 @@ onMounted(() => {
         :user="getUserForDiscordAvatar()"
         :maxWidth="50"
       ></DiscordAvatar>
+    </td>
+
+    <td v-if="props.platform">
+      <PlatformBadge :platform="props.platform.platform" :showName="false" />
+    </td>
+
+    <td v-if="props.platform">
+      <a
+        :href="`/platform/${props.platform!.platform.id}`"
+        class="link-underline link-underline-opacity-0"
+        >{{
+          props.platform!.platform.name || props.platform!.platform.abbreviation
+        }}</a
+      >
     </td>
 
     <td
@@ -161,12 +185,32 @@ onMounted(() => {
       <PlatformBadge :platform="props.activity.platform" />
     </td>
 
+    <!-- Share % -->
+    <td v-if="props.platform || props.game">
+      <p
+        :title="
+          ((props.platform || props.game!).percent * 100).toString() + ' %'
+        "
+      >
+        {{ ((props.platform || props.game!).percent * 100).toFixed(2) }}%
+      </p>
+    </td>
+
     <td :title="`${_durationSeconds} seconds`">
       <i class="bi bi-stopwatch"></i> {{ _timeDisplayed }}
     </td>
 
     <td v-if="_date" :title="_date.toLocaleString()">
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
+    </td>
+
+    <td
+      v-if="
+        (props.platform || props.game) &&
+        (props.context === 'platformTable' || props.context === 'gameTable')
+      "
+    >
+      <p>{{ (props.platform || props.game!).totals.user_count }}</p>
     </td>
   </tr>
 </template>

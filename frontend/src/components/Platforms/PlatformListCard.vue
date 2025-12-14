@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import PlatformTable from "./PlatformTable.vue";
-import SortOrderButtons from "../Misc/SortOrderButtons.vue";
 import type { Game, User } from "../../api.models";
 
 const props = withDefaults(
@@ -23,35 +22,12 @@ const props = withDefaults(
 
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
-
-const sortOptions = [
-  { value: "name", label: "Name" },
-  { value: "recency", label: "Recency" },
-  { value: "playtime", label: "Playtime" },
-];
-
-function setSort(newSort: string) {
-  localSort.value = newSort as "recency" | "playtime" | "name";
-}
-function setOrder(newOrder: string) {
-  localOrder.value = newOrder as "asc" | "desc";
-}
 </script>
 
 <template>
   <div class="card p-0">
     <h1 class="card-header">Platforms</h1>
     <div class="card-body">
-      <SortOrderButtons
-        v-if="props.showSortButtons"
-        :sort="localSort"
-        :order="localOrder"
-        :sortOptions="sortOptions"
-        sortLabel="Sort platforms"
-        orderLabel="Order platforms"
-        @update:sort="setSort"
-        @update:order="setOrder"
-      />
       <PlatformTable
         :sort="localSort"
         :order="localOrder"
