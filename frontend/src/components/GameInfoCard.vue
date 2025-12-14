@@ -93,7 +93,9 @@ onMounted(async () => {
                       <td><b>Playtime:</b></td>
                       <td>
                         {{
-                          stats ? formatDuration(stats.totals.playtime_secs) : "-"
+                          stats
+                            ? formatDuration(stats.totals.playtime_secs)
+                            : "-"
                         }}
                       </td>
                     </tr>
@@ -113,13 +115,17 @@ onMounted(async () => {
                       <td><b>First played:</b></td>
                       <td>
                         {{
-                          stats.oldest_activity ? formatDate(stats.oldest_activity.timestamp) : "-"
+                          stats.oldest_activity
+                            ? formatDate(stats.oldest_activity.timestamp)
+                            : "-"
                         }}
                         <br />
                         <small class="text-muted">
                           {{
-                          stats.oldest_activity ? timeAgo(stats.oldest_activity.timestamp) : "-"
-                        }}
+                            stats.oldest_activity
+                              ? timeAgo(stats.oldest_activity.timestamp)
+                              : "-"
+                          }}
                         </small>
                       </td>
                     </tr>
@@ -127,12 +133,16 @@ onMounted(async () => {
                       <td><b>Last played:</b></td>
                       <td>
                         {{
-                          stats.newest_activity ? formatDate(stats.newest_activity.timestamp) : "-"
+                          stats.newest_activity
+                            ? formatDate(stats.newest_activity.timestamp)
+                            : "-"
                         }}
                         <br />
                         <small class="text-muted">
                           {{
-                            stats.newest_activity ? timeAgo(stats.newest_activity.timestamp) : "-"
+                            stats.newest_activity
+                              ? timeAgo(stats.newest_activity.timestamp)
+                              : "-"
                           }}
                         </small>
                       </td>

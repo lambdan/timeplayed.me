@@ -1,8 +1,12 @@
-import type { GameWithStats, PaginatedActivities, PaginatedUsersWithStats, SGDBGame, SGDBGrid, User } from "./api.models";
 import type {
-  ActivitiesQuery,
-  UsersQuery,
-} from "./models/models";
+  GameWithStats,
+  PaginatedActivities,
+  PaginatedUsersWithStats,
+  SGDBGame,
+  SGDBGrid,
+  User,
+} from "./api.models";
+import type { ActivitiesQuery, UsersQuery } from "./models/models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -161,7 +165,9 @@ export async function fetchActivities(
 }
 
 // this should probably a service...
-export async function fetchUsers(params: UsersQuery): Promise<PaginatedUsersWithStats> {
+export async function fetchUsers(
+  params: UsersQuery,
+): Promise<PaginatedUsersWithStats> {
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
@@ -202,7 +208,7 @@ export async function getGameCoverUrl(
 ): Promise<string> {
   const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
   const gameInfo = await cacheFetch(`/api/game/${gameId}`, CACHE_LIFETIME);
-  const gameData = (await gameInfo.json() as GameWithStats).game;
+  const gameData = ((await gameInfo.json()) as GameWithStats).game;
 
   const FALLBACK = "https://placehold.co/267x400?text=No+Image";
   if (gameData.image_url) {

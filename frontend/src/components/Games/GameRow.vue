@@ -23,7 +23,11 @@ onMounted(async () => {});
         >{{ game.game.name }}</a
       >
       <br />
-      <CalendarBadge v-if="game.newest_activity" :date="game.newest_activity.timestamp" title="Last played" />
+      <CalendarBadge
+        v-if="game.newest_activity"
+        :date="game.newest_activity.timestamp"
+        title="Last played"
+      />
        
       <DurationBadge :secs="game.totals.playtime_secs" title="Total playtime" />
     </div>

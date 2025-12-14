@@ -4,7 +4,12 @@ import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import { fetchActivities, sleep } from "../../utils";
 
 import UserRow from "./UserRow.vue";
-import type { Activity, Game, PaginatedUsersWithStats, UserWithStats } from "../../api.models";
+import type {
+  Activity,
+  Game,
+  PaginatedUsersWithStats,
+  UserWithStats,
+} from "../../api.models";
 const props = withDefaults(
   defineProps<{
     game?: Game;
@@ -51,8 +56,11 @@ async function fetchAllTheThings() {
 
   let needToFetch = true;
   while (needToFetch) {
-    const usersWithStatsBatch = await fetch(`/api/users?offset=${_usersWithStats.value.length}&limit=1`);
-    const usersWithStatsData = (await usersWithStatsBatch.json()) as PaginatedUsersWithStats;
+    const usersWithStatsBatch = await fetch(
+      `/api/users?offset=${_usersWithStats.value.length}&limit=1`,
+    );
+    const usersWithStatsData =
+      (await usersWithStatsBatch.json()) as PaginatedUsersWithStats;
     _usersWithStats.value.push(...usersWithStatsData.data);
     needToFetch = usersWithStatsData.total > _usersWithStats.value.length;
     loadingProgress.value = Math.min(

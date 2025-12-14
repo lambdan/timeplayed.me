@@ -23,11 +23,6 @@ from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
 import logging
 
-################
-# Models
-################
-
-
 logger = logging.getLogger("api")
 
 app = FastAPI()
@@ -426,9 +421,9 @@ def get_games(
                 get_game(
                     userId=userId,
                     gameId=gameId,
-                    # platformId=platformId,
-                    # before=before,
-                    # after=after,
+                    platformId=platformId,
+                    before=before,
+                    after=after,
                 )
             )
         except Exception as e:
@@ -443,7 +438,13 @@ def get_games(
 
 
 @app.get("/api/game/{gameId}", tags=["games"], response_model=GameWithStats)
-def get_game(gameId: int, userId: int | None = None):
+def get_game(
+    gameId: int,
+    userId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+    platformId: int | None = None,
+) -> GameWithStats:
     game = Game.get_or_none(Game.id == gameId)  # type: ignore
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -458,35 +459,38 @@ def get_game(gameId: int, userId: int | None = None):
         release_year=game.release_year,
     )
 
-    totals = get_totals(userId=userId, gameId=game.id)
+    totals = get_totals(
+        userId=userId, gameId=game.id, before=before, after=after, platformId=platformId
+    )
 
-    total_playtime_all_games = get_total_playtime(userId=userId)
-    total_playtime_this_game = get_total_playtime(userId=userId, gameId=game.id)
+    total_playtime_all_games = get_total_playtime(
+        userId=userId, before=before, after=after, platformId=platformId
+    )
+    total_playtime_this_game = get_total_playtime(
+        userId=userId, gameId=game.id, before=before, after=after, platformId=platformId
+    )
     percent = 0
     if total_playtime_all_games > 0:
         percent = total_playtime_this_game / total_playtime_all_games
-
-    # oldest
-    OA = (
-        Activity.select()
-        .where(Activity.game == game)
-        .order_by(Activity.timestamp.asc())
-        .first()
-    )
-    # newest
-    NA = (
-        Activity.select()
-        .where(Activity.game == game)
-        .order_by(Activity.timestamp.desc())
-        .first()
-    )
 
     r = GameWithStats(
         game=gameModel,
         totals=totals,
         percent=percent,
-        oldest_activity=get_public_activity(OA) if OA else None,
-        newest_activity=get_public_activity(NA) if NA else None,
+        oldest_activity=get_oldest_activity(
+            userid=userId,
+            gameid=game.id,
+            before=before,
+            after=after,
+            platformid=platformId,
+        ),
+        newest_activity=get_newest_activity(
+            userid=userId,
+            gameid=game.id,
+            before=before,
+            after=after,
+            platformid=platformId,
+        ),
     )
 
     return r
@@ -513,55 +517,118 @@ def get_player_count(
 ##############
 
 
-@app.get(
-    "/api/platforms", tags=["platforms"], response_model=PaginatedPlatformsWithStats
-)
-def get_platforms(offset=0, limit=25) -> PaginatedPlatformsWithStats:
+@app.get("/api/platforms", tags=["games"], response_model=PaginatedPlatformsWithStats)
+def get_platforms(
+    offset=0,
+    limit=25,
+    userId: int | None = None,
+    gameId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> PaginatedPlatformsWithStats:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
-    platforms = Platform.select().limit(limit).offset(offset)
+    before, after = validateTS(before), validateTS(after)
 
-    r = PaginatedPlatformsWithStats(
-        data=[],
-        total=Platform.select().count(),
+    filters = []
+    if userId:
+        filters.append(Activity.user == userId)
+    if gameId:
+        filters.append(Activity.game == gameId)
+    if before:
+        before_dt = datetime.datetime.fromtimestamp(before / 1000)
+        filters.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after:
+        after_dt = datetime.datetime.fromtimestamp(after / 1000)
+        filters.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    query = Activity.select()
+    if len(filters) > 0:
+        query = query.where(*filters)
+    query = query.order_by(Activity.platform.asc()).distinct(Activity.platform)
+    activities = query[offset : offset + limit]  # type: ignore
+
+    total = get_platform_count(userId=userId, gameId=gameId, before=before, after=after)
+
+    data = []
+    for a in activities:
+        platformId = int(a.platform.id)
+        try:
+            data.append(
+                get_platform(
+                    userId=userId,
+                    gameId=gameId,
+                    platformId=platformId,
+                    before=before,
+                    after=after,
+                )
+            )
+        except Exception as e:
+            logger.warning("Skipping platform %s in get_platforms: %s", platformId, e)
+            continue
+    return PaginatedPlatformsWithStats(
+        data=data,
+        total=total,
         offset=offset,
         limit=limit,
     )
 
-    for platform in platforms:
-        r.data.append(get_platform(platform.id))
-    return fixDatetime(r)  # type: ignore
-
 
 @app.get(
-    "/api/platform/{platform_id}", tags=["platforms"], response_model=PlatformWithStats
+    "/api/platform/{platformId}", tags=["platforms"], response_model=PlatformWithStats
 )
-def get_platform(platform_id: int) -> PlatformWithStats:
-    platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
-    if not platform:
+def get_platform(
+    platformId: int,
+    userId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+    gameId: int | None = None,
+) -> PlatformWithStats:
+    pf = Platform.get_or_none(Platform.id == platformId)  # type: ignore
+    if not pf:
         raise HTTPException(status_code=404, detail="Platform not found")
 
-    totals = get_totals(platformId=platform.id)
-
-    total_playtime_all_platforms = get_total_playtime()
-    playtime_this_platform = get_total_playtime(platformId=platform.id)
-    percent = 0
-    if total_playtime_all_platforms > 0:
-        percent = playtime_this_platform / total_playtime_all_platforms
-
-    data = PlatformWithStats(
-        platform=PublicPlatformModel(
-            id=platform.id,
-            abbreviation=platform.abbreviation,
-            name=platform.name,
-        ),
-        totals=totals,
-        oldest_activity=get_oldest_activity(platformid=platform.id),
-        newest_activity=get_newest_activity(platformid=platform.id),
-        percent=percent,
+    platformModel = PublicPlatformModel(
+        id=pf.id,
+        abbreviation=pf.abbreviation,
+        name=pf.name,
     )
 
-    return fixDatetime(data)  # type: ignore
+    totals = get_totals(
+        userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
+    )
+
+    total_playtime_all_pfs = get_total_playtime(
+        userId=userId, before=before, after=after, gameId=gameId
+    )
+    total_playtime_this_pf = get_total_playtime(
+        userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
+    )
+    percent = 0
+    if total_playtime_all_pfs > 0:
+        percent = total_playtime_this_pf / total_playtime_all_pfs
+
+    r = PlatformWithStats(
+        platform=platformModel,
+        totals=totals,
+        percent=percent,
+        oldest_activity=get_oldest_activity(
+            userid=userId,
+            gameid=gameId,
+            before=before,
+            after=after,
+            platformid=platformId,
+        ),
+        newest_activity=get_newest_activity(
+            userid=userId,
+            gameid=gameId,
+            before=before,
+            after=after,
+            platformid=platformId,
+        ),
+    )
+
+    return r
 
 
 #################

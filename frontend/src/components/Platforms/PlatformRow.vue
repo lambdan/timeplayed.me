@@ -33,8 +33,9 @@ onMounted(async () => {});
       </a>
     </div>
 
-    <div class="col" >
-      Last played on<br /><CalendarBadge v-if="props.platform.newest_activity"
+    <div class="col">
+      Last played on<br /><CalendarBadge
+        v-if="props.platform.newest_activity"
         :date="new Date(props.platform.newest_activity.timestamp)"
       />
     </div>

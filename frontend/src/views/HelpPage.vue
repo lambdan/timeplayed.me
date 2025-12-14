@@ -8,7 +8,9 @@
       <a name="#faq"></a>
       <h1>FAQ</h1>
 
-      <strong>I played a game for a little while, but it doesn't show up?</strong>
+      <strong
+        >I played a game for a little while, but it doesn't show up?</strong
+      >
       <ul>
         <li>Sessions shorter than 1 minute are not saved</li>
         <li>
@@ -19,17 +21,21 @@
         </li>
       </ul>
 
-      <strong>I added a game manually to Discord, but it's showing up as
+      <strong
+        >I added a game manually to Discord, but it's showing up as
         <code>bla.exe</code>. Can I rename it so it automatically gets properly
-        named here?</strong>
+        named here?</strong
+      >
       <p>
         Yes, if you go into the Registered Games section in Discord, you can
         click a <strong>non-verified</strong> game's title to rename it to
         whatever you want.
       </p>
 
-      <strong>I don't want to track a particular game I am playing. How can I ignore
-        it?</strong>
+      <strong
+        >I don't want to track a particular game I am playing. How can I ignore
+        it?</strong
+      >
       <p>
         Go into the Registered Games section of Discord and click the eye to
         toggle detection. (Note that this hides the game from all of Discord).

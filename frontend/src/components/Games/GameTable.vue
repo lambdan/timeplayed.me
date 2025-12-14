@@ -3,7 +3,11 @@ import { onMounted, ref, watch } from "vue";
 import GameRow from "./GameRow.vue";
 import { cacheFetch, sleep } from "../../utils";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
-import type { GameWithStats, PaginatedGamesWithStats, User } from "../../api.models";
+import type {
+  GameWithStats,
+  PaginatedGamesWithStats,
+  User,
+} from "../../api.models";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;

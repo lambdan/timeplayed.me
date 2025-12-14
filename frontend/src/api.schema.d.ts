@@ -126,7 +126,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/{platform_id}": {
+    "/api/platform/{platformId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -134,7 +134,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Platform */
-        get: operations["get_platform_api_platform__platform_id__get"];
+        get: operations["get_platform_api_platform__platformId__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -655,8 +655,12 @@ export interface operations {
     get_games_api_games_get: {
         parameters: {
             query?: {
-                limit?: unknown;
                 offset?: unknown;
+                limit?: unknown;
+                userId?: number | null;
+                platformId?: number | null;
+                before?: number | null;
+                after?: number | null;
             };
             header?: never;
             path?: never;
@@ -688,6 +692,9 @@ export interface operations {
         parameters: {
             query?: {
                 userId?: number | null;
+                before?: number | null;
+                after?: number | null;
+                platformId?: number | null;
             };
             header?: never;
             path: {
@@ -722,6 +729,10 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
+                userId?: number | null;
+                gameId?: number | null;
+                before?: number | null;
+                after?: number | null;
             };
             header?: never;
             path?: never;
@@ -749,12 +760,17 @@ export interface operations {
             };
         };
     };
-    get_platform_api_platform__platform_id__get: {
+    get_platform_api_platform__platformId__get: {
         parameters: {
-            query?: never;
+            query?: {
+                userId?: number | null;
+                before?: number | null;
+                after?: number | null;
+                gameId?: number | null;
+            };
             header?: never;
             path: {
-                platform_id: number;
+                platformId: number;
             };
             cookie?: never;
         };

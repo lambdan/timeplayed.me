@@ -78,7 +78,9 @@ onMounted(() => {});
           />
         </tbody>
       </table>
-      <p v-if ="!_loading && _users.length === 0" class="text-secondary">No one seems to have played this in the selected period</p>
+      <p v-if="!_loading && _users.length === 0" class="text-secondary">
+        No one seems to have played this in the selected period
+      </p>
     </div>
   </div>
 </template>

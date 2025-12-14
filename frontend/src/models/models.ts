@@ -115,8 +115,6 @@ export interface API_Platforms extends API_Paginated {
   data: PlatformWithStats[];
 }
 
-
-
 /**
  * @deprecated
  */
@@ -178,5 +176,3 @@ export interface UsersQuery {
   before?: number | Date;
   after?: number | Date;
 }
-
-

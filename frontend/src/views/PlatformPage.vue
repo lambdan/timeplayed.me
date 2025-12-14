@@ -6,7 +6,10 @@ import GameInfoCard from "../components/GameInfoCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import ColorSpinners from "../components/Misc/ColorSpinners.vue";
-import type { PaginatedPlatformsWithStats, PlatformWithStats } from "../api.models";
+import type {
+  PaginatedPlatformsWithStats,
+  PlatformWithStats,
+} from "../api.models";
 
 const route = useRoute();
 const platform = ref<PlatformWithStats>();

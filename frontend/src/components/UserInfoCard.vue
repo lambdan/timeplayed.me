@@ -11,7 +11,7 @@ const loadingStats = ref(true);
 
 onMounted(async () => {
   const res = await fetch(`/api/users/${props.user.id}`);
-  const data = await res.json() as UserWithStats;
+  const data = (await res.json()) as UserWithStats;
   stats.value = data;
   loadingStats.value = false;
 });
@@ -49,8 +49,6 @@ onMounted(async () => {
                   </small>
                 </td>
               </tr>
-
-
             </tbody>
           </table>
         </div>
@@ -58,7 +56,7 @@ onMounted(async () => {
         <div class="col mb-4">
           <table class="table table-responsive table-hover">
             <tbody>
-                            <tr>
+              <tr>
                 <td><b>Games played:</b></td>
                 <td>{{ stats?.totals.game_count }}</td>
               </tr>

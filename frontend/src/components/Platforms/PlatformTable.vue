@@ -3,7 +3,12 @@ import { onMounted, ref, watch } from "vue";
 import PlatformRow from "./PlatformRow.vue";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 import { sleep } from "../../utils";
-import type { Game, PaginatedPlatformsWithStats, PlatformWithStats, User } from "../../api.models";
+import type {
+  Game,
+  PaginatedPlatformsWithStats,
+  PlatformWithStats,
+  User,
+} from "../../api.models";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -50,10 +55,17 @@ async function fetchWithGame() {
   loading.value = true;
   platforms.value = [];
   const fetchedPlatforms: PlatformWithStats[] = [];
-  let res = await fetch(`/api/games/${props.game?.id}/platforms`);
-  let data = (await res.json()) as PlatformWithStats[];
-  fetchedPlatforms.push(...data);
+  let res = await fetch(`/api/platforms?gameId=${props.game?.id}`);
+  let data = (await res.json()) as PaginatedPlatformsWithStats;
+  fetchedPlatforms.push(...data.data);
 
+  while (fetchedPlatforms.length < data.total) {
+    res = await fetch(
+      `/api/platforms?gameId=${props.game?.id}&offset=${fetchedPlatforms.length}`,
+    );
+    data = (await res.json()) as PaginatedPlatformsWithStats;
+    fetchedPlatforms.push(...data.data);
+  }
   platforms.value = fetchedPlatforms;
   sort();
   loading.value = false;
@@ -63,17 +75,23 @@ async function fetchWithUser() {
   loading.value = true;
   platforms.value = [];
   const fetchedPlatforms: PlatformWithStats[] = [];
-  let res = await fetch(`/api/users/${props.user?.id}/platforms`);
-  let data = (await res.json()) as PlatformWithStats[];
-  fetchedPlatforms.push(...data);
+  let res = await fetch(`/api/platforms?userId=${props.user?.id}`);
+  let data = (await res.json()) as PaginatedPlatformsWithStats;
+  fetchedPlatforms.push(...data.data);
 
+  while (fetchedPlatforms.length < data.total) {
+    res = await fetch(
+      `/api/platforms?userId=${props.user?.id}&offset=${fetchedPlatforms.length}`,
+    );
+    data = (await res.json()) as PaginatedPlatformsWithStats;
+    fetchedPlatforms.push(...data.data);
+  }
   platforms.value = fetchedPlatforms;
   sort();
   loading.value = false;
 }
 
 function sort() {
-
   if (localSort.value === "recency") {
     platforms.value.sort((a, b) => {
       if (!a.newest_activity || !b.newest_activity) return 0;

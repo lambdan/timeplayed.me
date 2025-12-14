@@ -6,7 +6,6 @@ import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Totals } from "../api.models";
 
-
 const globalStats = ref<Totals>();
 const loading = ref<boolean>(true);
 

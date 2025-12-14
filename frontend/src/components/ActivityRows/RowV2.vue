@@ -13,7 +13,7 @@ const props = defineProps<{
   context?: "userPage" | "gamePage" | "frontPage";
 }>();
 
-const _id = ref<string|number>("");
+const _id = ref<string | number>("");
 const _durationSeconds = ref(0);
 const _timeDisplayed = ref("");
 const _dateDisplayed = ref("");
