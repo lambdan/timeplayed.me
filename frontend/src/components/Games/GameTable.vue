@@ -1,43 +1,50 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import GameRow from "./GameRow.vue";
-import ColorSpinners from "../Misc/ColorSpinners.vue";
-import type { GameWithStats, User } from "../../api.models";
+import { onMounted, ref } from "vue";
+import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
+import RowV2 from "../ActivityRows/RowV2.vue";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
     user?: User;
+    platform?: Platform;
+    limit?: number;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
+    limit: 10,
   },
 );
 
+const _loadingPercent = ref(0);
 const _gamesData = ref<GameWithStats[]>([]);
 const _displayedGames = ref<GameWithStats[]>([]);
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
-const _shownAmount = ref(20);
+const _shownAmount = ref(props.limit || 10);
 
-const SHOWN_INCREMENT = 50;
+const SHOWN_INCREMENT = props.limit || 10;
 
 async function fetchGames() {
   loading.value = true;
   _gamesData.value = [];
+  _loadingPercent.value = 0;
 
   while (true) {
     const f = await TimeplayedAPI.getGames({
       limit: 100,
       offset: _gamesData.value.length,
+      userId: props.user ? props.user.id : undefined,
+      platformId: props.platform ? props.platform.id : undefined,
     });
     _gamesData.value.push(...f.data);
     if (_gamesData.value.length >= f.total) break;
+    _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
   }
   sort();
 
@@ -75,11 +82,18 @@ function sort() {
   updateDisplayedGames();
 }
 
-watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
+/*watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
   localSort.value = newSort;
   localOrder.value = newOrder;
   sort();
-});
+});*/
+
+function setSort(newSort: "recency" | "playtime" | "name") {
+  console.log("sort", newSort);
+  localSort.value = newSort;
+  localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
+  sort();
+}
 
 onMounted(() => {
   fetchGames();
@@ -87,9 +101,64 @@ onMounted(() => {
 </script>
 
 <template>
-  <ColorSpinners v-if="loading" />
+  <p v-if="loading" class="text-center text-muted">
+    Loading... {{ _loadingPercent.toFixed(0) }}%
+  </p>
   <template v-else-if="_gamesData.length > 0">
-    <GameRow v-for="game in _displayedGames" :key="game.game.id" :game="game" />
+    <table class="table table table-hover table-responsive">
+      <thead>
+        <tr>
+          <th></th>
+          <th @click="setSort('name')">
+            Game
+            <i
+              :class="
+                localSort === 'name'
+                  ? 'bi bi-sort-alpha-' +
+                    (localOrder === 'asc' ? 'down' : 'up-alt')
+                  : ''
+              "
+            />
+          </th>
+          <th @click="setSort('playtime')">
+            Playtime
+            <i
+              :class="
+                localSort === 'playtime'
+                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
+                  : ''
+              "
+            />
+          </th>
+          <th @click="setSort('recency')">
+            Last Played
+            <i
+              :class="
+                localSort === 'recency'
+                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
+                  : ''
+              "
+            />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <RowV2
+          v-for="game in _displayedGames"
+          :key="game.game.id"
+          :game="game"
+          :context="'gameTable'"
+          :durationSeconds="game.totals.playtime_secs"
+          :date="
+            game.newest_activity
+              ? new Date(game.newest_activity.timestamp)
+              : undefined
+          "
+        />
+      </tbody>
+    </table>
+    <!--
+    <GameRow v-for="game in _displayedGames" :key="game.game.id" :game="game" />-->
 
     <div class="text-center">
       <button

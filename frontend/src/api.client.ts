@@ -27,6 +27,25 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getPlatform(platformId: number) {
+    const { data, error } = await this.getClient().GET(
+      "/api/platform/{platformId}",
+      {
+        params: {
+          path: {
+            platformId,
+          },
+          query: {},
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching platform:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getActivities(
     queryParams: paths["/api/activities"]["get"]["parameters"]["query"],
   ) {
@@ -67,6 +86,21 @@ export class TimeplayedAPI {
     });
     if (error) {
       console.error("Error fetching games:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async getPlatforms(
+    queryParams: paths["/api/platforms"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET("/api/platforms", {
+      params: {
+        query: queryParams,
+      },
+    });
+    if (error) {
+      console.error("Error fetching platforms:", error);
       throw error;
     }
     return data;

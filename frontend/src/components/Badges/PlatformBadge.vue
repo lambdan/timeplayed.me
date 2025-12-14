@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Platform } from "../../models/models";
 import { defineProps } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import type { Platform } from "../../api.models.ts";
 
 const props = withDefaults(
   defineProps<{ platform: Platform; showName?: boolean }>(),

@@ -44,14 +44,7 @@ onMounted(async () => {
       :class="{ active: showActivity }"
       @click="toggleCard('activity')"
     >
-      Recent Activity
-    </button>
-    <button
-      class="btn btn-outline-primary"
-      :class="{ active: showGames }"
-      @click="toggleCard('games')"
-    >
-      All Games
+      Activity
     </button>
     <button
       class="btn btn-outline-primary"
@@ -60,6 +53,14 @@ onMounted(async () => {
     >
       Chart
     </button>
+    <button
+      class="btn btn-outline-primary"
+      :class="{ active: showGames }"
+      @click="toggleCard('games')"
+    >
+      Games
+    </button>
+
     <button
       class="btn btn-outline-primary"
       :class="{ active: showPlatforms }"
@@ -85,7 +86,7 @@ onMounted(async () => {
     v-if="apiUser && showGames"
     class="mb-4"
     :showExpand="false"
-    :limit="5"
+    :limit="10"
     :order="'desc'"
     :sort="'playtime'"
     :user="apiUser.user"

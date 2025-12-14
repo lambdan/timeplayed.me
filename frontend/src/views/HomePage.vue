@@ -76,7 +76,7 @@ onMounted(async () => {
     <PlaytimeChart />
   </div>
   <div class="row">
-    <div class="col mb-4">
+    <div class="col-lg-4 mb-4">
       <TopPlayersCard :startingRelativeDays="7" />
     </div>
     <div class="col mb-4">

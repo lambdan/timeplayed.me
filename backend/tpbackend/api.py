@@ -158,11 +158,9 @@ def get_users(
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
 
-    total = 0
-    if gameId:
-        total = get_player_count(gameId, before=before, after=after)
-    else:
-        total = get_user_count(before=before, after=after)
+    total = get_user_count(
+        before=before, after=after, gameId=gameId, platformId=platformId
+    )
 
     filters = []
     if gameId:

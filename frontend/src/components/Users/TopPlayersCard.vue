@@ -2,17 +2,17 @@
 import { onMounted, ref } from "vue";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import type { Game, User } from "../../api.models";
+import type { Game, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
+import type { UserWithStats } from "../../api.models";
 
 const props = defineProps<{
   game?: Game;
+  platform?: Platform;
   startingRelativeDays?: number;
 }>();
 
-const _users = ref<
-  { user: User; duration: number; count: number; last_played: Date }[]
->([]);
+const _users = ref<UserWithStats[]>([]);
 const _loading = ref(false);
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
@@ -30,22 +30,16 @@ async function fetchTheThings() {
       gameId: props.game ? props.game.id : undefined,
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
+      platformId: props.platform ? props.platform.id : undefined,
     });
 
-    for (const u of data.data) {
-      _users.value.push({
-        user: u.user,
-        duration: u.totals.playtime_secs,
-        count: u.totals.activity_count,
-        last_played: new Date(u.newest_activity.timestamp),
-      });
-    }
+    _users.value.push(...data.data);
 
     if (data.total === _users.value.length) {
       break;
     }
   }
-  _users.value.sort((a, b) => b.duration - a.duration);
+  _users.value.sort((a, b) => b.totals.playtime_secs - a.totals.playtime_secs);
   _loading.value = false;
 }
 
@@ -72,8 +66,8 @@ onMounted(() => {});
           <RowV2
             v-for="user in _users"
             :key="user.user.id"
-            :user="user.user"
-            :duration-seconds="user.duration"
+            :user="user"
+            :duration-seconds="user.totals.playtime_secs"
             :context="props.game ? 'gamePage' : 'frontPage'"
           />
         </tbody>

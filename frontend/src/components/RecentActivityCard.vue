@@ -78,6 +78,8 @@ onMounted(() => {
             :key="activity.id"
             :activity="activity"
             :context="getContext()"
+            :duration-seconds="activity.seconds"
+            :date="new Date(activity.timestamp)"
           />
         </tbody>
       </table>
