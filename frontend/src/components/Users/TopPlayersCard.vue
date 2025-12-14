@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { fetchUsers } from "../../utils";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import type { Game, User } from "../../api.models";
+import { TimeplayedAPI } from "../../api.client";
 
 const props = defineProps<{
   game?: Game;
@@ -24,15 +24,15 @@ async function fetchTheThings() {
   _loading.value = true;
   _users.value = [];
   while (true) {
-    const res = await fetchUsers({
+    const data = await TimeplayedAPI.getUsers({
       offset: _users.value.length,
       limit: 100,
       gameId: props.game ? props.game.id : undefined,
-      before: _before.value,
-      after: _after.value,
+      before: _before.value ? _before.value.getTime() : undefined,
+      after: _after.value ? _after.value.getTime() : undefined,
     });
 
-    for (const u of res.data) {
+    for (const u of data.data) {
       _users.value.push({
         user: u.user,
         duration: u.totals.playtime_secs,
@@ -41,7 +41,7 @@ async function fetchTheThings() {
       });
     }
 
-    if (res.total === _users.value.length) {
+    if (data.total === _users.value.length) {
       break;
     }
   }

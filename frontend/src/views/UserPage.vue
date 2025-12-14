@@ -3,10 +3,11 @@ import { onMounted, ref } from "vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { type UserWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import PlatformTable from "../components/Platforms/PlatformTable.vue";
+import type { UserWithStats } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
 
 const route = useRoute();
 const apiUser = ref<UserWithStats>();
@@ -29,9 +30,7 @@ function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
 
 onMounted(async () => {
   const userId = route.params.id as string;
-  const userRes = await fetch(`/api/users/${userId}`);
-  apiUser.value = await userRes.json();
-
+  apiUser.value = await TimeplayedAPI.getUser(userId);
   const month = new Date().getMonth() + 1; // its zero indexed because JS is hillarious
   showRecap.value = month === 12 || month === 1;
 });

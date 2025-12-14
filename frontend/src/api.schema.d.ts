@@ -24,7 +24,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users/{userId}": {
+    "/api/user/{userId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -32,7 +32,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get User */
-        get: operations["get_user_api_users__userId__get"];
+        get: operations["get_user_api_user__userId__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -458,6 +458,20 @@ export interface components {
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
         };
+        /** SGDB_Game_SearchResult */
+        SGDB_Game_SearchResult: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Verified */
+            verified: boolean;
+            /**
+             * Release Date
+             * Format: date-time
+             */
+            release_date: string;
+        };
         /** Totals */
         Totals: {
             /**
@@ -547,7 +561,7 @@ export interface operations {
             };
         };
     };
-    get_user_api_users__userId__get: {
+    get_user_api_user__userId__get: {
         parameters: {
             query?: {
                 before?: number | null;
@@ -557,7 +571,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: number;
+                userId: string;
             };
             cookie?: never;
         };
@@ -589,7 +603,7 @@ export interface operations {
                 offset?: unknown;
                 limit?: unknown;
                 order?: "desc" | "asc";
-                user?: number | null;
+                user?: string | null;
                 game?: number | null;
                 platform?: number | null;
                 before?: number | null;
@@ -657,7 +671,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: number | null;
+                userId?: string | null;
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -691,7 +705,7 @@ export interface operations {
     get_game_api_game__gameId__get: {
         parameters: {
             query?: {
-                userId?: number | null;
+                userId?: string | null;
                 before?: number | null;
                 after?: number | null;
                 platformId?: number | null;
@@ -729,7 +743,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: number | null;
+                userId?: string | null;
                 gameId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -763,7 +777,7 @@ export interface operations {
     get_platform_api_platform__platformId__get: {
         parameters: {
             query?: {
-                userId?: number | null;
+                userId?: string | null;
                 before?: number | null;
                 after?: number | null;
                 gameId?: number | null;
@@ -799,7 +813,7 @@ export interface operations {
     get_totals_api_totals_get: {
         parameters: {
             query?: {
-                userId?: number | null;
+                userId?: string | null;
                 gameId?: number | null;
                 platformId?: number | null;
                 before?: number | null;
@@ -834,7 +848,7 @@ export interface operations {
     get_playtime_by_day_api_stats_chart_playtime_by_day_get: {
         parameters: {
             query?: {
-                userId?: number | null;
+                userId?: string | null;
                 gameId?: number | null;
                 platformId?: number | null;
             };
@@ -881,7 +895,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SGDB_Game_SearchResult"][];
                 };
             };
             /** @description Validation Error */

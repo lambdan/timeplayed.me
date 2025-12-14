@@ -9,6 +9,8 @@ export type PaginatedUsersWithStats =
 
 export type Activity = components["schemas"]["PublicActivityModel"];
 export type PaginatedActivities = components["schemas"]["PaginatedActivities"];
+export type ActivitiesQuery =
+  paths["/api/activities"]["get"]["parameters"]["query"];
 
 export type Platform = components["schemas"]["PublicPlatformModel"];
 export type PlatformWithStats = components["schemas"]["PlatformWithStats"];

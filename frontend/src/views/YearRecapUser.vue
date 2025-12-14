@@ -1,20 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import {
-  type Activity,
-  type API_Activities,
-  type User,
-  type UserWithStats,
-} from "../models/models";
 import { useRoute } from "vue-router";
-import { fetchActivities, fetchUserInfo, iso8601Date } from "../utils";
-import {
-  type RecapGameEntry,
-  type RecapPlatformEntry,
-} from "../models/stats.models";
+import { iso8601Date } from "../utils";
 import { buildGamesList, buildPlatformsList } from "../utils.stats";
 import DiscordAvatar from "../components/DiscordAvatar.vue";
 import GameCover from "../components/Games/GameCover.vue";
+import type {
+  RecapGameEntry,
+  RecapPlatformEntry,
+} from "../models/stats.models";
+import type { Activity, User } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
 
 const route = useRoute();
 const loading = ref<boolean>(true);
@@ -364,19 +360,19 @@ async function _fetchActivities() {
   loadingProgress.value = 0;
 
   while (true) {
-    const fetchedActivities = await fetchActivities({
-      userId: refUserId.value + "",
-      after: startDate,
-      before: endDate,
+    const fetchedActivities = await TimeplayedAPI.getActivities({
+      after: startDate.getTime(),
+      before: endDate.getTime(),
       limit: 200,
       offset: activities.value.length,
+      user: refUserId.value,
     });
     activities.value.push(...fetchedActivities.data);
     loadingProgress.value = Math.min(
       100,
-      (activities.value.length / fetchedActivities._total) * 100,
+      (activities.value.length / fetchedActivities.total) * 100,
     );
-    if (activities.value.length >= fetchedActivities._total) {
+    if (activities.value.length >= fetchedActivities.total) {
       break;
     }
   }
@@ -392,7 +388,9 @@ async function _fetchActivities() {
 onMounted(async () => {
   const userId = route.params.id as string;
   const year = parseInt(route.params.year as string);
-  userInfo.value = await fetchUserInfo(userId);
+
+  const data = await TimeplayedAPI.getUser(userId);
+  userInfo.value = data.user;
   refUserId.value = userId;
   refYear.value = year;
   await _fetchActivities();

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import { fetchActivities, sleep } from "../../utils";
 
 import UserRow from "./UserRow.vue";
 import type {

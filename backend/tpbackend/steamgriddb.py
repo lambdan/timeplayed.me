@@ -1,6 +1,7 @@
 import datetime
 import os, logging
 from typing import TypedDict
+from pydantic import BaseModel
 from steamgrid import SteamGridDB
 from steamgrid import StyleType, PlatformType, MimeType, ImageType
 
@@ -11,7 +12,14 @@ sgdb = SteamGridDB(os.environ["SGDB_TOKEN"])
 cache = {}
 
 
-def search(query: str):
+class SGDB_Game_SearchResult(BaseModel):
+    id: int
+    name: str
+    verified: bool
+    release_date: datetime.datetime
+
+
+def search(query: str) -> list[SGDB_Game_SearchResult]:
     cacheKey = "search_" + query
     if cacheKey in cache:
         time: datetime.datetime = cache[cacheKey]["time"]
@@ -20,12 +28,26 @@ def search(query: str):
             logger.debug("Returning cached search result for query '%s'", query)
             return cache[cacheKey]["data"]
 
+    s = sgdb.search_game(query)
+    res = []
+    if s:
+        for game in s:
+            if game.id and game.name and game.release_date:
+                res.append(
+                    SGDB_Game_SearchResult(
+                        id=game.id,
+                        name=game.name,
+                        verified=bool(game.verified != None and game.verified),
+                        release_date=game.release_date,
+                    )
+                )
+
     cacheEntry = {
         "time": datetime.datetime.now(datetime.UTC),
-        "data": sgdb.search_game(query),
+        "data": res,
     }
     cache[cacheKey] = cacheEntry
-    return cache[cacheKey]["data"]
+    return res
 
 
 def get_grids(game_id: int):

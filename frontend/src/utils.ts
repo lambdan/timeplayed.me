@@ -1,12 +1,5 @@
-import type {
-  GameWithStats,
-  PaginatedActivities,
-  PaginatedUsersWithStats,
-  SGDBGame,
-  SGDBGrid,
-  User,
-} from "./api.models";
-import type { ActivitiesQuery, UsersQuery } from "./models/models";
+import { TimeplayedAPI } from "./api.client";
+import type { GameWithStats, SGDBGrid } from "./api.models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -123,31 +116,13 @@ export async function cacheFetch(
 }
 
 // this should probably a service...
-export async function fetchActivities(
+/*export async function fetchActivities(
   params: ActivitiesQuery,
 ): Promise<PaginatedActivities> {
-  if (params.after && params.after instanceof Date) {
-    params.after = params.after.getTime();
-  }
-  if (params.before && params.before instanceof Date) {
-    params.before = params.before.getTime();
-  }
-
-  const apiParams = {
-    user: params.userId,
-    game: params.gameId,
-    platform: params.platformId,
-    offset: params.offset,
-    limit: params.limit,
-    before: params.before,
-    after: params.after,
-    order: params.order,
-  };
-
   let url = "/api/activities?";
   const queryParts: string[] = [];
-  for (const key in apiParams) {
-    const value = (apiParams as any)[key];
+  for (const key in params) {
+    const value = (params as any)[key];
     if (value !== undefined) {
       queryParts.push(
         `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
@@ -155,17 +130,17 @@ export async function fetchActivities(
     }
   }
   url += queryParts.join("&");
-  console.log("Fetching activities", apiParams, url);
+  console.log("Fetching activities", params, url);
   //const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
   return await res.json();
-}
+}*/
 
 // this should probably a service...
-export async function fetchUsers(
+/*export async function fetchUsers(
   params: UsersQuery,
 ): Promise<PaginatedUsersWithStats> {
   if (params.after && params.after instanceof Date) {
@@ -200,7 +175,7 @@ export async function fetchUsers(
     throw new Error(`Failed to fetch activities`);
   }
   return await res.json();
-}
+}*/
 
 export async function getGameCoverUrl(
   gameId: number,
@@ -232,15 +207,20 @@ export async function getGameCoverUrl(
   }
 
   // search
-  const searchRes = await cacheFetch(
-    `/api/sgdb/search?query=${encodeURIComponent(gameData.name)}`,
-    CACHE_LIFETIME,
+  const { data, error } = await TimeplayedAPI.getClient().GET(
+    "/api/sgdb/search",
+    {
+      params: {
+        query: {
+          query: gameData.name,
+        },
+      },
+    },
   );
 
-  if (searchRes.ok) {
-    const searchData: SGDBGame[] = await searchRes.json();
-    if (searchData.length > 0) {
-      const gameId = searchData[0].id;
+  if (data && data.length > 0) {
+    const gameId = data[0]?.id;
+    if (gameId !== undefined) {
       const res = await cacheFetch(
         `/api/sgdb/grids/${gameId}/best`,
         CACHE_LIFETIME,
@@ -255,7 +235,7 @@ export async function getGameCoverUrl(
   return FALLBACK;
 }
 
-export async function fetchUserInfo(userId: string): Promise<User> {
+/*export async function fetchUserInfo(userId: string): Promise<User> {
   const CACHE_LIFETIME = 1000 * 60 * 10; // 10 minutes
   const res = await cacheFetch(`/api/user/${userId}`, CACHE_LIFETIME);
   if (!res.ok) {
@@ -263,7 +243,7 @@ export async function fetchUserInfo(userId: string): Promise<User> {
   }
   const data = await res.json();
   return data;
-}
+}*/
 
 export function iso8601Date(date: Date | number): string {
   if (typeof date === "number") {

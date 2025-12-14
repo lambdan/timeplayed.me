@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { fetchActivities as FU, formatDuration } from "../utils";
 import RowV2 from "./ActivityRows/RowV2.vue";
 import type { Activity, Game, User } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
 
 const props = withDefaults(
   defineProps<{
@@ -25,12 +25,13 @@ const loading = ref(false);
 const hasMore = ref(true);
 
 async function fetchActivities(limit: number, offsetVal = 0) {
-  const data = await FU({
+  const data = await TimeplayedAPI.getActivities({
     limit,
     offset: offsetVal,
-    gameId: props.game ? props.game.id.toString() : undefined,
-    userId: props.user ? props.user.id.toString() : undefined,
+    game: props.game ? props.game.id : undefined,
+    user: props.user ? props.user.id : undefined,
   });
+
   const newActivities = data.data.map((activity: any) => ({
     ...activity,
     createdAt: new Date(activity.timestamp),

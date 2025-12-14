@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { formatDate, timeAgo, formatDuration } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { User, UserWithStats } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
 
 const props = defineProps<{ user: User }>();
 
@@ -10,9 +11,7 @@ const stats = ref<UserWithStats>();
 const loadingStats = ref(true);
 
 onMounted(async () => {
-  const res = await fetch(`/api/users/${props.user.id}`);
-  const data = (await res.json()) as UserWithStats;
-  stats.value = data;
+  stats.value = await TimeplayedAPI.getUser(props.user.id);
   loadingStats.value = false;
 });
 </script>
