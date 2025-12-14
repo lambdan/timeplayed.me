@@ -1,69 +1,102 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Activity } from "../../models/models";
+import type { Activity, User } from "../../models/models";
 import { formatDuration, timeAgo } from "../../utils";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 
 const props = defineProps<{
-  activity: Activity;
+  activity?: Activity;
+  user?: User;
+  durationSeconds?: number;
   context?: "userPage" | "gamePage" | "frontPage";
 }>();
 
-const refTimeDisplayed = ref("");
-const refDateDisplayed = ref("");
+const _id = ref(0);
+const _durationSeconds = ref(0);
+const _timeDisplayed = ref("");
+const _dateDisplayed = ref("");
 
-function updateDate() {
-  const activityDate = new Date(props.activity.timestamp);
-  refDateDisplayed.value = timeAgo(activityDate, true);
+function setupActivity(activity: Activity) {
+  function updateDate(d: Date) {
+    _dateDisplayed.value = timeAgo(d, true);
+  }
+  _timeDisplayed.value = formatDuration(activity.seconds);
+  updateDate(new Date(activity.timestamp));
+  setInterval(() => {
+    updateDate(new Date(activity.timestamp));
+  }, 1000); // Update every second
+}
+
+function setupDuration() {
+  if (props.durationSeconds) {
+    _durationSeconds.value = props.durationSeconds;
+  } else if (props.activity) {
+    _durationSeconds.value = props.activity.seconds;
+  } else {
+    throw new Error("Either activity or duration prop must be provided");
+  }
+  _timeDisplayed.value = formatDuration(_durationSeconds.value);
 }
 
 onMounted(() => {
-  refTimeDisplayed.value = formatDuration(props.activity.seconds);
-  updateDate();
-  setInterval(() => {
-    updateDate();
-  }, 1000); // Update every second
+  if (props.activity) {
+    _id.value = props.activity.id;
+    setupActivity(props.activity);
+  } else if (props.user) {
+    _id.value = props.user.id;
+  }
+
+  setupDuration();
 });
 </script>
 
 <template>
-  <tr class="align-middle" :key="activity.id">
-    <td>
+  <tr class="align-middle" :key="_id">
+    <td v-if="props.activity">
       <small title="Activity ID" class="text-secondary">{{
-        activity.id
+        props.activity.id
       }}</small>
     </td>
 
-    <td v-if="props.context !== 'userPage'">
-      <DiscordAvatar :user="activity.user" :maxWidth="50"></DiscordAvatar>
+    <td v-if="props.user">
+      <DiscordAvatar :user="props.user" :maxWidth="50"></DiscordAvatar>
     </td>
-    <td v-if="props.context === 'userPage'">
+
+    <td v-if="props.context !== 'userPage' && props.activity">
+      <DiscordAvatar :user="props.activity.user" :maxWidth="50"></DiscordAvatar>
+    </td>
+
+    <td v-if="props.context === 'userPage' && props.activity">
       <GameCover
-        :gameId="activity.game.id"
+        :gameId="props.activity.game.id"
         :thumb="true"
         :maxHeight="50"
       ></GameCover>
     </td>
 
-    <td v-if="props.context !== 'gamePage'">
+    <td v-if="props.context !== 'gamePage' && props.activity">
       <a
-        :href="`/game/${activity.game.id}`"
+        :href="`/game/${props.activity.game.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ activity.game.name }}</a
+        >{{ props.activity.game.name }}</a
       >
     </td>
 
-    <td>
-      <PlatformBadge :platform="activity.platform" />
+    <td v-if="props.activity">
+      <PlatformBadge :platform="props.activity.platform" />
     </td>
 
-    <td :title="activity.seconds + ' seconds'">
-      <i class="bi bi-clock-history"></i> {{ refTimeDisplayed }}
+    <td :title="`${_durationSeconds} seconds`">
+      <i class="bi bi-clock-history"></i> {{ _timeDisplayed }}
     </td>
-    <td :title="new Date(activity.timestamp).toLocaleString()">
-      <i class="bi bi-calendar"></i> {{ refDateDisplayed }}
+
+    <td
+      v-if="props.activity"
+      :title="new Date(props.activity.timestamp).toLocaleString()"
+    >
+      <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
   </tr>
 </template>

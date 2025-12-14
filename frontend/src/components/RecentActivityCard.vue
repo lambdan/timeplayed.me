@@ -50,7 +50,7 @@ async function fetchActivities(limit: number, offsetVal = 0) {
     activities.value = [...activities.value, ...newActivities];
   }
 
-  hasMore.value = data._total > offsetVal + newActivities.length;
+  hasMore.value = data.total > offsetVal + newActivities.length;
   loading.value = false;
 }
 

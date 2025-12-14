@@ -45,15 +45,13 @@ export interface Activity {
 }
 
 export interface API_Paginated {
-  _total: number;
-  _offset: number;
-  _limit: number;
+  total: number;
+  offset: number;
+  limit: number;
 }
 
 export interface API_Activities extends API_Paginated {
   data: Activity[];
-  _before: string | null;
-  _after: string | null;
 }
 
 export interface UserWithStats {
@@ -147,4 +145,12 @@ export interface ActivitiesQuery {
   before?: number | Date;
   after?: number | Date;
   order?: "asc" | "desc";
+}
+
+export interface UsersQuery {
+  offset: number;
+  limit: number;
+  gameId?: number;
+  before?: number | Date;
+  after?: number | Date;
 }

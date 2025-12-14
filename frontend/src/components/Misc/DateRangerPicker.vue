@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 
 const refRelativeMode = ref(false);
 const refRelativeHours = ref<number>();
@@ -35,11 +35,15 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "update:before", value: Date | undefined): void;
-  (e: "update:after", value: Date | undefined): void;
+  //(e: "update:before", value: Date | undefined): void;
+  //(e: "update:after", value: Date | undefined): void;
+  (
+    e: "updated:both",
+    value: { before: Date | undefined; after: Date | undefined },
+  ): void;
 }>();
 
-function setBefore(newBefore: Date | undefined) {
+function setBoth(newBefore: Date | undefined, newAfter: Date | undefined) {
   if (refRelativeMode.value) {
     newBefore = undefined; // before is not needed for relative mode
   } else if (newBefore) {
@@ -47,14 +51,12 @@ function setBefore(newBefore: Date | undefined) {
     newBefore.setHours(23, 59, 59, 999);
   }
   refBefore.value = newBefore;
-  emit("update:before", newBefore);
-}
+  if (newAfter) {
+    newAfter.setHours(0, 0, 0, 0);
+    refAfter.value = newAfter;
+  }
 
-function setAfter(newAfter: Date) {
-  // inclusive date picker handling: set to start of day
-  newAfter.setHours(0, 0, 0, 0);
-  refAfter.value = newAfter;
-  emit("update:after", newAfter);
+  emit("updated:both", { before: newBefore, after: newAfter });
 }
 
 function iso8601(date: Date, includeTime = true): string {
@@ -70,8 +72,7 @@ function iso8601(date: Date, includeTime = true): string {
 onMounted(() => {
   if (props.before && props.after) {
     refRelativeMode.value = false;
-    setBefore(props.before);
-    setAfter(props.after);
+    setBoth(props.before, props.after);
   } else if (
     props.relativeDays !== undefined ||
     props.relativeHours !== undefined
@@ -82,14 +83,16 @@ onMounted(() => {
     } else {
       refRelativeHours.value = props.relativeHours;
     }
-    setBefore(undefined);
-    setAfter(new Date(Date.now() - refRelativeHours.value! * ONE_HOUR));
+    //setBefore(undefined);
+    setBoth(
+      undefined,
+      new Date(Date.now() - refRelativeHours.value! * ONE_HOUR),
+    );
   } else {
     // default to all time
     refRelativeMode.value = true;
     refRelativeHours.value = 0;
-    setBefore(undefined);
-    setAfter(new Date(0));
+    setBoth(undefined, new Date(0));
   }
 });
 </script>
@@ -105,7 +108,10 @@ onMounted(() => {
           class="form-control"
           :value="refAfter ? iso8601(refAfter, false) : ''"
           @change="
-            setAfter(new Date(($event.target as HTMLInputElement)?.value))
+            setBoth(
+              refBefore,
+              new Date(($event.target as HTMLInputElement)?.value),
+            )
           "
         />
         <span class="input-group-text">-</span>
@@ -115,7 +121,10 @@ onMounted(() => {
           class="form-control"
           :value="refBefore ? iso8601(refBefore, false) : ''"
           @change="
-            setBefore(new Date(($event.target as HTMLInputElement)?.value))
+            setBoth(
+              new Date(($event.target as HTMLInputElement)?.value),
+              refAfter,
+            )
           "
         />
         <button
@@ -123,7 +132,13 @@ onMounted(() => {
           @click="
             refRelativeMode = !refRelativeMode;
             if (refRelativeMode) {
-              setBefore(undefined);
+              setBoth(
+                undefined,
+                new Date(
+                  Date.now() -
+                    (refRelativeHours ? refRelativeHours * ONE_HOUR : 0),
+                ),
+              );
             }
           "
           type="button"
@@ -147,11 +162,10 @@ onMounted(() => {
                 const val = (e.target as HTMLSelectElement).value;
                 if (val === '0') {
                   // all time
-                  setAfter(new Date(0));
+                  setBoth(undefined, new Date(0));
                 } else {
-                  setAfter(new Date(Date.now() - parseInt(val)));
+                  setBoth(undefined, new Date(Date.now() - parseInt(val)));
                 }
-                setBefore(undefined);
               }
             "
             :value="refRelativeHours ? refRelativeHours * ONE_HOUR : '0'"
@@ -169,9 +183,9 @@ onMounted(() => {
             @click="
               refRelativeMode = !refRelativeMode;
               if (!refRelativeMode) {
-                setBefore(new Date());
+                setBoth(new Date(), refAfter);
               } else {
-                setBefore(undefined);
+                setBoth(undefined, undefined);
               }
             "
             type="button"

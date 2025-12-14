@@ -1,10 +1,12 @@
 import type {
   ActivitiesQuery,
   API_Activities,
+  API_Users,
   Game,
   SGDBGame,
   SGDBGrid,
   User,
+  UsersQuery,
 } from "./models/models";
 
 export function formatDate(date?: Date | number): string {
@@ -87,6 +89,7 @@ export async function cacheFetch(
   url: string,
   maxAge: number,
 ): Promise<Response> {
+  //return fetch(url);
   interface CacheEntry {
     timestamp: number;
     body: string;
@@ -155,10 +158,47 @@ export async function fetchActivities(
   url += queryParts.join("&");
   console.log("Fetching activities", apiParams, url);
   const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
+  //const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
   return (await res.json()) as API_Activities;
+}
+
+// this should probably a service...
+export async function fetchUsers(params: UsersQuery): Promise<API_Users> {
+  if (params.after && params.after instanceof Date) {
+    params.after = params.after.getTime();
+  }
+  if (params.before && params.before instanceof Date) {
+    params.before = params.before.getTime();
+  }
+  const apiParams = {
+    offset: params.offset,
+    limit: params.limit,
+    gameId: params.gameId,
+    before: params.before,
+    after: params.after,
+  };
+
+  let url = "/api/users?";
+  const queryParts: string[] = [];
+  for (const key in apiParams) {
+    const value = (apiParams as any)[key];
+    if (value !== undefined) {
+      queryParts.push(
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+      );
+    }
+  }
+  url += queryParts.join("&");
+  console.log("Fetching users", apiParams, url);
+  //const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch activities`);
+  }
+  return (await res.json()) as API_Users;
 }
 
 export async function getGameCoverUrl(

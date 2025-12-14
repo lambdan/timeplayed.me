@@ -177,7 +177,7 @@ def thisHour() -> str:
     return datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d_%H")
 
 
-def validateTS(ts) -> int:
+def validateTS(ts) -> int | None:
     """
     Validates a timestamp (int > 0).
     Also tries to convert to int if possible.
@@ -189,4 +189,4 @@ def validateTS(ts) -> int:
         return validateTS(int(ts))
     except:
         pass
-    return 0
+    return None

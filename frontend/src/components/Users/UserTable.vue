@@ -63,9 +63,9 @@ async function fetchAllTheThings() {
     allActivity.push(...activities.data);
     loadingProgress.value = Math.min(
       100,
-      (allActivity.length / activities._total) * 100,
+      (allActivity.length / activities.total) * 100,
     );
-    needToFetch = activities._total > allActivity.length;
+    needToFetch = activities.total > allActivity.length;
   }
 
   // build UserWithStats
