@@ -157,8 +157,8 @@ export async function fetchActivities(
   }
   url += queryParts.join("&");
   console.log("Fetching activities", apiParams, url);
-  const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
-  //const res = await fetch(url);
+  //const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }

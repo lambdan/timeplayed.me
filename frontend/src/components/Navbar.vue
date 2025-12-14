@@ -41,6 +41,11 @@
               ><i class="bi bi-controller"></i> Platforms</a
             >
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/help"
+              ><i class="bi bi-question-circle"></i> Help</a
+            >
+          </li>
         </ul>
       </div>
     </div>

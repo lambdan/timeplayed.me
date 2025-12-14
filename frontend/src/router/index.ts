@@ -8,6 +8,7 @@ import PlatformListPage from "../views/PlatformListPage.vue";
 import GamePage from "../views/GamePage.vue";
 import PlatformPage from "../views/PlatformPage.vue";
 import YearRecapUser from "../views/YearRecapUser.vue";
+import HelpPage from "../views/HelpPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -27,6 +28,7 @@ const routes = [
     component: GamePage,
   },
   { path: "/news", component: NewsPage },
+  { path: "/help", component: HelpPage },
   { path: "/users", component: UserListPage },
   { path: "/games", component: GameListPage },
   { path: "/platforms", component: PlatformListPage },
