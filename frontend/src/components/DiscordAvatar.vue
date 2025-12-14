@@ -34,6 +34,7 @@ onMounted(async () => {
       :src="avatarUrl.toString()"
       :class="[...props.classes]"
       :style="{ maxWidth: props.maxWidth + 'px' }"
+      :title="props.user.name"
     />
   </a>
 </template>
