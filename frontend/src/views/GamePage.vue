@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { type GameWithStats } from "../models/models";
 import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
+import type { GameWithStats } from "../api.models";
 
 const route = useRoute();
 const game = ref<GameWithStats>();

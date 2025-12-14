@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Game, User } from "../models/models";
 import { fetchActivities as FU, formatDuration } from "../utils";
 import RowV2 from "./ActivityRows/RowV2.vue";
-import type { Activity } from "../api.models";
+import type { Activity, Game, User } from "../api.models";
 
 const props = withDefaults(
   defineProps<{

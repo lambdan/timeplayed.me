@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import type { Activity, GlobalStats } from "../models/models";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Totals } from "../api.models";
