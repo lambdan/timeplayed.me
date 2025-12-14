@@ -251,3 +251,7 @@ export function iso8601Date(date: Date | number): string {
   }
   return date.toISOString().slice(0, 10);
 }
+
+export function clamp(num: number, min: number, max: number): number {
+  return Math.min(Math.max(num, min), max);
+}

@@ -56,4 +56,19 @@ export class TimeplayedAPI {
     }
     return data;
   }
+
+  static async getGames(
+    queryParams: paths["/api/games"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET("/api/games", {
+      params: {
+        query: queryParams,
+      },
+    });
+    if (error) {
+      console.error("Error fetching games:", error);
+      throw error;
+    }
+    return data;
+  }
 }
