@@ -185,19 +185,20 @@ onMounted(() => {
       <PlatformBadge :platform="props.activity.platform" />
     </td>
 
-    <!-- Share % -->
-    <td v-if="props.platform || props.game">
-      <p
-        :title="
-          ((props.platform || props.game!).percent * 100).toString() + ' %'
-        "
-      >
-        {{ ((props.platform || props.game!).percent * 100).toFixed(2) }}%
-      </p>
-    </td>
-
     <td :title="`${_durationSeconds} seconds`">
       <i class="bi bi-stopwatch"></i> {{ _timeDisplayed }}
+
+      <small
+        v-if="props.platform || props.game"
+        class="mb-0 text-muted"
+        :title="
+          ((props.platform || props.game!).percent * 100).toFixed(2) +
+          '% of all playtime'
+        "
+      >
+        <br />
+        {{ ((props.platform || props.game!).percent * 100).toFixed(2) }}%
+      </small>
     </td>
 
     <td v-if="_date" :title="_date.toLocaleString()">

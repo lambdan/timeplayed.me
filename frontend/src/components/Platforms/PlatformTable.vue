@@ -112,7 +112,6 @@ onMounted(() => {
               "
             />
           </th>
-          <th>Share</th>
           <th @click="setSort('playtime')">
             Playtime
             <i
