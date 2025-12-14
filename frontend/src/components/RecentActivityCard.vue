@@ -1,16 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Activity, Game, User } from "../models/models";
-import UserPageActivityRow from "./ActivityRows/UserPageActivityRow.vue";
-import FrontPageActivityRow from "./ActivityRows/FrontPageActivityRow.vue";
-import GamePageActivityRow from "./ActivityRows/GamePageActivityRow.vue";
-import UserColumn from "./Users/UserColumn.vue";
-import CalendarBadge from "./Badges/CalendarBadge.vue";
-import DiscordAvatar from "./DiscordAvatar.vue";
+import type { Game, User } from "../models/models";
 import { fetchActivities as FU, formatDuration } from "../utils";
-import GameCover from "./Games/GameCover.vue";
-import type GameCoverVue from "./Games/GameCover.vue";
 import RowV2 from "./ActivityRows/RowV2.vue";
+import type { ActivityModelV2 } from "../models/activity.models";
 
 const props = withDefaults(
   defineProps<{
@@ -27,7 +20,7 @@ const props = withDefaults(
   },
 );
 
-const activities = ref<Activity[]>([]);
+const activities = ref<ActivityModelV2[]>([]);
 const offset = ref(0);
 const loading = ref(false);
 const hasMore = ref(true);

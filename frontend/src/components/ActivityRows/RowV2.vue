@@ -5,20 +5,22 @@ import { formatDuration, timeAgo } from "../../utils";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
+import type { UserModelV2 } from "../../models/user.models";
+import type { ActivityModelV2 } from "../../models/activity.models";
 
 const props = defineProps<{
-  activity?: Activity;
-  user?: User;
+  activity?: ActivityModelV2;
+  user?: UserModelV2;
   durationSeconds?: number;
   context?: "userPage" | "gamePage" | "frontPage";
 }>();
 
-const _id = ref(0);
+const _id = ref<string|number>("");
 const _durationSeconds = ref(0);
 const _timeDisplayed = ref("");
 const _dateDisplayed = ref("");
 
-function setupActivity(activity: Activity) {
+function setupActivity(activity: ActivityModelV2) {
   function updateDate(d: Date) {
     _dateDisplayed.value = timeAgo(d, true);
   }

@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type {
-  API_Platforms,
-  Game,
-  PlatformWithStats,
-  User,
-} from "../../models/models";
 import PlatformRow from "./PlatformRow.vue";
 import ColorSpinners from "../Misc/ColorSpinners.vue";
 import { sleep } from "../../utils";
+import type { PaginatedPlatforms, PlatformWithStats } from "../../models/platform.models";
+import type { UserModelV2 } from "../../models/user.models";
+import type { GameModelV2 } from "../../models/game.models";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
-    user?: User;
-    game?: Game;
+    user?: UserModelV2;
+    game?: GameModelV2;
     showLastPlayed?: boolean;
   }>(),
   {
@@ -38,12 +35,12 @@ async function fetchPlatforms() {
   platforms.value = [];
   const fetchedPlatforms: PlatformWithStats[] = [];
   let res = await fetch(`/api/platforms`);
-  let data = (await res.json()) as API_Platforms;
+  let data = (await res.json()) as PaginatedPlatforms;
   fetchedPlatforms.push(...data.data);
 
-  while (fetchedPlatforms.length < data._total) {
+  while (fetchedPlatforms.length < data.total) {
     res = await fetch(`/api/platforms?offset=${fetchedPlatforms.length}`);
-    data = (await res.json()) as API_Platforms;
+    data = (await res.json()) as PaginatedPlatforms;
     fetchedPlatforms.push(...data.data);
   }
   platforms.value = fetchedPlatforms;
@@ -78,17 +75,19 @@ async function fetchWithUser() {
 }
 
 function sort() {
+
   if (localSort.value === "recency") {
     platforms.value.sort((a, b) => {
+      if (!a.newest_activity || !b.newest_activity) return 0;
       return localOrder.value === "asc"
-        ? a.last_played - b.last_played
-        : b.last_played - a.last_played;
+        ? a.newest_activity.timestamp - b.newest_activity.timestamp
+        : b.newest_activity.timestamp - a.newest_activity.timestamp;
     });
   } else if (localSort.value === "playtime") {
     platforms.value.sort((a, b) => {
       return localOrder.value === "asc"
-        ? a.total_playtime - b.total_playtime
-        : b.total_playtime - a.total_playtime;
+        ? a.totals.playtime_secs - b.totals.playtime_secs
+        : b.totals.playtime_secs - a.totals.playtime_secs;
     });
   } else if (localSort.value === "name") {
     platforms.value.sort((a, b) => {

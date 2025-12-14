@@ -2,18 +2,23 @@
 import { onMounted, ref } from "vue";
 import type { User } from "../models/models";
 import { cacheFetch } from "../utils";
+import type { UserModelV2 } from "../models/user.models";
 
 const props = withDefaults(
-  defineProps<{ user: User; maxWidth?: number; classes?: string[] }>(),
+  defineProps<{ user: UserModelV2; maxWidth?: number; classes?: string[] }>(),
   {
     maxWidth: 75,
     classes: () => ["img-thumbnail", "img-fluid", "rounded-circle"],
   },
 );
 
-const FALLBACK = `https://cdn.discordapp.com/embed/avatars/${
-  props.user.id % 5
-}.png`;
+let FALLBACK = `https://cdn.discordapp.com/embed/avatars/0.png`;
+if (props.user && props.user.id && !isNaN(+props.user.id)) {
+  FALLBACK = `https://cdn.discordapp.com/embed/avatars/${
+    +props.user.id % 5
+  }.png`;
+}
+
 const avatarUrl = ref<string>(FALLBACK);
 
 onMounted(async () => {

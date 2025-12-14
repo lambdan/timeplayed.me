@@ -1,9 +1,21 @@
+export interface PaginatedResponse {
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+/**
+ * @deprecated
+ */
 export interface Platform {
   id: number;
   abbreviation: string;
   name: string | null;
 }
 
+/**
+ * @deprecated
+ */
 export interface PlatformWithStats {
   platform: Platform;
   last_played: number;
@@ -12,12 +24,18 @@ export interface PlatformWithStats {
   percent: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface User {
   id: number;
   name: string;
   default_platform: Platform;
 }
 
+/**
+ * @deprecated
+ */
 export interface Game {
   id: number;
   name: string;
@@ -28,6 +46,9 @@ export interface Game {
   release_year: number | null;
 }
 
+/**
+ * @deprecated
+ */
 export interface GameWithStats {
   game: Game;
   last_played: number;
@@ -35,6 +56,9 @@ export interface GameWithStats {
   total_playtime: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface Activity {
   id: number;
   timestamp: number;
@@ -44,16 +68,25 @@ export interface Activity {
   seconds: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface API_Paginated {
   total: number;
   offset: number;
   limit: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface API_Activities extends API_Paginated {
   data: Activity[];
 }
 
+/**
+ * @deprecated
+ */
 export interface UserWithStats {
   user: User;
   last_played: number;
@@ -61,47 +94,32 @@ export interface UserWithStats {
   total_playtime: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface API_Users extends API_Paginated {
   data: UserWithStats[];
 }
 
+/**
+ * @deprecated
+ */
 export interface API_Games extends API_Paginated {
   data: GameWithStats[];
 }
 
+/**
+ * @deprecated
+ */
 export interface API_Platforms extends API_Paginated {
   data: PlatformWithStats[];
 }
 
-export interface SGDBGrid {
-  id: number;
-  score: number;
-  width: number;
-  height: number;
-  style: string;
-  mime: string;
-  language: string;
-  url: string;
-  thumbnail: string;
-  type: string;
-  author: {
-    name: string;
-    steam64: string;
-    avatar: string;
-  };
-}
 
-export interface SGDBGame {
-  id: number;
-  name: string;
-  //types: ["steam", "gog", "origin"];
-  verified: boolean;
-  /**
-   * "2015-05-19T00:00:00"
-   */
-  release_date: string | undefined;
-}
 
+/**
+ * @deprecated
+ */
 export interface UserStats {
   total: {
     seconds: number;
@@ -119,6 +137,9 @@ export interface UserStats {
   };
 }
 
+/**
+ * @deprecated
+ */
 export interface GlobalStats {
   total_playtime: number;
   activities: number;
@@ -127,6 +148,9 @@ export interface GlobalStats {
   platforms: number;
 }
 
+/**
+ * @deprecated
+ */
 export interface GameStats {
   total_playtime: number;
   activity_count: number;
@@ -154,3 +178,5 @@ export interface UsersQuery {
   before?: number | Date;
   after?: number | Date;
 }
+
+

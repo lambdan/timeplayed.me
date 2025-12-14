@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { User, UserStats } from "../models/models";
 import { formatDate, timeAgo, formatDuration } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
+import type { UserModelV2, UserWithStats } from "../models/user.models";
 
-const props = defineProps<{ user: User }>();
+const props = defineProps<{ user: UserModelV2 }>();
 
-const stats = ref<UserStats>();
+const stats = ref<UserWithStats>();
 const loadingStats = ref(true);
 
 onMounted(async () => {
-  const res = await fetch(`/api/users/${props.user.id}/stats`);
-  const data: UserStats = await res.json();
+  const res = await fetch(`/api/users/${props.user.id}`);
+  const data = await res.json() as UserWithStats;
   stats.value = data;
   loadingStats.value = false;
 });
@@ -49,18 +49,8 @@ onMounted(async () => {
                   </small>
                 </td>
               </tr>
-              <tr>
-                <td><b>Active days:</b></td>
-                <td>{{ stats?.active_days }}</td>
-              </tr>
-              <tr>
-                <td><b>Games played:</b></td>
-                <td>{{ stats?.total.games }}</td>
-              </tr>
-              <tr>
-                <td><b>Platforms played on:</b></td>
-                <td>{{ stats?.total.platforms }}</td>
-              </tr>
+
+
             </tbody>
           </table>
         </div>
@@ -68,14 +58,23 @@ onMounted(async () => {
         <div class="col mb-4">
           <table class="table table-responsive table-hover">
             <tbody>
+                            <tr>
+                <td><b>Games played:</b></td>
+                <td>{{ stats?.totals.game_count }}</td>
+              </tr>
+              <tr>
+                <td><b>Platforms played on:</b></td>
+                <td>{{ stats?.totals.platform_count }}</td>
+              </tr>
               <tr>
                 <td><b>Total playtime:</b></td>
-                <td>{{ formatDuration(stats?.total.seconds) }}</td>
+                <td>{{ formatDuration(stats?.totals.playtime_secs) }}</td>
               </tr>
               <tr>
                 <td><b>Total sessions:</b></td>
-                <td>{{ stats?.total.activities }}</td>
+                <td>{{ stats?.totals.activity_count }}</td>
               </tr>
+              <!--
               <tr>
                 <td><b>Average playtime/game:</b></td>
                 <td>{{ formatDuration(stats?.average.seconds_per_game) }}</td>
@@ -88,6 +87,7 @@ onMounted(async () => {
                 <td><b>Average session length:</b></td>
                 <td>{{ formatDuration(stats?.average.session_length) }}</td>
               </tr>
+              -->
             </tbody>
           </table>
         </div>

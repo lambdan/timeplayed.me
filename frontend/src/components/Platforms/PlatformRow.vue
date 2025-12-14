@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { PlatformWithStats } from "../../models/models";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
 import DurationBadge from "../Badges/DurationBadge.vue";
+import type { PlatformWithStats } from "../../models/platform.models";
 
 const props = withDefaults(
   defineProps<{
@@ -17,7 +17,7 @@ const props = withDefaults(
   },
 );
 
-const show = ref(props.showEmpty || props.platform.total_playtime > 0);
+const show = ref(props.showEmpty || props.platform.totals.playtime_secs > 0);
 
 onMounted(async () => {});
 </script>
@@ -33,15 +33,15 @@ onMounted(async () => {});
       </a>
     </div>
 
-    <div class="col">
-      Last played on<br /><CalendarBadge
-        :date="new Date(props.platform.last_played)"
+    <div class="col" >
+      Last played on<br /><CalendarBadge v-if="props.platform.newest_activity"
+        :date="new Date(props.platform.newest_activity.timestamp)"
       />
     </div>
 
     <div class="col">
       Playtime<br />
-      <DurationBadge :secs="props.platform.total_playtime" />
+      <DurationBadge :secs="props.platform.totals.playtime_secs" />
       <br />
       <span class="text-muted small">
         {{ (props.platform.percent * 100).toFixed(1) }}% of total

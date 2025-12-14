@@ -4,6 +4,7 @@ import type { Game, User } from "../../models/models";
 import { fetchUsers } from "../../utils";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
+import type { UserModelV2 } from "../../models/user.models";
 
 const props = defineProps<{
   game?: Game;
@@ -11,7 +12,7 @@ const props = defineProps<{
 }>();
 
 const _users = ref<
-  { user: User; duration: number; count: number; last_played: Date }[]
+  { user: UserModelV2; duration: number; count: number; last_played: Date }[]
 >([]);
 const _loading = ref(false);
 const _before = ref<Date | undefined>();
@@ -35,9 +36,9 @@ async function fetchTheThings() {
     for (const u of res.data) {
       _users.value.push({
         user: u.user,
-        duration: u.total_playtime,
-        count: u.total_activities,
-        last_played: new Date(u.last_played),
+        duration: u.totals.playtime_secs,
+        count: u.totals.activity_count,
+        last_played: new Date(u.newest_activity.timestamp),
       });
     }
 

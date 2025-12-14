@@ -3,11 +3,11 @@ import type {
   API_Activities,
   API_Users,
   Game,
-  SGDBGame,
-  SGDBGrid,
   User,
   UsersQuery,
 } from "./models/models";
+import type { SGDBGame, SGDBGrid } from "./models/steamgriddb.models";
+import type { PaginatedUsersWithStats, UserModelV2 } from "./models/user.models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -166,7 +166,7 @@ export async function fetchActivities(
 }
 
 // this should probably a service...
-export async function fetchUsers(params: UsersQuery): Promise<API_Users> {
+export async function fetchUsers(params: UsersQuery): Promise<PaginatedUsersWithStats> {
   if (params.after && params.after instanceof Date) {
     params.after = params.after.getTime();
   }
@@ -198,7 +198,7 @@ export async function fetchUsers(params: UsersQuery): Promise<API_Users> {
   if (!res.ok) {
     throw new Error(`Failed to fetch activities`);
   }
-  return (await res.json()) as API_Users;
+  return await res.json();
 }
 
 export async function getGameCoverUrl(
@@ -206,7 +206,7 @@ export async function getGameCoverUrl(
   thumbnail = false,
 ): Promise<string> {
   const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
-  const gameInfo = await cacheFetch(`/api/games/${gameId}`, CACHE_LIFETIME);
+  const gameInfo = await cacheFetch(`/api/game/${gameId}`, CACHE_LIFETIME);
   const gameData = ((await gameInfo.json()) as any).game as Game;
 
   const FALLBACK = "https://placehold.co/267x400?text=No+Image";

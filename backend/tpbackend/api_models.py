@@ -3,6 +3,14 @@ from typing import Literal
 from pydantic import BaseModel
 
 
+class Totals(BaseModel):
+    playtime_secs: int
+    activity_count: int
+    user_count: int
+    game_count: int
+    platform_count: int
+
+
 class PaginatedResponse(BaseModel):
     total: int
     offset: int
@@ -19,25 +27,6 @@ class PublicUserModel(BaseModel):
     id: str  # hmm
     name: str
     default_platform: PublicPlatformModel
-
-
-class SummarizedUserResponse(BaseModel):
-    user: PublicUserModel
-    last_played: int | None = None
-    total_activities: int
-    total_playtime: int
-
-
-class PaginatedUsers(PaginatedResponse):
-    data: list[SummarizedUserResponse]
-
-
-class TotalsResponse(BaseModel):
-    total_playtime: int
-    activities: int
-    users: int
-    games: int
-    platforms: int
 
 
 class PublicGameModel(BaseModel):
@@ -63,37 +52,48 @@ class PublicActivityModel(BaseModel):
     platform: PublicPlatformModel
 
 
+class GameOrPlatformStats(BaseModel):
+    totals: Totals
+    oldest_activity: PublicActivityModel | None
+    newest_activity: PublicActivityModel | None
+    percent: float
+
+
+class UserWithStats(BaseModel):
+    user: PublicUserModel
+    oldest_activity: PublicActivityModel
+    newest_activity: PublicActivityModel
+    totals: Totals
+
+
+class PaginatedSummarizedUsers(PaginatedResponse):
+    data: list[UserWithStats]
+
+
 class PaginatedActivities(PaginatedResponse):
     data: list[PublicActivityModel]
     order: Literal["desc", "asc"]
 
 
-class GameWithStats(BaseModel):
+class GameWithStats(GameOrPlatformStats):
     game: PublicGameModel
-    last_played: int | None
-    total_sessions: int
-    total_playtime: int
 
 
 class PaginatedGameWithStats(PaginatedResponse):
     data: list[GameWithStats]
 
 
-class GameStatsResponse(BaseModel):
-    total_playtime: int
-    activity_count: int
-    platform_count: int
-    player_count: int
-    oldest_activity: PublicActivityModel | None
-    newest_activity: PublicActivityModel | None
+# class GameStatsResponse(BaseModel):
+#     total_playtime: int
+#     activity_count: int
+#     platform_count: int
+#     player_count: int
+#     oldest_activity: PublicActivityModel | None
+#     newest_activity: PublicActivityModel | None
 
 
-class PlatformWithStats(BaseModel):
+class PlatformWithStats(GameOrPlatformStats):
     platform: PublicPlatformModel
-    last_played: int | None
-    total_sessions: int
-    total_playtime: int
-    percent: float
 
 
 class PaginatedPlatforms(PaginatedResponse):

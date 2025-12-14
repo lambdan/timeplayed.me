@@ -4,13 +4,14 @@ import RecentActivityCard from "../components/RecentActivityCard.vue";
 import type { Activity, GlobalStats } from "../models/models";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
+import type { Totals } from "../models/total.models";
 
-const globalStats = ref<GlobalStats>();
+const globalStats = ref<Totals>();
 const loading = ref<boolean>(true);
 
 onMounted(async () => {
-  const res = await fetch("/api/stats");
-  const data: GlobalStats = await res.json();
+  const res = await fetch("/api/totals");
+  const data: Totals = await res.json();
   globalStats.value = data;
   loading.value = false;
 });
@@ -26,10 +27,10 @@ onMounted(async () => {
         using Discord.
       </p>
       <p v-if="!loading">
-        So far <b>{{ globalStats!.users }} users</b> have played
-        <b>{{ globalStats!.games }} games</b> across
-        <b>{{ globalStats!.platforms }} platforms</b> for a total of
-        <b>{{ (globalStats!.total_playtime / 3600).toFixed(0) }} hours</b>.
+        So far <b>{{ globalStats!.user_count }} users</b> have played
+        <b>{{ globalStats!.game_count }} games</b> across
+        <b>{{ globalStats!.platform_count }} platforms</b> for a total of
+        <b>{{ (globalStats!.playtime_secs / 3600).toFixed(0) }} hours</b>.
       </p>
       <p>
         All you need to do is join the Discord server and you will be tracked:
@@ -63,7 +64,7 @@ onMounted(async () => {
             Year Recap now available! Look for a green button in your profile!
           </h2>
           <small
-            >Yes this is a &lt;marquee&gt; in the year
+            >Yes this is a <code>&lt;marquee&gt;</code> in the year
             {{ new Date().getFullYear() }}. But you paid attention to it didn't
             you.</small
           >

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { Game, User } from "../../models/models";
 import PlatformTable from "./PlatformTable.vue";
 import SortOrderButtons from "../Misc/SortOrderButtons.vue";
+import type { UserModelV2 } from "../../models/user.models";
+import type { GameModelV2 } from "../../models/game.models";
 
 const props = withDefaults(
   defineProps<{
     order?: "asc" | "desc";
     sort?: "recency" | "playtime" | "name";
-    user?: User;
-    game?: Game;
+    user?: UserModelV2;
+    game?: GameModelV2;
     showSortButtons?: boolean;
   }>(),
   {

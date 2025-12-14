@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import {
-  type PlatformWithStats,
-  type Game,
-  type GameStats,
-} from "../models/models";
 import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
-import PlatformListCard from "./Platforms/PlatformListCard.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
+import type { GameModelV2, GameWithStats } from "../models/game.models";
 
-const props = defineProps<{ game: Game }>();
+const props = defineProps<{ game: GameModelV2 }>();
 
-const stats = ref<GameStats>();
+const stats = ref<GameWithStats>();
 const loadingStats = ref(true);
 
 // Collapse state for each column
@@ -27,9 +22,9 @@ function toggleColumn(column: "stats" | "metadata" | "platforms") {
 }
 
 onMounted(async () => {
-  const res = await fetch(`/api/games/${props.game.id}/stats`);
+  const res = await fetch(`/api/game/${props.game.id}`);
   //await sleep(1000);
-  const data = (await res.json()) as GameStats;
+  const data = (await res.json()) as GameWithStats;
   stats.value = data;
   loadingStats.value = false;
 });
@@ -98,39 +93,33 @@ onMounted(async () => {
                       <td><b>Playtime:</b></td>
                       <td>
                         {{
-                          stats?.total_playtime !== undefined
-                            ? formatDuration(stats.total_playtime)
-                            : "-"
+                          stats ? formatDuration(stats.totals.playtime_secs) : "-"
                         }}
                       </td>
                     </tr>
                     <tr>
                       <td><b>Activity count:</b></td>
-                      <td>{{ stats.activity_count ?? "-" }}</td>
+                      <td>{{ stats.totals.activity_count ?? "-" }}</td>
                     </tr>
                     <tr>
-                      <td><b>Player count:</b></td>
-                      <td>{{ stats.player_count ?? "-" }}</td>
+                      <td><b>User count:</b></td>
+                      <td>{{ stats.totals.user_count ?? "-" }}</td>
                     </tr>
                     <tr>
                       <td><b>Platform count:</b></td>
-                      <td>{{ stats.platform_count ?? "-" }}</td>
+                      <td>{{ stats.totals.platform_count ?? "-" }}</td>
                     </tr>
                     <tr>
                       <td><b>First played:</b></td>
                       <td>
                         {{
-                          stats.oldest_activity.timestamp
-                            ? formatDate(stats.oldest_activity.timestamp)
-                            : "-"
+                          stats.oldest_activity ? formatDate(stats.oldest_activity.timestamp) : "-"
                         }}
                         <br />
                         <small class="text-muted">
                           {{
-                            stats.oldest_activity.timestamp
-                              ? timeAgo(stats.oldest_activity.timestamp)
-                              : "-"
-                          }}
+                          stats.oldest_activity ? timeAgo(stats.oldest_activity.timestamp) : "-"
+                        }}
                         </small>
                       </td>
                     </tr>
@@ -138,16 +127,12 @@ onMounted(async () => {
                       <td><b>Last played:</b></td>
                       <td>
                         {{
-                          stats.newest_activity?.timestamp
-                            ? formatDate(stats.newest_activity.timestamp)
-                            : "-"
+                          stats.newest_activity ? formatDate(stats.newest_activity.timestamp) : "-"
                         }}
                         <br />
                         <small class="text-muted">
                           {{
-                            stats.newest_activity?.timestamp
-                              ? timeAgo(stats.newest_activity.timestamp)
-                              : "-"
+                            stats.newest_activity ? timeAgo(stats.newest_activity.timestamp) : "-"
                           }}
                         </small>
                       </td>

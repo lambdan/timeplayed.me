@@ -12,7 +12,7 @@ const game = ref<GameWithStats>();
 
 onMounted(async () => {
   const gameId = route.params.id as string;
-  const gameRes = await fetch(`/api/games/${gameId}`);
+  const gameRes = await fetch(`/api/game/${gameId}`);
   game.value = (await gameRes.json()) as GameWithStats;
 });
 </script>
