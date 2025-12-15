@@ -72,6 +72,7 @@ onMounted(() => {});
             :duration-seconds="user.totals.playtime_secs"
             :context="props.context"
             :show-users="false"
+            :show-date="props.context !== 'frontPage'"
           />
         </tbody>
       </table>

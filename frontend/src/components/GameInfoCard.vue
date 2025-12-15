@@ -211,6 +211,7 @@ onMounted(async () => {
                   :sort="'playtime'"
                   :order="'desc'"
                   :showLastPlayed="false"
+                  :showDateRange="true"
                 />
               </div>
             </div>

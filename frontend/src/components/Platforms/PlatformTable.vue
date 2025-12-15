@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
+import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -11,6 +12,7 @@ const props = withDefaults(
     user?: User;
     game?: Game;
     showLastPlayed?: boolean;
+    showDateRange?: boolean;
   }>(),
   {
     showExpand: false,
@@ -21,6 +23,10 @@ const props = withDefaults(
     showLastPlayed: true,
   },
 );
+
+const _before = ref<Date | undefined>();
+const _after = ref<Date | undefined>();
+const _showDate = ref(props.showDateRange);
 
 const _loadingPercent = ref(0);
 const _platformsData = ref<PlatformWithStats[]>([]);
@@ -39,6 +45,8 @@ async function fetchPlatforms() {
       offset: _platformsData.value.length,
       userId: props.user ? props.user.id : undefined,
       gameId: props.game ? props.game.id : undefined,
+      before: _before.value ? Math.floor(_before.value.getTime()) : undefined,
+      after: _after.value ? Math.floor(_after.value.getTime()) : undefined,
     });
     _platformsData.value.push(...fetchedPlatfomrs.data);
     if (_platformsData.value.length >= fetchedPlatfomrs.total) break;
@@ -93,6 +101,34 @@ onMounted(() => {
 </script>
 
 <template>
+  <DateRangerPicker
+    :toggleable="true"
+    v-if="props.showDateRange"
+    class="mb-2"
+    @updated:both="
+      ({ before, after, allTime, relativeMode }) => {
+        console.log(
+          'GameTable: date range updated',
+          JSON.stringify(
+            { before, after, allTime, relativeMode },
+            undefined,
+            4,
+          ),
+        );
+        _before = before;
+        _after = after;
+        _showDate = allTime;
+        if (!_showDate) {
+          // change sort if recency was used
+          if (localSort === 'recency') {
+            localSort = 'playtime';
+          }
+        }
+        fetchPlatforms();
+      }
+    "
+  />
+
   <p v-if="loading" class="text-center text-muted">
     Loading... {{ _loadingPercent.toFixed(0) }}%
   </p>

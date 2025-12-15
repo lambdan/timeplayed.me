@@ -101,7 +101,23 @@ function getUserForDiscordAvatar(): User {
 onMounted(() => {
   if (props.date) {
     _date.value = props.date;
+
     updateDate(props.date);
+  }
+
+  const showOnContexts = [
+    "userPage",
+    "platformPage",
+    "platformTable",
+    "gameTable",
+  ];
+  if (props.context && showOnContexts.includes(props.context) && props.user) {
+    _date.value = props.user.newest_activity
+      ? new Date(props.user.newest_activity.timestamp)
+      : undefined;
+    if (_date.value) {
+      updateDate(_date.value!);
+    }
   }
 
   if (props.activity) {

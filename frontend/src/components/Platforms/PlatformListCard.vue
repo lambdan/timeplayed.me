@@ -33,6 +33,7 @@ const localOrder = ref(props.order);
         :order="localOrder"
         :user="props.user"
         :game="props.game"
+        :showDateRange="true"
       />
     </div>
   </div>
