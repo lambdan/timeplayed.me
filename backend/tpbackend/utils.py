@@ -50,7 +50,7 @@ def datetimeParse(s: str) -> datetime.datetime | None:
     try:
         s = s.upper().strip()
         return datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
-    except Exception as e:
+    except Exception as _:
         return None
 
 
@@ -116,7 +116,7 @@ def parseRange(s: str) -> tuple[int, int] | None:
         start = int(parts[0])
         end = int(parts[1])
         return (start, end)
-    except Exception as e:
+    except Exception as _:
         return None
 
 
@@ -187,6 +187,6 @@ def validateTS(ts) -> int | None:
         return ts
     try:
         return validateTS(int(ts))
-    except:
+    except Exception as _:
         pass
     return None

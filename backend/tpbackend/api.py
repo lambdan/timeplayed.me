@@ -17,10 +17,10 @@ from tpbackend.api_models import (
     UserWithStats,
     Totals,
 )
-from tpbackend.utils import clamp, max_int as max, today, thisHour, validateTS
+from tpbackend.utils import clamp, max_int as max, today, validateTS
 from tpbackend import bot
 from tpbackend import steamgriddb
-from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
+from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
 import logging
 
 logger = logging.getLogger("api")
@@ -139,7 +139,7 @@ def user_has_activities(userId: str) -> bool:
     Returns True if user has any activities
     """
     any_activity = Activity.select().where(Activity.user == userId).first()
-    return any_activity != None
+    return any_activity is not None
 
 
 @app.get("/api/users", tags=["users"], response_model=PaginatedUserWithStats)
@@ -343,7 +343,12 @@ def get_newest_activity(
     after: int | None = None,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
-        oldest=False, userid=userid, gameid=gameid, platformid=platformid
+        oldest=False,
+        userid=userid,
+        gameid=gameid,
+        platformid=platformid,
+        before=before,
+        after=after,
     )
 
 
@@ -355,7 +360,12 @@ def get_oldest_activity(
     after: int | None = None,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
-        oldest=True, userid=userid, gameid=gameid, platformid=platformid
+        oldest=True,
+        userid=userid,
+        gameid=gameid,
+        platformid=platformid,
+        before=before,
+        after=after,
     )
 
 
@@ -366,7 +376,7 @@ def get_oldest_activity(
 )
 def get_activity(activity_id: int) -> PublicActivityModel:
     activity = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
-    if activity == None:
+    if activity is None:
         raise HTTPException(status_code=404, detail="Activity not found")
     return get_public_activity(activity)
 
