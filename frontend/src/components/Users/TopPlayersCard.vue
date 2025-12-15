@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import type { Game, Platform, User } from "../../api.models";
+import type { Game, Platform } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import type { UserWithStats } from "../../api.models";
 

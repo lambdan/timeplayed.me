@@ -122,13 +122,24 @@ onMounted(() => {
     v-if="props.showDateRange"
     class="mb-2"
     @updated:both="
-      ({ before, after }) => {
+      ({ before, after, allTime, relativeMode }) => {
+        console.log(
+          'GameTable: date range updated',
+          JSON.stringify(
+            { before, after, allTime, relativeMode },
+            undefined,
+            4,
+          ),
+        );
         _before = before;
         _after = after;
-        _showDate =
-          (_before === undefined || _before.getDate() < 0) &&
-          (_after === undefined || _after.getTime() < 0); // BUG: DateRanger can emit negative values
-
+        _showDate = allTime;
+        if (!_showDate) {
+          // change sort if recency was used
+          if (localSort === 'recency') {
+            localSort = 'playtime';
+          }
+        }
         fetchGames();
       }
     "
