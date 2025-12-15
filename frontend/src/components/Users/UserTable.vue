@@ -35,7 +35,7 @@ const localOrder = ref(props.order);
 
 const _usersWithStats = ref<UserWithStats[]>([]);
 
-async function fetchAllTheThings() {
+async function fetchUsers() {
   loadingProgress.value = 0;
   loading.value = false;
   _usersWithStats.value = [];
@@ -89,7 +89,9 @@ function setSort(newSort: "recency" | "playtime" | "name") {
 }
 
 onMounted(() => {
-  fetchAllTheThings();
+  if (!props.showDateRange) {
+    fetchUsers();
+  }
 });
 </script>
 
@@ -117,7 +119,7 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchAllTheThings();
+        fetchUsers();
       }
     "
   />

@@ -60,7 +60,7 @@ onMounted(() => {});
             fetchTheThings();
           }
         "
-        :relative-days="7"
+        :relative-millis="7 * 86400 * 1000"
         :toggleable="context !== 'frontPage'"
       />
       <table class="table table-sm table-hover table-responsive">

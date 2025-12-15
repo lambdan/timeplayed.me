@@ -113,7 +113,9 @@ function setSort(newSort: "recency" | "playtime" | "name" | "users") {
 }
 
 onMounted(() => {
-  fetchGames();
+  if (!props.showDateRange) {
+    fetchGames();
+  }
 });
 </script>
 
