@@ -27,7 +27,7 @@ const localOrder = ref(props.order);
         :showExpand="props.showExpand"
         :sort="localSort"
         :order="localOrder"
-        :showDateRange="false"
+        :showDateRange="true"
       />
     </div>
   </div>

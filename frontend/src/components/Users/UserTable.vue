@@ -23,17 +23,15 @@ const props = withDefaults(
   },
 );
 
+const _before = ref<Date | undefined>();
+const _after = ref<Date | undefined>();
+const _showDate = ref(props.showDateRange);
+
 const loadingProgress = ref(0);
 
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
-const localBefore = ref<Date | undefined>();
-const localAfter = ref<Date | undefined>();
-const showDateRange = ref<boolean>(props.showDateRange || false);
-const startingRelativeDays = ref<number | undefined>(
-  props.startingRelativeDays,
-);
 
 const _usersWithStats = ref<UserWithStats[]>([]);
 
@@ -46,11 +44,11 @@ async function fetchAllTheThings() {
     const f = await TimeplayedAPI.getUsers({
       limit: 100,
       offset: _usersWithStats.value.length,
-      before: localBefore.value
-        ? Math.floor(localBefore.value.getTime() / 1000)
+      before: _before.value
+        ? Math.floor(_before.value.getTime() / 1000)
         : undefined,
-      after: localAfter.value
-        ? Math.floor(localAfter.value.getTime() / 1000)
+      after: _after.value
+        ? Math.floor(_after.value.getTime() / 1000)
         : undefined,
     });
     _usersWithStats.value.push(...f.data);
@@ -95,29 +93,37 @@ function setSort(newSort: "recency" | "playtime" | "name") {
 }
 
 onMounted(() => {
-  if (!showDateRange.value) {
-    fetchAllTheThings();
-  } // else DateRange will trigger it
+  fetchAllTheThings();
 });
 </script>
 
 <template>
   <DateRangerPicker
+    :toggleable="true"
+    v-if="props.showDateRange"
     class="mb-2"
-    v-if="showDateRange"
-    @update:before="
-      (val: Date | undefined) => {
-        localBefore = val;
+    @updated:both="
+      ({ before, after, allTime, relativeMode }) => {
+        console.log(
+          'GameTable: date range updated',
+          JSON.stringify(
+            { before, after, allTime, relativeMode },
+            undefined,
+            4,
+          ),
+        );
+        _before = before;
+        _after = after;
+        _showDate = allTime;
+        if (!_showDate) {
+          // change sort if recency was used
+          if (localSort === 'recency') {
+            localSort = 'playtime';
+          }
+        }
         fetchAllTheThings();
       }
     "
-    @update:after="
-      (val: Date | undefined) => {
-        localAfter = val;
-        fetchAllTheThings();
-      }
-    "
-    :relativeDays="startingRelativeDays"
   />
 
   <!-- <ColorSpinners v-if="loading" /> -->
@@ -176,6 +182,7 @@ onMounted(() => {
             ? new Date(user.newest_activity.timestamp)
             : undefined
         "
+        :showUsers="false"
       />
     </tbody>
   </table>
