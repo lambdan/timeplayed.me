@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import RowV2 from "./ActivityRows/RowV2.vue";
 import type { Activity, Game, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import DateRangerPicker from "./Misc/DateRangerPicker.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -10,6 +11,7 @@ const props = withDefaults(
     game?: Game;
     limit?: number;
     showExpand?: boolean;
+    showDateRange?: boolean;
   }>(),
   {
     showExpand: false,
@@ -23,6 +25,9 @@ const activities = ref<Activity[]>([]);
 const loading = ref(false);
 const hasMore = ref(true);
 
+const _before = ref<Date | undefined>();
+const _after = ref<Date | undefined>();
+
 const total = ref(0);
 
 async function fetchActivities(limit: number) {
@@ -33,6 +38,8 @@ async function fetchActivities(limit: number) {
     offset: activities.value.length,
     game: props.game ? props.game.id : undefined,
     user: props.user ? props.user.id : undefined,
+    before: _before.value ? _before.value.getTime() : undefined,
+    after: _after.value ? _after.value.getTime() : undefined,
   });
 
   const newActivities = data.data.map((activity: any) => ({
@@ -70,6 +77,20 @@ onMounted(() => {
   <div class="card p-0">
     <h2 class="card-header">Activity</h2>
     <div class="card-body">
+      <DateRangerPicker
+        v-if="props.showDateRange"
+        class="mb-2"
+        @updated:both="
+          ({ before, after }) => {
+            _before = before;
+            _after = after;
+            activities.length = 0;
+            fetchActivities(props.limit);
+          }
+        "
+        :relative-days="7"
+      />
+
       <table class="table table-sm table-hover table-responsive">
         <tbody>
           <RowV2

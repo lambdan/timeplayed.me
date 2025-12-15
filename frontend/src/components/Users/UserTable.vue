@@ -168,6 +168,7 @@ onMounted(() => {
         v-for="user in _usersWithStats"
         :key="user.user.id"
         :user="user"
+        :showDate="true"
         :context="'userTable'"
         :durationSeconds="user.totals.playtime_secs"
         :date="

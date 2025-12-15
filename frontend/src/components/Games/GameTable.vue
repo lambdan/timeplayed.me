@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
+import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -11,14 +12,20 @@ const props = withDefaults(
     user?: User;
     platform?: Platform;
     limit?: number;
+    showDateRange?: boolean;
   }>(),
   {
     showExpand: false,
     order: "desc",
     sort: "recency",
     limit: 10,
+    showDateRange: true,
   },
 );
+
+const _before = ref<Date | undefined>();
+const _after = ref<Date | undefined>();
+const _showDate = ref(props.showDateRange);
 
 const _loadingPercent = ref(0);
 const _gamesData = ref<GameWithStats[]>([]);
@@ -31,7 +38,9 @@ const _shownAmount = ref(props.limit || 10);
 const SHOWN_INCREMENT = props.limit || 10;
 
 async function fetchGames() {
+  if (loading.value) return;
   loading.value = true;
+  _displayedGames.value = [];
   _gamesData.value = [];
   _loadingPercent.value = 0;
 
@@ -41,6 +50,8 @@ async function fetchGames() {
       offset: _gamesData.value.length,
       userId: props.user ? props.user.id : undefined,
       platformId: props.platform ? props.platform.id : undefined,
+      before: _before.value ? Math.floor(_before.value.getTime()) : undefined,
+      after: _after.value ? Math.floor(_after.value.getTime()) : undefined,
     });
     _gamesData.value.push(...f.data);
     if (_gamesData.value.length >= f.total) break;
@@ -52,7 +63,7 @@ async function fetchGames() {
 }
 
 function updateDisplayedGames() {
-  _shownAmount.value = Math.min(_shownAmount.value, _gamesData.value.length);
+  //_shownAmount.value = Math.min(_shownAmount.value, _gamesData.value.length);
   _displayedGames.value = _gamesData.value.slice(0, _shownAmount.value);
 }
 
@@ -107,92 +118,106 @@ onMounted(() => {
 </script>
 
 <template>
+  <DateRangerPicker
+    v-if="props.showDateRange"
+    class="mb-2"
+    @updated:both="
+      ({ before, after }) => {
+        _before = before;
+        _after = after;
+        _showDate =
+          (_before === undefined || _before.getDate() < 0) &&
+          (_after === undefined || _after.getTime() < 0); // BUG: DateRanger can emit negative values
+
+        fetchGames();
+      }
+    "
+  />
+
   <p v-if="loading" class="text-center text-muted">
     Loading... {{ _loadingPercent.toFixed(0) }}%
   </p>
-  <template v-else-if="_gamesData.length > 0">
-    <table class="table table table-hover table-responsive">
-      <thead>
-        <tr>
-          <th></th>
-          <th @click="setSort('name')">
-            Game
-            <i
-              :class="
-                localSort === 'name'
-                  ? 'bi bi-sort-alpha-' +
-                    (localOrder === 'asc' ? 'down' : 'up-alt')
-                  : ''
-              "
-            />
-          </th>
-          <th @click="setSort('playtime')">
-            Playtime
-            <i
-              :class="
-                localSort === 'playtime'
-                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
-                  : ''
-              "
-            />
-          </th>
-          <th @click="setSort('recency')">
-            Last Played
-            <i
-              :class="
-                localSort === 'recency'
-                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
-                  : ''
-              "
-            />
-          </th>
+  <table class="table table table-hover table-responsive">
+    <thead>
+      <tr>
+        <th></th>
+        <th @click="setSort('name')">
+          Game
+          <i
+            :class="
+              localSort === 'name'
+                ? 'bi bi-sort-alpha-' +
+                  (localOrder === 'asc' ? 'down' : 'up-alt')
+                : ''
+            "
+          />
+        </th>
+        <th @click="setSort('playtime')">
+          Playtime
+          <i
+            :class="
+              localSort === 'playtime'
+                ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
+                : ''
+            "
+          />
+        </th>
+        <th @click="setSort('recency')" v-if="_showDate">
+          Last Played
+          <i
+            :class="
+              localSort === 'recency'
+                ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
+                : ''
+            "
+          />
+        </th>
 
-          <th @click="setSort('users')">
-            Users
-            <i
-              :class="
-                localSort === 'users'
-                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
-                  : ''
-              "
-            />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <RowV2
-          v-for="game in _displayedGames"
-          :key="game.game.id"
-          :game="game"
-          :context="'gameTable'"
-          :durationSeconds="game.totals.playtime_secs"
-          :date="
-            game.newest_activity
-              ? new Date(game.newest_activity.timestamp)
-              : undefined
-          "
-        />
-      </tbody>
-    </table>
-    <!--
+        <th @click="setSort('users')">
+          Users
+          <i
+            :class="
+              localSort === 'users'
+                ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
+                : ''
+            "
+          />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <RowV2
+        v-for="game in _displayedGames"
+        :key="game.game.id"
+        :showDate="_showDate"
+        :game="game"
+        :context="'gameTable'"
+        :durationSeconds="game.totals.playtime_secs"
+        :date="
+          game.newest_activity
+            ? new Date(game.newest_activity.timestamp)
+            : undefined
+        "
+      />
+    </tbody>
+  </table>
+  <!--
     <GameRow v-for="game in _displayedGames" :key="game.game.id" :game="game" />-->
 
-    <div class="text-center">
-      <button
-        v-if="_displayedGames.length < _gamesData.length"
-        class="btn btn-primary"
-        @click="
-          _shownAmount += SHOWN_INCREMENT;
-          updateDisplayedGames();
-        "
-      >
-        Show More
-      </button>
+  <div class="text-center">
+    <button
+      v-if="_displayedGames.length < _gamesData.length"
+      class="btn btn-primary"
+      @click="
+        _shownAmount += SHOWN_INCREMENT;
+        updateDisplayedGames();
+      "
+    >
+      Show More
+    </button>
 
-      <small class="text-muted mt-2 d-block">
-        {{ _displayedGames.length }} / {{ _gamesData.length }}
-      </small>
-    </div>
-  </template>
-  <div v-else class="text-center text-muted">No games found.</div>
+    <small class="text-muted mt-2 d-block">
+      {{ _displayedGames.length }} / {{ _gamesData.length }}
+    </small>
+  </div>
 </template>

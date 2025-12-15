@@ -18,6 +18,7 @@ const props = defineProps<{
   user?: UserWithStats;
   platform?: PlatformWithStats;
   durationSeconds?: number;
+  showDate?: boolean;
   date?: Date;
   context?:
     | "userPage"
@@ -210,7 +211,7 @@ onMounted(() => {
       </small>
     </td>
 
-    <td v-if="_date" :title="_date.toLocaleString()">
+    <td v-if="_date && props.showDate" :title="_date.toLocaleString()">
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
 

@@ -10,6 +10,7 @@ const props = withDefaults(
     sort?: "recency" | "playtime" | "name";
     user?: User;
     platform?: Platform;
+    showDateRange?: boolean;
     limit: number;
   }>(),
   {
@@ -37,6 +38,7 @@ const localOrder = ref(props.order);
           :user="props.user"
           :limit="props.limit"
           :platform="props.platform"
+          :showDateRange="props.showDateRange"
         />
       </div>
     </div>

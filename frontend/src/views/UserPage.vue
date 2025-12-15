@@ -90,6 +90,7 @@ onMounted(async () => {
     :order="'desc'"
     :sort="'playtime'"
     :user="apiUser.user"
+    :showDateRange="true"
   ></GameListCard>
   <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlatforms">
     <h1 class="card-header">Platforms</h1>

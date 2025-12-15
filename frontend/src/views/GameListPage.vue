@@ -13,6 +13,7 @@ const route = useRoute();
       :limit="0"
       :order="'desc'"
       :sort="'recency'"
+      :showDateRange="true"
     ></GameListCard>
   </div>
 </template>
