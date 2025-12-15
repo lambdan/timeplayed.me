@@ -11,7 +11,6 @@ import type {
   User,
   UserWithStats,
 } from "../../api.models";
-import type PlatformBadgeVue from "../Badges/PlatformBadge.vue";
 
 const props = defineProps<{
   activity?: Activity;
@@ -25,6 +24,7 @@ const props = defineProps<{
     | "gamePage"
     | "frontPage"
     | "gameTable"
+    | "userTable"
     | "platformTable";
 }>();
 
@@ -181,6 +181,14 @@ onMounted(() => {
       >
     </td>
 
+    <td v-if="props.user && props.context === 'userTable'">
+      <a
+        :href="`/user/${props.user!.user.id}`"
+        class="link-underline link-underline-opacity-0"
+        >{{ props.user!.user.name }}</a
+      >
+    </td>
+
     <td v-if="props.activity">
       <PlatformBadge :platform="props.activity.platform" />
     </td>
@@ -188,6 +196,7 @@ onMounted(() => {
     <td :title="`${_durationSeconds} seconds`">
       <i class="bi bi-stopwatch"></i> {{ _timeDisplayed }}
 
+      <!-- Share % -->
       <small
         v-if="props.platform || props.game"
         class="mb-0 text-muted"

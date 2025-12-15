@@ -12,6 +12,7 @@ RUN npm ci
 COPY . .
 # check formatting
 RUN npx prettier --check src
+RUN npm run test:ts
 # build
 RUN npm run build
 

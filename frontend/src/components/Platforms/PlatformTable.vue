@@ -139,7 +139,7 @@ onMounted(() => {
             <i
               :class="
                 localSort === 'users'
-                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'down' : 'up-alt')
+                  ? 'bi bi-sort-' + (localOrder === 'asc' ? 'up-alt' : 'down')
                   : ''
               "
             />

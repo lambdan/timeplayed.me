@@ -12,8 +12,7 @@ import {
   LinearScale,
   Filler,
 } from "chart.js";
-import type { Game, Platform, User } from "../../models/models";
-import { sleep } from "../../utils";
+import type { Game, Platform, User } from "../../api.models";
 
 ChartJS.register(
   Title,

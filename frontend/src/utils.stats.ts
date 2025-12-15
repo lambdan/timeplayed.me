@@ -1,6 +1,5 @@
-import type { Activity, Game } from "./models/models";
+import type { Activity } from "./api.models";
 import type { RecapGameEntry, RecapPlatformEntry } from "./models/stats.models";
-import { getGameCoverUrl } from "./utils";
 
 export function totalPlaytime(activities: Activity[]): number {
   return activities.reduce((sum, activity) => sum + activity.seconds, 0);

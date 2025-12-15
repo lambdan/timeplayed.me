@@ -7,7 +7,7 @@ const route = useRoute();
 </script>
 
 <template>
-  <div class="col-lg-8 justify-content-center mx-auto p-0">
+  <div class="col-lg-6 justify-content-center mx-auto p-0">
     <UserListCard
       :showExpand="false"
       :limit="25"
