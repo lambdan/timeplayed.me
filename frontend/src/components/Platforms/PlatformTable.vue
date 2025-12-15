@@ -134,7 +134,7 @@ onMounted(() => {
             />
           </th>
 
-          <th @click="setSort('users')">
+          <th @click="setSort('users')" v-if="!props.user">
             Users
             <i
               :class="
@@ -158,6 +158,8 @@ onMounted(() => {
               ? new Date(platform.newest_activity.timestamp)
               : undefined
           "
+          :showDate="true"
+          :showUsers="props.user ? false : true"
         />
       </tbody>
     </table>

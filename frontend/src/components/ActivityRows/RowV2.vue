@@ -20,7 +20,10 @@ const props = defineProps<{
   durationSeconds?: number;
   showDate?: boolean;
   date?: Date;
+  showUsers: boolean;
   context?:
+    | "gamePage"
+    | "platformPage"
     | "userPage"
     | "gamePage"
     | "frontPage"
@@ -215,12 +218,15 @@ onMounted(() => {
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
 
-    <td
-      v-if="
-        (props.platform || props.game) &&
-        (props.context === 'platformTable' || props.context === 'gameTable')
-      "
+    <!--    <td
+      v-if="props.context === 'userPage' && props.activity"
+      :title="new Date(props.activity.timestamp).toLocaleString()"
     >
+      <i class="bi bi-calendar"></i>
+      {{ new Date(props.activity.timestamp).toLocaleDateString() }}
+    </td>-->
+
+    <td v-if="props.showUsers">
       <p>{{ (props.platform || props.game!).totals.user_count }}</p>
     </td>
   </tr>

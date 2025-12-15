@@ -119,6 +119,7 @@ onMounted(() => {
 
 <template>
   <DateRangerPicker
+    :toggleable="true"
     v-if="props.showDateRange"
     class="mb-2"
     @updated:both="
@@ -184,7 +185,7 @@ onMounted(() => {
           />
         </th>
 
-        <th @click="setSort('users')">
+        <th @click="setSort('users')" v-if="!props.user">
           Users
           <i
             :class="
@@ -209,6 +210,7 @@ onMounted(() => {
             ? new Date(game.newest_activity.timestamp)
             : undefined
         "
+        :show-users="props.user ? false : true"
       />
     </tbody>
   </table>

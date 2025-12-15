@@ -10,6 +10,7 @@ const props = defineProps<{
   game?: Game;
   platform?: Platform;
   startingRelativeDays?: number;
+  context: "gamePage" | "frontPage" | "platformPage";
 }>();
 
 const _users = ref<UserWithStats[]>([]);
@@ -60,6 +61,7 @@ onMounted(() => {});
           }
         "
         :relative-days="7"
+        :toggleable="context !== 'frontPage'"
       />
       <table class="table table-sm table-hover table-responsive">
         <tbody v-if="!_loading">
@@ -68,7 +70,8 @@ onMounted(() => {});
             :key="user.user.id"
             :user="user"
             :duration-seconds="user.totals.playtime_secs"
-            :context="props.game ? 'gamePage' : 'frontPage'"
+            :context="props.context"
+            :show-users="false"
           />
         </tbody>
       </table>

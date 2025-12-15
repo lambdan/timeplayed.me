@@ -75,6 +75,7 @@ onMounted(async () => {
         v-if="platform"
         :platform="platform.platform"
         :startingRelativeDays="30"
+        :context="'platformPage'"
       ></TopPlayersCard>
     </div>
   </div>

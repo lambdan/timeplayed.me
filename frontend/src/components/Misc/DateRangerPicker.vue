@@ -18,6 +18,8 @@ const _afterValid = ref(false);
 
 const _relativeMillis = ref(ALL_TIME_MS);
 
+const _toggleable = ref(true);
+
 interface RelativeOption {
   label: string;
   milliseconds: number;
@@ -47,6 +49,7 @@ const props = defineProps<{
   before?: Date;
   after?: Date;
   relativeMillis?: number;
+  toggleable?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -267,6 +270,7 @@ function parseDropdown(n: any) {
 }
 
 onMounted(() => {
+  _toggleable.value = props.toggleable !== false;
   if (props.before && props.after) {
     _relativeMode.value = false;
     maybeEmit({ newBefore: props.before, newAfter: props.after });
@@ -305,6 +309,7 @@ onMounted(() => {
         />
         <!-- Switch mode button -->
         <button
+          v-if="_toggleable"
           class="btn btn-sm btn-outline-secondary"
           @click="toggleMode()"
           type="button"
@@ -340,6 +345,7 @@ onMounted(() => {
             </option>
           </select>
           <button
+            v-if="_toggleable"
             class="btn btn-sm btn-outline-secondary"
             @click="toggleMode()"
             type="button"

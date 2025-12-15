@@ -100,6 +100,8 @@ onMounted(() => {
             :context="getContext()"
             :duration-seconds="activity.seconds"
             :date="new Date(activity.timestamp)"
+            :show-date="true"
+            :show-users="false"
           />
         </tbody>
       </table>

@@ -77,7 +77,7 @@ onMounted(async () => {
   </div>
   <div class="row">
     <div class="col-lg-4 mb-4">
-      <TopPlayersCard :startingRelativeDays="7" />
+      <TopPlayersCard :startingRelativeDays="7" context="frontPage" />
     </div>
     <div class="col mb-4">
       <RecentActivityCard :limit="10" />
