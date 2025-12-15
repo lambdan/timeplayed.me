@@ -9,6 +9,10 @@ const props = defineProps<{
   toggleable?: boolean;
 }>();
 
+const BEFORE_KEY = "dateRangerPicker_before";
+const AFTER_KEY = "dateRangerPicker_after";
+const RELATIVE_MILLIS_KEY = "dateRangerPicker_relativeMillis";
+
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
@@ -57,15 +61,40 @@ const emit = defineEmits<{
 }>();
 
 function getStoredDates() {
-  // TODO: save/load to storage eventually
-  const after = new Date(Date.now() - 10 * ONE_DAY);
+  let after = new Date(Date.now() - 7 * ONE_DAY);
   after.setUTCHours(0, 0, 0, 0);
-  const before = new Date();
+  let before = new Date();
   before.setUTCHours(23, 59, 59, 999);
+  let relativeMillis = ALL_TIME_MS;
+
+  let storedAfter = localStorage.getItem(AFTER_KEY);
+  let storedBefore = localStorage.getItem(BEFORE_KEY);
+  let storedRelativeMillis = localStorage.getItem(RELATIVE_MILLIS_KEY);
+
+  if (storedAfter) {
+    const maybe = new Date(parseInt(storedAfter));
+    if (isValidDate(maybe)) {
+      after = maybe;
+    }
+  }
+
+  if (storedBefore) {
+    const maybe = new Date(parseInt(storedBefore));
+    if (isValidDate(maybe)) {
+      before = maybe;
+    }
+  }
+
+  if (storedRelativeMillis) {
+    const maybe = parseInt(storedRelativeMillis);
+    if (!isNaN(maybe)) {
+      relativeMillis = maybe;
+    }
+  }
   return {
     after,
     before,
-    relativeMillis: ALL_TIME_MS,
+    relativeMillis,
   };
 }
 
@@ -131,6 +160,12 @@ function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
       _afterRaw.value = _after.value.toISOString().slice(0, 10);
       return;
     }
+  }
+
+  if (_before.value && _after.value) {
+    // store before and after
+    localStorage.setItem(BEFORE_KEY, _before.value.getTime().toString());
+    localStorage.setItem(AFTER_KEY, _after.value.getTime().toString());
   }
 
   _emit({

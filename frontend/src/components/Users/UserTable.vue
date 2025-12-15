@@ -124,12 +124,14 @@ onMounted(() => {
     "
   />
 
-  <!-- <ColorSpinners v-if="loading" /> -->
-  <p v-if="loading" class="text-center">
+  <p v-if="loading || _usersWithStats.length === 0" class="text-center">
     Loading... {{ loadingProgress.toFixed(0) }}%
   </p>
 
-  <table v-if="!loading" class="table table table-hover table-responsive">
+  <table
+    v-if="_usersWithStats.length > 0"
+    class="table table table-hover table-responsive"
+  >
     <thead>
       <tr>
         <th></th>

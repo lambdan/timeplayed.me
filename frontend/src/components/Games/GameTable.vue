@@ -148,10 +148,16 @@ onMounted(() => {
     "
   />
 
-  <p v-if="loading" class="text-center text-muted">
+  <p
+    v-if="loading || _displayedGames.length === 0"
+    class="text-center text-muted"
+  >
     Loading... {{ _loadingPercent.toFixed(0) }}%
   </p>
-  <table class="table table table-hover table-responsive">
+  <table
+    class="table table table-hover table-responsive"
+    v-if="_displayedGames.length > 0"
+  >
     <thead>
       <tr>
         <th></th>
@@ -219,7 +225,7 @@ onMounted(() => {
   <!--
     <GameRow v-for="game in _displayedGames" :key="game.game.id" :game="game" />-->
 
-  <div class="text-center">
+  <div class="text-center" v-if="_displayedGames.length > 0">
     <button
       v-if="_displayedGames.length < _gamesData.length"
       class="btn btn-primary"
