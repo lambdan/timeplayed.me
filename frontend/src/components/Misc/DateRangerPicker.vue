@@ -2,6 +2,13 @@
 // if you are reading this, i am sorry. i hate this fucking component too.
 import { ref, onMounted } from "vue";
 
+const props = defineProps<{
+  before?: Date;
+  after?: Date;
+  relativeMillis?: number;
+  toggleable?: boolean;
+}>();
+
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
@@ -16,7 +23,7 @@ const _afterRaw = ref<any>(); // not used for anything else
 const _beforeValid = ref(false);
 const _afterValid = ref(false);
 
-const _relativeMillis = ref(ALL_TIME_MS);
+const _relativeMillis = ref(props.relativeMillis ?? ALL_TIME_MS);
 
 const _toggleable = ref(true);
 
@@ -44,13 +51,6 @@ const RELATIVE_VALUES: RelativeOption[] = [
   { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
   { label: "All time", milliseconds: ALL_TIME_MS },
 ];
-
-const props = defineProps<{
-  before?: Date;
-  after?: Date;
-  relativeMillis?: number;
-  toggleable?: boolean;
-}>();
 
 const emit = defineEmits<{
   (e: "updated:both", value: EmitData): void;
@@ -145,7 +145,7 @@ function iso8601(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function getDisplayed(which: "before" | "after"): string {
+function getAbsoluteDateDisplayString(which: "before" | "after"): string {
   if (which === "before") {
     if (_beforeValid.value === false) {
       return _beforeRaw.value;
@@ -255,6 +255,7 @@ function parseDropdown(n: any) {
     n = parseInt(n);
   }
   if (typeof n !== "number") {
+    console.warn("parseDropdown: invalid value type", n);
     return;
   }
   if (n === ALL_TIME_MS) {
@@ -295,7 +296,7 @@ onMounted(() => {
           id="after"
           class="form-control"
           :class="{ 'text-danger': !_afterValid }"
-          :value="getDisplayed('after')"
+          :value="getAbsoluteDateDisplayString('after')"
           @change="absoluteChanged('after', $event.target as HTMLInputElement)"
         />
         <span class="input-group-text">-</span>
@@ -304,7 +305,7 @@ onMounted(() => {
           type="date"
           class="form-control"
           :class="_beforeValid ? '' : 'text-danger'"
-          :value="getDisplayed('before')"
+          :value="getAbsoluteDateDisplayString('before')"
           @change="absoluteChanged('before', $event.target as HTMLInputElement)"
         />
         <!-- Switch mode button -->

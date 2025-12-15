@@ -6,6 +6,9 @@ import type { Game, Platform } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import type { UserWithStats } from "../../api.models";
 
+const ONE_HOUR = 60 * 60 * 1000;
+const ONE_DAY = 24 * ONE_HOUR;
+
 const props = defineProps<{
   game?: Game;
   platform?: Platform;
@@ -60,7 +63,7 @@ onMounted(() => {});
             fetchTheThings();
           }
         "
-        :relative-millis="7 * 86400 * 1000"
+        :relative-millis="7 * ONE_DAY"
         :toggleable="context !== 'frontPage'"
       />
       <table class="table table-sm table-hover table-responsive">
