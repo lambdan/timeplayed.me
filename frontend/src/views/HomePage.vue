@@ -82,12 +82,5 @@ onMounted(async () => {
     <div class="col mb-4">
       <RecentActivityCard :limit="10" />
     </div>
-    <PlatformListCard
-      :showExpand="false"
-      :limit="25"
-      :order="'desc'"
-      :sort="'playtime'"
-      :showSortButtons="false"
-    ></PlatformListCard>
   </div>
 </template>

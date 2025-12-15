@@ -44,12 +44,8 @@ async function fetchAllTheThings() {
     const f = await TimeplayedAPI.getUsers({
       limit: 100,
       offset: _usersWithStats.value.length,
-      before: _before.value
-        ? Math.floor(_before.value.getTime() / 1000)
-        : undefined,
-      after: _after.value
-        ? Math.floor(_after.value.getTime() / 1000)
-        : undefined,
+      before: _before.value?.getTime(),
+      after: _after.value?.getTime(),
     });
     _usersWithStats.value.push(...f.data);
     if (_usersWithStats.value.length >= f.total) break;
