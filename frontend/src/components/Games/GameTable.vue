@@ -190,7 +190,7 @@ onMounted(() => {
       </button>
 
       <small class="text-muted mt-2 d-block">
-        {{ _displayedGames.length }} / {{ _gamesData.length }} games shown
+        {{ _displayedGames.length }} / {{ _gamesData.length }}
       </small>
     </div>
   </template>

@@ -20,14 +20,17 @@ const props = withDefaults(
 );
 
 const activities = ref<Activity[]>([]);
-const offset = ref(0);
 const loading = ref(false);
 const hasMore = ref(true);
 
-async function fetchActivities(limit: number, offsetVal = 0) {
+const total = ref(0);
+
+async function fetchActivities(limit: number) {
+  loading.value = true;
+
   const data = await TimeplayedAPI.getActivities({
     limit,
-    offset: offsetVal,
+    offset: activities.value.length,
     game: props.game ? props.game.id : undefined,
     user: props.user ? props.user.id : undefined,
   });
@@ -37,19 +40,15 @@ async function fetchActivities(limit: number, offsetVal = 0) {
     createdAt: new Date(activity.timestamp),
   }));
 
-  if (offsetVal === 0) {
-    activities.value = newActivities;
-  } else {
-    activities.value = [...activities.value, ...newActivities];
-  }
+  activities.value.push(...newActivities);
 
-  hasMore.value = data.total > offsetVal + newActivities.length;
+  total.value = data.total;
+  hasMore.value = data.total > activities.value.length;
   loading.value = false;
 }
 
 function loadMore() {
-  offset.value += props.limit;
-  fetchActivities(props.limit, offset.value);
+  fetchActivities(100);
 }
 
 function getContext(): "userPage" | "gamePage" | "frontPage" {
@@ -63,7 +62,7 @@ function getContext(): "userPage" | "gamePage" | "frontPage" {
 }
 
 onMounted(() => {
-  fetchActivities(props.limit, 0);
+  fetchActivities(props.limit);
 });
 </script>
 
@@ -83,27 +82,6 @@ onMounted(() => {
           />
         </tbody>
       </table>
-      <!--      <FrontPageActivityRow
-        v-if="!props.user && !props.game"
-        v-for="activity in activities"
-        :key="activity.id"
-        :activity="activity"
-        :showExpand="showExpand"
-      />
-      <UserPageActivityRow
-        v-if="props.user && !props.game"
-        v-for="activity in activities"
-        :key="activity.id"
-        :activity="activity"
-        :showExpand="showExpand"
-      />
-      <GamePageActivityRow
-        v-if="props.game && !props.user"
-        v-for="activity in activities"
-        :key="activity.id"
-        :activity="activity"
-        :showExpand="showExpand"
-      />-->
 
       <div class="text-center my-2">
         <button v-if="loading" class="btn btn-primary" type="button" disabled>
@@ -122,6 +100,10 @@ onMounted(() => {
         >
           Load More
         </button>
+        <br />
+        <small class="text-muted mt-2">
+          {{ activities.length }} / {{ total }}
+        </small>
       </div>
     </div>
   </div>
