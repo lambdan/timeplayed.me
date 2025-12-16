@@ -122,6 +122,7 @@ onMounted(() => {
 <template>
   <DateRangerPicker
     :toggleable="true"
+    :relative-millis="-1"
     v-if="props.showDateRange"
     class="mb-2"
     @updated:both="

@@ -65,11 +65,16 @@ function getStoredDates() {
   after.setUTCHours(0, 0, 0, 0);
   let before = new Date();
   before.setUTCHours(23, 59, 59, 999);
-  let relativeMillis = ALL_TIME_MS;
 
-  let storedAfter = localStorage.getItem(AFTER_KEY);
-  let storedBefore = localStorage.getItem(BEFORE_KEY);
-  let storedRelativeMillis = localStorage.getItem(RELATIVE_MILLIS_KEY);
+  let relativeMillis = props.relativeMillis ?? 7 * ONE_DAY;
+
+  const afterKey = AFTER_KEY + window.location.pathname;
+  const beforeKey = BEFORE_KEY + window.location.pathname;
+  const relativeKey = RELATIVE_MILLIS_KEY + window.location.pathname;
+
+  let storedAfter = localStorage.getItem(afterKey);
+  let storedBefore = localStorage.getItem(beforeKey);
+  let storedRelativeMillis = localStorage.getItem(relativeKey);
 
   if (storedAfter) {
     const maybe = new Date(parseInt(storedAfter));
@@ -135,6 +140,12 @@ async function _emit(data: EmitData) {
   emit("updated:both", data);
 }
 
+function store(which: "after" | "before", date: Date) {
+  let key = which === "after" ? AFTER_KEY : BEFORE_KEY;
+  key += window.location.pathname; // make it per-page
+  localStorage.setItem(key, date.getTime().toString());
+}
+
 function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
   if (_relativeMode.value || opts.newBefore === undefined) {
     // before is always undefined in relative mode
@@ -164,8 +175,8 @@ function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
 
   if (_before.value && _after.value) {
     // store before and after
-    localStorage.setItem(BEFORE_KEY, _before.value.getTime().toString());
-    localStorage.setItem(AFTER_KEY, _after.value.getTime().toString());
+    store("before", _before.value);
+    store("after", _after.value);
   }
 
   _emit({
@@ -286,6 +297,11 @@ function getDropdownValue(): string {
 }
 
 function parseDropdown(n: any) {
+  function store(val: number) {
+    const key = RELATIVE_MILLIS_KEY + window.location.pathname;
+    localStorage.setItem(key, val.toString());
+  }
+
   if (typeof n === "string") {
     n = parseInt(n);
   }
@@ -296,9 +312,11 @@ function parseDropdown(n: any) {
   if (n === ALL_TIME_MS) {
     // all time
     _relativeMillis.value = ALL_TIME_MS;
+    store(-1);
     maybeEmit({ newAfter: undefined, newBefore: undefined });
     return;
   } else {
+    store(n);
     const after = new Date(Date.now() - n);
     after.setUTCHours(0, 0, 0, 0);
     maybeEmit({ newAfter: after, newBefore: undefined });
@@ -310,13 +328,9 @@ onMounted(() => {
   if (props.before && props.after) {
     _relativeMode.value = false;
     maybeEmit({ newBefore: props.before, newAfter: props.after });
-  } else if (props.relativeMillis) {
-    _relativeMode.value = true;
-    maybeEmit({ newAfter: new Date(Date.now() - props.relativeMillis) });
   } else {
-    // default to all time
     _relativeMode.value = true;
-    maybeEmit({});
+    switchToRelative();
   }
 });
 </script>
