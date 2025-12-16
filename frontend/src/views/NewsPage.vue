@@ -3,6 +3,43 @@
     <h1 class="card-header">News</h1>
 
     <div class="card-body text-start">
+      <strong>2025-12-16: Version 3.0.0</strong>
+      <p>Happy to announce that version 3.0 of timeplayed.me is now live!</p>
+      <ul>
+        <li>
+          Backend has been completely rewritten, more or less, to be able to
+          have before/after parameters everywhere.
+          <ul>
+            <li>
+              The old API was something I threw together very quickly, mostly
+              during a car ride, and I didn't know how to use typings in FastAPI
+              or anything. Now I know a bit more, so it's less of a mess and
+              more maintainable.
+            </li>
+          </ul>
+        </li>
+        <li>
+          The frontend now have typings based directly on the API, thanks to
+          <code>openapi-typescript</code>
+        </li>
+        <li>
+          You can now set a time span/range on most (if not all...) tables
+        </li>
+        <li>
+          The tables have been rewritten. I tried to do some custom stuff with
+          the one in 2.0 but it was a mess. This is one is just a plain
+          Bootstrap table.
+        </li>
+        <li>Platforms now have individual pages</li>
+      </ul>
+
+      <p>
+        I still have more work to do, but this is good enough for a new release
+        I think... I want to go to sleep...
+      </p>
+      <i>-djs</i>
+      <hr />
+
       <strong>2025-07-06: Incident</strong>
       <p>
         Due to a series of mishaps,
