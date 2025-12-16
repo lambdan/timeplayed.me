@@ -9,9 +9,12 @@ const props = defineProps<{
   toggleable?: boolean;
 }>();
 
-const BEFORE_KEY = "dateRangerPicker_before";
-const AFTER_KEY = "dateRangerPicker_after";
-const RELATIVE_MILLIS_KEY = "dateRangerPicker_relativeMillis";
+function getStorageKey(
+  what: "before" | "after" | "relativeMillis" | "mode",
+): string {
+  const offset = 1; // inc to reset
+  return `dateRangerPicker::${offset}::${window.location.pathname}::${what}`;
+}
 
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
@@ -60,6 +63,20 @@ const emit = defineEmits<{
   (e: "updated:both", value: EmitData): void;
 }>();
 
+function getStoredMode(): "absolute" | "relative" | null {
+  const key = getStorageKey("mode");
+  const stored = localStorage.getItem(key);
+  if (stored === "absolute" || stored === "relative") {
+    return stored;
+  }
+  return null;
+}
+
+function storeMode(mode: "absolute" | "relative") {
+  const key = getStorageKey("mode");
+  localStorage.setItem(key, mode);
+}
+
 function getStoredDates() {
   let after = new Date(Date.now() - 7 * ONE_DAY);
   after.setUTCHours(0, 0, 0, 0);
@@ -68,9 +85,9 @@ function getStoredDates() {
 
   let relativeMillis = props.relativeMillis ?? 7 * ONE_DAY;
 
-  const afterKey = AFTER_KEY + window.location.pathname;
-  const beforeKey = BEFORE_KEY + window.location.pathname;
-  const relativeKey = RELATIVE_MILLIS_KEY + window.location.pathname;
+  const afterKey = getStorageKey("after");
+  const beforeKey = getStorageKey("before");
+  const relativeKey = getStorageKey("relativeMillis");
 
   let storedAfter = localStorage.getItem(afterKey);
   let storedBefore = localStorage.getItem(beforeKey);
@@ -141,8 +158,7 @@ async function _emit(data: EmitData) {
 }
 
 function store(which: "after" | "before", date: Date) {
-  let key = which === "after" ? AFTER_KEY : BEFORE_KEY;
-  key += window.location.pathname; // make it per-page
+  const key = getStorageKey(which);
   localStorage.setItem(key, date.getTime().toString());
 }
 
@@ -219,6 +235,8 @@ function switchToRelative() {
     after.setUTCHours(0, 0, 0, 0);
     maybeEmit({ newAfter: after, newBefore: undefined });
   }
+
+  storeMode("relative");
 }
 
 function switchToAbsolute() {
@@ -226,6 +244,7 @@ function switchToAbsolute() {
   _before.value = stored.before;
   _after.value = stored.after;
   maybeEmit({ newBefore: stored.before, newAfter: stored.after });
+  storeMode("absolute");
 }
 
 function toggleMode() {
@@ -298,7 +317,7 @@ function getDropdownValue(): string {
 
 function parseDropdown(n: any) {
   function store(val: number) {
-    const key = RELATIVE_MILLIS_KEY + window.location.pathname;
+    const key = getStorageKey("relativeMillis");
     localStorage.setItem(key, val.toString());
   }
 
@@ -325,6 +344,12 @@ function parseDropdown(n: any) {
 
 onMounted(() => {
   _toggleable.value = props.toggleable !== false;
+
+  if (getStoredMode() === "absolute") {
+    switchToAbsolute();
+    return;
+  }
+
   if (props.before && props.after) {
     _relativeMode.value = false;
     maybeEmit({ newBefore: props.before, newAfter: props.after });
