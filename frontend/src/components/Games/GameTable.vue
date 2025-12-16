@@ -22,6 +22,13 @@ const props = withDefaults(
     showDateRange: true,
   },
 );
+const ONE_DAY = 24 * 60 * 60 * 1000;
+// Set default starting millis to 7 days ago (speeds up fetching all games...)
+// Default to all time on user/platform page
+let _defaultStartingMillis = 7 * ONE_DAY;
+if (props.user || props.platform) {
+  _defaultStartingMillis = -1;
+}
 
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
@@ -122,7 +129,7 @@ onMounted(() => {
 <template>
   <DateRangerPicker
     :toggleable="true"
-    :relative-millis="-1"
+    :relative-millis="_defaultStartingMillis"
     v-if="props.showDateRange"
     class="mb-2"
     @updated:both="
