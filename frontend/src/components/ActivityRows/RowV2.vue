@@ -167,7 +167,9 @@ onMounted(() => {
     <td
       v-if="
         props.user &&
-        (props.context === 'frontPage' || props.context === 'gamePage')
+        (props.context === 'frontPage' ||
+          props.context === 'gamePage' ||
+          props.context === 'platformPage')
       "
     >
       <a

@@ -65,7 +65,21 @@ onMounted(() => {});
         :relative-millis="context === 'frontPage' ? 7 * ONE_DAY : -1"
         :toggleable="context !== 'frontPage'"
       />
-      <table class="table table-sm table-hover table-responsive">
+      <table
+        class="table table-sm table-hover table-responsive"
+        v-if="_users.length > 0"
+      >
+        <thead>
+          <tr>
+            <th></th>
+            <th>User</th>
+            <th>Time played</th>
+            <th v-if="props.context !== 'frontPage' && _after === undefined">
+              Last played
+            </th>
+          </tr>
+        </thead>
+
         <tbody v-if="!_loading">
           <RowV2
             v-for="user in _users"
@@ -74,7 +88,12 @@ onMounted(() => {});
             :duration-seconds="user.totals.playtime_secs"
             :context="props.context"
             :show-users="false"
-            :show-date="props.context !== 'frontPage'"
+            :show-date="props.context !== 'frontPage' && _after === undefined"
+            :date="
+              user.newest_activity
+                ? new Date(user.newest_activity.timestamp)
+                : undefined
+            "
           />
         </tbody>
       </table>
