@@ -12,7 +12,6 @@ const ONE_DAY = 24 * ONE_HOUR;
 const props = defineProps<{
   game?: Game;
   platform?: Platform;
-  startingRelativeDays?: number;
   context: "gamePage" | "frontPage" | "platformPage";
 }>();
 
@@ -63,7 +62,7 @@ onMounted(() => {});
             fetchTheThings();
           }
         "
-        :relative-millis="7 * ONE_DAY"
+        :relative-millis="context === 'frontPage' ? 7 * ONE_DAY : -1"
         :toggleable="context !== 'frontPage'"
       />
       <table class="table table-sm table-hover table-responsive">
@@ -79,8 +78,8 @@ onMounted(() => {});
           />
         </tbody>
       </table>
-      <p v-if="!_loading && _users.length === 0" class="text-secondary">
-        No one seems to have played this in the selected period
+      <p v-if="!_loading && _users.length === 0" class="text-muted text-center">
+        Nothing found
       </p>
     </div>
   </div>

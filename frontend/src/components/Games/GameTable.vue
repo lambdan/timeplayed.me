@@ -57,20 +57,19 @@ async function fetchGames() {
       offset: _gamesData.value.length,
       userId: props.user ? props.user.id : undefined,
       platformId: props.platform ? props.platform.id : undefined,
-      before: _before.value ? Math.floor(_before.value.getTime()) : undefined,
-      after: _after.value ? Math.floor(_after.value.getTime()) : undefined,
+      before: _before.value ? _before.value.getTime() : undefined,
+      after: _after.value ? _after.value.getTime() : undefined,
     });
     _gamesData.value.push(...f.data);
-    if (_gamesData.value.length >= f.total) break;
     _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
+    if (_gamesData.value.length >= f.total) break;
   }
   sort();
 
   loading.value = false;
 }
 
-function updateDisplayedGames() {
-  //_shownAmount.value = Math.min(_shownAmount.value, _gamesData.value.length);
+async function updateDisplayedGames() {
   _displayedGames.value = _gamesData.value.slice(0, _shownAmount.value);
 }
 
@@ -156,12 +155,17 @@ onMounted(() => {
     "
   />
 
-  <p
-    v-if="loading || _displayedGames.length === 0"
-    class="text-center text-muted"
-  >
+  <p v-if="loading" class="text-center text-muted">
     Loading... {{ _loadingPercent.toFixed(0) }}%
   </p>
+
+  <p
+    v-if="!loading && _displayedGames.length === 0"
+    class="text-center text-muted"
+  >
+    Nothing found
+  </p>
+
   <table
     class="table table table-hover table-responsive"
     v-if="_displayedGames.length > 0"

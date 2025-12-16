@@ -45,13 +45,13 @@ async function fetchPlatforms() {
       offset: _platformsData.value.length,
       userId: props.user ? props.user.id : undefined,
       gameId: props.game ? props.game.id : undefined,
-      before: _before.value ? Math.floor(_before.value.getTime()) : undefined,
-      after: _after.value ? Math.floor(_after.value.getTime()) : undefined,
+      before: _before.value ? _before.value.getTime() : undefined,
+      after: _after.value ? _after.value.getTime() : undefined,
     });
     _platformsData.value.push(...fetchedPlatfomrs.data);
-    if (_platformsData.value.length >= fetchedPlatfomrs.total) break;
     _loadingPercent.value =
       (_platformsData.value.length / fetchedPlatfomrs.total) * 100;
+    if (_platformsData.value.length >= fetchedPlatfomrs.total) break;
   }
   sort();
   loading.value = false;
@@ -136,7 +136,7 @@ onMounted(() => {
     Loading... {{ _loadingPercent.toFixed(0) }}%
   </p>
   <template v-else-if="_platformsData.length > 0">
-    <table class="table table table-hover table-responsive">
+    <table class="table table-hover table-responsive">
       <thead>
         <tr>
           <th></th>
@@ -162,7 +162,10 @@ onMounted(() => {
             />
           </th>
 
-          <th @click="setSort('recency')">
+          <th
+            @click="setSort('recency')"
+            v-if="_after === undefined && _showDate"
+          >
             Last Played
             <i
               :class="
@@ -197,7 +200,7 @@ onMounted(() => {
               ? new Date(platform.newest_activity.timestamp)
               : undefined
           "
-          :showDate="true"
+          :showDate="_after === undefined"
           :showUsers="props.user ? false : true"
         />
       </tbody>

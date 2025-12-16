@@ -158,7 +158,10 @@ onMounted(() => {
           />
         </th>
 
-        <th @click="setSort('recency')">
+        <th
+          @click="setSort('recency')"
+          v-if="_after === undefined && props.showLastPlayed"
+        >
           Last Played
           <i
             :class="
@@ -175,7 +178,7 @@ onMounted(() => {
         v-for="user in _usersWithStats"
         :key="user.user.id"
         :user="user"
-        :showDate="true"
+        :showDate="_after === undefined && props.showLastPlayed"
         :context="'userTable'"
         :durationSeconds="user.totals.playtime_secs"
         :date="
