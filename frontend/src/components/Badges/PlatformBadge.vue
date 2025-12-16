@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import type { Platform } from "../../api.models.ts";
 
@@ -94,11 +93,13 @@ function color() {
 </script>
 
 <template>
-  <span :class="['badge', color()]">
-    <i :class="['bi', getIcon()]"></i>
-    <span v-if="showName"
-      > 
-      {{ displayName() }}
+  <a :href="'/platform/' + platform.id" class="text-decoration-none">
+    <span :class="['badge', color()]">
+      <i :class="['bi', getIcon()]"></i>
+      <span v-if="showName"
+        > 
+        {{ displayName() }}
+      </span>
     </span>
-  </span>
+  </a>
 </template>
