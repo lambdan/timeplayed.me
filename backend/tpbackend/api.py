@@ -257,10 +257,14 @@ def get_activities(
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
-    # use activity count in cache_key to invalidate cache when new activities are added/removed
-    activity_count = get_activity_count(userId=user, gameId=game, platformId=platform)
-    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}"
-    logger.debug("Cache key: %s", cache_key)
+    activity_count = get_activity_count(
+        userId=user, gameId=game, platformId=platform, before=before, after=after
+    )
+    tot_playtime = get_total_playtime(
+        userId=user, gameId=game, platformId=platform, before=before, after=after
+    )
+
+    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}:{tot_playtime}"
     cached = cacheGet(cache_key)
     if cached:
         return cached
