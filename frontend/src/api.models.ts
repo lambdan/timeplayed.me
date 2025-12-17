@@ -22,32 +22,5 @@ export type GameWithStats = components["schemas"]["GameWithStats"];
 export type PaginatedGamesWithStats =
   components["schemas"]["PaginatedGameWithStats"];
 
-// TODO TEMP
-export type SGDBGrid = {
-  id: number;
-  score: number;
-  width: number;
-  height: number;
-  style: string;
-  mime: string;
-  language: string;
-  url: string;
-  thumbnail: string;
-  type: string;
-  author: {
-    name: string;
-    steam64: string;
-    avatar: string;
-  };
-};
-
-export type SGDBGame = {
-  id: number;
-  name: string;
-  //types: ["steam", "gog", "origin"];
-  verified: boolean;
-  /**
-   * "2015-05-19T00:00:00"
-   */
-  release_date: string | undefined;
-};
+export type SGDBGrid = components["schemas"]["SGDB_Grid"];
+export type SGDBGame = components["schemas"]["SGDB_Game"];

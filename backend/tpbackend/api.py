@@ -858,9 +858,10 @@ def get_playtime_by_day(
 @app.get(
     "/api/sgdb/search",
     tags=["SteamGridDB"],
-    response_model=list[steamgriddb.SGDB_Game_SearchResult],
+    response_model=list[steamgriddb.SGDB_Game] | None,
+    description="Searches SteamGridDB for games",
 )
-def search_sgdb(query: str) -> list[steamgriddb.SGDB_Game_SearchResult]:
+def search_sgdb(query: str) -> list[steamgriddb.SGDB_Game] | None:
     cache_key = f"sgdb_search_{query}_{today()}"
     cached = cacheGet(cache_key)
     if cached:
@@ -868,18 +869,28 @@ def search_sgdb(query: str) -> list[steamgriddb.SGDB_Game_SearchResult]:
     return cacheSetReturn(cache_key, steamgriddb.search(query))
 
 
-@app.get("/api/sgdb/grids/{game_id}", tags=["SteamGridDB"])
-def grid_sgdb(game_id: int):
-    cache_key = f"sgdb_grids_{game_id}_{today()}"
+@app.get(
+    "/api/sgdb/grids/{sgdb_game_id}",
+    tags=["SteamGridDB"],
+    response_model=list[steamgriddb.SGDB_Grid] | None,
+    description="Gets grids for a game from SteamGridDB",
+)
+def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
+    cache_key = f"sgdb_grids_{sgdb_game_id}_{today()}"
     cached = cacheGet(cache_key)
     if cached:
         return cached
-    return cacheSetReturn(cache_key, steamgriddb.get_grids(game_id))
+    return cacheSetReturn(cache_key, steamgriddb.get_grids(sgdb_game_id))
 
 
-@app.get("/api/sgdb/grids/{game_id}/best", tags=["SteamGridDB"])
-def best_grid_sgdb(game_id: int):
-    cache_key = f"sgdb_best_grid_{game_id}_{today()}"
+@app.get(
+    "/api/sgdb/grids/{sgdb_game_id}/best",
+    tags=["SteamGridDB"],
+    response_model=steamgriddb.SGDB_Grid | None,
+    description="Tries to get the best grid for a game from SteamGridDB",
+)
+def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
+    cache_key = f"sgdb_best_grid_{sgdb_game_id}_{today()}"
     cached = cacheGet(cache_key)
     if cached:
         if isinstance(cached, HTTPException):
@@ -887,7 +898,7 @@ def best_grid_sgdb(game_id: int):
             raise cached
         return cached
 
-    best = steamgriddb.get_best_grid(game_id)
+    best = steamgriddb.get_best_grid(sgdb_game_id)
     if not best:
         # caching an exception seems cursed...
         logger.warning("CACHING AN EXCEPTION! 🤔 %s", cache_key)

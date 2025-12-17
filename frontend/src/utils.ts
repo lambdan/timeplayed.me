@@ -115,135 +115,56 @@ export async function cacheFetch(
   return res;
 }
 
-// this should probably a service...
-/*export async function fetchActivities(
-  params: ActivitiesQuery,
-): Promise<PaginatedActivities> {
-  let url = "/api/activities?";
-  const queryParts: string[] = [];
-  for (const key in params) {
-    const value = (params as any)[key];
-    if (value !== undefined) {
-      queryParts.push(
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-      );
-    }
-  }
-  url += queryParts.join("&");
-  console.log("Fetching activities", params, url);
-  //const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch activities`);
-  }
-  return await res.json();
-}*/
-
-// this should probably a service...
-/*export async function fetchUsers(
-  params: UsersQuery,
-): Promise<PaginatedUsersWithStats> {
-  if (params.after && params.after instanceof Date) {
-    params.after = params.after.getTime();
-  }
-  if (params.before && params.before instanceof Date) {
-    params.before = params.before.getTime();
-  }
-  const apiParams = {
-    offset: params.offset,
-    limit: params.limit,
-    gameId: params.gameId,
-    before: params.before,
-    after: params.after,
-  };
-
-  let url = "/api/users?";
-  const queryParts: string[] = [];
-  for (const key in apiParams) {
-    const value = (apiParams as any)[key];
-    if (value !== undefined) {
-      queryParts.push(
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-      );
-    }
-  }
-  url += queryParts.join("&");
-  console.log("Fetching users", apiParams, url);
-  //const res = await cacheFetch(url, 60 * 1000); // 1 minute cache
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch activities`);
-  }
-  return await res.json();
-}*/
-
 export async function getGameCoverUrl(
   gameId: number,
   thumbnail = false,
 ): Promise<string> {
-  const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
-  const gameInfo = await cacheFetch(`/api/game/${gameId}`, CACHE_LIFETIME);
-  const gameData = ((await gameInfo.json()) as GameWithStats).game;
+  async function test(
+    gameId: number,
+    thumbnail: boolean,
+  ): Promise<string | undefined> {
+    try {
+      const gameData = (await TimeplayedAPI.getGame(gameId)).game;
 
-  const FALLBACK = "https://placehold.co/267x400?text=No+Image";
-  if (gameData.image_url) {
-    return gameData.image_url;
-  }
-
-  if (gameData.steam_id) {
-    return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
-  }
-
-  if (gameData.sgdb_id) {
-    const res = await cacheFetch(
-      `/api/sgdb/grids/${gameData.sgdb_id}/best`,
-      CACHE_LIFETIME,
-    );
-    if (res.ok) {
-      const data: SGDBGrid = await res.json();
-      return thumbnail ? data.thumbnail : data.url;
-    }
-    return FALLBACK;
-  }
-
-  // search
-  const { data, error } = await TimeplayedAPI.getClient().GET(
-    "/api/sgdb/search",
-    {
-      params: {
-        query: {
-          query: gameData.name,
-        },
-      },
-    },
-  );
-
-  if (data && data.length > 0) {
-    const gameId = data[0]?.id;
-    if (gameId !== undefined) {
-      const res = await cacheFetch(
-        `/api/sgdb/grids/${gameId}/best`,
-        CACHE_LIFETIME,
-      );
-      if (res.ok) {
-        const data: SGDBGrid = await res.json();
-        return thumbnail ? data.thumbnail : data.url;
+      if (gameData.image_url) {
+        return gameData.image_url;
       }
-    }
-  }
 
-  return FALLBACK;
+      if (gameData.steam_id) {
+        return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
+      }
+
+      if (gameData.sgdb_id) {
+        const best = await TimeplayedAPI.getBestSGDBGridForGame(
+          gameData.sgdb_id,
+        );
+        if (best) {
+          return thumbnail ? best.thumbnail : best.url;
+        }
+      }
+
+      // search
+      const search = await TimeplayedAPI.searchSGDB(gameData.name);
+
+      if (search && search.length > 0) {
+        const gameId = search[0]?.id;
+        if (gameId !== undefined) {
+          const best = await TimeplayedAPI.getBestSGDBGridForGame(gameId);
+          if (best) {
+            return thumbnail ? best.thumbnail : best.url;
+          }
+        }
+      }
+    } catch (err) {}
+  }
+  const coverUrl = await test(gameId, thumbnail);
+  if (coverUrl) {
+    return coverUrl;
+  }
+  // fallback to placeholder
+  const size = thumbnail ? "267x400" : "600x900";
+  return `https://placehold.co/${size}?text=No+Cover+Found`;
 }
-
-/*export async function fetchUserInfo(userId: string): Promise<User> {
-  const CACHE_LIFETIME = 1000 * 60 * 10; // 10 minutes
-  const res = await cacheFetch(`/api/user/${userId}`, CACHE_LIFETIME);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch user info for user ${userId}`);
-  }
-  const data = await res.json();
-  return data;
-}*/
 
 export function iso8601Date(date: Date | number): string {
   if (typeof date === "number") {

@@ -184,7 +184,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Sgdb */
+        /**
+         * Search Sgdb
+         * @description Searches SteamGridDB for games
+         */
         get: operations["search_sgdb_api_sgdb_search_get"];
         put?: never;
         post?: never;
@@ -194,15 +197,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/grids/{game_id}": {
+    "/api/sgdb/grids/{sgdb_game_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Grid Sgdb */
-        get: operations["grid_sgdb_api_sgdb_grids__game_id__get"];
+        /**
+         * Sgdb Grids
+         * @description Gets grids for a game from SteamGridDB
+         */
+        get: operations["sgdb_grids_api_sgdb_grids__sgdb_game_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -211,15 +217,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/grids/{game_id}/best": {
+    "/api/sgdb/grids/{sgdb_game_id}/best": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Best Grid Sgdb */
-        get: operations["best_grid_sgdb_api_sgdb_grids__game_id__best_get"];
+        /**
+         * Best Grid Sgdb
+         * @description Tries to get the best grid for a game from SteamGridDB
+         */
+        get: operations["best_grid_sgdb_api_sgdb_grids__sgdb_game_id__best_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -458,8 +467,17 @@ export interface components {
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
         };
-        /** SGDB_Game_SearchResult */
-        SGDB_Game_SearchResult: {
+        /** SGDB_Author */
+        SGDB_Author: {
+            /** Name */
+            name: string;
+            /** Steam64 */
+            steam64: string;
+            /** Avatar */
+            avatar: string;
+        };
+        /** SGDB_Game */
+        SGDB_Game: {
             /** Id */
             id: number;
             /** Name */
@@ -471,6 +489,34 @@ export interface components {
              * Format: date-time
              */
             release_date: string;
+        };
+        /** SGDB_Grid */
+        SGDB_Grid: {
+            /** Id */
+            id: number;
+            /** Score */
+            score: number;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /** Style */
+            style: string;
+            /** Mime */
+            mime: string;
+            /** Language */
+            language: string;
+            /** Url */
+            url: string;
+            /** Thumbnail */
+            thumbnail: string;
+            /** Type */
+            type: string;
+            author: components["schemas"]["SGDB_Author"];
+            /** Upvotes */
+            upvotes: number;
+            /** Downvotes */
+            downvotes: number;
         };
         /** Totals */
         Totals: {
@@ -895,7 +941,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SGDB_Game_SearchResult"][];
+                    "application/json": components["schemas"]["SGDB_Game"][] | null;
                 };
             };
             /** @description Validation Error */
@@ -909,12 +955,12 @@ export interface operations {
             };
         };
     };
-    grid_sgdb_api_sgdb_grids__game_id__get: {
+    sgdb_grids_api_sgdb_grids__sgdb_game_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                game_id: number;
+                sgdb_game_id: number;
             };
             cookie?: never;
         };
@@ -926,7 +972,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SGDB_Grid"][] | null;
                 };
             };
             /** @description Validation Error */
@@ -940,12 +986,12 @@ export interface operations {
             };
         };
     };
-    best_grid_sgdb_api_sgdb_grids__game_id__best_get: {
+    best_grid_sgdb_api_sgdb_grids__sgdb_game_id__best_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                game_id: number;
+                sgdb_game_id: number;
             };
             cookie?: never;
         };
@@ -957,7 +1003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SGDB_Grid"] | null;
                 };
             };
             /** @description Validation Error */
