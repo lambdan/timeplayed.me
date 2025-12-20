@@ -1,5 +1,4 @@
 import { TimeplayedAPI } from "./api.client";
-import type { GameWithStats, SGDBGrid } from "./api.models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -139,7 +138,7 @@ export async function getGameCoverUrl(
           gameData.sgdb_id,
         );
         if (best) {
-          return thumbnail ? best.thumbnail : best.url;
+          return thumbnail ? best.thumb : best.url;
         }
       }
 
@@ -151,7 +150,7 @@ export async function getGameCoverUrl(
         if (gameId !== undefined) {
           const best = await TimeplayedAPI.getBestSGDBGridForGame(gameId);
           if (best) {
-            return thumbnail ? best.thumbnail : best.url;
+            return thumbnail ? best.thumb : best.url;
           }
         }
       }

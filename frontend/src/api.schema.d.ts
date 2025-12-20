@@ -508,10 +508,8 @@ export interface components {
             language: string;
             /** Url */
             url: string;
-            /** Thumbnail */
-            thumbnail: string;
-            /** Type */
-            type: string;
+            /** Thumb */
+            thumb: string;
             author: components["schemas"]["SGDB_Author"];
             /** Upvotes */
             upvotes: number;

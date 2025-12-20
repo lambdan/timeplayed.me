@@ -35,8 +35,8 @@ class SGDB_Grid(BaseModel):
     mime: str
     language: str
     url: str
-    thumbnail: str
-    type: str
+    thumb: str
+    # type: str
     author: SGDB_Author
     upvotes: int
     downvotes: int
