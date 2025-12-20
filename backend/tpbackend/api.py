@@ -451,6 +451,23 @@ def get_game(
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
 
+    def redisGet(key: str) -> GameWithStats | None:
+        raw = REDIS_CLIENT.get(key)
+        if raw:
+            try:
+                decoded = raw.decode("utf-8")  # type: ignore
+                parsed = GameWithStats.model_validate_json(decoded)
+                # logger.info("✅ Hit cache %s", key)
+                return parsed
+            except Exception as _:
+                logger.warning("Exception when parsing redis cache on key %s", key)
+        return None
+
+    cache_key = f"game_with_stats:{gameId}:{userId}:{before}:{after}:{platformId}"
+    cached = redisGet(cache_key)
+    if cached:
+        return cached
+
     gameModel = PublicGameModel(
         id=game.id,
         name=game.name,
@@ -494,6 +511,10 @@ def get_game(
             platformid=platformId,
         ),
     )
+
+    REDIS_CLIENT.set(
+        cache_key, r.model_dump_json(), ex=60
+    )  # 1 minute cache for game stats...
 
     return r
 
