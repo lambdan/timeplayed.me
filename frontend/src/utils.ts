@@ -118,10 +118,20 @@ export async function getGameCoverUrl(
   gameId: number,
   thumbnail = false,
 ): Promise<string> {
+  const key = `gameCover_${gameId}_${thumbnail}`;
+
   async function test(
     gameId: number,
     thumbnail: boolean,
   ): Promise<string | undefined> {
+    function getFromSessionStorage() {
+      const stored = sessionStorage.getItem(key);
+      if (stored) {
+        return stored;
+      }
+      return null;
+    }
+
     async function getBest(id: number) {
       const best = await TimeplayedAPI.getBestSGDBGridForGame(id);
       if (best) {
@@ -134,6 +144,28 @@ export async function getGameCoverUrl(
       }
       return null;
     }
+
+    let inSS = getFromSessionStorage();
+    if (inSS) {
+      return inSS;
+    }
+
+    let waited = 0;
+    const delay = 10;
+    while (sessionStorage.getItem(key + "_loading") === "true") {
+      //console.log("Waiting for someone else to load the cover...");
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      inSS = getFromSessionStorage();
+      if (inSS) {
+        return inSS;
+      }
+      waited += delay;
+      if (waited >= 3000) {
+        return;
+      }
+    }
+
+    sessionStorage.setItem(key + "_loading", "true");
 
     try {
       const gameData = (await TimeplayedAPI.getGame(gameId)).game;
@@ -165,10 +197,14 @@ export async function getGameCoverUrl(
           }
         }
       }
-    } catch (err) {}
+    } catch (err) {
+    } finally {
+      sessionStorage.setItem(key + "_loading", "false");
+    }
   }
   const coverUrl = await test(gameId, thumbnail);
   if (coverUrl) {
+    sessionStorage.setItem(key, coverUrl);
     return coverUrl;
   }
   // fallback to placeholder
