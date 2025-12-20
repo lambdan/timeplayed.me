@@ -3,7 +3,7 @@ volumes:
 
 networks:
   nginxnet:
-    external:  true
+    external: true
   composenet:
     driver: bridge
 
@@ -35,9 +35,11 @@ services:
       DISCORD_TOKEN: x
       ADMINS: "x,y" # Discord user id of admins
       SGDB_TOKEN: x
+      REDIS_HOST: redis
     restart: always
     depends_on:
       - postgres
+      - redis
 
   frontend:
     image: ghcr.io/lambdan/timeplayed.me-frontend:latest
@@ -62,3 +64,8 @@ services:
       POSTGRES_USER: x
       POSTGRES_PASSWORD: x
       POSTGRES_DB: oblivionis # also need to create storage_v2
+
+  redis:
+    image: redis:8.4-alpine
+    restart: always
+    command: redis-server --save 20 1
