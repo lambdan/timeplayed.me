@@ -258,6 +258,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** DiscordAvatarModel */
+        DiscordAvatarModel: {
+            /**
+             * Url
+             * @description URL for the avatar image
+             */
+            url: string | null;
+        };
         /** GameWithStats */
         GameWithStats: {
             totals: components["schemas"]["Totals"];
@@ -1019,7 +1027,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                discord_user_id: number;
+                discord_user_id: string | number;
             };
             cookie?: never;
         };
@@ -1031,7 +1039,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DiscordAvatarModel"];
                 };
             };
             /** @description Validation Error */

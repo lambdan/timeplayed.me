@@ -21,6 +21,10 @@ class PaginatedResponse(BaseModel):
 ###################
 
 
+class DiscordAvatarModel(BaseModel):
+    url: str | None = Field(description="URL for the avatar image")
+
+
 class PublicPlatformModel(BaseModel):
     id: int = Field(description="ID for the platform")
     abbreviation: str = Field(description="Abbreviation for the platform")

@@ -896,14 +896,21 @@ def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
 ###############
 
 
-@app.get("/api/discord/{discord_user_id}/avatar", tags=["Discord"])
-def get_discord_avatar(discord_user_id: int):
-    cache_key = f"discord_avatar_{discord_user_id}_{today()}"
-    cached = cacheGet(cache_key)
+@app.get(
+    "/api/discord/{discord_user_id}/avatar",
+    tags=["Discord"],
+    response_model=DiscordAvatarModel,
+)
+def get_discord_avatar(discord_user_id: str | int) -> DiscordAvatarModel:
+    discord_user_id = int(discord_user_id)
+    cache_key = f"1discord_avatar_{discord_user_id}"
+    cached = REDIS_CLIENT.get(cache_key)
     if cached:
-        return cached
+        decoded = cached.decode("utf-8")  # type: ignore
+        return DiscordAvatarModel.model_validate_json(decoded)
 
-    logger.debug("Fetching avatar for user %s from Discord", discord_user_id)
     url = bot.avatar_from_discord_user_id(discord_user_id)
-    res = {"url": url}
-    return cacheSetReturn(cache_key, res)
+    r = DiscordAvatarModel(url=url)
+    logger.info("Discord avatar cache miss for user %s", discord_user_id)
+    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=3600)
+    return r
