@@ -470,11 +470,11 @@ export interface components {
         /** SGDB_Author */
         SGDB_Author: {
             /** Name */
-            name: string;
+            name: string | null;
             /** Steam64 */
-            steam64: string;
+            steam64: string | null;
             /** Avatar */
-            avatar: string;
+            avatar: string | null;
         };
         /** SGDB_Game */
         SGDB_Game: {
@@ -484,37 +484,36 @@ export interface components {
             name: string;
             /** Verified */
             verified: boolean;
-            /**
-             * Release Date
-             * Format: date-time
-             */
-            release_date: string;
+            /** Release Date */
+            release_date: number;
         };
         /** SGDB_Grid */
         SGDB_Grid: {
             /** Id */
-            id: number;
+            id: number | null;
             /** Score */
-            score: number;
+            score: number | null;
             /** Width */
-            width: number;
+            width: number | null;
             /** Height */
-            height: number;
+            height: number | null;
             /** Style */
-            style: string;
+            style: string | null;
             /** Mime */
-            mime: string;
+            mime: string | null;
             /** Language */
-            language: string;
+            language: string | null;
             /** Url */
-            url: string;
+            url: string | null;
             /** Thumb */
-            thumb: string;
-            author: components["schemas"]["SGDB_Author"];
+            thumb: string | null;
+            /** Type */
+            type: string | null;
+            author: components["schemas"]["SGDB_Author"] | null;
             /** Upvotes */
-            upvotes: number;
+            upvotes: number | null;
             /** Downvotes */
-            downvotes: number;
+            downvotes: number | null;
         };
         /** Totals */
         Totals: {

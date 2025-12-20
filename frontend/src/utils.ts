@@ -122,6 +122,19 @@ export async function getGameCoverUrl(
     gameId: number,
     thumbnail: boolean,
   ): Promise<string | undefined> {
+    async function getBest(id: number) {
+      const best = await TimeplayedAPI.getBestSGDBGridForGame(id);
+      if (best) {
+        if (best.thumb && thumbnail) {
+          return best.thumb;
+        }
+        if (best.url) {
+          return best.url;
+        }
+      }
+      return null;
+    }
+
     try {
       const gameData = (await TimeplayedAPI.getGame(gameId)).game;
 
@@ -134,11 +147,9 @@ export async function getGameCoverUrl(
       }
 
       if (gameData.sgdb_id) {
-        const best = await TimeplayedAPI.getBestSGDBGridForGame(
-          gameData.sgdb_id,
-        );
+        const best = await getBest(gameData.sgdb_id);
         if (best) {
-          return thumbnail ? best.thumb : best.url;
+          return best;
         }
       }
 
@@ -148,9 +159,9 @@ export async function getGameCoverUrl(
       if (search && search.length > 0) {
         const gameId = search[0]?.id;
         if (gameId !== undefined) {
-          const best = await TimeplayedAPI.getBestSGDBGridForGame(gameId);
+          const best = await getBest(gameId);
           if (best) {
-            return thumbnail ? best.thumb : best.url;
+            return best;
           }
         }
       }
