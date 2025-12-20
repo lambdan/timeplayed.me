@@ -4,6 +4,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from peewee import fn
 from tpbackend.api_models import (
+    DiscordAvatarModel,
     GameWithStats,
     PaginatedActivities,
     PaginatedGameWithStats,
@@ -22,39 +23,15 @@ from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
 import logging
+import redis
 
 logger = logging.getLogger("api")
 
 app = FastAPI()
 
-CACHE = {}
-CACHE_MAX = int(os.environ.get("CACHE_MAX", 1000))
-CACHE_FLUSHES = 0
-
-
-def cacheGet(key: str):
-    """
-    Gets value from cache. Returns None if not found.
-    """
-    if key in CACHE:
-        logger.info("Cache hit: %s", key)
-        return CACHE[key]
-    return None
-
-
-def cacheSetReturn(key: str, value):
-    """
-    Sets value in cache. Flushes if size exceeded. Returns same value.
-    """
-    if len(CACHE) > CACHE_MAX:
-        global CACHE_FLUSHES
-        CACHE_FLUSHES += 1
-        logger.info(
-            "Cache size exceeded, flushing for the %s'th time 🚽", CACHE_FLUSHES
-        )
-        CACHE.clear()
-    CACHE[key] = value
-    return value
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+REDIS_CLIENT = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
 
 def fixDatetime(data):
@@ -254,6 +231,18 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
 ) -> PaginatedActivities:
+    def redisGet(key: str) -> PaginatedActivities | None:
+        raw = REDIS_CLIENT.get(key)
+        if raw:
+            try:
+                decoded = raw.decode("utf-8")  # type: ignore
+                parsed = PaginatedActivities.model_validate_json(decoded)
+                # logger.info("✅ Hit redis cache for key %s", key)
+                return parsed
+            except Exception as _:
+                logger.warning("Exception when parsing redis cache on key %s", key)
+        return None
+
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
@@ -265,7 +254,7 @@ def get_activities(
     )
 
     cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}:{tot_playtime}"
-    cached = cacheGet(cache_key)
+    cached = redisGet(cache_key)
     if cached:
         return cached
 
@@ -312,7 +301,8 @@ def get_activities(
         order=order,
     )
 
-    return cacheSetReturn(cache_key, r)
+    REDIS_CLIENT.set(cache_key, r.model_dump_json())
+    return r
 
 
 def get_oldest_or_newest_activity(
