@@ -228,7 +228,6 @@ def get_activities(
             try:
                 decoded = raw.decode("utf-8")  # type: ignore
                 parsed = PaginatedActivities.model_validate_json(decoded)
-                # logger.info("✅ Hit redis cache for key %s", key)
                 return parsed
             except Exception as _:
                 logger.warning("Exception when parsing redis cache on key %s", key)
@@ -237,14 +236,9 @@ def get_activities(
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
-    activity_count = get_activity_count(
-        userId=user, gameId=game, platformId=platform, before=before, after=after
+    cache_key = (
+        f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
     )
-    tot_playtime = get_total_playtime(
-        userId=user, gameId=game, platformId=platform, before=before, after=after
-    )
-
-    cache_key = f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{activity_count}:{tot_playtime}"
     cached = redisGet(cache_key)
     if cached:
         return cached
@@ -292,7 +286,7 @@ def get_activities(
         order=order,
     )
 
-    REDIS_CLIENT.set(cache_key, r.model_dump_json())
+    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=30)
     return r
 
 
