@@ -137,7 +137,7 @@ onMounted(() => {
 
 <template>
   <tr class="align-middle" :key="_id">
-    <td v-if="props.activity">
+    <td v-if="props.activity" class="d-none d-md-table-cell">
       <small title="Activity ID" class="text-secondary">{{
         props.activity.id
       }}</small>
@@ -183,7 +183,7 @@ onMounted(() => {
       <GameCover
         :gameId="getGameCoverId()"
         :thumb="true"
-        :maxHeight="50"
+        :maxHeight="100"
       ></GameCover>
     </td>
 
@@ -211,7 +211,7 @@ onMounted(() => {
       >
     </td>
 
-    <td v-if="props.activity">
+    <td v-if="props.activity" class="d-none d-md-table-cell">
       <PlatformBadge :platform="props.activity.platform" />
     </td>
 
@@ -235,14 +235,6 @@ onMounted(() => {
     <td v-if="_date && props.showDate" :title="_date.toLocaleString()">
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
-
-    <!--    <td
-      v-if="props.context === 'userPage' && props.activity"
-      :title="new Date(props.activity.timestamp).toLocaleString()"
-    >
-      <i class="bi bi-calendar"></i>
-      {{ new Date(props.activity.timestamp).toLocaleDateString() }}
-    </td>-->
 
     <td v-if="props.showUsers">
       <p>{{ (props.platform || props.game!).totals.user_count }}</p>
