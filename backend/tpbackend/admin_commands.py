@@ -253,6 +253,9 @@ def adm_add_game(message: str) -> str:
     name = message.removeprefix("!addgame ").strip()
     if len(name) == 0:
         return "ERROR: Invalid command format. Use: `!addgame <name>` (no quotes)"
+    sanitized = utils.sanitize(name)
+    if sanitized != name:
+        return "Game name invalid"
 
     # check if any game already uses this name
     existingGame = Game.get_or_none(Game.name == name)

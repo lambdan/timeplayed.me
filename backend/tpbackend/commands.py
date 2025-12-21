@@ -3,6 +3,7 @@ import logging
 import discord
 from tpbackend import admin_commands, operations, utils, consts
 from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
+from tpbackend.utils import sanitize
 
 from tpbackend.globals import ADMINS
 
@@ -85,6 +86,9 @@ def dm_add_session(user: User, msg: str) -> str:
 
     msg = msg.removeprefix('!add "')  # remove first quote
     gameName = msg.split('"')[0].strip()  # game name from last quote
+    sanitized = sanitize(gameName)
+    if gameName != sanitized:
+        return "Game name invalid"
 
     game, created = Game.get_or_create(name=gameName)
     if created:

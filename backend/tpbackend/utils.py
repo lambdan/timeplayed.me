@@ -1,5 +1,6 @@
 import datetime
 import logging
+import re
 
 logger = logging.getLogger("utils")
 
@@ -190,3 +191,38 @@ def validateTS(ts) -> int | None:
     except Exception as _:
         pass
     return None
+
+
+def sanitize(s: str) -> str:
+    logger.info("Sanitize in: %s", s)
+
+    if s.startswith('"'):
+        s = s[1:]
+    if s.endswith('"'):
+        s = s[:-1]
+    if s.startswith("'"):
+        s = s[1:]
+    if s.endswith("'"):
+        s = s[:-1]
+
+    s = s.replace("\n", "")
+
+    # remove double quotes and escaped double quotes
+    s = s.replace('"', "").replace('\\"', "")
+
+    # functions... kind of
+    s = s.replace("('", "").replace("')", "")
+    s = s.replace(";(", "").replace(");", "")
+
+    # remove backslashes
+    s = s.replace("\\", "")
+
+    # remove html tags
+    s = re.sub(r"<[^>]*?>", "", s)
+
+    # remove urls
+    s = s.replace("http://", "")
+    s = s.replace("https://", "")
+
+    logger.info("Sanitize out: %s", s)
+    return s
