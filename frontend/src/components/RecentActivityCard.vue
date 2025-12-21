@@ -29,6 +29,7 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 
 const total = ref(0);
+const seen = ref(new Set<number>());
 
 async function fetchActivities(limit: number) {
   loading.value = true;
@@ -38,7 +39,7 @@ async function fetchActivities(limit: number) {
     offset: activities.value.length,
     game: props.game ? props.game.id : undefined,
     user: props.user ? props.user.id : undefined,
-    before: _before.value ? _before.value.getTime() : undefined,
+    before: _before.value ? _before.value.getTime() : Date.now(),
     after: _after.value ? _after.value.getTime() : undefined,
   });
 
@@ -52,6 +53,34 @@ async function fetchActivities(limit: number) {
   total.value = data.total;
   hasMore.value = data.total > activities.value.length;
   loading.value = false;
+}
+
+async function autoRefresh() {
+  for (const a of activities.value) {
+    seen.value.add(a.id);
+  }
+  let lastCheck = Date.now();
+  while (true) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const data = await TimeplayedAPI.getActivities({
+      limit: 5,
+      offset: 0,
+      game: props.game ? props.game.id : undefined,
+      user: props.user ? props.user.id : undefined,
+      after: lastCheck,
+    });
+    for (const activity of data.data) {
+      if (seen.value.has(activity.id)) {
+        continue;
+      }
+      activities.value.unshift({
+        ...activity,
+      });
+      seen.value.add(activity.id);
+    }
+    total.value += data.data.length;
+    lastCheck = Date.now();
+  }
 }
 
 function loadMore() {
@@ -68,8 +97,9 @@ function getContext(): "userPage" | "gamePage" | "frontPage" {
   }
 }
 
-onMounted(() => {
-  fetchActivities(props.limit);
+onMounted(async () => {
+  await fetchActivities(props.limit);
+  autoRefresh();
 });
 </script>
 
