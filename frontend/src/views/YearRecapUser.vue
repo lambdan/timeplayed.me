@@ -413,10 +413,10 @@ onMounted(async () => {
       <h1 class="w-100">{{ userInfo?.name }}</h1>
       <h1 class="w-100">Recap for {{ refYear }}</h1>
       <h4>
-        Played a total of
+        Logged <b class="text-warning">{{ activities.length }} sessions</b> for
+        a total of
         <b class="text-warning">{{ (totalSeconds / 3600).toFixed(0) }} hours</b>
-        over <b class="text-warning">{{ gamesCount }} games</b> in
-        <b class="text-warning">{{ refYear }}</b>
+        over <b class="text-warning">{{ gamesCount }} games</b>
       </h4>
     </div>
     <hr />
@@ -480,6 +480,15 @@ onMounted(async () => {
             </a>
           </h3>
           <h4>{{ (game.seconds / 3600).toFixed(0) }} hours</h4>
+          <h5
+            class="text-muted"
+            :title="
+              (game.seconds / 3600 / game.activity_count).toFixed(2) +
+              ' hours average session length'
+            "
+          >
+            {{ game.activity_count }} sessions
+          </h5>
         </div>
       </div>
     </div>
@@ -507,6 +516,15 @@ onMounted(async () => {
             </a>
           </h5>
           <h6>{{ (game.seconds / 3600).toFixed(0) }} hours</h6>
+
+          <h7
+            class="text-muted"
+            :title="
+              (game.seconds / 3600 / game.activity_count).toFixed(2) +
+              ' hours average session length'
+            "
+            >{{ game.activity_count }} sessions</h7
+          >
         </div>
       </div>
     </div>
@@ -566,6 +584,9 @@ onMounted(async () => {
               </h6>
               <div class="card-text mb-1" style="font-size: 0.95em">
                 <b>{{ (platform.seconds / 3600).toFixed(0) }} hours</b>
+                <br />
+                {{ platform.activity_count }}
+                {{ platform.activity_count === 1 ? "session" : "sessions" }}
                 <br />
                 <span class="text-muted"
                   >({{ platform.percentage.toFixed(0) }}%)</span
@@ -638,9 +659,9 @@ onMounted(async () => {
                 :key="month"
                 class="list-group-item py-1 px-2"
               >
-                <span class="fw-bold">{{ month }}</span>
+                <span class="float-start fw-bold">{{ month }}</span>
                  
-                <span>{{ game }}</span>
+                <span class="float-end">{{ game }}</span>
               </li>
             </ul>
           </div>
@@ -660,9 +681,9 @@ onMounted(async () => {
                 :key="month"
                 class="list-group-item py-1 px-2"
               >
-                <span class="fw-bold">{{ month }}</span>
+                <span class="fw-bold float-start">{{ month }}</span>
                  
-                <span>{{ platform }}</span>
+                <span class="float-end">{{ platform }}</span>
               </li>
             </ul>
           </div>
@@ -681,7 +702,7 @@ onMounted(async () => {
                 class="list-group-item py-1 px-2"
               >
                 <span
-                  class="fw-bold"
+                  class="fw-bold float-start"
                   :style="{
                     color:
                       idx === 0
@@ -696,7 +717,7 @@ onMounted(async () => {
                   {{ item.month }}
                 </span>
                  
-                <span
+                <span class="float-end"
                   >{{ (item.seconds / 3600).toFixed(0) }} hours ({{
                     item.percentage.toFixed(0)
                   }}%)</span
@@ -717,7 +738,7 @@ onMounted(async () => {
                 class="list-group-item py-1 px-2"
               >
                 <span
-                  class="fw-bold"
+                  class="fw-bold float-start"
                   :style="{
                     color:
                       idx === 0
@@ -732,7 +753,7 @@ onMounted(async () => {
                   {{ day.day }}
                 </span>
                  
-                <span
+                <span class="float-end"
                   >{{ (day.seconds / 3600).toFixed(0) }} hours ({{
                     day.percentage.toFixed(0)
                   }}%)</span
