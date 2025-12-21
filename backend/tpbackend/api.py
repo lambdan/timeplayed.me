@@ -18,7 +18,7 @@ from tpbackend.api_models import (
     UserWithStats,
     Totals,
 )
-from tpbackend.utils import clamp, max_int as max, today, validateTS
+from tpbackend.utils import clamp, max_int as max, today, validateTS, tsFromActivity
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
@@ -95,15 +95,6 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
         ),
         seconds=activity.seconds,  # type: ignore
     )
-
-
-def tsFromActivity(activity: Activity) -> int:
-    dt = activity.timestamp
-    if isinstance(dt, int):
-        return dt
-    if dt.tzinfo is None:  # type: ignore
-        dt = dt.replace(tzinfo=datetime.timezone.utc)  # type: ignore
-    return int(dt.timestamp() * 1000)  # type: ignore
 
 
 ####################

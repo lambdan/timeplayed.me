@@ -16,6 +16,43 @@ def get_game_by_alias(alias: str) -> Game | None:
     return Game.get_or_none(Game.aliases.contains(alias))
 
 
+def get_overlapping_activity(
+    user: User,
+    game: Game,
+    platform: Platform,
+    incoming_ended_dt: datetime.datetime,
+    incoming_seconds: int,
+) -> int | None:
+    """
+    Returns None if no overlap.
+    Returns id of old activity if overlap is detected (it should be removed)
+    """
+    # get last activity for this user/game/platform
+    last_activity = (
+        Activity.select()
+        .where(
+            (Activity.user == user)
+            & (Activity.game == game)
+            & (Activity.platform == platform)
+        )
+        .order_by(Activity.timestamp.desc())
+        .first()
+    )
+    if not last_activity:
+        return None
+
+    last_ended_ts = utils.tsFromActivity(last_activity)
+    new_ended_ts = int(incoming_ended_dt.timestamp() * 1000)
+    # calculate time between the activities
+    delta_ms = new_ended_ts - last_ended_ts
+    delta_s = delta_ms / 1000
+    if delta_s < incoming_seconds:
+        # if the last_activity ended when you were still playing (according to this new incoming activity), it's an overlap
+        logger.info("⚠️ Detected overlapping activity: %s", last_activity)
+        return last_activity.id
+    return None
+
+
 def add_session(
     user: User,
     game: Game,
@@ -38,6 +75,23 @@ def add_session(
 
         if timestamp is None:  # Use current time if not provided
             timestamp = utils.now()
+
+        # Check for overlapping activity
+        overlapping_activity = get_overlapping_activity(
+            user=user,
+            game=game,
+            platform=platform,  # type: ignore
+            incoming_ended_dt=timestamp,
+            incoming_seconds=seconds,
+        )
+        if overlapping_activity is not None:
+            # Remove overlapping activity
+            Activity.delete().where(Activity.id == overlapping_activity).execute()  # type: ignore
+            logger.info(
+                "Deleted overlapping activity %s for user %s",
+                overlapping_activity,
+                user,
+            )
 
         activity = Activity.create(
             user=user,

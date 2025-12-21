@@ -2,6 +2,9 @@ import datetime
 import logging
 import re
 
+from tpbackend.storage import storage_v2
+
+
 logger = logging.getLogger("utils")
 
 
@@ -226,3 +229,18 @@ def sanitize(s: str) -> str:
 
     logger.info("Sanitize out: %s", s)
     return s
+
+
+def tsFromActivity(activity: storage_v2.Activity) -> int:
+    """
+    Returns a timestamp in milliseconds from an Activity
+    """
+    dt = activity.timestamp
+    if isinstance(dt, int):
+        # logger.info("tsFromActivity :: Returning %s", dt)
+        return dt
+    if dt.tzinfo is None:  # type: ignore
+        dt = dt.replace(tzinfo=datetime.timezone.utc)  # type: ignore
+    res = int(dt.timestamp() * 1000)  # type: ignore
+    # logger.info("tsFromActivity :: Returning %s", res)
+    return res
