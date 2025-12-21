@@ -363,7 +363,7 @@ async function _fetchActivities() {
     const fetchedActivities = await TimeplayedAPI.getActivities({
       after: startDate.getTime(),
       before: endDate.getTime(),
-      limit: 200,
+      limit: 50,
       offset: activities.value.length,
       user: refUserId.value,
     });

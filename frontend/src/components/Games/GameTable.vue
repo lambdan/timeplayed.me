@@ -53,7 +53,7 @@ async function fetchGames() {
 
   while (true) {
     const f = await TimeplayedAPI.getGames({
-      limit: 100,
+      limit: 25,
       offset: _gamesData.value.length,
       userId: props.user ? props.user.id : undefined,
       platformId: props.platform ? props.platform.id : undefined,

@@ -88,7 +88,7 @@ function sortByRecent() {
 }
 
 function loadMore() {
-  fetchActivities(100);
+  fetchActivities(10);
 }
 
 function getContext(): "userPage" | "gamePage" | "frontPage" {
