@@ -157,6 +157,11 @@ onMounted(() => {
 
   <p v-if="loading" class="text-center text-muted">
     Loading... {{ _loadingPercent.toFixed(0) }}%
+    <!--<span
+      class="spinner-grow spinner-grow-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>-->
   </p>
 
   <p
