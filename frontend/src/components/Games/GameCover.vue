@@ -18,14 +18,12 @@ const props = withDefaults(
   },
 );
 
-const CACHE_LIFETIME = 1000 * 60 * 60; // 1 hour
+const FALLBACK = `https://placehold.co/600x900?text=Loading...`;
 const clickable = ref(props.clickable);
-const imageUrl = ref<string>("");
-const loading = ref(true);
+const imageUrl = ref<string>(FALLBACK);
 
 onMounted(async () => {
   imageUrl.value = await getGameCoverUrl(props.gameId, props.thumb);
-  loading.value = false;
 });
 </script>
 
@@ -33,9 +31,8 @@ onMounted(async () => {
   <div style="display: inline-block; position: relative">
     <template v-if="clickable">
       <a :href="`/game/${props.gameId}`">
-        <div v-if="loading" class="spinner-border" role="status"></div>
         <img
-          v-show="!loading"
+          v-show="imageUrl"
           :src="`${imageUrl}`"
           class="img-fluid"
           :style="{
@@ -47,9 +44,8 @@ onMounted(async () => {
     </template>
     <template v-else>
       <div>
-        <div v-if="loading" class="spinner-border" role="status"></div>
         <img
-          v-show="!loading"
+          v-show="imageUrl"
           :src="`${imageUrl}`"
           class="img-fluid"
           :style="{
