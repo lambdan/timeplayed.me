@@ -47,12 +47,11 @@ async function fetchActivities(limit: number) {
     ...activity,
     createdAt: new Date(activity.timestamp),
   }));
-
   activities.value.push(...newActivities);
-
   total.value = data.total;
   hasMore.value = data.total > activities.value.length;
   loading.value = false;
+  sortByRecent();
 }
 
 async function autoRefresh() {
@@ -63,7 +62,7 @@ async function autoRefresh() {
   while (true) {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     const data = await TimeplayedAPI.getActivities({
-      limit: 5,
+      limit: 100,
       offset: 0,
       game: props.game ? props.game.id : undefined,
       user: props.user ? props.user.id : undefined,
@@ -80,7 +79,12 @@ async function autoRefresh() {
     }
     total.value += data.data.length;
     lastCheck = Date.now();
+    sortByRecent();
   }
+}
+
+function sortByRecent() {
+  activities.value.sort((a, b) => b.timestamp - a.timestamp);
 }
 
 function loadMore() {
