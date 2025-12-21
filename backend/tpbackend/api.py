@@ -286,7 +286,7 @@ def get_activities(
         order=order,
     )
 
-    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=30)
+    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=15)
     return r
 
 
