@@ -4,6 +4,7 @@ import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
+import LoadingBar from "../../components/LoadingBar.vue";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -132,18 +133,7 @@ onMounted(() => {
     "
   />
 
-  <div
-    v-if="loading"
-    class="progress"
-    role="progressbar"
-    :aria-valuenow="_loadingPercent"
-    aria-valuemin="0"
-    aria-valuemax="100"
-  >
-    <div class="progress-bar" :style="'width:' + _loadingPercent + '%'">
-      {{ Math.round(_loadingPercent) }} %
-    </div>
-  </div>
+  <LoadingBar v-if="loading" :percent="_loadingPercent" />
 
   <template v-else-if="_platformsData.length > 0">
     <table class="table table-hover table-responsive">

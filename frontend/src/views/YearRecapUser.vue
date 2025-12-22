@@ -11,6 +11,7 @@ import type {
 } from "../models/stats.models";
 import type { Activity, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import LoadingBar from "../components/LoadingBar.vue";
 
 const route = useRoute();
 const loading = ref<boolean>(true);
@@ -400,20 +401,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="loading" class="mt-4 mb-4 text-center">
-    <div
-      class="progress"
-      role="progressbar"
-      :aria-valuenow="loadingProgress"
-      aria-valuemin="0"
-      aria-valuemax="100"
-    >
-      <div class="progress-bar" :style="'width:' + loadingProgress + '%'">
-        {{ Math.round(loadingProgress) }} %
-      </div>
-    </div>
-    <!--<h2>Loading... {{ Math.round(loadingProgress) }}%</h2>-->
-  </div>
+  <LoadingBar v-if="loading" :percent="loadingProgress" />
   <div v-else>
     <div class="row mb-3 justify-content-center text-center">
       <DiscordAvatar

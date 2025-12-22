@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-
+import LoadingBar from "../LoadingBar.vue";
 import type { UserWithStats } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
@@ -125,18 +125,7 @@ onMounted(() => {
     "
   />
 
-  <div
-    v-if="loading"
-    class="progress"
-    role="progressbar"
-    :aria-valuenow="loadingProgress"
-    aria-valuemin="0"
-    aria-valuemax="100"
-  >
-    <div class="progress-bar" :style="'width:' + loadingProgress + '%'">
-      {{ Math.round(loadingProgress) }} %
-    </div>
-  </div>
+  <LoadingBar v-if="loading" :percent="loadingProgress" />
 
   <table
     v-if="_usersWithStats.length > 0"
