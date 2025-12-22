@@ -21,6 +21,9 @@ const props = withDefaults(
   },
 );
 
+const fetching = ref(false);
+const FAKE_SLEEP = 500;
+
 const activities = ref<Activity[]>([]);
 const loading = ref(false);
 const hasMore = ref(true);
@@ -33,7 +36,7 @@ const seen = ref(new Set<number>());
 
 async function fetchActivities(limit: number) {
   loading.value = true;
-
+  fetching.value = true;
   const data = await TimeplayedAPI.getActivities({
     limit,
     offset: activities.value.length,
@@ -52,6 +55,9 @@ async function fetchActivities(limit: number) {
   hasMore.value = data.total > activities.value.length;
   loading.value = false;
   sortByRecent();
+
+  await new Promise((resolve) => setTimeout(resolve, FAKE_SLEEP));
+  fetching.value = false;
 }
 
 async function autoRefresh() {
@@ -61,6 +67,7 @@ async function autoRefresh() {
   let lastCheck = Date.now();
   while (true) {
     await new Promise((resolve) => setTimeout(resolve, 5000));
+    fetching.value = true;
     const data = await TimeplayedAPI.getActivities({
       limit: 100,
       offset: 0,
@@ -80,6 +87,8 @@ async function autoRefresh() {
     total.value += data.data.length;
     lastCheck = Date.now();
     sortByRecent();
+    await new Promise((resolve) => setTimeout(resolve, FAKE_SLEEP));
+    fetching.value = false;
   }
 }
 
@@ -109,7 +118,16 @@ onMounted(async () => {
 
 <template>
   <div class="card p-0">
-    <h2 class="card-header">Activity</h2>
+    <h2 class="card-header">
+      Activity
+
+      <span
+        v-if="fetching"
+        class="spinner-border spinner-border-sm float-end mt-3"
+        role="status"
+        aria-hidden="true"
+      ></span>
+    </h2>
     <div class="card-body">
       <DateRangerPicker
         v-if="props.showDateRange"

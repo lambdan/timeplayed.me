@@ -125,9 +125,18 @@ onMounted(() => {
     "
   />
 
-  <p v-if="loading || _usersWithStats.length === 0" class="text-center">
-    Loading... {{ loadingProgress.toFixed(0) }}%
-  </p>
+  <div
+    v-if="loading"
+    class="progress"
+    role="progressbar"
+    :aria-valuenow="loadingProgress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div class="progress-bar" :style="'width:' + loadingProgress + '%'">
+      {{ Math.round(loadingProgress) }} %
+    </div>
+  </div>
 
   <table
     v-if="_usersWithStats.length > 0"

@@ -373,6 +373,7 @@ async function _fetchActivities() {
       (activities.value.length / fetchedActivities.total) * 100,
     );
     if (activities.value.length >= fetchedActivities.total) {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // small delay to show 100%
       break;
     }
   }
@@ -400,7 +401,18 @@ onMounted(async () => {
 
 <template>
   <div v-if="loading" class="mt-4 mb-4 text-center">
-    <h2>Loading... {{ Math.round(loadingProgress) }}%</h2>
+    <div
+      class="progress"
+      role="progressbar"
+      :aria-valuenow="loadingProgress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="progress-bar" :style="'width:' + loadingProgress + '%'">
+        {{ Math.round(loadingProgress) }} %
+      </div>
+    </div>
+    <!--<h2>Loading... {{ Math.round(loadingProgress) }}%</h2>-->
   </div>
   <div v-else>
     <div class="row mb-3 justify-content-center text-center">
@@ -416,7 +428,7 @@ onMounted(async () => {
         Logged <b class="text-warning">{{ activities.length }} sessions</b> for
         a total of
         <b class="text-warning">{{ (totalSeconds / 3600).toFixed(0) }} hours</b>
-        over <b class="text-warning">{{ gamesCount }} games</b>
+        across <b class="text-warning">{{ gamesCount }} games</b>
       </h4>
     </div>
     <hr />

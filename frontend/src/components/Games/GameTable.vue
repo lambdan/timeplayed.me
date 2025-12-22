@@ -62,7 +62,10 @@ async function fetchGames() {
     });
     _gamesData.value.push(...f.data);
     _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
-    if (_gamesData.value.length >= f.total) break;
+    if (_gamesData.value.length >= f.total) {
+      await new Promise((r) => setTimeout(r, 500)); // slight delay to show 100%
+      break;
+    }
   }
   sort();
 
@@ -104,12 +107,6 @@ function sort() {
   }
   updateDisplayedGames();
 }
-
-/*watch([() => props.sort, () => props.order], ([newSort, newOrder]) => {
-  localSort.value = newSort;
-  localOrder.value = newOrder;
-  sort();
-});*/
 
 function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   console.log("sort", newSort);
@@ -155,14 +152,18 @@ onMounted(() => {
     "
   />
 
-  <p v-if="loading" class="text-center text-muted">
-    Loading... {{ _loadingPercent.toFixed(0) }}%
-    <!--<span
-      class="spinner-grow spinner-grow-sm"
-      role="status"
-      aria-hidden="true"
-    ></span>-->
-  </p>
+  <div
+    v-if="loading"
+    class="progress"
+    role="progressbar"
+    :aria-valuenow="_loadingPercent"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div class="progress-bar" :style="'width:' + _loadingPercent + '%'">
+      {{ Math.round(_loadingPercent) }} %
+    </div>
+  </div>
 
   <p
     v-if="!loading && _displayedGames.length === 0"

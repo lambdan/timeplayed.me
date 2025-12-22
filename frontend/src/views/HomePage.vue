@@ -6,35 +6,35 @@ import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Totals } from "../api.models";
 
 const globalStats = ref<Totals>();
+const fetching = ref(false);
 
 onMounted(async () => {
+  fetching.value = true;
   const res = await fetch("/api/totals");
   const data: Totals = await res.json();
+  fetching.value = false;
   globalStats.value = data;
   // keep refreshing
   setInterval(async () => {
+    fetching.value = true;
     const res = await fetch("/api/totals");
     const data: Totals = await res.json();
     globalStats.value = data;
+    await new Promise((r) => setTimeout(r, 500));
+    fetching.value = false;
   }, 5000);
 });
 </script>
 
 <template>
   <div class="row">
-    <div class="card p-0">
+    <div class="col card p-0 mt-4">
       <h1 class="card-header">Discord Playtime Tracker</h1>
 
       <div class="card-body text-start">
         <p class="lead">
           This is a thing that automatically tracks your playtime across games
           using Discord.
-        </p>
-        <p v-if="globalStats">
-          So far <b>{{ globalStats.user_count }} users</b> have logged
-          <b>{{ globalStats.activity_count }} sessions</b> across
-          <b>{{ globalStats.game_count }} games</b> for a total of
-          <b>{{ (globalStats.playtime_secs / 3600).toFixed(0) }} hours</b>.
         </p>
         <p>
           All you need to do is join the Discord server and you will be tracked:
@@ -74,6 +74,50 @@ onMounted(async () => {
             >
           </marquee>
         </div>
+      </div>
+    </div>
+    <div class="col-lg-4 card p-0 mt-4">
+      <h1 class="card-header">
+        Totals
+
+        <span
+          v-if="fetching"
+          class="spinner-border spinner-border-sm float-end mt-3"
+          role="status"
+          aria-hidden="true"
+        ></span>
+      </h1>
+      <div class="card-body">
+        <ul class="list-group list-group-flush" v-if="globalStats">
+          <li class="list-group-item py-1 px-2">
+            <span class="fw-bold float-start" title="ah ah he said it"
+              >Time played</span
+            >
+            <span class="float-end"
+              >{{ (globalStats.playtime_secs / 3600).toFixed(0) }} hours<br />
+            </span>
+          </li>
+
+          <li class="list-group-item py-1 px-2">
+            <span class="fw-bold float-start">Activity count</span>
+            <span class="float-end">{{ globalStats.activity_count }}</span>
+          </li>
+
+          <li class="list-group-item py-1 px-2">
+            <span class="fw-bold float-start">Users</span>
+            <span class="float-end">{{ globalStats.user_count }}</span>
+          </li>
+
+          <li class="list-group-item py-1 px-2">
+            <span class="fw-bold float-start">Games</span>
+            <span class="float-end">{{ globalStats.game_count }}</span>
+          </li>
+
+          <li class="list-group-item py-1 px-2">
+            <span class="fw-bold float-start">Platforms</span>
+            <span class="float-end">{{ globalStats.platform_count }}</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
