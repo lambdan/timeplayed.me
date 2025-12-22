@@ -6,13 +6,17 @@ import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Totals } from "../api.models";
 
 const globalStats = ref<Totals>();
-const loading = ref<boolean>(true);
 
 onMounted(async () => {
   const res = await fetch("/api/totals");
   const data: Totals = await res.json();
   globalStats.value = data;
-  loading.value = false;
+  // keep refreshing
+  setInterval(async () => {
+    const res = await fetch("/api/totals");
+    const data: Totals = await res.json();
+    globalStats.value = data;
+  }, 5000);
 });
 </script>
 
@@ -26,11 +30,11 @@ onMounted(async () => {
           This is a thing that automatically tracks your playtime across games
           using Discord.
         </p>
-        <p v-if="!loading">
-          So far <b>{{ globalStats!.user_count }} users</b> have played
-          <b>{{ globalStats!.game_count }} games</b> across
-          <b>{{ globalStats!.platform_count }} platforms</b> for a total of
-          <b>{{ (globalStats!.playtime_secs / 3600).toFixed(0) }} hours</b>.
+        <p v-if="globalStats">
+          So far <b>{{ globalStats.user_count }} users</b> have logged
+          <b>{{ globalStats.activity_count }} sessions</b> across
+          <b>{{ globalStats.game_count }} games</b> for a total of
+          <b>{{ (globalStats.playtime_secs / 3600).toFixed(0) }} hours</b>.
         </p>
         <p>
           All you need to do is join the Discord server and you will be tracked:
