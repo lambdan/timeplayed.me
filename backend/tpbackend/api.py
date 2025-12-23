@@ -314,6 +314,9 @@ def get_oldest_or_newest_activity(
     return activities.data[0]
 
 
+@app.get(
+    "/api/activity/newest", tags=["activities"], response_model=PublicActivityModel
+)
 def get_newest_activity(
     userid: str | None = None,
     gameid: int | None = None,
@@ -331,6 +334,9 @@ def get_newest_activity(
     )
 
 
+@app.get(
+    "/api/activity/oldest", tags=["activities"], response_model=PublicActivityModel
+)
 def get_oldest_activity(
     userid: str | None = None,
     gameid: int | None = None,
@@ -349,7 +355,7 @@ def get_oldest_activity(
 
 
 @app.get(
-    "/api/activities/{activity_id}",
+    "/api/activity/{activity_id}",
     tags=["activities"],
     response_model=PublicActivityModel,
 )
@@ -525,7 +531,9 @@ def get_player_count(
 ##############
 
 
-@app.get("/api/platforms", tags=["games"], response_model=PaginatedPlatformsWithStats)
+@app.get(
+    "/api/platforms", tags=["platforms"], response_model=PaginatedPlatformsWithStats
+)
 def get_platforms(
     offset=0,
     limit=25,

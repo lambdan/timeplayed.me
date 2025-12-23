@@ -27,6 +27,20 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getActivity(activityId: number) {
+    const { data, error } = await this.getClient().GET(
+      "/api/activity/{activity_id}",
+      {
+        params: { path: { activity_id: activityId } },
+      },
+    );
+    if (error) {
+      console.error("Error fetching activity:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getPlatform(platformId: number) {
     const { data, error } = await this.getClient().GET(
       "/api/platform/{platformId}",
@@ -70,6 +84,36 @@ export class TimeplayedAPI {
     });
     if (error) {
       console.error("Error fetching activities:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async getNewestActivity(
+    queryParams: paths["/api/activity/newest"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET("/api/activity/newest", {
+      params: {
+        query: queryParams,
+      },
+    });
+    if (error) {
+      console.error("Error fetching newest activity:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async getOldestActivity(
+    queryParams: paths["/api/activity/oldest"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET("/api/activity/oldest", {
+      params: {
+        query: queryParams,
+      },
+    });
+    if (error) {
+      console.error("Error fetching oldest activity:", error);
       throw error;
     }
     return data;
