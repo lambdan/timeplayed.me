@@ -138,9 +138,13 @@ onMounted(() => {
 <template>
   <tr class="align-middle" :key="_id">
     <td v-if="props.activity" class="d-none d-md-table-cell">
-      <small title="Activity ID" class="text-secondary">{{
-        props.activity.id
-      }}</small>
+      <small title="Activity ID" class="text-secondary">
+        <a
+          :href="'/activity/' + props.activity.id"
+          class="link-secondary link-underline link-underline-opacity-0"
+          >{{ props.activity.id }}</a
+        ></small
+      >
     </td>
 
     <td v-if="shouldShowAvatar()">
@@ -148,6 +152,18 @@ onMounted(() => {
         :user="getUserForDiscordAvatar()"
         :maxWidth="50"
       ></DiscordAvatar>
+    </td>
+
+    <td
+      v-if="
+        props.activity && props.activity.user && props.context === 'gamePage'
+      "
+    >
+      <a
+        :href="`/user/${props.activity.user.id}`"
+        class="link-underline link-underline-opacity-0"
+        >{{ props.activity.user.name }}</a
+      >
     </td>
 
     <td v-if="props.platform">

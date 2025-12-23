@@ -3,22 +3,22 @@ import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
-import type { Totals } from "../api.models";
+import type { Activity, Totals } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
 
 const globalStats = ref<Totals>();
 const fetching = ref(false);
 
 onMounted(async () => {
   fetching.value = true;
-  const res = await fetch("/api/totals");
-  const data: Totals = await res.json();
+  const data = await TimeplayedAPI.getTotals();
+
   fetching.value = false;
   globalStats.value = data;
   // keep refreshing
   setInterval(async () => {
     fetching.value = true;
-    const res = await fetch("/api/totals");
-    const data: Totals = await res.json();
+    const data = await TimeplayedAPI.getTotals();
     globalStats.value = data;
     await new Promise((r) => setTimeout(r, 500));
     fetching.value = false;
@@ -117,6 +117,24 @@ onMounted(async () => {
             <span class="fw-bold float-start">Platforms</span>
             <span class="float-end">{{ globalStats.platform_count }}</span>
           </li>
+          <!--
+          <li class="list-group-item py-1 px-2" v-if="oldestActivity">
+            <span class="fw-bold float-start">Oldest activity</span>
+            <span class="float-end"
+              ><a :href="'/activity/' + oldestActivity.id">{{
+                new Date(oldestActivity.timestamp).toLocaleString()
+              }}</a></span
+            >
+          </li>
+
+          <li class="list-group-item py-1 px-2" v-if="newestActivity">
+            <span class="fw-bold float-start">Newest activity</span>
+            <span class="float-end"
+              ><a :href="'/activity/' + newestActivity.id">{{
+                new Date(newestActivity.timestamp).toLocaleString()
+              }}</a></span
+            >
+          </li>-->
         </ul>
       </div>
     </div>

@@ -164,6 +164,21 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getTotals(
+    queryParams?: paths["/api/totals"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET("/api/totals", {
+      params: {
+        query: queryParams,
+      },
+    });
+    if (error) {
+      console.error("Error fetching totals:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getBestSGDBGridForGame(sgdb_game_id: number) {
     const { data, error } = await this.getClient().GET(
       "/api/sgdb/grids/{sgdb_game_id}/best",

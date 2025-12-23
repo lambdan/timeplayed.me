@@ -31,20 +31,28 @@ onMounted(async () => {
               <tr>
                 <td><b>First session:</b></td>
                 <td v-if="stats">
-                  {{ formatDate(new Date(stats?.oldest_activity.timestamp)) }}
+                  <a :href="'/activity/' + stats.oldest_activity.id">
+                    {{
+                      formatDate(new Date(stats.oldest_activity.timestamp))
+                    }}</a
+                  >
                   <br />
                   <small class="text-muted">
-                    {{ timeAgo(new Date(stats?.oldest_activity.timestamp)) }}
+                    {{ timeAgo(new Date(stats.oldest_activity.timestamp)) }}
                   </small>
                 </td>
               </tr>
               <tr>
                 <td><b>Last session:</b></td>
                 <td v-if="stats">
-                  {{ formatDate(new Date(stats?.newest_activity.timestamp)) }}
+                  <a :href="'/activity/' + stats.newest_activity.id">
+                    {{
+                      formatDate(new Date(stats.newest_activity.timestamp))
+                    }}</a
+                  >
                   <br />
                   <small class="text-muted">
-                    {{ timeAgo(new Date(stats?.newest_activity.timestamp)) }}
+                    {{ timeAgo(new Date(stats.newest_activity.timestamp)) }}
                   </small>
                 </td>
               </tr>
