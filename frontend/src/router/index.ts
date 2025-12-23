@@ -9,6 +9,7 @@ import GamePage from "../views/GamePage.vue";
 import PlatformPage from "../views/PlatformPage.vue";
 import YearRecapUser from "../views/YearRecapUser.vue";
 import HelpPage from "../views/HelpPage.vue";
+import ActivityPage from "../views/ActivityPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -16,6 +17,11 @@ const routes = [
     path: "/user/:id/recap/:year",
     name: "UserRecap",
     component: YearRecapUser,
+  },
+  {
+    path: "/activity/:id",
+    name: "ActivityPage",
+    component: ActivityPage,
   },
   {
     path: "/user/:id",

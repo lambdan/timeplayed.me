@@ -631,16 +631,18 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-4 mb-3">
+      <div class="col-12 col-md-4 mb-3" v-if="refLongestSession">
         <div class="card h-100 shadow-sm">
           <div class="card-body text-center">
             <h6 class="card-title mb-2 text-success">Longest session</h6>
             <div class="display-6 fw-bold mb-1">
-              {{ (refLongestSession?.seconds! / 3600).toFixed(0) }} hours
+              {{ (refLongestSession.seconds! / 3600).toFixed(0) }} hours
             </div>
             <small class="text-muted">
-              <i>{{ refLongestSession?.game.name }}</i> on
-              {{ iso8601Date(refLongestSession?.timestamp!) }}
+              <a :href="'/activity/' + refLongestSession.id"
+                ><i>{{ refLongestSession.game.name }}</i> on
+                {{ iso8601Date(refLongestSession?.timestamp!) }}</a
+              >
             </small>
           </div>
         </div>
