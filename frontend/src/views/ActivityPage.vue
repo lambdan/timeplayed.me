@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { iso8601Date } from "../utils";
-import DiscordAvatar from "../components/DiscordAvatar.vue";
+import { formatDuration, iso8601Date } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import type { Activity, GameWithStats, UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import type LoadingBarVue from "../components/LoadingBar.vue";
 
 const route = useRoute();
 const activity = ref<Activity>();
@@ -30,18 +28,19 @@ onMounted(async () => {
 
 <template>
   <div v-if="activity && user && game">
-    <code>{{ JSON.stringify(activity) }}</code>
-    <br />
-    <br />
-    <code>{{ JSON.stringify(user) }}</code>
-    <br />
-    <br />
-    <code>{{ JSON.stringify(game) }}</code>
+    <h1>Activity #{{ activity.id }}</h1>
+    <GameCover :gameId="activity.game.id" :size="128" />
+    <h2>
+      <a :href="'/game/' + activity.game.id">{{ activity.game.name }}</a>
+    </h2>
+    <h3>
+      Played by
+      <a :href="'/user/' + activity.user.id">{{ activity.user.name }}</a> on
+      {{ new Date(activity.timestamp).toLocaleString() }}
+    </h3>
+    <h4>{{ formatDuration(activity.seconds) }}</h4>
   </div>
   <div v-if="error">
     <p class="text-muted">{{ error }}</p>
-  </div>
-  <div v-else>
-    <p class="text-muted">Loading...</p>
   </div>
 </template>
