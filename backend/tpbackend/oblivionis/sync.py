@@ -34,7 +34,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         if created:
             logger.info("Added new user %s to database", user.name)
 
-        game, created = Game.get_or_create(name=activity["game_name"])
+        game_name = activity["game_name"]
+        game_name = game_name.replace(" with Medal", "")
+        game, created = Game.get_or_create(name=game_name)
         if created:
             logger.info("Added new game %s to database", game.name)
 
