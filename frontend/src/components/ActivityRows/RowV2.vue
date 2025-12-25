@@ -137,6 +137,7 @@ onMounted(() => {
 
 <template>
   <tr class="align-middle" :key="_id">
+    <!--
     <td v-if="props.activity" class="d-none d-md-table-cell">
       <small title="Activity ID" class="text-secondary">
         <a
@@ -145,7 +146,7 @@ onMounted(() => {
           >{{ props.activity.id }}</a
         ></small
       >
-    </td>
+    </td>-->
 
     <td v-if="shouldShowAvatar()">
       <DiscordAvatar
@@ -249,7 +250,17 @@ onMounted(() => {
     </td>
 
     <td v-if="_date && props.showDate" :title="_date.toLocaleString()">
-      <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
+      <i class="bi bi-calendar"></i>
+      <span v-if="props.activity"
+        > 
+        <a
+          :href="'/activity/' + props.activity.id"
+          class="text-decoration-none"
+        >
+          {{ _dateDisplayed }}
+        </a></span
+      >
+      <span v-else> {{ _dateDisplayed }} </span>
     </td>
 
     <td v-if="props.showUsers">
