@@ -74,6 +74,7 @@ async function autoRefresh() {
       game: props.game ? props.game.id : undefined,
       user: props.user ? props.user.id : undefined,
       after: lastCheck,
+      order: "desc",
     });
     for (const activity of data.data) {
       if (seen.value.has(activity.id)) {
