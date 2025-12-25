@@ -66,29 +66,25 @@ onMounted(async () => {
               {{ platform.totals.activity_count || "N/A" }}
             </td>
           </tr>
-          <tr>
+          <tr v-if="platform.oldest_activity">
             <th>First Played:</th>
             <td>
-              {{
-                platform.oldest_activity
-                  ? new Date(
-                      platform.oldest_activity.timestamp,
-                    ).toLocaleString()
-                  : "Never"
-              }}
+              <a :href="'/activity/' + platform.oldest_activity.id">
+                {{
+                  new Date(platform.oldest_activity.timestamp).toLocaleString()
+                }}</a
+              >
             </td>
           </tr>
 
-          <tr>
+          <tr v-if="platform.newest_activity">
             <th>Last Played:</th>
             <td>
-              {{
-                platform.newest_activity
-                  ? new Date(
-                      platform.newest_activity.timestamp,
-                    ).toLocaleString()
-                  : "Never"
-              }}
+              <a :href="'/activity/' + platform.newest_activity.id">
+                {{
+                  new Date(platform.newest_activity.timestamp).toLocaleString()
+                }}</a
+              >
             </td>
           </tr>
         </tbody>

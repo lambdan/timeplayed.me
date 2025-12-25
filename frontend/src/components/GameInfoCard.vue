@@ -111,14 +111,16 @@ onMounted(async () => {
                       <td><b>Platform count:</b></td>
                       <td>{{ stats.totals.platform_count ?? "-" }}</td>
                     </tr>
-                    <tr>
+                    <tr v-if="stats.oldest_activity">
                       <td><b>First played:</b></td>
                       <td>
-                        {{
-                          stats.oldest_activity
-                            ? formatDate(stats.oldest_activity.timestamp)
-                            : "-"
-                        }}
+                        <a :href="'/activity/' + stats.oldest_activity.id">
+                          {{
+                            stats.oldest_activity
+                              ? formatDate(stats.oldest_activity.timestamp)
+                              : "-"
+                          }}</a
+                        >
                         <br />
                         <small class="text-muted">
                           {{
@@ -129,14 +131,16 @@ onMounted(async () => {
                         </small>
                       </td>
                     </tr>
-                    <tr>
+                    <tr v-if="stats.newest_activity">
                       <td><b>Last played:</b></td>
                       <td>
-                        {{
-                          stats.newest_activity
-                            ? formatDate(stats.newest_activity.timestamp)
-                            : "-"
-                        }}
+                        <a :href="'/activity/' + stats.newest_activity.id">
+                          {{
+                            stats.newest_activity
+                              ? formatDate(stats.newest_activity.timestamp)
+                              : "-"
+                          }}</a
+                        >
                         <br />
                         <small class="text-muted">
                           {{
