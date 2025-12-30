@@ -73,6 +73,9 @@ def add_session(
         if platform is None:  # Use default platform if not provided
             platform = user.default_platform  # type: ignore
 
+        if platform.abbreviation == "pc":  # type: ignore
+            platform, created = Platform.get_or_create(abbreviation=user.pc_platform)
+
         if timestamp is None:  # Use current time if not provided
             timestamp = utils.now()
 

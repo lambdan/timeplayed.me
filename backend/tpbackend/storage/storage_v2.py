@@ -52,6 +52,8 @@ class User(BaseModel):
         Platform, default=lambda: Platform.get_or_create(abbreviation="pc")[0]
     )
     bot_commands_blocked = BooleanField(default=False)
+    # alter table public.user add column pc_platform varchar(255) default 'pc';
+    pc_platform = CharField(default="pc")
 
 
 class Game(BaseModel):

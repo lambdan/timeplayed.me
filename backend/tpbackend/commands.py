@@ -256,6 +256,19 @@ def dm_set_platform(user: User, message: discord.Message) -> str:
     return f"Platform updated on {successes} session(s)"
 
 
+def dm_pc_platform(user: User, message: discord.Message) -> str:
+    valid = ["pc", "mac", "linux"]
+    # !pcplatform pc|mac|linux
+    if message.content.lower().strip() == "!pcplatform":
+        return f"Your PC platform is **{user.pc_platform}**. Use `!pcplatform <{'|'.join(valid)}>` to change it."
+    pf = message.content.removeprefix("!pcplatform ").strip().lower()
+    if pf not in valid:
+        return f"Invalid PC platform. Valid options are: {', '.join(valid)}"
+    user.pc_platform = pf # type: ignore
+    user.save()
+    return f"PC platform set to {pf}"
+
+
 def dm_set_date(user: User, message: discord.Message) -> str:
     # !setdate <session_id> <new_date>
     parts = message.content.removeprefix("!setdate ").strip().split()
@@ -446,6 +459,8 @@ def dm_receive(message: discord.Message) -> str:
         return dm_platform(user, message)
     elif first == "!setplatform":
         return dm_set_platform(user, message)
+    elif first == "!pcplatform":
+        return dm_pc_platform(user, message)
     elif first == "!setdate":
         return dm_set_date(user, message)
     elif first == "!setgame":
