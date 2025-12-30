@@ -81,6 +81,15 @@
           for 30 minutes
         </li>
       </ul>
+
+      <strong
+        >I use a Mac or Linux, and want my activities to show up as such instead
+        of PC.</strong
+      >
+      <p>
+        Use the <code>!pcplatform</code> command to change what your PC platform
+        is. You can also retroactively update using <code>!setplatform</code>.
+      </p>
     </div>
   </div>
 </template>

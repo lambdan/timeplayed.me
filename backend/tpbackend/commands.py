@@ -30,11 +30,11 @@ def dm_help(isAdmin: bool) -> str:
 - `!setdate <session_id> <datetime>` - Change date of a session
 
 ## Platforms: 
-- `!platform` - Show your current default platform
-- `!platform <name>` - Set your default platform
+- `!platform` - Show/set your default platform
 - `!platforms` - List all valid platforms
 - `!setplatform <session_id> <platform>`
 - `!setplatform <session_id1-session_id2> <platform>` 
+- `!pcplatform` - Show/set your PC platform
 
 ## Games:
 - `!game <game_id|game_name>` 
@@ -264,7 +264,7 @@ def dm_pc_platform(user: User, message: discord.Message) -> str:
     pf = message.content.removeprefix("!pcplatform ").strip().lower()
     if pf not in valid:
         return f"Invalid PC platform. Valid options are: {', '.join(valid)}"
-    user.pc_platform = pf # type: ignore
+    user.pc_platform = pf  # type: ignore
     user.save()
     return f"PC platform set to {pf}"
 
