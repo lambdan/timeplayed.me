@@ -144,6 +144,19 @@ Badges
   color: #000 !important;
 }
 
+.bg-windows {
+  background-color: #0078d7 !important;
+  color: #fff !important;
+}
+
+.bg-ubuntu {
+  /** background-color: #e95420 !important; /** ubuntu orange **/
+  /** background-color: #5e2750 !important; /** aubergine ** */
+  background-color: #2c001e !important; /** dark aubergine **/
+  /**color: #fff !important; */
+  color: #eb6536 !important; /** ubuntu orange **/
+}
+
 .bg-nintendo {
   background-color: #e60012 !important;
   color: #fff !important;

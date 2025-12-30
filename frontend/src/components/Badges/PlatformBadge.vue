@@ -23,13 +23,17 @@ function getIcon() {
     return "bi-nintendo-switch";
   }
   if (props.platform.abbreviation === "pc") {
-    return "bi-pc-display";
+    // TODO: Should probably rename pc to win in the backend! :innocent:
+    return "bi-windows";
   }
   if (props.platform.abbreviation === "steamdeck") {
     return "bi-steam";
   }
   if (props.platform.abbreviation === "mac") {
     return "bi-apple";
+  }
+  if (props.platform.abbreviation === "linux") {
+    return "bi-tux";
   }
   // fallback
   return "bi-controller";
@@ -66,7 +70,12 @@ function color() {
   }
 
   if (props.platform.abbreviation === "pc") {
-    return "bg-pcmr";
+    return "bg-windows";
+    //return "bg-pcmr";
+  }
+
+  if (props.platform.abbreviation === "linux") {
+    return "bg-ubuntu";
   }
 
   if (
