@@ -84,7 +84,7 @@
 
       <strong
         >I use a Mac or Linux, and want my activities to show up as such instead
-        of PC.</strong
+        of Windows.</strong
       >
       <p>
         Use the <code>!pcplatform</code> command to change what your PC platform
