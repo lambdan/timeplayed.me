@@ -66,7 +66,7 @@ def add_session(
     """
     if seconds < MINIMUM_SESSION_LENGTH:
         return None, ValueError(
-            "Session must be at least {MINIMUM_SESSION_LENGTH} seconds long"
+            f"Session must be at least {MINIMUM_SESSION_LENGTH} seconds long"
         )
 
     try:

@@ -40,6 +40,7 @@ def parseActivity(activity: PassedActivity) -> bool:
         if created:
             logger.info("Added new game %s to database", game.name)
 
+        # hmm this is slightly cursed... a "pc" platform will be created, but wont be used...
         platform, created = Platform.get_or_create(abbreviation=activity["platform"])
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)

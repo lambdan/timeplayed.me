@@ -49,11 +49,13 @@ class User(BaseModel):
     id = CharField(primary_key=True)
     name = CharField()
     default_platform = ForeignKeyField(
-        Platform, default=lambda: Platform.get_or_create(abbreviation="pc")[0]
+        Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
     bot_commands_blocked = BooleanField(default=False)
     # alter table public.user add column pc_platform varchar(255) default 'pc';
-    pc_platform = CharField(default="pc")
+    # update platform set abbreviation = 'win' where abbreviation = 'pc';
+    # update public.user set pc_platform = 'win' where pc_platform = 'pc';
+    pc_platform = CharField(default="win")
 
 
 class Game(BaseModel):
