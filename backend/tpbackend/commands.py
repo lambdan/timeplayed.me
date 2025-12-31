@@ -257,16 +257,25 @@ def dm_set_platform(user: User, message: discord.Message) -> str:
 
 
 def dm_pc_platform(user: User, message: discord.Message) -> str:
-    valid = ["pc", "mac", "linux"]
-    # !pcplatform pc|mac|linux
+    # !pcplatform win|mac|linux
+    valid = ["win", "mac", "linux"]
+
+    def current() -> str:
+        # windows is internally pc.... ughhhhhhh
+        if user.pc_platform == "pc":
+            return "win"
+        return user.pc_platform  # type: ignore
+
     if message.content.lower().strip() == "!pcplatform":
-        return f"Your PC platform is **{user.pc_platform}**. Use `!pcplatform <{'|'.join(valid)}>` to change it."
-    pf = message.content.removeprefix("!pcplatform ").strip().lower()
-    if pf not in valid:
-        return f"Invalid PC platform. Valid options are: {', '.join(valid)}"
-    user.pc_platform = pf  # type: ignore
+        return f"Your PC platform is **{current()}**.\nUse `!pcplatform {'|'.join(valid)}` to change it."
+    new_platform = message.content.removeprefix("!pcplatform ").strip().lower()
+    if new_platform not in valid:
+        return f"Invalid PC platform. Valid options are: `{', '.join(valid)}`"
+    if new_platform == "win":
+        new_platform = "pc"
+    user.pc_platform = new_platform  # type: ignore
     user.save()
-    return f"PC platform set to {pf}"
+    return f"PC platform updated to **{current()}** ✅"
 
 
 def dm_set_date(user: User, message: discord.Message) -> str:
@@ -410,7 +419,7 @@ def dm_receive(message: discord.Message) -> str:
 
     user = user_from_message(message)
     if user is None:
-        logger.error("Could not get Oblivionis User for message: %s", message)
+        logger.error("Could not get internal User for message: %s", message)
         return "ERROR: Try again later"
 
     if user.bot_commands_blocked:
