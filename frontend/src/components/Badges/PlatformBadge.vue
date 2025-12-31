@@ -22,8 +22,7 @@ function getIcon() {
   if (props.platform.abbreviation.includes("switch")) {
     return "bi-nintendo-switch";
   }
-  if (props.platform.abbreviation === "pc") {
-    // TODO: Should probably rename pc to win in the backend! :innocent:
+  if (props.platform.abbreviation === "win") {
     return "bi-windows";
   }
   if (props.platform.abbreviation === "steamdeck") {
@@ -69,9 +68,8 @@ function color() {
     return "bg-steamdeck";
   }
 
-  if (props.platform.abbreviation === "pc") {
+  if (props.platform.abbreviation === "win") {
     return "bg-windows";
-    //return "bg-pcmr";
   }
 
   if (props.platform.abbreviation === "linux") {
