@@ -32,8 +32,8 @@ def dm_help(isAdmin: bool) -> str:
 ## Platforms: 
 - `!platform` - Show/set your default platform
 - `!platforms` - List all valid platforms
-- `!setplatform <session_id> <platform>`
-- `!setplatform <session_id1-session_id2> <platform>` 
+- `!setplatform <activity_id> <platform>`
+    - activity_id can also be a comma-separated list of ids
 - `!pcplatform` - Show/set your PC platform
 
 ## Games:
@@ -227,33 +227,31 @@ def dm_platform(user: User, message: discord.Message) -> str:
 
 
 def dm_set_platform(user: User, message: discord.Message) -> str:
-    # !setplatform <session_id> <platform>
+    # !setplatform <session_id>,<session_id> <platform>
     parts = message.content.removeprefix("!setplatform ").strip().split()
     if len(parts) != 2:
-        return "Invalid command format"
+        return "Invalid command format. Use `!setplatform x platform` or `!setplatform x,y,z platform`"
 
-    session_id = parts[0]
-    platform = parts[1].lower()
+    session_ids = parts[0].strip().split(",")
+    new_platform = parts[1].strip().lower()
+    if new_platform == "win":
+        # windows is internally pc.... ughhhhhhh
+        new_platform = "pc"
 
-    platform = Platform.get_or_none(Platform.abbreviation == platform)
-    if not platform:
-        return "Invalid platform"
+    new_platform = Platform.get_or_none(Platform.abbreviation == new_platform)
+    if not new_platform:
+        return "Platform not found"
 
-    parsed = utils.parseRange(session_id)
-    if parsed:
-        a, b = parsed
-    else:
-        try:
-            a = int(session_id)
-            b = a
-        except ValueError:
-            return "Invalid session ID. Please provide a valid integer or a range in the format `start-end`."
     successes = 0
-    while a <= b:
-        if operations.set_platform_for_session(user, sessionId=a, platform=platform):
-            successes += 1
-        a += 1
-    return f"Platform updated on {successes} session(s)"
+    for s in session_ids:
+        successes += (
+            1
+            if operations.set_platform_for_session(
+                user=user, sessionId=int(s), platform=new_platform
+            )
+            else 0
+        )
+    return f"Platform updated on {successes} activities"
 
 
 def dm_pc_platform(user: User, message: discord.Message) -> str:

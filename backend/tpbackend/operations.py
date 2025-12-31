@@ -161,6 +161,8 @@ def set_platform_for_session(user: User, sessionId: int, platform: Platform) -> 
         return False
     if activity.user.id != user.id:
         return False
+    if activity.platform == platform:
+        return False
     activity.platform = platform
     activity.save()
     return True
