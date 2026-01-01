@@ -8,12 +8,12 @@ import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import PlatformTable from "../components/Platforms/PlatformTable.vue";
 import type { UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import { getRecapYear } from "../utils";
 
 const route = useRoute();
 const apiUser = ref<UserWithStats>();
 
-const showRecap = ref(false);
-const recapYear = ref(new Date().getFullYear());
+const recapYear = ref(getRecapYear());
 
 // Toggle state for cards (activity, playtime, games, platforms)
 const showActivity = ref(true);
@@ -31,8 +31,6 @@ function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
 onMounted(async () => {
   const userId = route.params.id as string;
   apiUser.value = await TimeplayedAPI.getUser(userId);
-  const month = new Date().getMonth() + 1; // its zero indexed because JS is hillarious
-  showRecap.value = month === 12 || month === 1;
 });
 </script>
 
@@ -68,7 +66,7 @@ onMounted(async () => {
     >
       Platforms
     </button>
-    <a :href="`/user/${route.params.id}/recap/${recapYear}`" v-if="showRecap">
+    <a :href="`/user/${route.params.id}/recap/${recapYear}`" v-if="recapYear">
       <button class="btn btn-success">Recap {{ recapYear }}</button>
     </a>
   </div>

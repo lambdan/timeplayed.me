@@ -222,3 +222,17 @@ export function iso8601Date(date: Date | number): string {
 export function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max);
 }
+
+export function getRecapYear(): number | null {
+  const now = new Date();
+  // if december, return current year
+  if (now.getMonth() === 11) {
+    return now.getFullYear();
+  }
+  // if january, return previous year
+  if (now.getMonth() === 0) {
+    return now.getFullYear() - 1;
+  }
+  // else: recap not available
+  return null;
+}

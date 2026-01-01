@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { iso8601Date } from "../utils";
+import { getRecapYear, iso8601Date } from "../utils";
 import { buildGamesList, buildPlatformsList } from "../utils.stats";
 import DiscordAvatar from "../components/DiscordAvatar.vue";
 import GameCover from "../components/Games/GameCover.vue";
@@ -13,6 +13,8 @@ import type { Activity, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import LoadingBar from "../components/LoadingBar.vue";
 
+const VALID_YEARS = [getRecapYear(), 2025]; // TODO: general solution :D
+const available = ref(false);
 const route = useRoute();
 const loading = ref<boolean>(true);
 const loadingProgress = ref(0);
@@ -379,6 +381,11 @@ async function _fetchActivities() {
     }
   }
 
+  if (activities.value.length === 0) {
+    loadingProgress.value = 100;
+    return;
+  }
+
   // fetching done, build lists
   gamesList.value = await buildGamesList(activities.value);
   gamesCount.value = gamesList.value.length;
@@ -391,6 +398,11 @@ onMounted(async () => {
   const userId = route.params.id as string;
   const year = parseInt(route.params.year as string);
 
+  available.value = VALID_YEARS.includes(year);
+  if (!available.value) {
+    return;
+  }
+
   const data = await TimeplayedAPI.getUser(userId);
   userInfo.value = data.user;
   refUserId.value = userId;
@@ -401,8 +413,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <LoadingBar v-if="loading" :percent="loadingProgress" />
-  <div v-else>
+  <p v-if="!available" class="text-center">Recap not available</p>
+  <LoadingBar v-if="available && loading" :percent="loadingProgress" />
+  <div v-if="available && !loading" class="container mt-4 mb-4">
     <div class="row mb-3 justify-content-center text-center">
       <DiscordAvatar
         v-if="userInfo"

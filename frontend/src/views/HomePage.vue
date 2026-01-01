@@ -5,9 +5,11 @@ import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Activity, Totals } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import { getRecapYear } from "../utils";
 
 const globalStats = ref<Totals>();
 const fetching = ref(false);
+const recapYear = ref(getRecapYear());
 
 onMounted(async () => {
   fetching.value = true;
@@ -55,25 +57,22 @@ onMounted(async () => {
         </p>
         <hr />
         <!-- <p>Check the <a href="/news">news page</a> to see what's new!</p> -->
-        <div v-if="new Date().getMonth() === 11 || new Date().getMonth() === 0">
-          <!-- december or january -->
-          <marquee behavior="scroll" direction="left" scrollamount="16">
-            <!-- if december, show current year. if january, show previous year -->
-            <h2>
-              {{
-                new Date().getMonth() === 11
-                  ? new Date().getFullYear()
-                  : new Date().getFullYear() - 1
-              }}
-              Year Recap now available! Look for a green button in your profile!
-            </h2>
-            <small
-              >Yes this is a <code>&lt;marquee&gt;</code> in the year
-              {{ new Date().getFullYear() }}. But you paid attention to it
-              didn't you.</small
-            >
-          </marquee>
-        </div>
+        <marquee
+          v-if="recapYear"
+          behavior="scroll"
+          direction="left"
+          scrollamount="16"
+        >
+          <h2>
+            {{ recapYear }} recap available! Look for a green button in your
+            profile!
+          </h2>
+          <small
+            >Yes this is a <code>&lt;marquee&gt;</code> in
+            {{ new Date().getFullYear() }}. But you paid attention to it didn't
+            you.</small
+          >
+        </marquee>
       </div>
     </div>
     <div class="col-lg-4 card p-0 mt-4">
