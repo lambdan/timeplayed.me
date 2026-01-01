@@ -13,7 +13,6 @@ import type { Activity, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import LoadingBar from "../components/LoadingBar.vue";
 
-const VALID_YEARS = [getRecapYear(), 2025]; // TODO: general solution :D
 const available = ref(false);
 const route = useRoute();
 const loading = ref<boolean>(true);
@@ -398,7 +397,13 @@ onMounted(async () => {
   const userId = route.params.id as string;
   const year = parseInt(route.params.year as string);
 
-  available.value = VALID_YEARS.includes(year);
+  // figure out valid years
+  const validYears = new Set([getRecapYear()]);
+  const prevYear = new Date().getFullYear() - 1;
+  for (let y = 2025; y <= prevYear; y++) {
+    validYears.add(y);
+  }
+  available.value = validYears.has(year);
   if (!available.value) {
     return;
   }
