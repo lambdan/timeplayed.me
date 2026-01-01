@@ -223,6 +223,7 @@ export function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max);
 }
 
+/** Returns current year if its December. Returns previous year if its January. Returns null otherwise. */
 export function getRecapYear(): number | null {
   const now = new Date();
   // if december, return current year

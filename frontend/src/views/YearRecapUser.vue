@@ -398,7 +398,11 @@ onMounted(async () => {
   const year = parseInt(route.params.year as string);
 
   // figure out valid years
-  const validYears = new Set([getRecapYear()]);
+  const validYears = new Set<number>();
+  const recapYear = getRecapYear();
+  if (recapYear) {
+    validYears.add(recapYear);
+  }
   const prevYear = new Date().getFullYear() - 1;
   for (let y = 2025; y <= prevYear; y++) {
     validYears.add(y);
