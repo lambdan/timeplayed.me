@@ -55,6 +55,7 @@ onMounted(async () => {
                     activity.platform.name || activity.platform.abbreviation
                   }}</a
                 >
+                {{ activity.emulated ? "(Emulated)" : "" }}
               </li>
 
               <li class="list-group-item">
