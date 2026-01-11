@@ -25,6 +25,7 @@ ADMIN_HELP = """☢️
 ## Activity:
 
 - `!adm_remove <activity_id>`
+- `!adm_setgame <activity_id> <game_id>`
 
 ## Users:
 
@@ -63,6 +64,8 @@ def adm_tree(
         return adm_del_platform(content)
     elif first == "!adm_remove":
         return adm_delete_activity(content)
+    elif first == "!adm_setgame":
+        return adm_set_game(content)
     elif first == "!toggleblockcommands":
         return adm_toggle_block_commands(user, content)
     elif first == "!addgame":
@@ -230,6 +233,26 @@ def adm_delete_activity(message: str) -> str:
         return f"ERROR: Activity with ID {i} not found."
     activity.delete_instance()
     return f"OK! Deleted activity {i}"
+
+
+def adm_set_game(message: str) -> str:
+    # !adm_setgame <activity_id> <game_id>
+    msg = message.removeprefix("!adm_setgame ").strip().split()
+    if len(msg) != 2:
+        return (
+            "ERROR: Invalid command format. Use: `!adm_setgame <activity_id> <game_id>`"
+        )
+    activity_id = int(msg[0])
+    game_id = int(msg[1])
+    activity = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
+    if activity is None:
+        return f"ERROR: Activity with ID {activity_id} not found."
+    game = Game.get_or_none(Game.id == game_id)  # type: ignore
+    if game is None:
+        return f"ERROR: Game with ID {game_id} not found."
+    activity.game = game
+    activity.save()
+    return f"OK! Set activity {activity_id} game to {game.id} ({game.name})"
 
 
 def adm_toggle_block_commands(requester: User, message: str) -> str:
