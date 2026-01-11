@@ -3,9 +3,10 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import type { Platform } from "../../api.models.ts";
 
 const props = withDefaults(
-  defineProps<{ platform: Platform; showName?: boolean }>(),
+  defineProps<{ platform: Platform; showName?: boolean; emulated?: boolean }>(),
   {
     showName: true,
+    emulated: false,
   },
 );
 
@@ -106,6 +107,7 @@ function color() {
       <span v-if="showName"
         > 
         {{ displayName() }}
+        <sup v-if="emulated">EMU</sup>
       </span>
     </span>
   </a>

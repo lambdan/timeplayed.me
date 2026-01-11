@@ -228,7 +228,10 @@ onMounted(() => {
     </td>
 
     <td v-if="props.activity" class="d-none d-md-table-cell">
-      <PlatformBadge :platform="props.activity.platform" />
+      <PlatformBadge
+        :platform="props.activity.platform"
+        :emulated="props.activity.emulated"
+      />
     </td>
 
     <td :title="`${_durationSeconds} seconds`">

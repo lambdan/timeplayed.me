@@ -437,6 +437,11 @@ export interface components {
             game: components["schemas"]["PublicGameModel"];
             /** @description Platform associated with the activity */
             platform: components["schemas"]["PublicPlatformModel"];
+            /**
+             * Emulated
+             * @description True if the activity was played in an emulator
+             */
+            emulated: boolean;
         };
         /** PublicGameModel */
         PublicGameModel: {
