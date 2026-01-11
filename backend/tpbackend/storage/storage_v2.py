@@ -81,6 +81,10 @@ class Activity(BaseModel):
     game = ForeignKeyField(Game, backref="activities")
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
+    emulated = BooleanField(
+        # ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
+        default=False
+    )
 
 
 class LiveActivity(BaseModel):

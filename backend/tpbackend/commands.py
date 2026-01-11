@@ -35,6 +35,7 @@ def dm_help(isAdmin: bool) -> str:
 - `!setplatform <activity_id> <platform>`
     - activity_id can also be a comma-separated list of ids
 - `!pcplatform` - Show/set your PC platform
+- `!emulated <activity_id>` - Toggle activity as emulated
 
 ## Games:
 - `!game <game_id|game_name>` 
@@ -297,8 +298,9 @@ def dm_last_sessions(user: User, message: discord.Message) -> str:
     )
     lines = []
     for session in sessions:
+        emulated = " (emu)" if session.emulated else ""
         lines.append(
-            f"#{session}\t{session.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{session.game.name} ({session.platform.abbreviation})\t{utils.secsToHHMMSS(session.seconds)}"
+            f"#{session}\t{session.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{session.game.name} ({session.platform.abbreviation}){emulated}\t{utils.secsToHHMMSS(session.seconds)}"
         )
     out = "```\n"
     out += "\n".join(reversed(lines))
@@ -337,6 +339,19 @@ def dm_set_game(user: User, message: discord.Message) -> str:
         Activity.update(game=game).where(Activity.id == activity.id).execute()  # type: ignore
         a += 1
     return f"Game has been set to **{game.name}** for session(s) {session_ids}."
+
+
+def dm_toggle_emulated(user: User, message: discord.Message) -> str:
+    # !emulated <activity_id>
+    activity_id = int(message.content.removeprefix("!emulated ").strip())
+    activity = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
+    if not activity:
+        return f"Session {activity_id} not found."
+    if activity.user != user:
+        return f"Session {activity_id} does not belong to you."
+    activity.emulated = not activity.emulated
+    activity.save()
+    return f"Session {activity_id} emulated: {activity.emulated}"
 
 
 def dm_game_info(message: discord.Message) -> str:
@@ -460,6 +475,8 @@ def dm_receive(message: discord.Message) -> str:
         return dm_set_platform(user, message)
     elif first == "!pcplatform":
         return dm_pc_platform(user, message)
+    elif first == "!emulated":
+        return dm_toggle_emulated(user, message)
     elif first == "!setdate":
         return dm_set_date(user, message)
     elif first == "!setgame":

@@ -94,6 +94,7 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
             name=activity.platform.name,
         ),
         seconds=activity.seconds,  # type: ignore
+        emulated=activity.emulated,  # type: ignore
     )
 
 

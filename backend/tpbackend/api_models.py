@@ -56,6 +56,7 @@ class PublicActivityModel(BaseModel):
     platform: PublicPlatformModel = Field(
         description="Platform associated with the activity"
     )
+    emulated: bool = Field(description="True if the activity was played in an emulator")
 
 
 class GameOrPlatformStats(BaseModel):
