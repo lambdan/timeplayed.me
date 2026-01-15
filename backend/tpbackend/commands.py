@@ -91,9 +91,7 @@ def dm_add_session(user: User, msg: str) -> str:
     if gameName != sanitized:
         return "Game name invalid"
 
-    game, created = Game.get_or_create(name=gameName)
-    if created:
-        logger.info("Added new game %s to database", gameName)
+    game = operations.get_game_by_name_or_alias_or_create(gameName)
 
     result = operations.add_session(
         user=user, game=game, seconds=duration, timestamp=timestamp
@@ -129,9 +127,7 @@ def dm_start_session(user: User, msg: str) -> str:
     msg = msg.removeprefix('!start "')
     gameName = msg.split('"')[0].strip()
 
-    game, created = Game.get_or_create(name=gameName)
-    if created:
-        logger.info("Added new game %s to database", gameName)
+    game = operations.get_game_by_name_or_alias_or_create(gameName)
 
     live = LiveActivity.create(
         user=user, game=game, platform=platform, started=timestamp
@@ -317,7 +313,7 @@ def dm_set_game(user: User, message: discord.Message) -> str:
 
     session_ids = msg.pop(0).strip()
     game_name = " ".join(msg).strip()
-    game, created = Game.get_or_create(name=game_name)
+    game = operations.get_game_by_name_or_alias_or_create(game_name)
 
     parsed = utils.parseRange(session_ids)
     if parsed:
