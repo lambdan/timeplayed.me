@@ -138,11 +138,11 @@ def adm_add_alias(message: str) -> str:
     # check if any game already uses this alias
     aliasedGame = operations.get_game_by_alias(alias)
     if aliasedGame:
-        return f"ERROR: Alias '{alias}' already exists for game {aliasedGame.name} (ID {aliasedGame})."
+        return f"ERROR: Alias '{alias}' already exists for game {aliasedGame.name}"
 
     game = Game.get_or_none(Game.id == game_id)  # type: ignore
     if game is None:
-        return f"ERROR: Game with ID {game_id} not found."
+        return f"ERROR: Game with ID {game_id} not found"
     if game.aliases and alias in game.aliases:
         return f"Alias '{alias}' already exists for game {game.name}."
     if not game.aliases:
@@ -238,21 +238,15 @@ def adm_delete_activity(message: str) -> str:
 def adm_set_game(message: str) -> str:
     # !adm_setgame <activity_id> <game_id>
     msg = message.removeprefix("!adm_setgame ").strip().split()
-    if len(msg) != 2:
-        return (
-            "ERROR: Invalid command format. Use: `!adm_setgame <activity_id> <game_id>`"
-        )
     activity_id = int(msg[0])
-    game_id = int(msg[1])
+    game_name = " ".join(msg[1:]).strip()
     activity = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
     if activity is None:
         return f"ERROR: Activity with ID {activity_id} not found."
-    game = Game.get_or_none(Game.id == game_id)  # type: ignore
-    if game is None:
-        return f"ERROR: Game with ID {game_id} not found."
+    game = operations.get_game_by_name_or_alias_or_create(game_name)
     activity.game = game
     activity.save()
-    return f"OK! Set activity {activity_id} game to {game.id} ({game.name})"
+    return f"OK! Set activity {activity_id} game to {game.name}"
 
 
 def adm_toggle_block_commands(requester: User, message: str) -> str:
