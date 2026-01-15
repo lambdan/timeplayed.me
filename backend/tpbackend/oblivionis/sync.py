@@ -35,10 +35,19 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Added new user %s to database", user.name)
 
         game_name = activity["game_name"]
-        game_name = game_name.replace(" with Medal", "")
-        game, created = Game.get_or_create(name=game_name)
-        if created:
-            logger.info("Added new game %s to database", game.name)
+        game_name = game_name.removesuffix(" with Medal").strip()
+        game = Game.get_or_none(name=game_name)
+        # if game not found, try by alias
+        if game is None:
+            game = operations.get_game_by_alias(game_name)
+            if game:
+                logger.info("Found game %s by alias!", game.name)
+        # if still none, create it
+        if game is None:
+            logger.info("Did not find game %s by name or alias, creating...", game_name)
+            game, created = Game.get_or_create(name=game_name)
+            if created:
+                logger.info("Added new game %s to database", game.name)
 
         platform_abbr = activity["platform"]
         if platform_abbr == "pc":
