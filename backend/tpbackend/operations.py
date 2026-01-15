@@ -16,6 +16,21 @@ def get_game_by_alias(alias: str) -> Game | None:
     return Game.get_or_none(Game.aliases.contains(alias))
 
 
+def get_game_by_name_or_alias_or_create(s: str) -> Game:
+    game = Game.get_or_none(name=s)
+    if game:
+        logger.info("Found game by name: '%s' (id: %s)", s, game.id)
+        return game
+    game = get_game_by_alias(s)
+    if game:
+        logger.info("Found game by alias '%s': '%s' (id: %s)", s, game.name, game.id)  # type: ignore
+        return game
+    game, created = Game.get_or_create(name=s)
+    if created:
+        logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
+    return game
+
+
 def get_overlapping_activity(
     user: User,
     game: Game,
