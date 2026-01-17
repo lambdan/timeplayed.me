@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import User
 import discord
 from tpbackend.cmds.command import Command
+from tpbackend.storage.storage_v2 import Game
 
 
 class SearchCommand(Command):
@@ -17,4 +18,25 @@ Returns: list of game id's and names matching the query
         super().__init__(["search", "s"], "Search games", help=h)
 
     def execute(self, user: User, message: discord.Message) -> str:
-        return "TODO"
+        # remove first
+        msg = message.content.strip()
+        msg = msg.split(" ")
+        msg = " ".join(msg[1:]).strip()
+        if msg == "":
+            return "No query provided. See `!help search` for usage."
+        return self.search(msg)
+
+    def search(self, query: str) -> str:
+        games = (
+            Game.select()
+            .where((Game.name.contains(query)) | (Game.aliases.contains(query)))
+            .order_by(Game.name)
+            .limit(50)
+        )
+        if not games:
+            return "No games found"
+
+        out = "Results:\n"
+        for game in games:
+            out += f"- **{game.id}** - {game.name}\n"
+        return out
