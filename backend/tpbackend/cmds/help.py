@@ -10,7 +10,7 @@ class HelpCommand(Command):
         super().__init__(["help"], "Shows commands")
 
     def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
+        msg = message.content.strip().lower()
         if msg == "!help":
             return self.command_list(user=user)
         else:
@@ -27,7 +27,7 @@ class HelpCommand(Command):
         return msg
 
     def individual_help(self, user: User, command_name: str) -> str:
-        command_name = command_name.lower().removeprefix("!")
+        command_name = command_name.removeprefix("!")
         # stupid hax because of circular import hell
         if command_name == "help":
             return self.get_help_message()

@@ -1,5 +1,6 @@
 from tpbackend.cmds.add_activity import AddActivityCommand
 from tpbackend.cmds.add_game import AddGameCommand
+from tpbackend.cmds.emulated import ToggleEmulatedCommand
 from tpbackend.cmds.search import SearchCommand
 from tpbackend.cmds.set_game import SetGameCommand
 from tpbackend.cmds.set_platform import SetPlatformCommand
@@ -12,6 +13,7 @@ REGULAR_COMMANDS = [
     SetGameCommand(),
     SetPlatformCommand(),
     AddActivityCommand(),
+    ToggleEmulatedCommand(),
 ]
 
 ADMIN_COMMANDS = [
