@@ -8,11 +8,13 @@ from tpbackend.cmds.set_game import SetGameCommand
 from tpbackend.cmds.set_platform import SetPlatformCommand
 from tpbackend.cmds.start_manual import StartManualCommand
 from tpbackend.cmds.stop_manual import StopManualCommand
+from tpbackend.cmds.list_platforms import ListPlatformsCommand
 
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchCommand(),
+    ListPlatformsCommand(),
     AddGameCommand(),
     SetGameCommand(),
     SetPlatformCommand(),
