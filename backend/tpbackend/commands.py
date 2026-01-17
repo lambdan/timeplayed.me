@@ -5,6 +5,9 @@ from tpbackend import admin_commands, operations, utils, consts
 from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
 from tpbackend.utils import sanitize
 
+from tpbackend.command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
+from tpbackend.cmds.help import HelpCommand
+from tpbackend.cmds.help_admin import HelpAdminCommand
 from tpbackend.globals import ADMINS
 
 logger = logging.getLogger("commands")
@@ -187,16 +190,6 @@ def dm_abort_session(user: User, message: discord.Message) -> str:
         return "You don't have a session running"
     live.delete_instance()  # Remove the live session from db
     return "Session aborted"
-
-
-def dm_merge_game(user: User, message: discord.Message) -> str:
-    # !merge 123 456
-    parts = message.content.removeprefix("!merge ").strip().split()
-    if len(parts) != 2:
-        return "Invalid command format. Use: `!merge game_id1 game_id2`"
-    game_id1 = int(parts[0])
-    game_id2 = int(parts[1])
-    return operations.merge_games(user, gameId1=game_id1, gameId2=game_id2)
 
 
 def dm_remove_session(user: User, message: discord.Message) -> str:
@@ -423,6 +416,15 @@ def dm_receive(message: discord.Message) -> str:
         logger.error("Could not get internal User for message: %s", message)
         return "ERROR: Try again later"
 
+    first_word = content.split(" ")[0].lower()
+    cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
+    for c in cmds:
+        for n in c.names:
+            if first_word == f"!{n}" and c.can_execute(user, message):
+                return c.execute(user, message)
+
+    return "Unknown command, try `!help`"
+
     if user.bot_commands_blocked:
         return "You are blocked from using bot commands"
 
@@ -448,7 +450,7 @@ def dm_receive(message: discord.Message) -> str:
         content = try_expand_alias(content)
         return dm_add_session(user, content)
     elif first == "!start":
-        content = try_expand_alias(content)
+        # content = try_expand_alias(content)
         return dm_start_session(user, content)
     elif first == "!stop":
         return dm_stop_session(user, message)
@@ -456,8 +458,6 @@ def dm_receive(message: discord.Message) -> str:
         return dm_time_session(user, message)
     elif first == "!abort":
         return dm_abort_session(user, message)
-    elif first == "!merge":
-        return dm_merge_game(user, message)
     elif first == "!remove":
         return dm_remove_session(user, message)
     elif first == "!platforms":
