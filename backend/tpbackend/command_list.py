@@ -1,6 +1,7 @@
 from tpbackend.cmds.add_game import AddGameCommand
 from tpbackend.cmds.search import SearchCommand
 from tpbackend.cmds.set_game import SetGameCommand
+from tpbackend.cmds.set_platform import SetPlatformCommand
 
 
 REGULAR_COMMANDS = [
@@ -8,6 +9,7 @@ REGULAR_COMMANDS = [
     SearchCommand(),
     AddGameCommand(),
     SetGameCommand(),
+    SetPlatformCommand(),
 ]
 
 ADMIN_COMMANDS = [
