@@ -13,7 +13,7 @@ import datetime
 class SetGameCommand(Command):
     def __init__(self):
         names = ["set_game", "sg"]
-        d = "Change game of activity/activities"
+        d = "Set game of activity"
         h = """
 Change game of an activity or activities. Useful if you've played a game in an emulator, and want to change it to the actual game.
 

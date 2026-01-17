@@ -13,7 +13,7 @@ import datetime
 class SetPlatformCommand(Command):
     def __init__(self):
         names = ["set_platform", "sp"]
-        d = "Change platform of activity/activities"
+        d = "Set platform of activity"
         h = """
 Change platform of an activity or activities.
 
