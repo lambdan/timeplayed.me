@@ -8,6 +8,4 @@ class AdminCommand(Command):
         super().__init__(name, description)
 
     def can_execute(self, user: User, message: discord.Message) -> bool:
-        if not super().can_execute(user, message):
-            return False
-        return self.is_admin(user)
+        return super().can_execute(user, message) and self.is_admin(user)

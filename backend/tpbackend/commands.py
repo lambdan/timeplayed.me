@@ -416,68 +416,13 @@ def dm_receive(message: discord.Message) -> str:
         logger.error("Could not get internal User for message: %s", message)
         return "ERROR: Try again later"
 
+    if user.bot_commands_blocked:
+        return "You are blocked from using bot commands"
+
     first_word = content.split(" ")[0].lower()
     cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
     for c in cmds:
         for n in c.names:
             if first_word == f"!{n}" and c.can_execute(user, message):
                 return c.execute(user, message)
-
-    return "Unknown command, try `!help`"
-
-    if user.bot_commands_blocked:
-        return "You are blocked from using bot commands"
-
-    parts = content.split(" ")
-    if len(parts) == 0:
-        return "Could not parse message"
-    first = parts[0]
-
-    isAdmin = is_admin(user)
-    if isAdmin:
-        admOutput = admin_commands.adm_tree(message, user, first, content)
-        if admOutput:
-            return admOutput
-
-    if first == "!help":
-        return dm_help(isAdmin)
-    elif first == "!game":
-        content = try_expand_alias(content)
-        return dm_game_info(message=message)
-    elif first == "!search":
-        return dm_search_game(content)
-    elif first == "!add":
-        content = try_expand_alias(content)
-        return dm_add_session(user, content)
-    elif first == "!start":
-        # content = try_expand_alias(content)
-        return dm_start_session(user, content)
-    elif first == "!stop":
-        return dm_stop_session(user, message)
-    elif first == "!time":
-        return dm_time_session(user, message)
-    elif first == "!abort":
-        return dm_abort_session(user, message)
-    elif first == "!remove":
-        return dm_remove_session(user, message)
-    elif first == "!platforms":
-        platforms = Platform.select().order_by(Platform.abbreviation)
-        return (
-            f"Valid platforms are: `{', '.join([p.abbreviation for p in platforms])}`"
-        )
-    elif first == "!platform":
-        return dm_platform(user, message)
-    elif first == "!setplatform":
-        return dm_set_platform(user, message)
-    elif first == "!pcplatform":
-        return dm_pc_platform(user, message)
-    elif first == "!emulated":
-        return dm_toggle_emulated(user, message)
-    elif first == "!setdate":
-        return dm_set_date(user, message)
-    elif first == "!setgame":
-        return dm_set_game(user, message)
-    elif first == "!last":
-        return dm_last_sessions(user, message)
-    else:
-        return "Unknown command. Use `!help` to see available commands."
+    return "Use `!help` to see available commands."

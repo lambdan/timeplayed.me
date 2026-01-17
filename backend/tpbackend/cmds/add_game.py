@@ -28,18 +28,9 @@ Returns: Confirmation message with the game ID and name.
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove !add_game
-        name = message.content.strip()
-        name = name.split(" ")
-        name = " ".join(name[1:]).strip()
-        if name == "":
-            return f"No game name provided? Try `!help {self.names[0]}` for help"
-        if not self.allowed(user):
-            return f"You are not allowed to use this command... yet... See `!help {self.names[0]}` for details."
-        return self.add(name)
-
-    def allowed(self, user: User) -> bool:
+    def can_execute(self, user: User, message: discord.Message) -> bool:
+        if not super().can_execute(user, message):
+            return False
         oldest_activity = get_oldest_activity(userid=str(user.id))
         if oldest_activity is None:
             return False  # no activity
@@ -50,6 +41,15 @@ Returns: Confirmation message with the game ID and name.
         if diff_ms < (48 * 60 * 60 * 1000):
             return False  # less than 48 hours
         return True
+
+    def execute(self, user: User, message: discord.Message) -> str:
+        # remove !add_game
+        name = message.content.strip()
+        name = name.split(" ")
+        name = " ".join(name[1:]).strip()
+        if name == "":
+            return f"No game name provided? Try `!help {self.names[0]}` for help"
+        return self.add(name)
 
     def add(self, s: str) -> str:
         game = get_game_by_name_or_alias(s)

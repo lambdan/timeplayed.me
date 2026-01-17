@@ -1,15 +1,11 @@
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import User
 import discord
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Game, Activity
+from tpbackend.storage.storage_v2 import Game
 from tpbackend.operations import (
-    get_game_by_name_or_alias,
-    get_game_by_name_or_alias_or_create,
     add_session,
 )
-from tpbackend.api import get_oldest_activity
 import tpbackend.utils
-import datetime
 
 
 class AddActivityCommand(Command):
