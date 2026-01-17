@@ -16,15 +16,36 @@ def get_game_by_alias(alias: str) -> Game | None:
     return Game.get_or_none(Game.aliases.contains(alias))
 
 
-def get_game_by_name_or_alias_or_create(s: str) -> Game:
+def get_game_by_name_or_alias(s: str) -> Game | None:
+    # any game with this name?
     game = Game.get_or_none(name=s)
     if game:
         logger.info("Found game by name: '%s' (id: %s)", s, game.id)
         return game
+    # any game with this alias?
     game = get_game_by_alias(s)
     if game:
         logger.info("Found game by alias '%s': '%s' (id: %s)", s, game.name, game.id)  # type: ignore
         return game
+    # any game with this name but different capitalization?
+    lowercased = s.lower()
+    for g in Game.select():
+        if g.name.lower() == lowercased:
+            logger.info(
+                "Found game by different capitalization: db: '%s' / s: '%s' (id: %s)",
+                g.name,
+                s,
+                g.id,
+            )
+            return g
+    return None
+
+
+def get_game_by_name_or_alias_or_create(s: str) -> Game:
+    game = get_game_by_name_or_alias(s)
+    if game:
+        return game
+    # OK FINE we'll create it!
     game, created = Game.get_or_create(name=s)
     if created:
         logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)

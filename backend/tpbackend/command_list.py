@@ -1,9 +1,11 @@
+from tpbackend.cmds.add_game import AddGameCommand
 from tpbackend.cmds.search import SearchCommand
 
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
-    SearchCommand()
+    SearchCommand(),
+    AddGameCommand(),
 ]
 
 ADMIN_COMMANDS = [
