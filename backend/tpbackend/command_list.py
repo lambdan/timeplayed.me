@@ -6,6 +6,8 @@ from tpbackend.cmds.last import LastActivityCommand
 from tpbackend.cmds.search import SearchCommand
 from tpbackend.cmds.set_game import SetGameCommand
 from tpbackend.cmds.set_platform import SetPlatformCommand
+from tpbackend.cmds.start_manual import StartManualCommand
+from tpbackend.cmds.stop_manual import StopManualCommand
 
 
 REGULAR_COMMANDS = [
@@ -18,6 +20,8 @@ REGULAR_COMMANDS = [
     ToggleEmulatedCommand(),
     DeleteActivityCommand(),
     LastActivityCommand(),
+    StartManualCommand(),
+    StopManualCommand(),
 ]
 
 ADMIN_COMMANDS = [
