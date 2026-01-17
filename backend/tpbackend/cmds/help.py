@@ -27,6 +27,7 @@ class HelpCommand(Command):
         return msg
 
     def individual_help(self, user: User, command_name: str) -> str:
+        command_name = command_name.lower().removeprefix("!")
         # stupid hax because of circular import hell
         if command_name == "help":
             return self.get_help_message()
