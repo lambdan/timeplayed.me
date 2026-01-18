@@ -6,7 +6,8 @@ from tpbackend.cmds.command import Command
 class ListPlatformsCommand(Command):
     def __init__(self):
         super().__init__(
-            ["platforms", "plist", "listp", "pl"], "List available platforms"
+            ["platforms", "list_platforms", "plist", "listp", "pl"],
+            "List available platforms",
         )
 
     def execute(self, user: User, message: discord.Message) -> str:
