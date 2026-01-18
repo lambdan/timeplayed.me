@@ -7,7 +7,7 @@ VALID = ["win", "mac", "linux"]
 
 class SetPCPlatformCommand(Command):
     def __init__(self):
-        names = ["set_pcp", "pcplatform", "pcp", "set_pc_platform"]
+        names = ["set_pc_platform", "set_pcp", "pcplatform", "pcp"]
         d = "Set PC platform"
         h = f"""
 Set which PC platform your PC activities should count towards.
