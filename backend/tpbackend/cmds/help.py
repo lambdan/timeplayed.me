@@ -22,7 +22,7 @@ class HelpCommand(Command):
         for c in REGULAR_COMMANDS:
             msg += f"- `!{c.names[0]}` - {c.description}\n"
         if self.is_admin(user):
-            msg += "\n\n☣️ You are admin, see !help_admin"
+            msg += "\n\n☣️ You are admin, see `!help_admin`"
         msg += "\nUse `!help <command>` for more info"
         return msg
 

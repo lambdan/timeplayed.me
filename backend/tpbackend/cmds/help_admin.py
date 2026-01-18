@@ -11,5 +11,5 @@ class HelpAdminCommand(AdminCommand):
     def execute(self, user: User, message: discord.Message) -> str:
         msg = ""
         for c in ADMIN_COMMANDS:
-            msg += f"- `!{c.name}` - {c.description}\n"
+            msg += f"- `!{c.names[0]}` - {c.description}\n"
         return msg
