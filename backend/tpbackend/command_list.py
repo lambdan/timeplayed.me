@@ -20,6 +20,7 @@ from tpbackend.cmds.list_platforms import ListPlatformsCommand
 from tpbackend.cmds.set_steam_id import SetSteamIDCommand
 from tpbackend.cmds.add_game_alias import AddGameAliasCommand
 from tpbackend.cmds.delete_game_alias import DeleteGameAliasCommand
+from tpbackend.cmds.set_game_release_year import SetGameReleaseYearCommand
 
 
 REGULAR_COMMANDS = [
@@ -47,6 +48,7 @@ ADMIN_COMMANDS = [
     SetSGDBIDCommand(),
     SetSteamIDCommand(),
     SetGameImageCommand(),
+    SetGameReleaseYearCommand(),
     # platform mgmt
     AddPlatformCommand(),
     SetPlatformNameCommand(),
