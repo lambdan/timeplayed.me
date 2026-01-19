@@ -23,6 +23,7 @@ from tpbackend.cmds.add_game_alias import AddGameAliasCommand
 from tpbackend.cmds.delete_game_alias import DeleteGameAliasCommand
 from tpbackend.cmds.set_game_release_year import SetGameReleaseYearCommand
 from tpbackend.cmds.search_users import SearchUsersCommand
+from tpbackend.cmds.uptime import UptimeCommand
 
 
 REGULAR_COMMANDS = [
@@ -62,6 +63,8 @@ ADMIN_COMMANDS = [
     # user mgmt
     BlockCommandsCommand(),
     SearchUsersCommand(),
+    # misc
+    UptimeCommand(),
 ]
 
 used = set()
