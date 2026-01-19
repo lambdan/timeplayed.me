@@ -1,13 +1,6 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game, Activity
-from tpbackend.operations import (
-    get_game_by_name_or_alias,
-    get_game_by_name_or_alias_or_create,
-)
-from tpbackend.api import get_oldest_activity
-import datetime
 
 
 class SetGameCommand(Command):
@@ -31,11 +24,7 @@ Returns: Confirmation message
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove !set_game
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) != 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
@@ -54,9 +43,10 @@ Returns: Confirmation message
                 msg += f"- {activity_id}: ❌ not found\n"
                 continue
             if act.user.id != user.id:
-                msg += f"- {activity_id}: ❌ not yours!\n"
+                msg += f"- {activity_id}: ✋ not yours\n"
                 continue
+            old_game = act.game.name
             act.game = game
             act.save()
-            msg += f"- {activity_id}: updated\n"
+            msg += f"- {activity_id}: {old_game} -> {act.game.name}\n"
         return msg

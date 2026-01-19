@@ -1,6 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import User
-import discord
 
 
 class BlockCommandsCommand(AdminCommand):
@@ -10,10 +9,7 @@ class BlockCommandsCommand(AdminCommand):
         h = f"Usage: `!{names[0]} <user_id> on/off`. Send without argument to see status."
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) == 0:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."

@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.operations import (
     get_game_by_name_or_alias,
@@ -28,8 +27,10 @@ Returns: Confirmation message with the game ID and name.
         """
         super().__init__(names=names, description=d, help=h)
 
-    def can_execute(self, user: User, message: discord.Message) -> bool:
-        if not super().can_execute(user, message):
+    def allowed(self, user: User, msg: str) -> bool:
+        if self.is_admin(user):
+            return True
+        if not super().can_execute(user, msg):
             return False
         oldest_activity = get_oldest_activity(userid=str(user.id))
         if oldest_activity is None:
@@ -42,11 +43,10 @@ Returns: Confirmation message with the game ID and name.
             return False  # less than 48 hours
         return True
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove !add_game
-        name = message.content.strip()
-        name = name.split(" ")
-        name = " ".join(name[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
+        if not self.allowed(user, msg):
+            return "You are not allowed to use this command... yet... See `!help add_game` for more info."
+        name = msg
         if name == "":
             return f"No game name provided? Try `!help {self.names[0]}` for help"
         return self.add(name)
@@ -56,4 +56,4 @@ Returns: Confirmation message with the game ID and name.
         if game:
             return f"Error: Game seems to already exist: '{game.name}' (id: {game.id})"  # type: ignore
         game = get_game_by_name_or_alias_or_create(s)
-        return f"Game added: *{game.name}* (id: {game.id})"  # type: ignore
+        return f"✅ Game added: *{game.name}* (id: {game.id})"  # type: ignore

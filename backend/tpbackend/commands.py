@@ -424,5 +424,14 @@ def dm_receive(message: discord.Message) -> str:
     for c in cmds:
         for n in c.names:
             if first_word == f"!{n}" and c.can_execute(user, message):
-                return c.execute(user, message)
-    return "Use `!help` to see available commands."
+                msg = message.content.removeprefix(f"!{n}").strip()
+                try:
+                    logger.info(
+                        "Executing `%s`, user %s, msg: '%s'...", n, user.id, msg
+                    )
+                    return c.execute(user, msg)
+                except Exception as e:
+                    logger.exception("Error executing command %s: %s", n, e)
+                    return f"Error. Maybe `!help {n}` can... help"
+
+    return "Unknown command. Use `!help` to see available commands."

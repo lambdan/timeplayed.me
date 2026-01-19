@@ -1,8 +1,6 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.operations import get_game_by_alias
 from tpbackend.storage.storage_v2 import User
-import discord
-from tpbackend.storage.storage_v2 import Game
 
 
 class DeleteGameAliasCommand(AdminCommand):
@@ -12,10 +10,8 @@ class DeleteGameAliasCommand(AdminCommand):
         h = f"Usage: `!{names[0]} <alias>`. Aliases are case sensitive!!"
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.removeprefix(msg.split(" ")[0])
-        alias = msg.strip()
+    def execute(self, user: User, msg: str) -> str:
+        alias = msg
         game = get_game_by_alias(alias)
         if not game:
             return "Error: No game found with that alias"

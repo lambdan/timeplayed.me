@@ -1,13 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User
-import discord
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Game, Activity
-from tpbackend.operations import (
-    get_game_by_name_or_alias,
-    get_game_by_name_or_alias_or_create,
-)
-from tpbackend.api import get_oldest_activity
-import datetime
+from tpbackend.storage.storage_v2 import Activity
 
 
 class SetPlatformCommand(Command):
@@ -19,23 +12,19 @@ Change platform of an activity or activities.
 
 Usage: `!set_platform <activity_id> <platform_id>`
 Example: set activity 123 to platform 2```
-!set_game 123 2 
+!set_platform 123 2 
 ```
 Can also change multiple activities at once.
 
 Example: set activities 123, 124 and 125 to platform 3: ```
-!set_game 123,124,125 3 
+!set_platform 123,124,125 3 
 ```
 
 Returns: Confirmation message
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove !set_platform
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) != 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
@@ -58,7 +47,8 @@ Returns: Confirmation message
             if act.user.id != user.id:
                 msg += f"- {activity_id}: ❌ not yours!\n"
                 continue
+            old_platform = act.platform.abbreviation
             act.platform = platform
             act.save()
-            msg += f"- {activity_id}: updated\n"
+            msg += f"- {activity_id}: {old_platform} -> {act.platform.abbreviation}\n"
         return msg

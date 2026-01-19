@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.admin_command import AdminCommand
 
 
@@ -18,11 +17,7 @@ Usage: `!search <query>`
             help=h,
         )
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove first
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         if msg == "":
             return "No query provided. See `!help search` for usage."
         return self.search(msg)

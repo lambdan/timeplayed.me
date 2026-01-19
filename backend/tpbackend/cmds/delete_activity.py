@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
 
@@ -12,10 +11,8 @@ class DeleteActivityCommand(Command):
 
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        activity_id = int(msg[1])
+    def execute(self, user: User, msg: str) -> str:
+        activity_id = int(msg)
         return self.delete(user, activity_id)
 
     def delete(self, user: User, activity_id: int) -> str:
@@ -23,6 +20,6 @@ class DeleteActivityCommand(Command):
         if not act:
             return f"Error: Activity {activity_id} not found"
         if act.user != user:
-            return "Error: not your activity!"
+            return "✋ Not your activity!"
         act.delete_instance()
-        return f"Activity {activity_id} deleted!"
+        return f"🗑️ Activity {activity_id} deleted"

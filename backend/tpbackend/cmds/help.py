@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
 from tpbackend.cmds.help_admin import HelpAdminCommand
@@ -9,13 +8,11 @@ class HelpCommand(Command):
     def __init__(self):
         super().__init__(["help"], "Shows commands")
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip().lower()
-        if msg == "!help":
+    def execute(self, user: User, msg: str) -> str:
+        if msg == "":
             return self.command_list(user=user)
         else:
-            command_name = msg.removeprefix("!help ").split(" ")[0]
-            return self.individual_help(user=user, command_name=command_name)
+            return self.individual_help(user=user, command_name=msg)
 
     def command_list(self, user: User) -> str:
         msg = ""

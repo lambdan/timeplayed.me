@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.operations import (
@@ -10,7 +9,7 @@ import tpbackend.utils
 
 class AddActivityCommand(Command):
     def __init__(self):
-        names = ["add_activity", "aa"]
+        names = ["add_activity", "aa", "add"]
         d = "Add activity manually"
         h = """
 Manually add activity. Useful if you are playing on a platform that doesn't have Discord integration, and need to track manually.
@@ -28,11 +27,7 @@ Returns: Confirmation message
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove !add_activity
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) != 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
@@ -57,7 +52,7 @@ Returns: Confirmation message
         result = add_session(user=user, game=game, seconds=seconds, timestamp=timestamp)
         sesh = result[0]
         if sesh:
-            msg = f"Activity {sesh} added.\n"
+            msg = f"✅ Activity {sesh} added.\n"
             msg += f"Game: {game.name}\n"  # type: ignore
             msg += f"Duration: {tpbackend.utils.secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Date: {sesh.timestamp}\n"

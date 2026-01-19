@@ -1,5 +1,4 @@
-from tpbackend.storage.storage_v2 import Platform, User, LiveActivity, Game
-import discord
+from tpbackend.storage.storage_v2 import User, LiveActivity, Game
 from tpbackend.cmds.command import Command
 import tpbackend.utils
 
@@ -20,10 +19,7 @@ Use the stop command when you are done playing to save the activity.
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) != 1:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
@@ -42,4 +38,4 @@ Use the stop command when you are done playing to save the activity.
         LiveActivity.create(
             user=user, game=game, platform=user.default_platform, started=timestamp
         )
-        return f"Started *{game.name}* ..."
+        return f"⏱️ Started playing *{game.name}*. Use `!stop` when you are done."

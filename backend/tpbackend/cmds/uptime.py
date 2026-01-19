@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.admin_command import AdminCommand
 import datetime
 
@@ -11,7 +10,7 @@ class UptimeCommand(AdminCommand):
         super().__init__(["uptime"], "Bot uptime")
         self.started = datetime.datetime.now().timestamp()
 
-    def execute(self, user: User, message: discord.Message) -> str:
+    def execute(self, user: User, msg: str) -> str:
         now = datetime.datetime.now().timestamp()
         uptime_seconds = int(now - self.started)
         days = uptime_seconds // 86400

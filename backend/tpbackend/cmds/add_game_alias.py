@@ -1,7 +1,6 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.operations import get_game_by_name_or_alias
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.storage.storage_v2 import Game
 
 
@@ -12,10 +11,7 @@ class AddGameAliasCommand(AdminCommand):
         h = f"Usage: `!{names[0]} <game_id> <new_alias>`. Aliases are case sensitive!!"
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) < 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
@@ -29,4 +25,4 @@ class AddGameAliasCommand(AdminCommand):
             return f"Error: Alias is already in use by '{game_by_alias.name}' (id: {game_by_alias.id})"  # type: ignore
         game.aliases.append(new_alias)
         game.save()
-        return f"Added alias for *{game.name}*"
+        return f"✅ Added alias for *{game.name}*"

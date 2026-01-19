@@ -1,5 +1,4 @@
-from tpbackend.storage.storage_v2 import Platform, User, Platform
-import discord
+from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
 
 
@@ -24,11 +23,7 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
         """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        # remove command prefix
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         if msg == "":
             return self.get_current(user)
 
@@ -40,7 +35,7 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
 
     def get_current(self, user: User) -> str:
         platform = user.default_platform
-        return f"Your current default platform is: {platform.abbreviation} (id: {platform.id})"  # type: ignore
+        return f"Your default platform is: **{platform.abbreviation}** (id: {platform.id}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."  # type: ignore
 
     def update(self, user: User, new_platform: Platform) -> str:
         user.default_platform = new_platform  # type: ignore

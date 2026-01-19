@@ -1,6 +1,5 @@
 from tpbackend.globals import ADMINS
 from tpbackend.storage.storage_v2 import User
-import discord
 from abc import ABC, abstractmethod
 
 
@@ -19,7 +18,7 @@ class Command(ABC):
         self.description = description
         self.help = help
 
-    def can_execute(self, user: User, message: discord.Message) -> bool:
+    def can_execute(self, user: User, msg: str) -> bool:
         return not user.bot_commands_blocked
 
     def is_admin(self, user: User) -> bool:
@@ -37,5 +36,5 @@ class Command(ABC):
         return msg
 
     @abstractmethod
-    def execute(self, user: User, message: discord.Message) -> str:
+    def execute(self, user: User, msg: str) -> str:
         pass

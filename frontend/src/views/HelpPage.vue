@@ -35,7 +35,7 @@
           whatever you want.
         </li>
         <li>
-          You can also use the <code>!setgame</code> command to change an
+          You can also use the <code>!set_game</code> command to change an
           activity's game retroactively
         </li>
       </ul>
@@ -63,9 +63,7 @@
         <code>!start</code> and <code>!stop</code> commands:
       </p>
       <ul>
-        <li>
-          <code>!start "Game Name"</code> - send this when you start playing
-        </li>
+        <li><code>!start game_id</code> - send this when you start playing</li>
         <li><code>!stop</code> - send this when you stop playing</li>
       </ul>
       <p>Easy as that.</p>
@@ -74,11 +72,10 @@
         I played a game while I was on an airplane/offline. How can I add it
         retroactively?
       </strong>
-      <p>By using the <code>!add</code> command:</p>
+      <p>By using the <code>!add_activity</code> command:</p>
       <ul>
         <li>
-          <code>!add "Game Name" 30m</code> - register that you played Game Name
-          for 30 minutes
+          <code>!add_activity game_id h:m:s</code>
         </li>
       </ul>
 
@@ -88,7 +85,7 @@
       >
       <p>
         Use the <code>!pcplatform</code> command to change what your PC platform
-        is. You can also retroactively update using <code>!setplatform</code>.
+        is. You can also retroactively update using <code>!set_platform</code>.
       </p>
     </div>
   </div>

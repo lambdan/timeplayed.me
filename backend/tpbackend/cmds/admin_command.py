@@ -1,6 +1,5 @@
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
-import discord
 
 
 class AdminCommand(Command):
@@ -12,5 +11,5 @@ class AdminCommand(Command):
     ):
         super().__init__(names=names, description=description, help=help)
 
-    def can_execute(self, user: User, message: discord.Message) -> bool:
-        return super().can_execute(user, message) and self.is_admin(user)
+    def can_execute(self, user: User, msg: str) -> bool:
+        return super().can_execute(user, msg) and self.is_admin(user)

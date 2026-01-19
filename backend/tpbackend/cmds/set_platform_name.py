@@ -1,6 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Platform, User
-import discord
 
 
 class SetPlatformNameCommand(AdminCommand):
@@ -10,10 +9,7 @@ class SetPlatformNameCommand(AdminCommand):
         h = f"Usage: `!{names[0]} <platform_id> <name>`"
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        msg = " ".join(msg[1:]).strip()
+    def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
         if len(splitted) < 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."

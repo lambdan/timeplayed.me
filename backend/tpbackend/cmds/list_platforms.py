@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User, Platform
-import discord
 from tpbackend.cmds.command import Command
 
 
@@ -10,7 +9,7 @@ class ListPlatformsCommand(Command):
             "List available platforms",
         )
 
-    def execute(self, user: User, message: discord.Message) -> str:
+    def execute(self, user: User, msg: str) -> str:
         platforms = Platform.select().order_by(Platform.abbreviation)
         msg = "```"
         for p in platforms:

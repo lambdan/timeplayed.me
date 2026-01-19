@@ -1,5 +1,4 @@
 from tpbackend.storage.storage_v2 import User
-import discord
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
 from tpbackend import utils
@@ -18,13 +17,10 @@ Because of Discord message length limits, n is capped at 10.
 """
         super().__init__(names=names, description=d, help=h)
 
-    def execute(self, user: User, message: discord.Message) -> str:
-        msg = message.content.strip()
-        msg = msg.split(" ")
-        amount = 1
-        if len(msg) > 1:
-            requested = int(msg[1])
-            amount = max(1, min(requested, 10))
+    def execute(self, user: User, msg: str) -> str:
+        amount = 1 if msg == "" else int(msg)
+        amount = max(1, amount)
+        amount = min(10, amount)
         return self.get_activities(user, amount)
 
     def get_activities(self, user: User, amount: int) -> str:
@@ -34,6 +30,8 @@ Because of Discord message length limits, n is capped at 10.
             .order_by(Activity.timestamp.desc())
             .limit(amount)
         )
+        if len(activities) == 0:
+            return "No activities found"
         lines = []
         for act in activities:
             emulated = " (emu)" if act.emulated else ""
