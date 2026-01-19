@@ -4,7 +4,7 @@ from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 
 
-class SearchCommand(Command):
+class SearchGamesCommand(Command):
     def __init__(self):
         h = """
 Search for games in the database.
@@ -15,7 +15,7 @@ Example: ```
 ```
 Returns: list of game id's and names matching the query
         """
-        super().__init__(["search", "s"], "Search games", help=h)
+        super().__init__(["search", "s", "search_game"], "Search games", help=h)
 
     def execute(self, user: User, message: discord.Message) -> str:
         # remove first
@@ -36,7 +36,7 @@ Returns: list of game id's and names matching the query
         if not games:
             return "No games found"
 
-        out = "Results:\n"
+        out = ""
         for game in games:
             out += f"- **{game.id}** - {game.name}\n"
         return out

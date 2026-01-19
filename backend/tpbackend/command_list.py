@@ -1,12 +1,13 @@
 from tpbackend.cmds.add_activity import AddActivityCommand
 from tpbackend.cmds.add_game import AddGameCommand
 from tpbackend.cmds.add_platform import AddPlatformCommand
+from tpbackend.cmds.block_commands import BlockCommandsCommand
 from tpbackend.cmds.delete_activity import DeleteActivityCommand
 from tpbackend.cmds.delete_game import DeleteGameCommand
 from tpbackend.cmds.delete_platform import DeletePlatformCommand
 from tpbackend.cmds.emulated import ToggleEmulatedCommand
 from tpbackend.cmds.last import LastActivityCommand
-from tpbackend.cmds.search import SearchCommand
+from tpbackend.cmds.search_games import SearchGamesCommand
 from tpbackend.cmds.set_default_platform import SetDefaultPlatformCommand
 from tpbackend.cmds.set_game import SetGameCommand
 from tpbackend.cmds.set_game_image import SetGameImageCommand
@@ -21,11 +22,12 @@ from tpbackend.cmds.set_steam_id import SetSteamIDCommand
 from tpbackend.cmds.add_game_alias import AddGameAliasCommand
 from tpbackend.cmds.delete_game_alias import DeleteGameAliasCommand
 from tpbackend.cmds.set_game_release_year import SetGameReleaseYearCommand
+from tpbackend.cmds.search_users import SearchUsersCommand
 
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
-    SearchCommand(),
+    SearchGamesCommand(),
     ListPlatformsCommand(),
     AddGameCommand(),
     LastActivityCommand(),
@@ -57,4 +59,14 @@ ADMIN_COMMANDS = [
     AddGameAliasCommand(),
     DeleteGameAliasCommand(),
     DeleteGameCommand(),
+    # user mgmt
+    BlockCommandsCommand(),
+    SearchUsersCommand(),
 ]
+
+used = set()
+for c in [*REGULAR_COMMANDS, *ADMIN_COMMANDS]:
+    for name in c.names:
+        if name in used:
+            assert False, f"Duplicate command name: {name}"
+        used.add(name)
