@@ -1,3 +1,4 @@
+from tpbackend import api
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
@@ -45,7 +46,20 @@ Returns: Confirmation message
         h, m, s = int(h), int(m), int(s)
         seconds = (h * 3600) + (m * 60) + s
 
+        # check for overlapping?
+        if self.get_overlapping(user_id=str(user.id), seconds=seconds):
+            return "Error: Activity overlaps with existing activity."
+
+        if seconds > (16 * 3600):
+            return "Error: That seems a little too long..."
+
         return self.add(user=user, game=game, seconds=seconds)
+
+    def get_overlapping(self, user_id: str, seconds: int) -> bool:
+        after_ts = (tpbackend.utils.now().timestamp() * 1000) - (seconds * 1000)
+        after_ts = int(after_ts)
+        activities = api.get_activities(user=user_id, after=after_ts, limit=1)
+        return activities.total > 0
 
     def add(self, user: User, game: Game, seconds: int) -> str:
         timestamp = tpbackend.utils.now()

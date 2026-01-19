@@ -3,6 +3,26 @@
     <h1 class="card-header">News</h1>
 
     <div class="card-body text-start">
+      <strong>2026-01-19: Version 4.0.0</strong>
+      <p>
+        Sorry for the version spam, but I've completely rewritten the commands
+        system for the bot, so following semver conventions, this is a major
+        bump as things have broken.
+      </p>
+      <p>
+        Commands are code wise much more maintainable now, simplifying my life.
+        Some of them are more annoying to use, but they're not very popular
+        anyway.
+      </p>
+      <p>
+        Also, happy birthday to this site! 20th January marks 1 year of the
+        <a href="https://timeplayed.me/activity/4">oldest activity</a>. Why is
+        it number 4? The first 3 were probably too short (less than 1 minute)
+        and got removed at some point.
+      </p>
+      <i>-djs</i>
+      <hr />
+
       <strong>2025-12-16: Version 3.0.0</strong>
       <p>Happy to announce that version 3.0 of timeplayed.me is now live!</p>
       <ul>
