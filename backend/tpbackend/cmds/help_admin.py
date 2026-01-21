@@ -5,7 +5,7 @@ from tpbackend.command_list import ADMIN_COMMANDS
 
 class HelpAdminCommand(AdminCommand):
     def __init__(self):
-        super().__init__(["help_admin"], "Shows admin commands")
+        super().__init__(["help_admin", "ha"], "Shows admin commands")
 
     def execute(self, user: User, msg: str) -> str:
         msg = ""

@@ -6,7 +6,7 @@ from tpbackend.cmds.help_admin import HelpAdminCommand
 
 class HelpCommand(Command):
     def __init__(self):
-        super().__init__(["help"], "Shows commands")
+        super().__init__(["help", "h"], "Shows commands")
 
     def execute(self, user: User, msg: str) -> str:
         if msg == "":
