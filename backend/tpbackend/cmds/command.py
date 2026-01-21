@@ -25,13 +25,15 @@ class Command(ABC):
         return str(user.id) in ADMINS
 
     def get_help_message(self) -> str:
-        msg = "**" + self.names[0] + "** - " + self.description + "\n"
+        msg = "# " + self.names[0] + "\n"
+        msg += self.description + "\n"
         if len(self.names) > 1:
             joined = ""
             for n in self.names[1:]:
                 joined += f"{n} "
             joined = joined.strip()
             msg += f"Aliases: `{joined}`\n"
+        msg += "-----------------\n"
         msg += self.help
         return msg
 
