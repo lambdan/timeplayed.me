@@ -7,7 +7,7 @@ class GetActivityCommand(Command):
     def __init__(self):
         names = ["get_activity", "ga"]
         d = "Get an activity"
-        h = "Get an activity by ID, and return it as JSON.\nUsage: `!get_activity <activity_id>`"
+        h = "Get an activity by ID\nUsage: `!get_activity <activity_id>`"
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:

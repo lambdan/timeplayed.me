@@ -7,6 +7,7 @@ from tpbackend.cmds.delete_game import DeleteGameCommand
 from tpbackend.cmds.delete_platform import DeletePlatformCommand
 from tpbackend.cmds.emulated import ToggleEmulatedCommand
 from tpbackend.cmds.get_activity import GetActivityCommand
+from tpbackend.cmds.get_game import GetGameCommand
 from tpbackend.cmds.last import LastActivityCommand
 from tpbackend.cmds.search_games import SearchGamesCommand
 from tpbackend.cmds.set_default_platform import SetDefaultPlatformCommand
@@ -48,6 +49,7 @@ REGULAR_COMMANDS = [
     DeleteActivityCommand(),
     # gets
     GetActivityCommand(),
+    GetGameCommand(),
 ]
 
 ADMIN_COMMANDS = [
