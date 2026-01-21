@@ -8,7 +8,7 @@ class HelpAdminCommand(AdminCommand):
         super().__init__(["help_admin", "ha"], "Shows admin commands")
 
     def execute(self, user: User, msg: str) -> str:
-        msg = ""
+        msg = "☣️\n"
         for c in ADMIN_COMMANDS:
             msg += f"- `!{c.names[0]}` - {c.description}\n"
         return msg

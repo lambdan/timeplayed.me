@@ -1,33 +1,15 @@
 from tpbackend.storage.storage_v2 import User
-from tpbackend.cmds.command import Command
+from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Game, Activity
+from tpbackend.cmds.set_game import set_game_actually
 
 
-def set_game_actually(act: Activity, new_game: Game) -> str:
-    old_game = act.game.name
-    act.game = new_game  # type: ignore
-    act.save()
-    return f"{old_game} -> {act.game.name}"
-
-
-class SetGameCommand(Command):
+class SetGameAdminCommand(AdminCommand):
     def __init__(self):
-        names = ["set_game", "sg"]
+        names = ["adm_set_game", "asg"]
         d = "Set game of activity"
         h = """
-Change game of an activity or activities. Useful if you've played a game in an emulator, and want to change it to the actual game.
-
-Usage: `!set_game <activity_id> <game_id>`
-Example: set activity 123 to game 456```
-!set_game 123 456
-```
-Can also change multiple activities at once.
-
-Example: set activities 123, 124 and 125 to game 456: ```
-!set_game 123,124,125 456
-```
-
-Returns: Confirmation message
+        See regular `!set_game` for usage
         """
         super().__init__(names=names, description=d, help=h)
 
@@ -48,9 +30,6 @@ Returns: Confirmation message
             act = Activity.get_or_none(Activity.id == int(activity_id))  # type: ignore
             if not act:
                 msg += f"- {activity_id}: ❌ not found\n"
-                continue
-            if act.user.id != user.id:
-                msg += f"- {activity_id}: ✋ not yours\n"
                 continue
             msg += f"- {activity_id}: {set_game_actually(act, game)}\n"
         return msg
