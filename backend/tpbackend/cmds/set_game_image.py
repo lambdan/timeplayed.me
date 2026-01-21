@@ -5,7 +5,7 @@ from tpbackend.storage.storage_v2 import Game
 
 class SetGameImageCommand(AdminCommand):
     def __init__(self):
-        names = ["set_game_image_url"]
+        names = ["set_game_image_url", "sgiu"]
         d = "Set game image by url (link to an image)"
         h = f"Usage: `!{names[0]} <game_id> <url>`. Use null as url to unset."
         super().__init__(names=names, description=d, help=h)
@@ -23,4 +23,4 @@ class SetGameImageCommand(AdminCommand):
             return f"Error: Game with id {game_id} not found."
         game.image_url = url
         game.save()
-        return f"{game.name} - Image set to: `{game.steam_id}`"
+        return f"{game.name} - Image set to: `{game.image_url}`"
