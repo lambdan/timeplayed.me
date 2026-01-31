@@ -1,13 +1,13 @@
 from tpbackend.storage.storage_v2 import User
-from tpbackend.cmds.command import Command
+from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Activity
 
 
-class DeleteActivityCommand(Command):
+class DeleteActivityAdminCommand(AdminCommand):
     def __init__(self):
-        names = ["delete", "d", "del", "remove"]
-        d = "Delete activity"
-        h = "Usage: `!delete <activity_id>`. You can provide multiple IDs separated by commas: `!delete 1,2,3`"
+        names = ["adm_delete"]
+        d = "Delete activity for any user"
+        h = "Usage: `!adm_delete <activity_id>`. You can provide multiple IDs separated by commas: `!adm_delete 1,2,3`"
 
         super().__init__(names=names, description=d, help=h)
 
@@ -17,15 +17,13 @@ class DeleteActivityCommand(Command):
         for id_str in ids:
             activity_id = int(id_str.strip())
             output += f"- {activity_id}: "
-            output += self.delete(user, activity_id)
+            output += self.delete(activity_id)
             output += "\n"
         return output.strip()
 
-    def delete(self, user: User, activity_id: int) -> str:
+    def delete(self, activity_id: int) -> str:
         act = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
         if not act:
             return "not found"
-        if act.user != user:
-            return "✋ Not your activity!"
         act.delete_instance()
         return "deleted"

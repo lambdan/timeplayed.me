@@ -27,6 +27,7 @@ from tpbackend.cmds.set_game_release_year import SetGameReleaseYearCommand
 from tpbackend.cmds.search_users import SearchUsersCommand
 from tpbackend.cmds.uptime import UptimeCommand
 from tpbackend.cmds.set_game_admin import SetGameAdminCommand
+from tpbackend.cmds.delete_activity_admin import DeleteActivityAdminCommand
 
 
 REGULAR_COMMANDS = [
@@ -70,6 +71,7 @@ ADMIN_COMMANDS = [
     BlockCommandsCommand(),
     SearchUsersCommand(),
     SetGameAdminCommand(),
+    DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
 ]
