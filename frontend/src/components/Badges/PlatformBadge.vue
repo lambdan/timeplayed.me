@@ -26,7 +26,7 @@ function getIcon() {
   if (props.platform.abbreviation === "win") {
     return "bi-windows";
   }
-  if (props.platform.abbreviation === "steamdeck") {
+  if (props.platform.abbreviation.startsWith("steam")) {
     return "bi-steam";
   }
   if (props.platform.abbreviation === "mac") {
@@ -34,6 +34,10 @@ function getIcon() {
   }
   if (props.platform.abbreviation === "linux") {
     return "bi-tux";
+  }
+  if (props.platform.abbreviation.startsWith("q")) {
+    // oculus/meta quest
+    return "bi-meta";
   }
   // fallback
   return "bi-controller";
