@@ -11,6 +11,21 @@ from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
 
 logger = logging.getLogger("oblivionis-sync")
 
+# TODO: store in database so admins can add easily
+IGNORED_GAMES = [
+    "Medal",
+    "YouTube",
+    "Blender",
+    "CurseForge",
+    "Steam",
+    "Discord",
+    "Epic Games Launcher",
+    "YouTube VR",
+    "YouTube Music",
+    "Spotify",
+    "Krita",
+]
+
 
 class PassedActivity(TypedDict):
     game_name: str
@@ -36,6 +51,11 @@ def parseActivity(activity: PassedActivity) -> bool:
 
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()
+
+        if game_name in IGNORED_GAMES:
+            logger.info("Ignoring game (app) '%s'", game_name)
+            return True
+
         game = operations.get_game_by_name_or_alias_or_create(game_name)
 
         platform_abbr = activity["platform"]
