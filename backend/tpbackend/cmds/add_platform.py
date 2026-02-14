@@ -12,7 +12,9 @@ class AddPlatformCommand(AdminCommand):
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
-        abbr = msg.lower()
+        abbr = msg.lower().strip()
+        if len(abbr) == 0:
+            return "Error: abbreviation cannot be empty"
         platform = Platform.get_or_none(Platform.abbreviation == abbr)  # type: ignore
         if platform:
             return f"Error: Platform with abbreviation {abbr} already exists."
