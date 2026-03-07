@@ -7,7 +7,7 @@ from tpbackend import utils, operations
 class StopManualCommand(Command):
     def __init__(self):
         names = ["stop"]
-        d = "Stop manual activity"
+        d = "Stop manual activity (started by `!start`) and save it"
         super().__init__(names=names, description=d)
 
     def execute(self, user: User, msg: str) -> str:

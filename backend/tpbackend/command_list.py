@@ -28,21 +28,25 @@ from tpbackend.cmds.search_users import SearchUsersCommand
 from tpbackend.cmds.uptime import UptimeCommand
 from tpbackend.cmds.set_game_admin import SetGameAdminCommand
 from tpbackend.cmds.delete_activity_admin import DeleteActivityAdminCommand
+from tpbackend.cmds.abort_manual import AbortManualCommand
+from tpbackend.cmds.time_manual import TimeManualCommand
 
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchGamesCommand(),
-    ListPlatformsCommand(),
     AddGameCommand(),
-    LastActivityCommand(),
     # manual
     StartManualCommand(),
     StopManualCommand(),
+    AbortManualCommand(),
+    TimeManualCommand(),
     # platform
+    ListPlatformsCommand(),
     SetDefaultPlatformCommand(),
     SetPCPlatformCommand(),
     # activity mgmt
+    LastActivityCommand(),
     AddActivityCommand(),
     SetPlatformCommand(),
     SetGameCommand(),
