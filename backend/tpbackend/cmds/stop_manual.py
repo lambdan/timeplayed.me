@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import User, LiveActivity
+from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils, operations
@@ -36,6 +36,7 @@ class StopManualCommand(Command):
             msg = f"✅ Activity {sesh} saved.\n"
             msg += f"Game: *{sesh.game.name}*\n"
             msg += f"Duration: {utils.secsToHHMMSS(int(str(sesh.seconds)))}\n"
+            msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
             return msg
         if isinstance(result[1], ValueError):
             return "Session ended, but not saved because it was too short"
