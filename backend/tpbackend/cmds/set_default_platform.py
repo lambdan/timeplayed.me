@@ -4,7 +4,14 @@ from tpbackend.cmds.command import Command
 
 class SetDefaultPlatformCommand(Command):
     def __init__(self):
-        names = ["set_default_platform", "set_dp", "sdp", "platform"]
+        names = [
+            "set_default_platform",
+            "set_dp",
+            "sdp",
+            "platform",
+            "dp",
+            "default_platform",
+        ]
         d = "Set default platform"
         h = """
 Set your default platform. This will be used when adding activities manually.
