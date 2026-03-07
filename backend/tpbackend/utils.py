@@ -271,7 +271,7 @@ def last_platform_for_game(
     return None
 
 
-def search_games(query: str) -> list[storage_v2.Game]:
+def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
     """
     Search games by name or alias
     """
@@ -292,9 +292,16 @@ def search_games(query: str) -> list[storage_v2.Game]:
                 games.append(game)
                 break
     logger.info("search_games :: '%s' --> %s results", query, len(games))
-    if len(games) == 0 and " " in query:
+    if len(games) == 0 and " " in query and offset == 0:
         # nothing found, we can try removing a term and go again
         parts = query.split(" ")
         last_term_removed = " ".join(parts[:-1])
-        return search_games(last_term_removed)
+        return search_games(query=last_term_removed, offset=offset, limit=limit)
+    # order by name
+    games.sort(key=lambda g: g.name.lower())
+    # offset and limit
+    if limit > 0:
+        games = games[offset : offset + limit]
+    else:
+        games = games[offset:]
     return games

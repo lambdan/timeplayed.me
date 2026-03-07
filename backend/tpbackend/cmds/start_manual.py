@@ -30,7 +30,7 @@ Use the stop command when you are done playing to save the activity.
             return self.start(user=user, game=game)
         except Exception as e:
             # user probably did "!start Game Name"", show search results
-            search_results = search_games(query=msg)
+            search_results = search_games(query=msg, limit=10)
             if len(search_results) > 0:
                 msg = "⚠️ This command expects a game ID (number). Did you mean any of these games?\n"
                 for g in search_results:

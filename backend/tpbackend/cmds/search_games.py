@@ -22,11 +22,20 @@ Returns: list of game id's and names matching the query
         return self.search(msg)
 
     def search(self, query: str) -> str:
-        games = search_games(query)
+        games = search_games(query=query, limit=0, offset=0)
         if len(games) == 0:
             return "No games found"
 
         out = ""
+        count = 0
         for game in games:
+            count += 1
             out += f"- **{game.id}** - {game.name}\n"  # type: ignore
-        return out
+            if count >= 15 or len(out) >= 666:
+                break
+        msg = ""
+        msg += out
+        if count < len(games):
+            remaining = len(games) - count
+            msg += f"... and {remaining} more"
+        return msg

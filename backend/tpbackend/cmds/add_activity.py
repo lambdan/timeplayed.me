@@ -37,7 +37,7 @@ Returns: Confirmation message
         except Exception as e:
             # user probably did "!add_activity Game Name 1:23:45"", show search results
             # duration will be thrown into search query, but thats fine... probably
-            search_results = search_games(msg)
+            search_results = search_games(msg, limit=10)
             if len(search_results) > 0:
                 msg = "⚠️ This command expects a game ID (number). Did you mean any of these games?\n"
                 for g in search_results:
