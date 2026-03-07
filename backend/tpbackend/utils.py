@@ -269,3 +269,32 @@ def last_platform_for_game(
         logger.error("last_platform_for_game :: exception: %s", e)
         pass
     return None
+
+
+def search_games(query: str) -> list[storage_v2.Game]:
+    """
+    Search games by name or alias
+    """
+    # TODO: cache/optimize :) this probably pretty slow once we have thousands of games
+    query = query.lower().strip()
+    games = []
+    for game in storage_v2.Game.select():
+        # search in name
+        if query in game.name.lower():
+            games.append(game)
+            continue
+        if not game.aliases or len(game.aliases) == 0:
+            # no aliases
+            continue
+        aliases = [alias.lower() for alias in game.aliases]
+        for alias in aliases:
+            if query in alias:
+                games.append(game)
+                break
+    logger.info("search_games :: '%s' --> %s results", query, len(games))
+    if len(games) == 0 and " " in query:
+        # nothing found, we can try removing a term and go again
+        parts = query.split(" ")
+        last_term_removed = " ".join(parts[:-1])
+        return search_games(last_term_removed)
+    return games

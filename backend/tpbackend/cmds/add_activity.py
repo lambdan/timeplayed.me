@@ -5,7 +5,7 @@ from tpbackend.storage.storage_v2 import Game
 from tpbackend.operations import (
     add_session,
 )
-from tpbackend.utils import now, last_platform_for_game, secsToHHMMSS
+from tpbackend.utils import now, last_platform_for_game, search_games, secsToHHMMSS
 
 
 class AddActivityCommand(Command):
@@ -30,15 +30,25 @@ Returns: Confirmation message
 
     def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
-        if len(splitted) != 2:
-            return f"Invalid syntax. See `!help {self.names[0]}` for help."
-        game_id = splitted[0].strip()
-        duration_str = splitted[1].strip()
+        game = None
+        try:
+            game_id = splitted[0].strip()
+            game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
+        except Exception as e:
+            # user probably did "!add_activity Game Name 1:23:45"", show search results
+            # duration will be thrown into search query, but thats fine... probably
+            search_results = search_games(msg)
+            if len(search_results) > 0:
+                msg = "⚠️ This command expects a game ID (number). Did you mean any of these games?\n"
+                for g in search_results:
+                    msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                return msg
+            raise e
 
-        game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
         if not game:
             return f"Error: Game with id {game_id} not found."
 
+        duration_str = splitted[1].strip()
         if duration_str.count(":") != 2:
             return f"Error: invalid duration. See `!help {self.names[0]}`."
 

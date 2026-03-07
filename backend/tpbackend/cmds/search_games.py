@@ -1,6 +1,6 @@
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Game
+from tpbackend.utils import search_games
 
 
 class SearchGamesCommand(Command):
@@ -22,16 +22,11 @@ Returns: list of game id's and names matching the query
         return self.search(msg)
 
     def search(self, query: str) -> str:
-        games = (
-            Game.select()
-            .where((Game.name.contains(query)) | (Game.aliases.contains(query)))
-            .order_by(Game.name)
-            .limit(50)
-        )
-        if not games:
+        games = search_games(query)
+        if len(games) == 0:
             return "No games found"
 
         out = ""
         for game in games:
-            out += f"- **{game.id}** - {game.name}\n"
+            out += f"- **{game.id}** - {game.name}\n"  # type: ignore
         return out
