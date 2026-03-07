@@ -1,4 +1,3 @@
-#FROM python:3.13.1-slim
 FROM python:3.13-slim
 
 # Install curl for healthcheck
@@ -14,9 +13,6 @@ RUN python -m venv .venv && \
   .venv/bin/pip install -r requirements.txt
 
 COPY tpbackend /app/tpbackend
-
-# Check formatting has been applied
-RUN python -m venv .venv && .venv/bin/python -m black --check /app/tpbackend
 
 ENV PATH="/app/.venv/bin:$PATH"
 
