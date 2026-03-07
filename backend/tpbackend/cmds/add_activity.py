@@ -35,6 +35,8 @@ Returns: Confirmation message
 
     def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
+        if len(splitted) < 2:
+            return f"Invalid syntax. See `!help {self.names[0]}` for help."
         game = None
         try:
             game_id = splitted[0].strip()
