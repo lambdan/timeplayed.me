@@ -1,12 +1,14 @@
 from tpbackend.globals import ADMINS
 from tpbackend.storage.storage_v2 import User
 from abc import ABC, abstractmethod
+import logging
 
 
 class Command(ABC):
     names: list[str]
     description: str
     help: str
+    logger: logging.Logger
 
     def __init__(
         self,
@@ -17,6 +19,7 @@ class Command(ABC):
         self.names = names
         self.description = description
         self.help = help
+        self.logger = logging.getLogger(f"command.{self.names[0]}")
 
     def can_execute(self, user: User, msg: str) -> bool:
         return not user.bot_commands_blocked
