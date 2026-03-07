@@ -16,6 +16,10 @@ Example: start playing game 5```
 !start 5
 ```
 
+You can also *try* using the game name directly if you are lazy, but it will not work if multiple games match the name: ```
+!start Game Name
+```
+
 Use the stop command when you are done playing to save the activity.
         """
         super().__init__(names=names, description=d, help=h)
@@ -29,14 +33,21 @@ Use the stop command when you are done playing to save the activity.
                 return f"Error: Game with id {game_id} not found."
             return self.start(user=user, game=game)
         except Exception as e:
-            # user probably did "!start Game Name"", show search results
+            # user probably did "!start Game Name""
             search_results = search_games(query=msg, limit=10)
-            if len(search_results) > 0:
-                msg = "⚠️ This command expects a game ID (number). Did you mean any of these games?\n"
+            if len(search_results) == 1:
+                # one game found... could it be the one?
+                return self.start(user=user, game=search_results[0])
+            elif len(search_results) > 0:
+                msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
                     msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                msg += "If so, use the game ID (the number) in the command"
                 return msg
-            raise e
+            elif len(search_results) == 0:
+                return "Error: unknown game"
+            else:
+                raise e
 
     def start(self, user: User, game: Game) -> str:
 

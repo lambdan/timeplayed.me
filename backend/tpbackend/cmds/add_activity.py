@@ -24,6 +24,11 @@ Example: add activity of 5 minutes to game 123```
 Example: add activity of 1 hour, 23 minutes, 45 seconds to game 123```
 !add_activity 123 1:23:45
 ```
+
+You can also *try* using the game name directly if you are lazy, but it will not work if multiple games match the name: ```
+!add_activity Game Name 1:23:45
+```
+
 Returns: Confirmation message
         """
         super().__init__(names=names, description=d, help=h)
@@ -38,15 +43,22 @@ Returns: Confirmation message
             # user probably did "!add_activity Game Name 1:23:45"", show search results
             # duration will be thrown into search query, but thats fine... probably
             search_results = search_games(msg, limit=10)
-            if len(search_results) > 0:
-                msg = "⚠️ This command expects a game ID (number). Did you mean any of these games?\n"
+            if len(search_results) == 1:
+                # one game found... could it be the one?
+                game = search_results[0]
+            elif len(search_results) > 0:
+                msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
                     msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                msg += "If so, use the game ID (the number) in the command"
                 return msg
-            raise e
+            elif len(search_results) == 0:
+                return "Error: unknown game"
+            else:
+                raise e
 
         if not game:
-            return f"Error: Game with id {game_id} not found."
+            return "Error: Game not found"
 
         duration_str = splitted[1].strip()
         if duration_str.count(":") != 2:
