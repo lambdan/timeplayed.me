@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
+from tpbackend.utils import search_platforms
 
 
 class SetDefaultPlatformCommand(Command):
@@ -26,6 +27,11 @@ Example: set your default platform to platform 2```
 !platform 2
 ```
 
+If you are lazy, you can also *try* to use the name/abbreviation directly:
+```!platform snes
+```
+But it will not work if there are multiple matches.
+
 Use `!platforms` to see available platforms. Only admins can add new platforms.
         """
         super().__init__(names=names, description=d, help=h)
@@ -34,10 +40,25 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
         if msg == "":
             return self.get_current(user)
 
-        platform_id = int(msg)
-        platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+        platform = None
+        try:
+            platform_id = int(msg)
+            platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+        except Exception:
+            # hmm maybe user did !platform snes, try searching for it!
+            search_results = search_platforms(msg)
+            if len(search_results) == 1:
+                platform = search_results[0]
+            elif len(search_results) > 1:
+                msg = (
+                    "Not sure what platform you are referring to. Is it one of these?\n"
+                )
+                for p in search_results:
+                    msg += f"- **{p.id}** - {p.name or p.abbreviation}\n"  # type: ignore
+                msg += "If so, use the platform ID (the number) in the command"
+                return msg
         if not platform:
-            return f"Error: Platform with id {platform_id} not found."
+            return "Error: Platform not found"
         return self.update(user, platform)
 
     def get_current(self, user: User) -> str:

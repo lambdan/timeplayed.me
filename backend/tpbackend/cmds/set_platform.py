@@ -38,8 +38,8 @@ Returns: Confirmation message
         activities = splitted[0].split(",")
         platform = None
         try:
-            platform_id = splitted[1].strip()
-            platform = Platform.get_or_none(Platform.id == int(platform_id))  # type: ignore
+            platform_id = int(splitted[1].strip())
+            platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
         except Exception:
             # hmm maybe user did !set_platform 123 snes, try searching for it!
             search_results = search_platforms(" ".join(splitted[1:]))
