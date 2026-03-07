@@ -66,4 +66,6 @@ async def on_message(message: discord.Message):
     storage_v2.DiscordHistory.create(
         event="reply", user=str(message.author.id), message=str(reply)
     )
+    if DEBUG:
+        reply = "[D]" + reply
     await message.author.send(reply, reference=message)
