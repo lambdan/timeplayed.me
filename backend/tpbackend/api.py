@@ -838,10 +838,7 @@ def get_platform_count(
 def get_playtime_by_day(
     userId: str | None = None, gameId: int | None = None, platformId: int | None = None
 ):
-    query = Activity.select(
-        fn.DATE(Activity.timestamp).alias("date"),
-        fn.SUM(Activity.seconds).alias("total_seconds"),
-    ).group_by(fn.DATE(Activity.timestamp))
+    query = Activity.select(Activity.timestamp, Activity.seconds)
     conditions = []
     if userId:
         conditions.append(Activity.user == userId)
@@ -851,11 +848,49 @@ def get_playtime_by_day(
         conditions.append(Activity.platform == platformId)
     if conditions:
         query = query.where(*conditions)
-    results = query.order_by(fn.DATE(Activity.timestamp)).tuples()
+
+    daily_seconds: dict[datetime.date, int] = {}
+    for activity in query:
+        end_time = activity.timestamp
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=datetime.timezone.utc)
+        start_time = end_time - datetime.timedelta(seconds=activity.seconds)
+
+        start_date = start_time.date()
+        end_date = end_time.date()
+
+        if start_date == end_date:
+            daily_seconds[start_date] = (
+                daily_seconds.get(start_date, 0) + activity.seconds
+            )
+        else:
+            current_date = start_date
+            while current_date <= end_date:
+                if current_date == start_date:
+                    next_midnight = datetime.datetime.combine(
+                        current_date + datetime.timedelta(days=1),
+                        datetime.time.min,
+                        tzinfo=datetime.timezone.utc,
+                    )
+                    day_seconds = round((next_midnight - start_time).total_seconds())
+                elif current_date == end_date:
+                    this_midnight = datetime.datetime.combine(
+                        current_date,
+                        datetime.time.min,
+                        tzinfo=datetime.timezone.utc,
+                    )
+                    day_seconds = round((end_time - this_midnight).total_seconds())
+                else:
+                    day_seconds = 86400
+                daily_seconds[current_date] = (
+                    daily_seconds.get(current_date, 0) + day_seconds
+                )
+                current_date += datetime.timedelta(days=1)
+
     data = {"labels": [], "datasets": [{"label": "Playtime (seconds)", "data": []}]}
-    for date, total_seconds in results:
+    for date in sorted(daily_seconds.keys()):
         data["labels"].append(date.strftime("%Y-%m-%d"))
-        data["datasets"][0]["data"].append(total_seconds)
+        data["datasets"][0]["data"].append(daily_seconds[date])
     return data
 
 
