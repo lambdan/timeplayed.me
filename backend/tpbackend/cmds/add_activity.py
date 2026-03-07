@@ -60,7 +60,7 @@ Returns: Confirmation message
         if not game:
             return "Error: Game not found"
 
-        duration_str = splitted[1].strip()
+        duration_str = splitted[-1].strip()  # last part of message
         if duration_str.count(":") != 2:
             return f"Error: invalid duration. See `!help {self.names[0]}`."
 
