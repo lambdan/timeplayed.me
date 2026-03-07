@@ -1,4 +1,19 @@
-"""Tests for SearchGamesCommand (!search)."""
+"""
+Tests for SearchGamesCommand (!search).
+
+This file is the canonical example for how to write a command test.
+See TESTING.md for the full guide.
+
+Key patterns used here:
+- `cmd` fixture: creates the command object under test.
+- `make_user` / `make_game` fixtures: factory functions from conftest.py that
+  return lightweight MagicMock objects so no real database is needed.
+- `patch(...)`: replaces a function/method for the duration of one test so the
+  test controls what the production code "sees".  Always patch the name as it
+  is *imported* in the module under test, not where it is defined.
+- `result = cmd.execute(user, args)`: every command returns a plain string;
+  just assert that the right substrings are (or are not) present.
+"""
 
 from unittest.mock import patch
 
@@ -6,10 +21,20 @@ import pytest
 
 from tpbackend.cmds.search_games import SearchGamesCommand
 
+# ---------------------------------------------------------------------------
+# Fixture
+# ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def cmd():
+    """Return a fresh SearchGamesCommand for each test."""
     return SearchGamesCommand()
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
 
 
 def test_empty_query_returns_help(cmd, make_user):
@@ -18,6 +43,8 @@ def test_empty_query_returns_help(cmd, make_user):
 
 
 def test_no_results(cmd, make_user):
+    # Patch the helper that hits the database so the test stays fast and
+    # isolated.  The name to patch is the one *inside* the module being tested.
     with patch("tpbackend.cmds.search_games.search_games", return_value=[]):
         result = cmd.execute(make_user(), "nonexistent")
     assert "No games found" in result

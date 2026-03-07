@@ -1,3 +1,3 @@
 #!/bin/sh
 set -e
-black tpbackend
+black conftest.py tpbackend

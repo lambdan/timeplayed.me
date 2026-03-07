@@ -118,7 +118,9 @@ def make_user(make_platform):
         # make_platform is the factory callable injected by pytest; calling it
         # here creates a fresh, isolated Platform mock for each user so tests
         # are not accidentally coupled through a shared object.
-        u.default_platform = default_platform if default_platform is not None else make_platform()
+        u.default_platform = (
+            default_platform if default_platform is not None else make_platform()
+        )
         return u
 
     return _factory

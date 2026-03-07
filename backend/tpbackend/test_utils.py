@@ -115,7 +115,10 @@ class TestNormalizeQuotes:
 
 class TestValidateDate:
     def test_valid_date(self):
-        assert utils.validateDate(datetime.datetime(2025, 1, 20, tzinfo=datetime.UTC)) == "OK"
+        assert (
+            utils.validateDate(datetime.datetime(2025, 1, 20, tzinfo=datetime.UTC))
+            == "OK"
+        )
 
     def test_before_launch_date_is_invalid(self):
         result = utils.validateDate(datetime.datetime(2025, 1, 19, tzinfo=datetime.UTC))
