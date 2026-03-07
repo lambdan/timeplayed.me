@@ -1,11 +1,11 @@
 from tpbackend import api
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.operations import (
     add_session,
 )
-import tpbackend.utils
+from tpbackend.utils import now, last_platform_for_game, secsToHHMMSS
 
 
 class AddActivityCommand(Command):
@@ -56,20 +56,34 @@ Returns: Confirmation message
         return self.add(user=user, game=game, seconds=seconds)
 
     def get_overlapping(self, user_id: str, seconds: int) -> bool:
-        after_ts = (tpbackend.utils.now().timestamp() * 1000) - (seconds * 1000)
+        after_ts = (now().timestamp() * 1000) - (seconds * 1000)
         after_ts = int(after_ts)
         activities = api.get_activities(user=user_id, after=after_ts, limit=1)
         return activities.total > 0
 
     def add(self, user: User, game: Game, seconds: int) -> str:
-        timestamp = tpbackend.utils.now()
-        result = add_session(user=user, game=game, seconds=seconds, timestamp=timestamp)
+        timestamp = now()
+
+        # get last used platform, or fallback to default
+        platform = last_platform_for_game(user=user, game=game)
+        if not platform:
+            self.logger.debug("No last platform found, using default")
+            platform = user.default_platform
+        platform = Platform.get_by_id(platform.id)  # type: ignore
+
+        result = add_session(
+            user=user,
+            game=game,
+            seconds=seconds,
+            timestamp=timestamp,
+            platform=platform,
+        )
         sesh = result[0]
         if sesh:
             msg = f"✅ Activity {sesh} added.\n"
             msg += f"Game: {game.name}\n"  # type: ignore
-            msg += f"Duration: {tpbackend.utils.secsToHHMMSS(int(str(sesh.seconds)))}\n"
+            msg += f"Duration: {secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Date: {sesh.timestamp}\n"
-            msg += f"Platform: {sesh.platform.abbreviation}\n"
+            msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
             return msg
         return f"ERROR: {result[1]}"

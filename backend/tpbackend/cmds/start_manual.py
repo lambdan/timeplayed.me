@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import User, LiveActivity, Game
 from tpbackend.cmds.command import Command
 import tpbackend.utils
+from tpbackend.utils import last_platform_for_game
 
 
 class StartManualCommand(Command):
@@ -30,12 +31,17 @@ Use the stop command when you are done playing to save the activity.
         return self.start(user=user, game=game)
 
     def start(self, user: User, game: Game) -> str:
+
         runningSession = LiveActivity.get_or_none(LiveActivity.user == user)
         if runningSession:
             return "You already have a manual activity running, stop it first."
 
+        # get last used platform, or fallback to default
+        platform = last_platform_for_game(user=user, game=game)
+        if not platform:
+            self.logger.debug("No last platform found, using default platform")
+            platform = user.default_platform
+
         timestamp = tpbackend.utils.now()
-        LiveActivity.create(
-            user=user, game=game, platform=user.default_platform, started=timestamp
-        )
-        return f"⏱️ Started playing *{game.name}*. Use `!stop` when you are done."
+        LiveActivity.create(user=user, game=game, platform=platform, started=timestamp)
+        return f"⏱️ Started playing *{game.name}*. Send `!stop` when you are done."

@@ -244,3 +244,28 @@ def tsFromActivity(activity: storage_v2.Activity) -> int:
     res = int(dt.timestamp() * 1000)  # type: ignore
     # logger.info("tsFromActivity :: Returning %s", res)
     return res
+
+
+def last_platform_for_game(
+    user: storage_v2.User, game: storage_v2.Game
+) -> storage_v2.Platform | None:
+    """
+    Returns the last platform the user played the game on if available
+    """
+    try:
+        last_activity = (
+            storage_v2.Activity.select()
+            .where(
+                (storage_v2.Activity.user == user) & (storage_v2.Activity.game == game)
+            )
+            .order_by(storage_v2.Activity.timestamp.desc())
+            .first()
+        )
+        if not last_activity:
+            return None
+        platform = storage_v2.Platform.get_or_none(storage_v2.Platform.id == last_activity.platform_id)  # type: ignore
+        return platform
+    except Exception as e:
+        logger.error("last_platform_for_game :: exception: %s", e)
+        pass
+    return None
