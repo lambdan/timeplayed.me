@@ -305,3 +305,30 @@ def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
     else:
         games = games[offset:]
     return games
+
+
+def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]:
+    """
+    Search platforms by name or alias
+    """
+    query = query.lower().strip()
+    platforms = []
+    for platform in storage_v2.Platform.select():
+        platform: storage_v2.Platform
+        # search in abbreviation
+        if platform.abbreviation and query in str(platform.abbreviation).lower():
+            platforms.append(platform)
+            continue
+        # search in name
+        if platform.name and query in str(platform.name).lower():
+            platforms.append(platform)
+            continue
+    logger.info("search_platforms :: '%s' --> %s results", query, len(platforms))
+    # order by abbreviation
+    platforms.sort(key=lambda p: p.abbreviation.lower())
+    # offset and limit
+    if limit > 0:
+        platforms = platforms[offset : offset + limit]
+    else:
+        platforms = platforms[offset:]
+    return platforms
