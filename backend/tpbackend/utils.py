@@ -271,24 +271,37 @@ def last_platform_for_game(
     return None
 
 
+def query_normalize(q: str) -> str:
+    q = q.lower().strip()
+    q = q.replace(" ", " ")  # replace nbsp with regular space
+    res = ""
+    for c in q:
+        # only keep A-Z, 0-9 and space
+        if c.isalnum() or c == " ":
+            res += c
+    # logger.info("query_normalize :: '%s' --> '%s'", q, res)
+    return res
+
+
 def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
     """
     Search games by name or alias
     """
     # TODO: cache/optimize :) this probably pretty slow once we have thousands of games
-    query = query.lower().strip()
+    query = query_normalize(query)
     games = []
     for game in storage_v2.Game.select():
         # search in name
-        if query in game.name.lower():
+        # game.name is cleaned as well, eg to allow
+        # "belmonts revenge" to match "Belmont's Revenge"
+        if query in query_normalize(game.name):
             games.append(game)
             continue
         if not game.aliases or len(game.aliases) == 0:
             # no aliases
             continue
-        aliases = [alias.lower() for alias in game.aliases]
-        for alias in aliases:
-            if query in alias:
+        for alias in game.aliases:
+            if query in query_normalize(alias):
                 games.append(game)
                 break
     logger.info("search_games :: '%s' --> %s results", query, len(games))
@@ -311,16 +324,18 @@ def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]
     """
     Search platforms by name or alias
     """
-    query = query.lower().strip()
+    query = query_normalize(query)
     platforms = []
     for platform in storage_v2.Platform.select():
         platform: storage_v2.Platform
         # search in abbreviation
-        if platform.abbreviation and query in str(platform.abbreviation).lower():
+        if platform.abbreviation and query in query_normalize(
+            str(platform.abbreviation)
+        ):
             platforms.append(platform)
             continue
         # search in name
-        if platform.name and query in str(platform.name).lower():
+        if platform.name and query in query_normalize(str(platform.name)):
             platforms.append(platform)
             continue
     logger.info("search_platforms :: '%s' --> %s results", query, len(platforms))
