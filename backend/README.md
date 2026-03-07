@@ -17,3 +17,8 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 | DISCORD_TOKEN      |            |                                             |
 | SGDB_TOKEN         |            |                                             |
 
+# Restore backup
+
+1. Get access to sql file in the psql container somehow
+2. Drop and recreate the database `storage_v2` in the psql container
+3. Run inside psql container: `psql -U user -d storage_v2 -f /path/to/backup_storage_v2.sql`
