@@ -4,7 +4,6 @@ import re
 
 from tpbackend.storage import storage_v2
 
-
 logger = logging.getLogger("utils")
 
 
