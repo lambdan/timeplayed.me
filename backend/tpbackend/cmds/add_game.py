@@ -10,7 +10,7 @@ import datetime
 
 class AddGameCommand(Command):
     def __init__(self):
-        names = ["add_game"]
+        names = ["add_game", "ag"]
         d = "Add game to the database"
         h = """
 Add a new game to the database. Useful if you need to track a game manually.

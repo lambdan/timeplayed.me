@@ -1,12 +1,10 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Platform, User
-import discord
-from tpbackend.storage.storage_v2 import Game
 
 
 class AddPlatformCommand(AdminCommand):
     def __init__(self):
-        names = ["add_platform"]
+        names = ["add_platform", "ap"]
         d = "Add new platform"
         h = f"Usage: `!{names[0]} <abbreviation>`"
         super().__init__(names=names, description=d, help=h)
