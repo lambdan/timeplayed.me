@@ -1,3 +1,3 @@
 #!/bin/sh
 set -e
-black conftest.py tpbackend
+black "$@" conftest.py tpbackend
