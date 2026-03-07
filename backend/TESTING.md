@@ -7,7 +7,7 @@ From the `backend/` directory:
 ```sh
 python3 -m pytest          # run all tests
 python3 -m pytest -v       # verbose output (shows each test name)
-python3 -m pytest tpbackend/cmds/test_search_games.py   # single file
+python3 -m pytest tpbackend/cmds/search_games_test.py   # single file
 ```
 
 Tests are also run automatically by CI on every push to `master` and on every
@@ -23,10 +23,10 @@ backend/
 ├── pytest.ini                         # pytest configuration
 ├── TESTING.md                         # this file
 └── tpbackend/
-    ├── test_utils.py                  # tests for tpbackend/utils.py
+    ├── utils_test.py                  # tests for tpbackend/utils.py
     └── cmds/
-        ├── test_search_games.py       # example / reference test file
-        └── test_<command>.py          # add one file per command here
+        ├── search_games_test.py       # example / reference test file
+        └── <command>_test.py          # add one file per command here
 ```
 
 ---
@@ -66,7 +66,7 @@ You can override any attribute after creation, e.g. `act.seconds = 999`.
 
 ## Writing a new command test
 
-1. Create `tpbackend/cmds/test_<command>.py`.
+1. Create `tpbackend/cmds/<command>_test.py`.
 2. Import the command class and any Peewee models you need to patch.
 3. Use `patch.object(Model, "method", return_value=...)` to control database
    calls, and `patch("tpbackend.cmds.<module>.<function>", ...)` for module-
