@@ -1,6 +1,5 @@
 from tpbackend.storage.storage_v2 import Game, User
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.operations import get_game_by_name_or_alias_or_create
 
 
 class AddGameAdminCommand(AdminCommand):
@@ -23,12 +22,13 @@ Returns: Confirmation message with the game ID and name.
         return self.add(name)
 
     def add(self, s: str) -> str:
-        # Only block true duplicates: same name with no release year.
-        # Games with a release year may share names (e.g. 2005 vs 2023 versions).
-        existing = Game.get_or_none(  # type: ignore
-            (Game.name == s) & (Game.release_year.is_null())  # type: ignore
-        )
+        # Block any game that already has this exact name, regardless of release year.
+        # !add_game has no year parameter, so same-named games must use !add_sgdb
+        # (which derives year from SGDB and handles disambiguation automatically).
+        existing = Game.get_or_none(Game.name == s)  # type: ignore
         if existing:
             return f"Error: Game seems to already exist: '{existing.name}' (id: {existing.id})"  # type: ignore
-        game = get_game_by_name_or_alias_or_create(s)
+        # Use Game.create() directly so we always produce a new row, never silently
+        # return an existing game that matched by alias or case-insensitive name.
+        game = Game.create(name=s)  # type: ignore
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
