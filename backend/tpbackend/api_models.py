@@ -41,7 +41,9 @@ class PublicGameModel(BaseModel):
     id: int = Field(description="ID for the game")
     name: str = Field(description="Name of the game")
     steam_id: int | None = Field(description="Steam ID for the game")
-    sgdb_id: int | None = Field(description="SGDB ID for the game")
+    sgdb_id: int | None = Field(
+        description="SGDB ID for the game. Null if not set. 0 if game is not in SGDB."
+    )
     image_url: str | None = Field(description="Image URL for the game")
     aliases: list[str] = Field(description="List of aliases for the game")
     release_year: int | None = Field(description="Release year of the game")

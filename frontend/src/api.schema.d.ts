@@ -462,7 +462,7 @@ export interface components {
             steam_id: number | null;
             /**
              * Sgdb Id
-             * @description SGDB ID for the game
+             * @description SGDB ID for the game. Null if not set. 0 if game is not in SGDB.
              */
             sgdb_id: number | null;
             /**

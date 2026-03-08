@@ -178,6 +178,9 @@ export async function getGameCoverUrl(
         return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
       }
 
+      // sgdb_id is null when not set,
+      // or 0 when SGDB doesnt have it (or it shouldnt be used)...
+      // this check should catch both cases
       if (gameData.sgdb_id) {
         const best = await getBest(gameData.sgdb_id);
         if (best) {
