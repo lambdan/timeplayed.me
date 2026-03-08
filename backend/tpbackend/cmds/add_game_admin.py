@@ -1,9 +1,6 @@
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game, User
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.operations import (
-    get_game_by_name_or_alias,
-    get_game_by_name_or_alias_or_create,
-)
+from tpbackend.operations import get_game_by_name_or_alias_or_create
 
 
 class AddGameAdminCommand(AdminCommand):
@@ -26,8 +23,12 @@ Returns: Confirmation message with the game ID and name.
         return self.add(name)
 
     def add(self, s: str) -> str:
-        game = get_game_by_name_or_alias(s)
-        if game:
-            return f"Error: Game seems to already exist: '{game.name}' (id: {game.id})"  # type: ignore
+        # Only block true duplicates: same name with no release year.
+        # Games with a release year may share names (e.g. 2005 vs 2023 versions).
+        existing = Game.get_or_none(  # type: ignore
+            (Game.name == s) & (Game.release_year.is_null())  # type: ignore
+        )
+        if existing:
+            return f"Error: Game seems to already exist: '{existing.name}' (id: {existing.id})"  # type: ignore
         game = get_game_by_name_or_alias_or_create(s)
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
