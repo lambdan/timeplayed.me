@@ -17,8 +17,14 @@ def get_game_by_alias(alias: str) -> Game | None:
 
 
 def get_game_by_name_or_alias(s: str) -> Game | None:
-    # any game with this name?
-    game = Game.get_or_none(name=s)
+    # any game with this name? when multiple games share the same name (different
+    # release years) prefer the one with the highest release_year, nulls last.
+    game = (
+        Game.select()  # type: ignore
+        .where(Game.name == s)  # type: ignore
+        .order_by(Game.release_year.desc(nulls="LAST"))  # type: ignore
+        .first()
+    )
     if game:
         logger.info("Found game by name: '%s' (id: %s)", s, game.id)
         return game
@@ -46,9 +52,10 @@ def get_game_by_name_or_alias_or_create(s: str) -> Game:
     if game:
         return game
     # OK FINE we'll create it!
-    game, created = Game.get_or_create(name=s)
-    if created:
-        logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
+    # Use create() rather than get_or_create() because name is no longer unique
+    # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
+    game = Game.create(name=s)  # type: ignore
+    logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
     return game
 
 

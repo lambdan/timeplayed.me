@@ -27,6 +27,7 @@ os.environ.setdefault("ADMINS", "admin123")
 # Replace modules that have circular imports or external dependencies.
 sys.modules["tpbackend.bot"] = MagicMock()
 sys.modules["tpbackend.api"] = MagicMock()
+sys.modules["tpbackend.steamgriddb"] = MagicMock()
 
 # Import utils first to resolve the circular dependency between
 # tpbackend.utils and tpbackend.storage.storage_v2.

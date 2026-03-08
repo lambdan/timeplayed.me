@@ -42,12 +42,35 @@ Returns: Confirmation message
         if not sgdb_game.name:
             return "Error: SGDB has no name for that game"
 
-        # check if it exists by name
+        game_year = (sgdb_game.release_date and sgdb_game.release_date.year) or None
+
+        # Check whether a game with the same name already exists.  Two games
+        # may share a name (e.g. a 2005 and a 2023 release of the same title),
+        # but only when both have a release_year set so they can be told apart.
         ex_game = get_game_by_name_or_alias(sgdb_game.name)  # type: ignore
         if ex_game:
-            return f"Error: Game with name *{sgdb_game.name}* already exists in the database (id: {ex_game.id}, name: {ex_game.name})"  # type: ignore
+            if not game_year:
+                return (
+                    f"Error: Game with name *{sgdb_game.name}* already exists in the database "
+                    f"(id: {ex_game.id}, name: {ex_game.name}). "  # type: ignore
+                    "SGDB reports no release year for this game, so it cannot be added as a separate entry."
+                )
+            if not ex_game.release_year:  # type: ignore
+                return (
+                    f"Error: Game with name *{sgdb_game.name}* already exists in the database "
+                    f"(id: {ex_game.id}, name: {ex_game.name}) but has no release year set. "  # type: ignore
+                    f"Please set its release year first (`!sgry {ex_game.id} <year>`)."  # type: ignore
+                )
+            # Check for a true duplicate: same name AND same year already in DB.
+            true_duplicate = Game.get_or_none(  # type: ignore
+                (Game.name == sgdb_game.name) & (Game.release_year == game_year)  # type: ignore
+            )
+            if true_duplicate:
+                return (
+                    f"Error: Game *{sgdb_game.name}* ({game_year}) already exists in the database "
+                    f"(id: {true_duplicate.id}, name: {true_duplicate.name})."  # type: ignore
+                )
 
-        game_year = (sgdb_game.release_date and sgdb_game.release_date.year) or None
         new_game = Game.create(name=sgdb_game.name, sgdb_id=sgdb_id, release_year=game_year)  # type: ignore
         out = "✅ Added game by SGDB id!\n"
         out += f"- *{new_game.name}*\n"
