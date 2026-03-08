@@ -16,7 +16,10 @@ class MissingSGDBAdminCommand(AdminCommand):
         out = ""
         for game in missing:
             count += 1
-            out += f"- {game.name} (id: {game.id})\n"  # type: ignore
+            out += f"- **{game.id}** - {game.name}"
+            if game.release_year:
+                out += f" ({game.release_year})"
+            out += "\n"
             if count > 20 or len(out) > 1337:
                 out += f"... and {missing.count() - count} more"
                 break
