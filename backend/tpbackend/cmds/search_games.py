@@ -30,7 +30,10 @@ Returns: list of game id's and names matching the query
         count = 0
         for game in games:
             count += 1
-            out += f"- **{game.id}** - {game.name}\n"  # type: ignore
+            out += f"- **{game.id}** - {game.name}"  # type: ignore
+            if game.release_year:
+                out += f" ({game.release_year})"
+            out += "\n"
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""
