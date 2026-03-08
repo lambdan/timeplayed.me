@@ -2,6 +2,7 @@ from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
 from tpbackend import utils
+from tpbackend.utils import game_name_with_year
 
 
 class LastActivityCommand(Command):
@@ -36,7 +37,7 @@ Because of Discord message length limits, n is capped at 10.
         for act in activities:
             emulated = " (emu)" if act.emulated else ""
             lines.append(
-                f"#{act}\t{act.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{utils.secsToHHMMSS(act.seconds)}"
+                f"#{act}\t{act.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{game_name_with_year(act.game)} ({act.platform.abbreviation}){emulated}\t{utils.secsToHHMMSS(act.seconds)}"
             )
         out = "```\n"
         out += "\n".join(reversed(lines))

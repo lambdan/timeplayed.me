@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { formatDuration, timeAgo } from "../../utils";
+import { formatDuration, timeAgo, gameNameWithYear } from "../../utils";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
@@ -207,7 +207,7 @@ onMounted(() => {
       <a
         :href="`/game/${props.activity.game.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.activity.game.name }}</a
+        >{{ gameNameWithYear(props.activity.game) }}</a
       >
     </td>
 
@@ -215,7 +215,7 @@ onMounted(() => {
       <a
         :href="`/game/${props.game.game.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.game.game.name }}</a
+        >{{ gameNameWithYear(props.game.game) }}</a
       >
     </td>
 

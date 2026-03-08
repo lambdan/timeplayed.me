@@ -11,6 +11,7 @@ from tpbackend.utils import (
     search_games,
     secsToHHMMSS,
     game_url,
+    game_name_with_year,
 )
 
 
@@ -57,7 +58,7 @@ Returns: Confirmation message
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
-                    msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                    msg += f"- **{g.id}** - {game_name_with_year(g)}\n"  # type: ignore
                 msg += "If so, use the game ID (the number) in the command"
                 return msg
             elif len(search_results) == 0:
@@ -113,9 +114,9 @@ Returns: Confirmation message
             msg = f"✅ Activity {sesh} added.\n"
             url = game_url(game.id)
             if url:
-                msg += f"Game: [{game.name}]({url})\n"  # type: ignore
+                msg += f"Game: [{game_name_with_year(game)}]({url})\n"  # type: ignore
             else:
-                msg += f"Game: {game.name}\n"  # type: ignore
+                msg += f"Game: {game_name_with_year(game)}\n"  # type: ignore
             msg += f"Duration: {secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Date: {sesh.timestamp}\n"
             msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"

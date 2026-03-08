@@ -2,6 +2,7 @@ from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils
+from tpbackend.utils import game_name_with_year
 
 
 class TimeManualCommand(Command):
@@ -21,5 +22,5 @@ class TimeManualCommand(Command):
             started = started.replace(tzinfo=datetime.timezone.utc)
         duration = utils.now() - started
         seconds = int(duration.total_seconds())
-        game_name = live.game.name
+        game_name = game_name_with_year(live.game)
         return f"You have been playing *{game_name}* for {utils.secsToHHMMSS(seconds)}"

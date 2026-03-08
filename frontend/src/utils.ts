@@ -1,5 +1,15 @@
 import { TimeplayedAPI } from "./api.client";
 
+export function gameNameWithYear(game: {
+  name: string;
+  release_year: number | null;
+}): string {
+  if (game.release_year) {
+    return `${game.name} (${game.release_year})`;
+  }
+  return game.name;
+}
+
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
   if (typeof date === "number") {

@@ -2,7 +2,7 @@ from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils, operations
-from tpbackend.utils import game_url
+from tpbackend.utils import game_url, game_name_with_year
 
 
 class StopManualCommand(Command):
@@ -37,9 +37,9 @@ class StopManualCommand(Command):
             msg = f"✅ Activity {sesh} saved.\n"
             url = game_url(sesh.game.id)
             if url:
-                msg += f"Game: *[{sesh.game.name}]({url})*\n"
+                msg += f"Game: *[{game_name_with_year(sesh.game)}]({url})*\n"
             else:
-                msg += f"Game: *{sesh.game.name}*\n"
+                msg += f"Game: *{game_name_with_year(sesh.game)}*\n"
             msg += f"Duration: {utils.secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
             return msg

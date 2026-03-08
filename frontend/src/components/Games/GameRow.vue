@@ -4,6 +4,7 @@ import GameCover from "./GameCover.vue";
 import CalendarBadge from "../Badges/CalendarBadge.vue";
 import DurationBadge from "../Badges/DurationBadge.vue";
 import type { GameWithStats } from "../../api.models";
+import { gameNameWithYear } from "../../utils";
 
 const props = withDefaults(defineProps<{ game: GameWithStats }>(), {});
 
@@ -20,7 +21,7 @@ onMounted(async () => {});
       <a
         class="text-decoration-none link-primary"
         :href="`/game/${game.game.id}`"
-        >{{ game.game.name }}</a
+        >{{ gameNameWithYear(game.game) }}</a
       >
       <br />
       <CalendarBadge

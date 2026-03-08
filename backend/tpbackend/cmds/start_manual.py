@@ -1,7 +1,7 @@
 from tpbackend.storage.storage_v2 import User, LiveActivity, Game
 from tpbackend.cmds.command import Command
 import tpbackend.utils
-from tpbackend.utils import last_platform_for_game, search_games
+from tpbackend.utils import last_platform_for_game, search_games, game_name_with_year
 
 
 class StartManualCommand(Command):
@@ -41,7 +41,7 @@ Use the stop command when you are done playing to save the activity.
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
-                    msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                    msg += f"- **{g.id}** - {game_name_with_year(g)}\n"  # type: ignore
                 msg += "If so, use the game ID (the number) in the command"
                 return msg
             elif len(search_results) == 0:
@@ -63,4 +63,4 @@ Use the stop command when you are done playing to save the activity.
 
         timestamp = tpbackend.utils.now()
         LiveActivity.create(user=user, game=game, platform=platform, started=timestamp)
-        return f"⏱️ Started playing *{game.name}*. Send `!stop` when you are done."
+        return f"⏱️ Started playing *{game_name_with_year(game)}*. Send `!stop` when you are done."

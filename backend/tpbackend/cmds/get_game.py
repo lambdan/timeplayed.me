@@ -1,6 +1,6 @@
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.command import Command
-from tpbackend.utils import game_url
+from tpbackend.utils import game_url, game_name_with_year
 
 
 class GetGameCommand(Command):
@@ -20,7 +20,7 @@ class GetGameCommand(Command):
             aliases_list.append(alias)
 
         msg = ""
-        msg += f"## {game.name}\n"
+        msg += f"## {game_name_with_year(game)}\n"
         url = game_url(game.id)
         if url:
             msg += f"- ID: [{game.id}]({url})\n"

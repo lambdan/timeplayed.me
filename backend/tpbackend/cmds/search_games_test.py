@@ -56,3 +56,19 @@ def test_results_listed(cmd, make_user, make_game):
         result = cmd.execute(make_user(), "zelda")
     assert "Zelda" in result
     assert "Zelda II" in result
+
+
+def test_results_show_year_when_set(cmd, make_user, make_game):
+    games = [make_game(1, "Zelda", release_year=1986), make_game(2, "Zelda II", release_year=1987)]
+    with patch("tpbackend.cmds.search_games.search_games", return_value=games):
+        result = cmd.execute(make_user(), "zelda")
+    assert "Zelda (1986)" in result
+    assert "Zelda II (1987)" in result
+
+
+def test_results_no_year_when_not_set(cmd, make_user, make_game):
+    games = [make_game(1, "Zelda")]
+    with patch("tpbackend.cmds.search_games.search_games", return_value=games):
+        result = cmd.execute(make_user(), "zelda")
+    assert "Zelda" in result
+    assert "Zelda (" not in result

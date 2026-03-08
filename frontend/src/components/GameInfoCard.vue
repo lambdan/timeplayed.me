@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
+import { formatDate, formatDuration, sleep, timeAgo, gameNameWithYear } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
@@ -32,7 +32,7 @@ onMounted(async () => {
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">{{ game.name }}</h1>
+    <h1 class="card-header">{{ gameNameWithYear(game) }}</h1>
     <div class="card-body">
       <div class="row">
         <div

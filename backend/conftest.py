@@ -90,11 +90,12 @@ def make_platform():
 def make_game():
     """Factory fixture — returns a callable that creates mock Game objects."""
 
-    def _factory(id=1, name="Test Game", aliases=None):
+    def _factory(id=1, name="Test Game", aliases=None, release_year=None):
         g = MagicMock(spec=Game)
         g.id = id
         g.name = name
         g.aliases = aliases if aliases is not None else []
+        g.release_year = release_year
         return g
 
     return _factory

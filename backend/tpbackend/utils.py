@@ -329,6 +329,16 @@ def game_url(game_id: int) -> str:
     return f"{TIMEPLAYED_URL}/game/{game_id}"
 
 
+def game_name_with_year(game: storage_v2.Game) -> str:
+    """
+    Returns the game name with the release year in parentheses if available.
+    E.g. "Zelda (1986)" or just "Zelda" if no release year is set.
+    """
+    if game.release_year:
+        return f"{game.name} ({game.release_year})"
+    return str(game.name)
+
+
 def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]:
     """
     Search platforms by name or alias

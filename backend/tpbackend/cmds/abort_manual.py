@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
+from tpbackend.utils import game_name_with_year
 
 
 class AbortManualCommand(Command):
@@ -13,6 +14,6 @@ class AbortManualCommand(Command):
         if not live:
             return "Error: no manual activity running"
 
-        game_name = live.game.name
+        game_name = game_name_with_year(live.game)
         live.delete_instance()
         return f"Aborted *{game_name}* activity"
