@@ -330,6 +330,12 @@ def game_url(game_id) -> str:
     return f"{TIMEPLAYED_URL}/game/{game_id}"
 
 
+def activity_url(activity_id) -> str:
+    if not TIMEPLAYED_URL:
+        return ""
+    return f"{TIMEPLAYED_URL}/activity/{activity_id}"
+
+
 def game_name(game: Game) -> str:
     if not game:
         return ""
