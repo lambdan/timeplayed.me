@@ -31,6 +31,7 @@ from tpbackend.cmds.set_game_admin import SetGameAdminCommand
 from tpbackend.cmds.delete_activity_admin import DeleteActivityAdminCommand
 from tpbackend.cmds.abort_manual import AbortManualCommand
 from tpbackend.cmds.time_manual import TimeManualCommand
+from tpbackend.cmds.missing_sgdb_admin import MissingSGDBAdminCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -79,6 +80,7 @@ ADMIN_COMMANDS = [
     DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
+    MissingSGDBAdminCommand(),
 ]
 
 used = set()
