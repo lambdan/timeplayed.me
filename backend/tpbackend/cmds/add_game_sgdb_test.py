@@ -18,7 +18,6 @@ import pytest
 
 from tpbackend.cmds.add_game_sgdb import AddGameSGDBCommand
 
-
 # ---------------------------------------------------------------------------
 # Fixture
 # ---------------------------------------------------------------------------
@@ -210,7 +209,7 @@ def test_name_collision_same_year_is_duplicate(cmd, make_user, make_game):
 
     with patch("tpbackend.cmds.add_game_sgdb.Game") as mock_game_cls:
         mock_game_cls.get_or_none.side_effect = [
-            None,      # first call: SGDB ID check
+            None,  # first call: SGDB ID check
             existing,  # second call: true-duplicate check (name + year) — finds the same row
         ]
         with patch(

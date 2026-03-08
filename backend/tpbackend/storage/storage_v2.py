@@ -61,7 +61,7 @@ class User(BaseModel):
 class Game(BaseModel):
     """
     Game (V2)
-    # ALTER TABLE game DROP CONSTRAINT game_name_key;
+    # ALTER TABLE game DROP CONSTRAINT game_name;
     """
 
     name = CharField()
