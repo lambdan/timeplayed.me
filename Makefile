@@ -12,3 +12,6 @@ check-version:
 		exit 1; \
 	fi; \
 	echo "Version check passed: '$$PACKAGE_VERSION' matches tag '$(TAG)'"
+
+release:
+	./make-release.sh
