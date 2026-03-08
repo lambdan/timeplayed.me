@@ -33,6 +33,7 @@ from tpbackend.cmds.abort_manual import AbortManualCommand
 from tpbackend.cmds.time_manual import TimeManualCommand
 from tpbackend.cmds.missing_sgdb_admin import MissingSGDBAdminCommand
 from tpbackend.cmds.search_sgdb import SearchSGDBCommand
+from tpbackend.cmds.auto_sgdb import AutoSGDBAdminCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -64,6 +65,7 @@ ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
     SetSGDBIDCommand(),
+    AutoSGDBAdminCommand(),
     SetSteamIDCommand(),
     SetGameImageCommand(),
     SetGameReleaseYearCommand(),
