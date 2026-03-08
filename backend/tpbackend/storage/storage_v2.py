@@ -61,9 +61,10 @@ class User(BaseModel):
 class Game(BaseModel):
     """
     Game (V2)
+    # ALTER TABLE game DROP CONSTRAINT game_name_key;
     """
 
-    name = CharField(unique=True)
+    name = CharField()
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
