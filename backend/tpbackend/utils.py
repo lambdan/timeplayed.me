@@ -329,6 +329,12 @@ def game_url(game_id: int) -> str:
     return f"{TIMEPLAYED_URL}/game/{game_id}"
 
 
+def activity_url(activity_id) -> str:
+    if not TIMEPLAYED_URL:
+        return ""
+    return f"{TIMEPLAYED_URL}/activity/{activity_id}"
+
+
 def game_name_with_year(game: storage_v2.Game) -> str:
     """
     Returns the game name with the release year in parentheses if available.
