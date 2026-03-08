@@ -16,6 +16,7 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 | DB_NAME_TIMEPLAYED | storage_v2 | DB that this thing is using                 |
 | DISCORD_TOKEN      |            |                                             |
 | SGDB_TOKEN         |            |                                             |
+| TIMEPLAYED_URL     |            | Base URL of the site (e.g. https://timeplayed.me). Used to link to game pages in bot commands. Leave empty to disable. |
 
 # Restore backup
 

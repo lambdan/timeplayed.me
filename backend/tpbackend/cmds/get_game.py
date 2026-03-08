@@ -1,3 +1,4 @@
+from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.command import Command
 
@@ -20,6 +21,8 @@ class GetGameCommand(Command):
 
         msg = ""
         msg += f"## {game.name}\n"
+        if TIMEPLAYED_URL:
+            msg += f"- Page: {TIMEPLAYED_URL}/game/{game.id}\n"
         msg += f"- ID: {game.id}\n"
         if len(aliases_list) > 0:
             msg += "Aliases: ```"
