@@ -36,6 +36,7 @@ services:
       ADMINS: "x,y" # Discord user id of admins
       SGDB_TOKEN: x
       REDIS_HOST: redis
+      # TIMEPLAYED_URL: https://timeplayed.me  # Base URL for game page links in bot commands
     restart: always
     depends_on:
       - postgres

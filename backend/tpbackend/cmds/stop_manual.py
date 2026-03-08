@@ -2,6 +2,7 @@ from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils, operations
+from tpbackend.utils import game_url
 
 
 class StopManualCommand(Command):
@@ -34,7 +35,11 @@ class StopManualCommand(Command):
         live.delete_instance()  # Remove the live session from db
         if sesh:
             msg = f"✅ Activity {sesh} saved.\n"
-            msg += f"Game: *{sesh.game.name}*\n"
+            url = game_url(sesh.game.id)
+            if url:
+                msg += f"Game: *[{sesh.game.name}]({url})*\n"
+            else:
+                msg += f"Game: *{sesh.game.name}*\n"
             msg += f"Duration: {utils.secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
             return msg

@@ -9,6 +9,8 @@ if DEBUG:
 
 ADMINS = os.environ.get("ADMINS", "").split(",") if os.environ.get("ADMINS") else []
 
+TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
+
 
 # CRITICAL, INFO , DEBUG, WARNING, ERROR
 
