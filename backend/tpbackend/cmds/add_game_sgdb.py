@@ -35,7 +35,7 @@ Returns: Confirmation message
 
         game = steamgriddb.get_game_by_id(id)
         if not game:
-            return f"Error: did not find game on SGDB with {id}"
+            return f"Error: did not find game on SGDB with id {id}"
         if not game.name:
             return "Error: SGDB has no name for that game"
 
