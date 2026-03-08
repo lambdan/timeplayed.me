@@ -30,4 +30,4 @@ Returns: Confirmation message with the game ID and name.
         if game:
             return f"Error: Game seems to already exist: '{game.name}' (id: {game.id})"  # type: ignore
         game = get_game_by_name_or_alias_or_create(s)
-        return f"✅ Game added manually:\n - *{game.name}*\n- id: {game.id}"  # type: ignore
+        return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
