@@ -29,6 +29,9 @@ Returns: Confirmation message
         except Exception:
             return "Error: Invalid id"
 
+        if sgdb_id <= 0:
+            return "Error: Invalid id (must be > 0). 0 is used for games that are NOT on SGDB."
+
         game_by_sgdb_id = Game.get_or_none(Game.sgdb_id == sgdb_id)  # type: ignore
         if game_by_sgdb_id:
             return f"Error: Game with SteamGridDB ID {sgdb_id} already exists in the database (id: {game_by_sgdb_id.id})"  # type: ignore
