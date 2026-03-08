@@ -61,36 +61,36 @@ def test_game_page_link_shown_when_timeplayed_url_set(cmd, make_user, make_game)
     game = make_game(id=7, name="Doom")
     game.sgdb_id = None
     game.release_year = 1993
-    with patch("tpbackend.cmds.get_game.TIMEPLAYED_URL", "https://timeplayed.me"):
+    with patch("tpbackend.cmds.get_game.game_url", return_value="https://timeplayed.me/game/7"):
         with patch("tpbackend.cmds.get_game.Game") as mock_game_cls:
             mock_game_cls.get_or_none.return_value = game
             mock_game_cls.id = None
             result = cmd.execute(make_user(), "7")
-    assert "https://timeplayed.me/game/7" in result
+    assert "[7](https://timeplayed.me/game/7)" in result
 
 
 def test_game_page_link_not_shown_when_timeplayed_url_empty(cmd, make_user, make_game):
     game = make_game(id=7, name="Doom")
     game.sgdb_id = None
     game.release_year = 1993
-    with patch("tpbackend.cmds.get_game.TIMEPLAYED_URL", ""):
+    with patch("tpbackend.cmds.get_game.game_url", return_value=""):
         with patch("tpbackend.cmds.get_game.Game") as mock_game_cls:
             mock_game_cls.get_or_none.return_value = game
             mock_game_cls.id = None
             result = cmd.execute(make_user(), "7")
     assert "/game/7" not in result
+    assert "- ID: 7" in result
 
 
 def test_game_page_link_trailing_slash_stripped(cmd, make_user, make_game):
-    """TIMEPLAYED_URL with trailing slash should still produce a clean URL."""
+    """game_url() returns a clean URL (no double slashes)."""
     game = make_game(id=5, name="Quake")
     game.sgdb_id = None
     game.release_year = 1996
-    # globals.py strips the trailing slash at load time; simulate the result
-    with patch("tpbackend.cmds.get_game.TIMEPLAYED_URL", "https://example.com"):
+    with patch("tpbackend.cmds.get_game.game_url", return_value="https://example.com/game/5"):
         with patch("tpbackend.cmds.get_game.Game") as mock_game_cls:
             mock_game_cls.get_or_none.return_value = game
             mock_game_cls.id = None
             result = cmd.execute(make_user(), "5")
-    assert "https://example.com/game/5" in result
+    assert "[5](https://example.com/game/5)" in result
     assert "//game" not in result

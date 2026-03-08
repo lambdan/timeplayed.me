@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User, Activity, Game
 from tpbackend.cmds.command import Command
+from tpbackend.globals import game_url
 from tpbackend import api, utils
 
 
@@ -21,7 +22,11 @@ class GetActivityCommand(Command):
         msg = ""
         msg += f"## Activity {activity.id}\n"
         msg += f"- User: *{user.name}*\n"
-        msg += f"- Game: *{game.name}*\n"
+        url = game_url(game.id)
+        if url:
+            msg += f"- Game: *[{game.name}]({url})*\n"
+        else:
+            msg += f"- Game: *{game.name}*\n"
         msg += f"- Platform: *{platform.name or platform.abbreviation}*\n"
         msg += f"- Date: {activity.timestamp}\n"
         msg += f"- Duration: {formatted_duration}\n"
