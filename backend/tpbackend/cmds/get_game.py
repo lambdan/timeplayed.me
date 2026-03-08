@@ -26,7 +26,7 @@ class GetGameCommand(Command):
             for alias in aliases_list:
                 msg += f"{alias}\n"
             msg += "```\n"
-        if game.sgdb_id is not None:
+        if game.sgdb_id:
             msg += f"- SGDB ID: [{game.sgdb_id}](https://www.steamgriddb.com/game/{game.sgdb_id})\n"
         else:
             msg += "- SGDB ID: None\n"
