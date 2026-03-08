@@ -1,7 +1,7 @@
 import os
 import logging
 from pydantic import BaseModel
-from steamgrid import SteamGridDB
+from steamgrid import Game, SteamGridDB
 from steamgrid import StyleType, MimeType
 from steamgrid.http import HTTPException
 import redis
@@ -84,6 +84,16 @@ def search(query: str) -> list[SGDB_Game]:
                 )
     REDIS_CLIENT.setex(key, REDIS_EXP, jsonEncode(res))
     return res
+
+
+def get_game_by_id(game_id: int) -> Game | None:
+    try:
+        g = sgdb.get_game_by_gameid(game_id)
+        if g and g.id == game_id:
+            return g
+    except HTTPException as e:
+        logger.error("HTTPException when fetching game for game ID %d", game_id, e)
+    return None
 
 
 def get_grids(game_id: int) -> list[SGDB_Grid]:
