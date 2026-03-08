@@ -1,5 +1,6 @@
 from tpbackend.cmds.add_activity import AddActivityCommand
-from tpbackend.cmds.add_game import AddGameCommand
+from tpbackend.cmds.add_game_sgdb import AddGameSGDBCommand
+from tpbackend.cmds.add_game_admin import AddGameAdminCommand
 from tpbackend.cmds.add_platform import AddPlatformCommand
 from tpbackend.cmds.block_commands import BlockCommandsCommand
 from tpbackend.cmds.delete_activity import DeleteActivityCommand
@@ -34,7 +35,7 @@ from tpbackend.cmds.time_manual import TimeManualCommand
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchGamesCommand(),
-    AddGameCommand(),
+    AddGameSGDBCommand(),
     # manual
     StartManualCommand(),
     StopManualCommand(),
@@ -58,6 +59,7 @@ REGULAR_COMMANDS = [
 
 ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
+    AddGameAdminCommand(),
     SetSGDBIDCommand(),
     SetSteamIDCommand(),
     SetGameImageCommand(),
