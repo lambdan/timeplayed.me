@@ -32,10 +32,12 @@ from tpbackend.cmds.delete_activity_admin import DeleteActivityAdminCommand
 from tpbackend.cmds.abort_manual import AbortManualCommand
 from tpbackend.cmds.time_manual import TimeManualCommand
 from tpbackend.cmds.missing_sgdb_admin import MissingSGDBAdminCommand
+from tpbackend.cmds.search_sgdb import SearchSGDBCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchGamesCommand(),
+    SearchSGDBCommand(),
     AddGameSGDBCommand(),
     # manual
     StartManualCommand(),
