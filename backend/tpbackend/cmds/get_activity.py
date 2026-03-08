@@ -1,6 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User, Activity, Game
 from tpbackend.cmds.command import Command
-from tpbackend.globals import game_url
+from tpbackend.utils import game_url
 from tpbackend import api, utils
 
 

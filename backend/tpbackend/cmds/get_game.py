@@ -1,6 +1,6 @@
-from tpbackend.globals import TIMEPLAYED_URL, game_url
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.command import Command
+from tpbackend.utils import game_url
 
 
 class GetGameCommand(Command):

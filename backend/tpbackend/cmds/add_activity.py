@@ -2,11 +2,16 @@ from tpbackend import api
 from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
-from tpbackend.globals import game_url
 from tpbackend.operations import (
     add_session,
 )
-from tpbackend.utils import now, last_platform_for_game, search_games, secsToHHMMSS
+from tpbackend.utils import (
+    now,
+    last_platform_for_game,
+    search_games,
+    secsToHHMMSS,
+    game_url,
+)
 
 
 class AddActivityCommand(Command):
@@ -106,7 +111,7 @@ Returns: Confirmation message
         sesh = result[0]
         if sesh:
             msg = f"✅ Activity {sesh} added.\n"
-            url = game_url(game.id)  # type: ignore
+            url = game_url(game.id)
             if url:
                 msg += f"Game: [{game.name}]({url})\n"  # type: ignore
             else:

@@ -61,7 +61,9 @@ def test_game_page_link_shown_when_timeplayed_url_set(cmd, make_user, make_game)
     game = make_game(id=7, name="Doom")
     game.sgdb_id = None
     game.release_year = 1993
-    with patch("tpbackend.cmds.get_game.game_url", return_value="https://timeplayed.me/game/7"):
+    with patch(
+        "tpbackend.cmds.get_game.game_url", return_value="https://timeplayed.me/game/7"
+    ):
         with patch("tpbackend.cmds.get_game.Game") as mock_game_cls:
             mock_game_cls.get_or_none.return_value = game
             mock_game_cls.id = None
@@ -87,7 +89,9 @@ def test_game_page_link_trailing_slash_stripped(cmd, make_user, make_game):
     game = make_game(id=5, name="Quake")
     game.sgdb_id = None
     game.release_year = 1996
-    with patch("tpbackend.cmds.get_game.game_url", return_value="https://example.com/game/5"):
+    with patch(
+        "tpbackend.cmds.get_game.game_url", return_value="https://example.com/game/5"
+    ):
         with patch("tpbackend.cmds.get_game.Game") as mock_game_cls:
             mock_game_cls.get_or_none.return_value = game
             mock_game_cls.id = None

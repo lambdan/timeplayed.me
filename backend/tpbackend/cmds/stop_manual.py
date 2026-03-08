@@ -2,7 +2,7 @@ from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
 from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils, operations
-from tpbackend.globals import game_url
+from tpbackend.utils import game_url
 
 
 class StopManualCommand(Command):

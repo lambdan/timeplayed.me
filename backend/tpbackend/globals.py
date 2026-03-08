@@ -12,13 +12,6 @@ ADMINS = os.environ.get("ADMINS", "").split(",") if os.environ.get("ADMINS") els
 TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
 
 
-def game_url(game_id: int) -> str:
-    """Return a markdown link to the game page, or an empty string if TIMEPLAYED_URL is not set."""
-    if not TIMEPLAYED_URL:
-        return ""
-    return f"{TIMEPLAYED_URL}/game/{game_id}"
-
-
 # CRITICAL, INFO , DEBUG, WARNING, ERROR
 
 if LOGLEVEL_ENV == "CRITICAL":
