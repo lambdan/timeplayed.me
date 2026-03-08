@@ -4,6 +4,7 @@ import re
 
 from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
+from tpbackend.storage.storage_v2 import Game
 
 logger = logging.getLogger("utils")
 
@@ -320,13 +321,21 @@ def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
     return games
 
 
-def game_url(game_id: int) -> str:
+def game_url(game_id) -> str:
     """
     Returns the URL for a game page, or an empty string if TIMEPLAYED_URL is not set.
     """
     if not TIMEPLAYED_URL:
         return ""
     return f"{TIMEPLAYED_URL}/game/{game_id}"
+
+
+def game_name(game: Game) -> str:
+    if not game:
+        return ""
+    if game.release_year:
+        return f"{game.name} ({game.release_year})"
+    return str(game.name)
 
 
 def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]:

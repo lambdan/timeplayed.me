@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.admin_command import AdminCommand
+from tpbackend.utils import game_name
 
 
 class MissingSGDBAdminCommand(AdminCommand):
@@ -16,10 +17,7 @@ class MissingSGDBAdminCommand(AdminCommand):
         out = ""
         for game in missing:
             count += 1
-            out += f"- **{game.id}** - {game.name}"
-            if game.release_year:
-                out += f" ({game.release_year})"
-            out += "\n"
+            out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
             if count > 20 or len(out) > 1337:
                 out += f"... and {missing.count() - count} more"
                 break

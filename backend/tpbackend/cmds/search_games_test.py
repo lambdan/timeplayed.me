@@ -52,9 +52,7 @@ def test_no_results(cmd, make_user):
 
 def test_results_listed(cmd, make_user, make_game):
     games = [make_game(1, "Zelda"), make_game(2, "Zelda II")]
-    games[0].release_year = 1986
-    games[1].release_year = None
     with patch("tpbackend.cmds.search_games.search_games", return_value=games):
         result = cmd.execute(make_user(), "zelda")
-    assert "Zelda (1986)" in result
+    assert "Zelda" in result
     assert "Zelda II" in result

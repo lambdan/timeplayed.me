@@ -6,6 +6,7 @@ from tpbackend.operations import (
     add_session,
 )
 from tpbackend.utils import (
+    game_name,
     now,
     last_platform_for_game,
     search_games,
@@ -111,11 +112,11 @@ Returns: Confirmation message
         sesh = result[0]
         if sesh:
             msg = f"✅ Activity {sesh} added.\n"
-            url = game_url(game.id)
+            url = game_url(game.id)  # type: ignore
             if url:
-                msg += f"Game: [{game.name}]({url})\n"  # type: ignore
+                msg += f"Game: [{game_name(game)}]({url})\n"  # type: ignore
             else:
-                msg += f"Game: {game.name}\n"  # type: ignore
+                msg += f"Game: {game_name(game)}\n"  # type: ignore
             msg += f"Duration: {secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"Date: {sesh.timestamp}\n"
             msg += f"Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
