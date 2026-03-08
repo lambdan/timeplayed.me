@@ -34,21 +34,21 @@ Returns: Confirmation message
 
         game_by_sgdb_id = Game.get_or_none(Game.sgdb_id == sgdb_id)  # type: ignore
         if game_by_sgdb_id:
-            return f"Error: Game with SteamGridDB ID {sgdb_id} already exists in the database (id: {game_by_sgdb_id.id})"  # type: ignore
+            return f"Error: Game with SteamGridDB ID {sgdb_id} already exists in the database (id: {game_by_sgdb_id.id}, name: {game_by_sgdb_id.name})"  # type: ignore
 
-        game = steamgriddb.get_game_by_id(sgdb_id)
-        if not game:
+        sgdb_game = steamgriddb.get_game_by_id(sgdb_id)
+        if not sgdb_game:
             return f"Error: did not find game on SGDB with id {sgdb_id}"
-        if not game.name:
+        if not sgdb_game.name:
             return "Error: SGDB has no name for that game"
 
         # check if it exists by name
-        existing_game_name = get_game_by_name_or_alias(game.name)  # type: ignore
-        if existing_game_name:
-            return f"Error: Game with name *{game.name}* already exists in the database (id: {existing_game_name.id})"  # type: ignore
+        ex_game = get_game_by_name_or_alias(sgdb_game.name)  # type: ignore
+        if ex_game:
+            return f"Error: Game with name *{sgdb_game.name}* already exists in the database (id: {ex_game.id}, name: {ex_game.name})"  # type: ignore
 
-        game_year = (game.release_date and game.release_date.year) or None
-        new_game = Game.create(name=game.name, sgdb_id=sgdb_id, release_year=game_year)  # type: ignore
+        game_year = (sgdb_game.release_date and sgdb_game.release_date.year) or None
+        new_game = Game.create(name=sgdb_game.name, sgdb_id=sgdb_id, release_year=game_year)  # type: ignore
         out = "✅ Added game by SGDB id!\n"
         out += f"- *{new_game.name}*\n"
         out += f"- Year: {game_year}\n"
