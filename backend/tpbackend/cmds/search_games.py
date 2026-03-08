@@ -1,6 +1,6 @@
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
-from tpbackend.utils import search_games
+from tpbackend.utils import game_name, search_games
 
 
 class SearchGamesCommand(Command):
@@ -30,7 +30,7 @@ Returns: list of game id's and names matching the query
         count = 0
         for game in games:
             count += 1
-            out += f"- **{game.id}** - {game.name}\n"  # type: ignore
+            out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""

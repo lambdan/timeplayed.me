@@ -130,3 +130,15 @@ class TestValidateDate:
     def test_ancient_date_is_invalid(self):
         result = utils.validateDate(datetime.datetime(1969, 1, 19, tzinfo=datetime.UTC))
         assert result != "OK"
+
+
+class TestGameName:
+    def test_no_year(self, make_game):
+        game = make_game(name="wow")
+        game.release_year = None
+        assert utils.game_name(game) == "wow"
+
+    def test_with_year(self, make_game):
+        game = make_game(name="wow")
+        game.release_year = 2004
+        assert utils.game_name(game) == "wow (2004)"
