@@ -21,6 +21,18 @@ class SetGameReleaseYearCommand(AdminCommand):
         game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
         if not game:
             return f"Error: Game with id {game_id} not found."
+        if year is not None:
+            # Check for a different game that already has this name + year combination.
+            conflict = Game.get_or_none(  # type: ignore
+                (Game.name == game.name)  # type: ignore
+                & (Game.release_year == year)  # type: ignore
+                & (Game.id != game.id)  # type: ignore
+            )
+            if conflict:
+                return (
+                    f"Error: A game named '{conflict.name}' with release year {year} "  # type: ignore
+                    f"already exists (id: {conflict.id})."  # type: ignore
+                )
         game.release_year = year
         game.save()
         return f"{game.name} - release year set to: `{game.release_year}`"

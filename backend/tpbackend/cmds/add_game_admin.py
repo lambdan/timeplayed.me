@@ -22,13 +22,16 @@ Returns: Confirmation message with the game ID and name.
         return self.add(name)
 
     def add(self, s: str) -> str:
-        # Block any game that already has this exact name, regardless of release year.
-        # !add_game has no year parameter, so same-named games must use !add_sgdb
-        # (which derives year from SGDB and handles disambiguation automatically).
-        existing = Game.get_or_none(Game.name == s)  # type: ignore
+        # Block if a game with this exact name and no release year already exists.
+        # (A null release_year means it was manually added and not yet disambiguated.)
+        # Games with the same name but a release year set are allowed — those are
+        # versioned entries (e.g. RE4 2005 vs RE4 2023) managed via !add_sgdb.
+        existing = Game.get_or_none(  # type: ignore
+            (Game.name == s) & (Game.release_year.is_null())  # type: ignore
+        )
         if existing:
             return f"Error: Game seems to already exist: '{existing.name}' (id: {existing.id})"  # type: ignore
-        # Use Game.create() directly so we always produce a new row, never silently
-        # return an existing game that matched by alias or case-insensitive name.
+        # Use Game.create() directly so we always produce a new row and never
+        # silently return an existing game matched by alias or case-insensitive name.
         game = Game.create(name=s)  # type: ignore
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
