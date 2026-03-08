@@ -92,7 +92,7 @@ def get_game_by_id(game_id: int) -> Game | None:
         if g and g.id == game_id:
             return g
     except HTTPException as e:
-        logger.error("HTTPException when fetching game for game ID %d", game_id, e)
+        logger.error("HTTPException when fetching game for game ID %d", game_id, exc_info=True)
     return None
 
 
