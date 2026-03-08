@@ -3,7 +3,7 @@ from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.admin_command import AdminCommand
 
 
-class NoActivityGamesAdminComand(AdminCommand):
+class GamesWithoutActivityAdminCommand(AdminCommand):
     def __init__(self):
         names = ["games_without_activity", "gwa"]
         d = "Get list of games that have no activity"

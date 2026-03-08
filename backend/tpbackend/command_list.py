@@ -34,7 +34,7 @@ from tpbackend.cmds.time_manual import TimeManualCommand
 from tpbackend.cmds.missing_sgdb_admin import MissingSGDBAdminCommand
 from tpbackend.cmds.search_sgdb import SearchSGDBCommand
 from tpbackend.cmds.auto_sgdb import AutoSGDBAdminCommand
-from tpbackend.cmds.no_activity_games_admin import NoActivityGamesAdminComand
+from tpbackend.cmds.games_without_activity_admin import GamesWithoutActivityAdminCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -78,7 +78,7 @@ ADMIN_COMMANDS = [
     AddGameAliasCommand(),
     DeleteGameAliasCommand(),
     DeleteGameCommand(),
-    NoActivityGamesAdminComand(),
+    GamesWithoutActivityAdminCommand(),
     # user mgmt
     BlockCommandsCommand(),
     SearchUsersCommand(),
