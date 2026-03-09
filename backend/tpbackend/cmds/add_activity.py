@@ -112,7 +112,7 @@ Returns: Confirmation message
         sesh = result[0]
         if sesh:
             formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
-            msg = f"{activity_name(sesh, as_markdown_link=True)} added\n"
+            msg = f"{activity_name(sesh, as_markdown_link=True)} added ✅\n"
             msg += f"- Game: {game_name(game=sesh.game, as_markdown_link=True)}\n"  # type: ignore
             msg += f"- Duration: {secsToHHMMSS(int(str(sesh.seconds)))}\n"
             msg += f"- Date: {formatted_dt}\n"
