@@ -7,13 +7,11 @@ from tpbackend.operations import (
 )
 from tpbackend.utils import (
     activity_name,
-    activity_url,
     game_name,
     now,
     last_platform_for_game,
     search_games,
     secsToHHMMSS,
-    game_url,
 )
 
 
@@ -113,7 +111,6 @@ Returns: Confirmation message
         )
         sesh = result[0]
         if sesh:
-            id = sesh.id  # type: ignore
             formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
             msg = f"{activity_name(sesh, as_markdown_link=True)} added\n"
             msg += f"- Game: {game_name(game=sesh.game, as_markdown_link=True)}\n"  # type: ignore
