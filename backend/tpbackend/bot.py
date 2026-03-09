@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from tpbackend.storage import storage_v2
 from tpbackend.commands import dm_receive
-from tpbackend.globals import DEBUG, LOGLEVEL
+from tpbackend.globals import DEBUG, DEVELOPERS, LOGLEVEL
 
 logger = logging.getLogger("bot")
 
@@ -41,11 +41,18 @@ async def on_message(message: discord.Message):
         return
 
     # ! in prod
-    # !! while developing
-    if message.content.startswith("!!"):
-        if not DEBUG:
+    # . while developing
+    c = message.content
+    if DEBUG:
+        if str(message.author.id) not in DEVELOPERS:
+            logger.info("Ignoring message from non-developer %s: %s", message.author, c)
             return
-        message.content = message.content[1:]
+        if c.startswith("!"):
+            logger.info("Ignoring ! message: %s", c)
+            return
+    if not DEBUG and c.startswith("."):
+        logger.info("Ignoring . message: %s", c)
+        return
 
     storage_v2.DiscordHistory.create(
         event="received_message",
@@ -67,5 +74,5 @@ async def on_message(message: discord.Message):
         event="reply", user=str(message.author.id), message=str(reply)
     )
     if DEBUG:
-        reply = "[D]" + reply
+        reply = "[D]\n" + reply
     await message.author.send(reply, reference=message)

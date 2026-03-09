@@ -39,17 +39,17 @@ def dm_receive(message: discord.Message) -> str:
     if user.bot_commands_blocked:
         return "You are blocked from using bot commands"
 
-    first_word = content.split(" ")[0].lower()
+    in_cmd = content.split(" ")[0].lower()[1:]
+    body = " ".join(message.content.split(" ")[1:])  # remove command name
     cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
     for c in cmds:
         for n in c.names:
-            if first_word == f"!{n}" and c.can_execute(user, message):
-                msg = message.content.removeprefix(f"!{n}").strip()
+            if in_cmd == n and c.can_execute(user, body):
                 try:
                     logger.info(
-                        "Executing `%s`, user %s, msg: '%s'...", n, user.id, msg
+                        "Executing `%s`, user %s, body: '%s'...", n, user.id, body
                     )
-                    return c.execute(user, msg)
+                    return c.execute(user, body)
                 except Exception as e:
                     logger.exception("Error executing command %s: %s", n, e)
                     return f"Error. Maybe `!help {n}` can... help"
