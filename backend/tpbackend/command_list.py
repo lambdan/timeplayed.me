@@ -35,6 +35,8 @@ from tpbackend.cmds.missing_sgdb_admin import MissingSGDBAdminCommand
 from tpbackend.cmds.search_sgdb import SearchSGDBCommand
 from tpbackend.cmds.auto_sgdb import AutoSGDBAdminCommand
 from tpbackend.cmds.games_without_activity_admin import GamesWithoutActivityAdminCommand
+from tpbackend.cmds.move_game import MoveGameCommand
+from tpbackend.cmds.move_game_admin import MoveGameAdminCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -55,6 +57,7 @@ REGULAR_COMMANDS = [
     AddActivityCommand(),
     SetPlatformCommand(),
     SetGameCommand(),
+    MoveGameCommand(),
     ToggleEmulatedCommand(),
     DeleteActivityCommand(),
     # gets
@@ -83,6 +86,7 @@ ADMIN_COMMANDS = [
     BlockCommandsCommand(),
     SearchUsersCommand(),
     SetGameAdminCommand(),
+    MoveGameAdminCommand(),
     DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
