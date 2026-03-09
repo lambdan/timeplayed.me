@@ -51,7 +51,9 @@ def test_no_confirm_shows_preview_with_year(cmd, make_admin_user, make_game, moc
     game.delete_instance.assert_not_called()
 
 
-def test_no_confirm_shows_preview_without_year(cmd, make_admin_user, make_game, mock_api):
+def test_no_confirm_shows_preview_without_year(
+    cmd, make_admin_user, make_game, mock_api
+):
     game = make_game(id=3, name="NoYear Game")
     game.release_year = None
     mock_api.get_activities.return_value = _mock_activities(total=0)
