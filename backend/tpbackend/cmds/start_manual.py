@@ -63,4 +63,4 @@ Use the stop command when you are done playing to save the activity.
 
         timestamp = tpbackend.utils.now()
         LiveActivity.create(user=user, game=game, platform=platform, started=timestamp)
-        return f"⏱️ Started playing *{game_name(game)}*. Send `!stop` when you are done."
+        return f"⏱️ Started playing *{game_name(game, as_markdown_link=True)}*. Send `!stop` when you are done."
