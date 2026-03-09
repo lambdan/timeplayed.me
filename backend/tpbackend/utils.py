@@ -337,8 +337,6 @@ def activity_url(activity_id) -> str:
 
 
 def game_name(game: Game) -> str:
-    if not game:
-        return ""
     if game.release_year:
         return f"{game.name} ({game.release_year})"
     return str(game.name)
