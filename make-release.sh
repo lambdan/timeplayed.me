@@ -36,13 +36,3 @@ git commit -m "Release: $new_version"
 git tag "$new_version"
 
 echo "OK! Tagged $new_version"
-
-# push it?
-read -p "Do you want to push it? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  git push origin main --tags
-  echo "OK! Pushed to origin main and tags."
-else
-  echo "Not pushing. Remember to push your changes and tags!"
-fi
