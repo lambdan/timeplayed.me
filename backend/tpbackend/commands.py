@@ -29,8 +29,6 @@ def is_admin(user: User) -> bool:
 
 
 def dm_receive(message: discord.Message) -> str:
-    content = utils.normalizeQuotes(message.content.strip())
-
     user = user_from_message(message)
     if user is None:
         logger.error("Could not get internal User for message: %s", message)
@@ -39,8 +37,9 @@ def dm_receive(message: discord.Message) -> str:
     if user.bot_commands_blocked:
         return "You are blocked from using bot commands"
 
-    in_cmd = content.split(" ")[0].lower()[1:]
-    body = " ".join(message.content.split(" ")[1:])  # remove command name
+    content = message.content.strip()  # utils.normalizeQuotes(message.content.strip())
+    in_cmd = content.split(" ")[0].lower()[1:]  # first word (command) without prefix
+    body = " ".join(content.split(" ")[1:])  # remove command
     cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
     for c in cmds:
         for n in c.names:
