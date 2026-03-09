@@ -58,7 +58,7 @@ Returns: Confirmation message
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
-                    msg += f"- **{g.id}** - {g.name}\n"  # type: ignore
+                    msg += f"- **{g.id}** - {game_name(g, as_markdown_link=True)}\n"  # type: ignore
                 msg += "If so, use the game ID (the number) in the command"
                 return msg
             elif len(search_results) == 0:
