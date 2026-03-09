@@ -24,8 +24,8 @@ class SetSGDBIDCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        if game.sgdb_id == sgdb_id:
-            return "Already set!"
+        # if game.sgdb_id == sgdb_id:
+        #    return "Already set!"
 
         # any game that already has this sgdb_id?
         # (special case for 0, multiple games can have sgdb_id 0, its for games that are not in SGDB)

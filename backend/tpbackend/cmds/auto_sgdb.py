@@ -28,8 +28,8 @@ class AutoSGDBAdminCommand(AdminCommand):
 
         best_match = sgdb_games[0]
 
-        if game.sgdb_id == best_match.id:
-            return "Best matching SGDB ID is already set!"
+        # if game.sgdb_id == best_match.id:
+        #    return "Best matching SGDB ID is already set!"
 
         if not confirmed:
             year = (
