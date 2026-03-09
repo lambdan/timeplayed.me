@@ -30,7 +30,7 @@ Returns: list of game id's and names matching the query
         count = 0
         for game in games:
             count += 1
-            out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
+            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)}\n"  # type: ignore
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""

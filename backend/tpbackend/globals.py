@@ -8,6 +8,9 @@ if DEBUG:
     print("⚠️⚠️⚠️ Running in DEBUG mode ⚠️⚠️⚠️")
 
 ADMINS = os.environ.get("ADMINS", "").split(",") if os.environ.get("ADMINS") else []
+DEVELOPERS = (
+    os.environ.get("DEVELOPERS", "").split(",") if os.environ.get("DEVELOPERS") else []
+)
 
 TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
 

@@ -1,6 +1,6 @@
 from tpbackend.storage.storage_v2 import Platform, User, Activity, Game
 from tpbackend.cmds.command import Command
-from tpbackend.utils import game_url, game_name
+from tpbackend.utils import game_name, activity_name
 from tpbackend import utils
 
 
@@ -19,15 +19,12 @@ class GetActivityCommand(Command):
         game = Game.get_or_none(Game.id == activity.game_id)  # type: ignore
         platform = Platform.get_or_none(Platform.id == activity.platform_id)  # type: ignore
         formatted_duration = utils.secsToHHMMSS(activity.seconds)
+        formatted_dt = activity.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
         msg = ""
-        msg += f"## Activity {activity.id}\n"
-        msg += f"- User: *{user.name}*\n"
-        url = game_url(game.id)
-        if url:
-            msg += f"- Game: *[{game_name(game)}]({url})*\n"
-        else:
-            msg += f"- Game: *{game_name(game)}*\n"
+        msg += f"{activity_name(activity, as_markdown_link=True)}\n"
+        msg += f"- User: {user.name}\n"
+        msg += f"- Game: {game_name(game, as_markdown_link=True)}\n"
         msg += f"- Platform: *{platform.name or platform.abbreviation}*\n"
-        msg += f"- Date: {activity.timestamp}\n"
+        msg += f"- Date: {formatted_dt}\n"
         msg += f"- Duration: {formatted_duration}\n"
         return msg.strip()

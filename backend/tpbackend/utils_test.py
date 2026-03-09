@@ -1,9 +1,8 @@
 """Tests for tpbackend.utils."""
 
 import datetime
-
 import pytest
-
+from unittest.mock import patch
 import tpbackend.utils as utils
 
 
@@ -142,3 +141,22 @@ class TestGameName:
         game = make_game(name="wow")
         game.release_year = 2004
         assert utils.game_name(game) == "wow (2004)"
+
+    def test_with_url(self, make_game):
+        game = make_game(name="wow", id=123)
+        game.release_year = 2004
+        with patch("tpbackend.utils.TIMEPLAYED_URL", "http://example.com"):
+            result = utils.game_name(game, as_markdown_link=True)
+        assert result == "[wow (2004)](http://example.com/game/123)"
+
+
+class TestActivityName:
+    def test_basic_name(self, make_activity):
+        activity = make_activity(id=456)
+        assert utils.activity_name(activity) == "Activity 456"
+
+    def test_with_url(self, make_activity):
+        activity = make_activity(id=456)
+        with patch("tpbackend.utils.TIMEPLAYED_URL", "http://example.com"):
+            result = utils.activity_name(activity, as_markdown_link=True)
+        assert result == "[Activity 456](http://example.com/activity/456)"
