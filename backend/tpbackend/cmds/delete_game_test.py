@@ -59,7 +59,6 @@ def test_no_confirm_shows_preview_without_year(cmd, make_admin_user, make_game, 
         mock_game_cls.get_or_none.return_value = game
         result = cmd.execute(make_admin_user(), "3")
     assert "NoYear Game" in result
-    assert "Unknown" in result
     assert "y" in result
     assert "deleted" not in result
     game.delete_instance.assert_not_called()
@@ -86,7 +85,6 @@ def test_confirm_deletes_game_without_year(cmd, make_admin_user, make_game, mock
         mock_game_cls.get_or_none.return_value = game
         result = cmd.execute(make_admin_user(), "5 y")
     assert "Mystery Game" in result
-    assert "Unknown" in result
     assert "deleted" in result
     game.delete_instance.assert_called_once()
 

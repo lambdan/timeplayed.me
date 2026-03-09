@@ -2,6 +2,7 @@ from tpbackend import api
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import User
 from tpbackend.storage.storage_v2 import Game
+from tpbackend.utils import game_name
 
 
 class DeleteGameCommand(AdminCommand):
@@ -23,13 +24,12 @@ class DeleteGameCommand(AdminCommand):
         if activities.total > 0:
             return f"Error: game ({game.name}) has activities"
 
-        year = game.release_year if game.release_year else "Unknown"
+        name = game_name(game)
         if not confirmed:
             return (
-                f"Are you sure you want to delete *{game.name}* ({year})?\n"
+                f"Are you sure you want to delete *{name}*?\n"
                 f"Run the command again with `y` at the end to confirm."
             )
 
-        name = str(game.name)
         game.delete_instance()
-        return f"Game *{name}* ({year}) deleted"
+        return f"Game *{name}* deleted"
