@@ -18,6 +18,12 @@ import pytest
 
 from tpbackend.cmds.move_game_admin import MoveGameAdminCommand
 
+# All patches target tpbackend.cmds.move_game because that is where the shared
+# execute_move_game helper (and its Game/Activity/set_game_actually imports) lives.
+_GAME = "tpbackend.cmds.move_game.Game"
+_ACTIVITY = "tpbackend.cmds.move_game.Activity"
+_SET_GAME = "tpbackend.cmds.move_game.set_game_actually"
+
 
 @pytest.fixture
 def cmd():
@@ -35,7 +41,7 @@ def test_invalid_syntax_too_few_args(cmd, make_admin_user):
 
 
 def test_non_numeric_from_game_id(cmd, make_admin_user):
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls:
+    with patch(_GAME) as mock_game_cls:
         mock_game_cls.get_or_none.side_effect = ValueError
         result = cmd.execute(make_admin_user(), "abc 35")
     assert "Invalid game ID" in result
@@ -44,7 +50,7 @@ def test_non_numeric_from_game_id(cmd, make_admin_user):
 
 def test_non_numeric_to_game_id(cmd, make_admin_user, make_game):
     from_game = make_game(id=4, name="GTA V Legacy")
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls:
+    with patch(_GAME) as mock_game_cls:
         mock_game_cls.get_or_none.side_effect = [from_game, ValueError("")]
         result = cmd.execute(make_admin_user(), "4 xyz")
     assert "Invalid game ID" in result
@@ -57,7 +63,7 @@ def test_non_numeric_to_game_id(cmd, make_admin_user, make_game):
 
 
 def test_from_game_not_found(cmd, make_admin_user):
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls:
+    with patch(_GAME) as mock_game_cls:
         mock_game_cls.get_or_none.return_value = None
         result = cmd.execute(make_admin_user(), "4 35")
     assert "not found" in result
@@ -66,7 +72,7 @@ def test_from_game_not_found(cmd, make_admin_user):
 
 def test_to_game_not_found(cmd, make_admin_user, make_game):
     from_game = make_game(id=4, name="GTA V Legacy")
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls:
+    with patch(_GAME) as mock_game_cls:
         mock_game_cls.get_or_none.side_effect = [from_game, None]
         result = cmd.execute(make_admin_user(), "4 35")
     assert "not found" in result
@@ -82,9 +88,7 @@ def test_no_activities_across_all_users(cmd, make_admin_user, make_game):
     from_game = make_game(id=4, name="GTA V Legacy")
     to_game = make_game(id=35, name="GTA V")
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls:
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls:
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = []
@@ -110,10 +114,8 @@ def test_without_confirmation_shows_preview(
     to_game = make_game(id=35, name="GTA V")
     acts = [make_activity(id=i + 1, user=users[i], game=from_game) for i in range(3)]
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch(
-        "tpbackend.cmds.move_game_admin.set_game_actually"
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
     ) as mock_set_game:
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
@@ -138,10 +140,8 @@ def test_move_single_activity_all_users(
     to_game = make_game(id=35, name="GTA V")
     act = make_activity(id=1, user=other_user, game=from_game)
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch(
-        "tpbackend.cmds.move_game_admin.set_game_actually"
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
     ) as mock_set_game:
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
@@ -165,10 +165,8 @@ def test_move_multiple_activities_all_users(
     to_game = make_game(id=35, name="GTA V")
     acts = [make_activity(id=i + 1, user=users[i], game=from_game) for i in range(3)]
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch(
-        "tpbackend.cmds.move_game_admin.set_game_actually"
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
     ) as mock_set_game:
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
@@ -192,10 +190,8 @@ def test_move_does_not_filter_by_user(
     to_game = make_game(id=35, name="GTA V")
     act = make_activity(id=1, user=make_user(id="someone_else"), game=from_game)
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch(
-        "tpbackend.cmds.move_game_admin.set_game_actually"
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
     ) as mock_set_game:
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
@@ -219,9 +215,9 @@ def test_singular_activity_grammar(cmd, make_admin_user, make_game, make_activit
     to_game = make_game(id=5, name="Game B")
     act = make_activity(id=1, game=from_game)
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch("tpbackend.cmds.move_game_admin.set_game_actually"):
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
+    ):
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = [act]
@@ -237,9 +233,9 @@ def test_plural_activity_grammar(cmd, make_admin_user, make_game, make_activity)
     to_game = make_game(id=5, name="Game B")
     acts = [make_activity(id=i, game=from_game) for i in range(1, 4)]
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch("tpbackend.cmds.move_game_admin.set_game_actually"):
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
+    ):
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = acts
@@ -254,9 +250,9 @@ def test_preview_singular_grammar(cmd, make_admin_user, make_game, make_activity
     to_game = make_game(id=5, name="Game B")
     act = make_activity(id=1, game=from_game)
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch("tpbackend.cmds.move_game_admin.set_game_actually"):
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
+    ):
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = [act]
@@ -273,9 +269,9 @@ def test_preview_plural_grammar(cmd, make_admin_user, make_game, make_activity):
     to_game = make_game(id=5, name="Game B")
     acts = [make_activity(id=i, game=from_game) for i in range(1, 4)]
 
-    with patch("tpbackend.cmds.move_game_admin.Game") as mock_game_cls, patch(
-        "tpbackend.cmds.move_game_admin.Activity"
-    ) as mock_activity_cls, patch("tpbackend.cmds.move_game_admin.set_game_actually"):
+    with patch(_GAME) as mock_game_cls, patch(_ACTIVITY) as mock_activity_cls, patch(
+        _SET_GAME
+    ):
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = acts
