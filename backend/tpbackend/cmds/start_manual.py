@@ -1,7 +1,7 @@
 from tpbackend.storage.storage_v2 import User, LiveActivity, Game
 from tpbackend.cmds.command import Command
 import tpbackend.utils
-from tpbackend.utils import last_platform_for_game, search_games
+from tpbackend.utils import game_name, last_platform_for_game, search_games
 
 
 class StartManualCommand(Command):
@@ -63,4 +63,4 @@ Use the stop command when you are done playing to save the activity.
 
         timestamp = tpbackend.utils.now()
         LiveActivity.create(user=user, game=game, platform=platform, started=timestamp)
-        return f"⏱️ Started playing *{game.name}*. Send `!stop` when you are done."
+        return f"⏱️ Started playing *{game_name(game)}*. Send `!stop` when you are done."
