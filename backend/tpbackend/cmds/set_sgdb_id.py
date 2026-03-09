@@ -67,21 +67,7 @@ class SetSGDBIDCommand(AdminCommand):
                 out += "\n- Replaced name with SGDB name and added old name as alias"
             out += "\n"
 
-        # check year mismatch
-        if (
-            sgdb_game.release_date
-            and game.release_year
-            and sgdb_game.release_date.year != game.release_year
-        ):
-            out += "⚠️ Year mismatch!"
-            out += f"\n- Our year: `{game.release_year}`"
-            out += f"\n- SGDB year: `{sgdb_game.release_date.year}`"
-            out += "\n"
-
-        if game.release_year is None and sgdb_game.release_date is not None:
-            game.release_year = sgdb_game.release_date.year
-            out += "🗓️ Updating release year based on SGDB data\n"
-
+        game.release_year = sgdb_game.release_date and sgdb_game.release_date.year
         game.sgdb_id = sgdb_id
         game.save()
         out += f"OK, SGDB ID updated for *{game.name}*"

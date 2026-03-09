@@ -37,6 +37,7 @@ from tpbackend.cmds.auto_sgdb import AutoSGDBAdminCommand
 from tpbackend.cmds.games_without_activity_admin import GamesWithoutActivityAdminCommand
 from tpbackend.cmds.move_game import MoveGameCommand
 from tpbackend.cmds.move_game_admin import MoveGameAdminCommand
+from tpbackend.cmds.missing_game_release_year_admin import MissingGRYAdminCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -91,6 +92,7 @@ ADMIN_COMMANDS = [
     # misc
     UptimeCommand(),
     MissingSGDBAdminCommand(),
+    MissingGRYAdminCommand(),
 ]
 
 used = set()
