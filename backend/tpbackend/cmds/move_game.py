@@ -22,10 +22,11 @@ Returns: Confirmation message
 
     def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
-        if len(splitted) != 2:
+        if len(splitted) < 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         from_game_id = splitted[0].strip()
         to_game_id = splitted[1].strip()
+        confirmed = len(splitted) >= 3 and splitted[2].strip().lower() == "y"
 
         try:
             from_game = Game.get_or_none(Game.id == int(from_game_id))  # type: ignore
@@ -56,7 +57,16 @@ Returns: Confirmation message
                 f"No activities found for game {from_game.name} (id: {from_game_id})."
             )
 
+        count = len(activities)
+        noun = "activity" if count == 1 else "activities"
+
+        if not confirmed:
+            return (
+                f"This will move {count} {noun} from *{from_game.name}* to *{to_game.name}*.\n"
+                f"Run the command again with `y` at the end to confirm."
+            )
+
         for act in activities:
             set_game_actually(act, to_game)
 
-        return f"Moved {len(activities)} activit{'y' if len(activities) == 1 else 'ies'} from *{from_game.name}* to *{to_game.name}*."
+        return f"Moved {count} {noun} from *{from_game.name}* to *{to_game.name}*."
