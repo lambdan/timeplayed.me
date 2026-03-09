@@ -1,3 +1,7 @@
+# Evolution history:
+# - 4.6.0: DROP INDEX game_name;
+# - 3.4.0: ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
+
 import os
 import logging
 
@@ -52,16 +56,12 @@ class User(BaseModel):
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
     bot_commands_blocked = BooleanField(default=False)
-    # alter table public.user add column pc_platform varchar(255) default 'pc';
-    # update platform set abbreviation = 'win' where abbreviation = 'pc';
-    # update public.user set pc_platform = 'win' where pc_platform = 'pc';
     pc_platform = CharField(default="win")
 
 
 class Game(BaseModel):
     """
     Game (V2)
-    # DROP INDEX game_name;
     """
 
     name = CharField()
@@ -82,10 +82,7 @@ class Activity(BaseModel):
     game = ForeignKeyField(Game, backref="activities")
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
-    emulated = BooleanField(
-        # ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
-        default=False
-    )
+    emulated = BooleanField(default=False)
 
 
 class LiveActivity(BaseModel):
