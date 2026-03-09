@@ -43,6 +43,11 @@ async def on_message(message: discord.Message):
     # ! in prod
     # . while developing
     c = message.content
+
+    if not c.startswith("!") and not c.startswith("."):
+        logger.info("Ignoring non-command message: %s", c)
+        return
+
     if DEBUG:
         if str(message.author.id) not in DEVELOPERS:
             logger.info("Ignoring message from non-developer %s: %s", message.author, c)
