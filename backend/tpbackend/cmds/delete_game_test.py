@@ -46,7 +46,7 @@ def test_no_confirm_shows_preview_with_year(cmd, make_admin_user, make_game, moc
         result = cmd.execute(make_admin_user(), "2")
     assert "Portal" in result
     assert "2007" in result
-    assert "confirm" in result
+    assert "y" in result
     assert "deleted" not in result
     game.delete_instance.assert_not_called()
 
@@ -60,7 +60,7 @@ def test_no_confirm_shows_preview_without_year(cmd, make_admin_user, make_game, 
         result = cmd.execute(make_admin_user(), "3")
     assert "NoYear Game" in result
     assert "Unknown" in result
-    assert "confirm" in result
+    assert "y" in result
     assert "deleted" not in result
     game.delete_instance.assert_not_called()
 
@@ -71,7 +71,7 @@ def test_confirm_deletes_game_with_year(cmd, make_admin_user, make_game, mock_ap
     mock_api.get_activities.return_value = _mock_activities(total=0)
     with patch("tpbackend.cmds.delete_game.Game") as mock_game_cls:
         mock_game_cls.get_or_none.return_value = game
-        result = cmd.execute(make_admin_user(), "4 confirm")
+        result = cmd.execute(make_admin_user(), "4 y")
     assert "Doom" in result
     assert "1993" in result
     assert "deleted" in result
@@ -84,7 +84,7 @@ def test_confirm_deletes_game_without_year(cmd, make_admin_user, make_game, mock
     mock_api.get_activities.return_value = _mock_activities(total=0)
     with patch("tpbackend.cmds.delete_game.Game") as mock_game_cls:
         mock_game_cls.get_or_none.return_value = game
-        result = cmd.execute(make_admin_user(), "5 confirm")
+        result = cmd.execute(make_admin_user(), "5 y")
     assert "Mystery Game" in result
     assert "Unknown" in result
     assert "deleted" in result
@@ -97,6 +97,6 @@ def test_confirm_case_insensitive(cmd, make_admin_user, make_game, mock_api):
     mock_api.get_activities.return_value = _mock_activities(total=0)
     with patch("tpbackend.cmds.delete_game.Game") as mock_game_cls:
         mock_game_cls.get_or_none.return_value = game
-        result = cmd.execute(make_admin_user(), "6 CONFIRM")
+        result = cmd.execute(make_admin_user(), "6 Y")
     assert "deleted" in result
     game.delete_instance.assert_called_once()
