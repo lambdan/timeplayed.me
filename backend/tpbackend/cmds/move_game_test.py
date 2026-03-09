@@ -163,9 +163,7 @@ def test_move_filters_by_user(cmd, make_user, make_game, make_activity):
 
     with patch("tpbackend.cmds.move_game.Game") as mock_game_cls, patch(
         "tpbackend.cmds.move_game.Activity"
-    ) as mock_activity_cls, patch(
-        "tpbackend.cmds.move_game.set_game_actually"
-    ):
+    ) as mock_activity_cls, patch("tpbackend.cmds.move_game.set_game_actually"):
         mock_game_cls.get_or_none.side_effect = [from_game, to_game]
         mock_qs = MagicMock()
         mock_qs.where.return_value = [act]

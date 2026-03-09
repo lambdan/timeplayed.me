@@ -30,14 +30,18 @@ Returns: Confirmation message
         try:
             from_game = Game.get_or_none(Game.id == int(from_game_id))  # type: ignore
         except ValueError:
-            return f"Error: Invalid game ID '{from_game_id}'. Please provide a numeric ID."
+            return (
+                f"Error: Invalid game ID '{from_game_id}'. Please provide a numeric ID."
+            )
         if not from_game:
             return f"Error: Game with id {from_game_id} not found."
 
         try:
             to_game = Game.get_or_none(Game.id == int(to_game_id))  # type: ignore
         except ValueError:
-            return f"Error: Invalid game ID '{to_game_id}'. Please provide a numeric ID."
+            return (
+                f"Error: Invalid game ID '{to_game_id}'. Please provide a numeric ID."
+            )
         if not to_game:
             return f"Error: Game with id {to_game_id} not found."
 
@@ -48,7 +52,9 @@ Returns: Confirmation message
             )
         )
         if not activities:
-            return f"No activities found for game {from_game.name} (id: {from_game_id})."
+            return (
+                f"No activities found for game {from_game.name} (id: {from_game_id})."
+            )
 
         for act in activities:
             set_game_actually(act, to_game)
