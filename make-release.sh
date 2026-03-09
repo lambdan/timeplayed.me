@@ -4,7 +4,7 @@ set -e
 PACKAGE_JSON_PATH="./frontend/package.json"
 
 # check we are on correct branch
-CURRENT_BRANCH=$(git rev-parse --abrev-ref HEAD)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [ "$CURRENT_BRANCH" != "main" ]; then
   echo "You are on branch $CURRENT_BRANCH - you can only release on main!"
   exit 1
