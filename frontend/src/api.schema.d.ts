@@ -498,6 +498,16 @@ export interface components {
              * @description Name of the platform
              */
             name: string | null;
+            /**
+             * Color Primary
+             * @description Primary color for the platform
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Secondary color for the platform
+             */
+            color_secondary: string | null;
         };
         /** PublicUserModel */
         PublicUserModel: {

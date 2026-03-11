@@ -64,6 +64,8 @@ def get_public_user(userId: str) -> PublicUserModel | None:
             id=user.default_platform.id,
             abbreviation=user.default_platform.abbreviation,
             name=user.default_platform.name,
+            color_primary=user.default_platform.color_primary,
+            color_secondary=user.default_platform.color_secondary,
         ),
     )
 
@@ -92,6 +94,8 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
             id=activity.platform.id,
             abbreviation=activity.platform.abbreviation,
             name=activity.platform.name,
+            color_primary=activity.platform.color_primary,
+            color_secondary=activity.platform.color_secondary,
         ),
         seconds=activity.seconds,  # type: ignore
         emulated=activity.emulated,  # type: ignore
@@ -609,6 +613,8 @@ def get_platform(
         id=pf.id,
         abbreviation=pf.abbreviation,
         name=pf.name,
+        color_primary=pf.color_primary,
+        color_secondary=pf.color_secondary,
     )
 
     totals = get_totals(
