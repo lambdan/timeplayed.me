@@ -508,6 +508,11 @@ export interface components {
              * @description Secondary color for the platform
              */
             color_secondary: string | null;
+            /**
+             * Icon
+             * @description Icon name
+             */
+            icon: string | null;
         };
         /** PublicUserModel */
         PublicUserModel: {
