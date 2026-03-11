@@ -2,7 +2,7 @@ import datetime
 import logging
 import re
 
-from tpbackend.globals import TIMEPLAYED_URL, ADMINS
+from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
 from tpbackend.storage.storage_v2 import Game, Activity, Platform, User
 
