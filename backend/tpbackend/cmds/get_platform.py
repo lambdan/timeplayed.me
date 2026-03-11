@@ -1,4 +1,3 @@
-from tpbackend import api
 from tpbackend.storage.storage_v2 import User, Platform
 from tpbackend.cmds.command import Command
 from tpbackend.utils import platform_name
@@ -19,13 +18,15 @@ class GetPlatformCommand(Command):
 
         msg = ""
         msg += f"## {platform_name(platform, as_markdown_link=True)}\n"
-        msg += "```"
-        msg += f"ID: {platform.id}\n"  # type: ignore
-        msg += f"Abbreviation: {platform.abbreviation}\n"
-        msg += f"Name: {platform.name}\n"
-        msg += f"Color primary: {platform.color_primary}\n"
-        msg += f"Color secondary: {platform.color_secondary}\n"
-        msg += f"Icon: {platform.icon}\n"
-        msg += "```"
+        msg += f"- ID: {platform.id}\n"  # type: ignore
+        msg += f"- Abbreviation: {platform.abbreviation}\n"
+        msg += f"- Name: {"not set" if platform.name is None else platform.name}\n"
+
+        if self.is_admin(user):
+            msg += "```"
+            msg += f"Color primary: {platform.color_primary}\n"
+            msg += f"Color secondary: {platform.color_secondary}\n"
+            msg += f"Icon: {platform.icon}\n"
+            msg += "```"
 
         return msg.strip()

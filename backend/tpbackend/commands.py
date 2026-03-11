@@ -1,14 +1,10 @@
-import datetime
 import logging
 import discord
-from tpbackend import operations, utils
-from tpbackend.storage.storage_v2 import LiveActivity, User, Game, Platform, Activity
-from tpbackend.utils import sanitize
+from tpbackend.storage.storage_v2 import User
 
 from tpbackend.command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
 from tpbackend.cmds.help import HelpCommand
 from tpbackend.cmds.help_admin import HelpAdminCommand
-from tpbackend.globals import ADMINS
 
 logger = logging.getLogger("commands")
 
@@ -22,10 +18,6 @@ def user_from_message(message: discord.Message) -> User | None:
             "Added new user %s %s to database", message.author.id, message.author.name
         )
     return user
-
-
-def is_admin(user: User) -> bool:
-    return str(user.id) in ADMINS
 
 
 def dm_receive(message: discord.Message) -> str:
