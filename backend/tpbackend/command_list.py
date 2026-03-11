@@ -38,6 +38,7 @@ from tpbackend.cmds.games_without_activity_admin import GamesWithoutActivityAdmi
 from tpbackend.cmds.move_game import MoveGameCommand
 from tpbackend.cmds.move_game_admin import MoveGameAdminCommand
 from tpbackend.cmds.missing_game_release_year_admin import MissingGRYAdminCommand
+from tpbackend.cmds.set_platform_colors import SetPlatformColorsCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -77,6 +78,7 @@ ADMIN_COMMANDS = [
     # platform mgmt
     AddPlatformCommand(),
     SetPlatformNameCommand(),
+    SetPlatformColorsCommand(),
     DeletePlatformCommand(),
     # gmae mgmt
     AddGameAliasCommand(),
