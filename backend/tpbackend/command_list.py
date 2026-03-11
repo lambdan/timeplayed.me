@@ -39,6 +39,7 @@ from tpbackend.cmds.move_game import MoveGameCommand
 from tpbackend.cmds.move_game_admin import MoveGameAdminCommand
 from tpbackend.cmds.missing_game_release_year_admin import MissingGRYAdminCommand
 from tpbackend.cmds.set_platform_colors import SetPlatformColorsCommand
+from tpbackend.cmds.get_platform import GetPlatformCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -52,6 +53,7 @@ REGULAR_COMMANDS = [
     TimeManualCommand(),
     # platform
     ListPlatformsCommand(),
+    GetPlatformCommand(),
     SetDefaultPlatformCommand(),
     SetPCPlatformCommand(),
     # activity mgmt
