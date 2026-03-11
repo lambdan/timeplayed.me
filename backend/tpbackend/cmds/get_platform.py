@@ -20,7 +20,7 @@ class GetPlatformCommand(Command):
         msg += f"## {platform_name(platform, as_markdown_link=True)}\n"
         msg += f"- ID: {platform.id}\n"  # type: ignore
         msg += f"- Abbreviation: {platform.abbreviation}\n"
-        msg += f"- Name: {"not set" if platform.name is None else platform.name}\n"
+        msg += f"- Name: {'not set' if platform.name is None else platform.name}\n"
 
         if self.is_admin(user):
             msg += "```"
