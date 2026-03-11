@@ -29,6 +29,9 @@ class PublicPlatformModel(BaseModel):
     id: int = Field(description="ID for the platform")
     abbreviation: str = Field(description="Abbreviation for the platform")
     name: str | None = Field(description="Name of the platform")
+    color_primary: str | None = Field(description="Primary color for the platform")
+    color_secondary: str | None = Field(description="Secondary color for the platform")
+    icon: str | None = Field(description="Icon name")
 
 
 class PublicUserModel(BaseModel):

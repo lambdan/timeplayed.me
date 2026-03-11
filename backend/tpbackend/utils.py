@@ -4,7 +4,7 @@ import re
 
 from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
-from tpbackend.storage.storage_v2 import Game, Activity
+from tpbackend.storage.storage_v2 import Game, Activity, Platform, User
 
 logger = logging.getLogger("utils")
 
@@ -336,6 +336,12 @@ def activity_url(activity_id) -> str:
     return f"{TIMEPLAYED_URL}/activity/{activity_id}"
 
 
+def platform_url(platform_id) -> str:
+    if not TIMEPLAYED_URL:
+        return ""
+    return f"{TIMEPLAYED_URL}/platform/{platform_id}"
+
+
 def activity_name(activity: Activity, as_markdown_link=False) -> str:
     id = int(activity.id)  # type: ignore
     name = f"Activity {id}"
@@ -355,6 +361,16 @@ def game_name(game: Game, as_markdown_link=False) -> str:
     name = name.strip()
     if as_markdown_link:
         url = game_url(id)
+        if url:
+            return f"[{name}]({url})"
+    return name
+
+
+def platform_name(platform: Platform, as_markdown_link=False) -> str:
+    id = int(platform.id)  # type: ignore
+    name = str(platform.name or platform.abbreviation).strip()
+    if as_markdown_link:
+        url = platform_url(id)
         if url:
             return f"[{name}]({url})"
     return name
