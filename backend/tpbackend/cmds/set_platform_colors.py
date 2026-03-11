@@ -11,6 +11,9 @@ Usage: `!{names[0]} <platform_id> <primary hex> <secondary hex>`
 
 Use - to skip a color, eg to set secondary color only:
 `!{names[0]} <platform_id> - <secondary hex>`
+
+Use null to remove a color:
+`!{names[0]} <platform_id> null null`
 """
         super().__init__(names=names, description=d, help=h)
 
@@ -20,7 +23,11 @@ Use - to skip a color, eg to set secondary color only:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         platform_id = int(splitted[0].strip())
         primary = splitted[1].strip()
+        if primary == "null":
+            primary = None
         secondary = splitted[2].strip()
+        if secondary == "null":
+            secondary = None
         platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
