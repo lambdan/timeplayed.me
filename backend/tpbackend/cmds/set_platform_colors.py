@@ -22,15 +22,21 @@ Use null to remove a color:
         if len(splitted) < 3:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         platform_id = int(splitted[0].strip())
-        primary = splitted[1].strip()
-        if primary == "null":
-            primary = None
-        secondary = splitted[2].strip()
-        if secondary == "null":
-            secondary = None
         platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
+
+        primary = splitted[1].strip()
+        if primary == "null":
+            primary = None
+        else:
+            primary = primary.lstrip("#")  # remove # if user included it
+        secondary = splitted[2].strip()
+        if secondary == "null":
+            secondary = None
+        else:
+            secondary = secondary.lstrip("#")  # remove # if user included it
+
         old_primary = platform.color_primary
         old_secondary = platform.color_secondary
         if primary != "-":
@@ -38,9 +44,9 @@ Use null to remove a color:
         if secondary != "-":
             platform.color_secondary = secondary
         platform.save()
-        out = f"""```
+
+        return f"""```
 {platform.name or platform.abbreviation}:\n
 primary: {old_primary} --> {platform.color_primary}\n
 secondary: {old_secondary} --> {platform.color_secondary}
         ```"""
-        return out.strip()
