@@ -1,4 +1,7 @@
 # Evolution history:
+# - 4.8.0:
+#   ALTER TABLE public.platform ADD COLUMN color_primary varchar(6);
+#   ALTER TABLE public.platform ADD COLUMN color_secondary varchar(6);
 # - 4.6.0: DROP INDEX game_name;
 # - 3.4.0: ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
 
@@ -17,9 +20,7 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     Model,
-    PostgresqlDatabase,
     TextField,
-    fn,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 
@@ -43,6 +44,8 @@ class Platform(BaseModel):
 
     abbreviation = CharField(unique=True)
     name = CharField(null=True)
+    color_primary = CharField(null=True, column_name="color_primary")
+    color_secondary = CharField(null=True, column_name="color_secondary")
 
 
 class User(BaseModel):
