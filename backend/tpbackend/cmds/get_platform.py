@@ -7,7 +7,7 @@ class GetPlatformCommand(Command):
     def __init__(self):
         names = ["get_platform", "gp"]
         d = "Get platform info"
-        h = "Get a platform by ID\nUsage: `!get_platform <game_id>`"
+        h = "Get a platform by ID\nUsage: `!get_platform <id>`"
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
