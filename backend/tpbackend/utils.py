@@ -186,7 +186,7 @@ def validateTS(ts) -> int | None:
     """
     Validates a timestamp (int > 0).
     Also tries to convert to int if possible.
-    Returns 0 on failure
+    Returns None on failure
     """
     if isinstance(ts, int) and ts > 0:
         return ts
@@ -195,6 +195,10 @@ def validateTS(ts) -> int | None:
     except Exception as _:
         pass
     return None
+
+
+def roundToSecond(ts: int) -> int:
+    return (ts // 1000) * 1000
 
 
 def sanitize(s: str) -> str:

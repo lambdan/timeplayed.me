@@ -17,7 +17,13 @@ from tpbackend.api_models import (
     UserWithStats,
     Totals,
 )
-from tpbackend.utils import clamp, max_int as max, validateTS, tsFromActivity
+from tpbackend.utils import (
+    clamp,
+    max_int as max,
+    roundToSecond,
+    validateTS,
+    tsFromActivity,
+)
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
@@ -33,47 +39,46 @@ def not_found(msg: str):
     raise HTTPException(status_code=404, detail=msg)
 
 
-def fixDatetime(data):
-    """
-    Recursively converts datetime objects in a dictionary to milliseconds since epoch
-    """
-    if isinstance(data, datetime.datetime):
-        if data.tzinfo is None:
-            data = data.replace(tzinfo=datetime.timezone.utc)
-        return int(data.timestamp() * 1000)
+# def fixDatetime(data):
+#    """
+#    Recursively converts datetime objects in a dictionary to milliseconds since epoch
+#    """
+#    if isinstance(data, datetime.datetime):
+#        if data.tzinfo is None:
+#            data = data.replace(tzinfo=datetime.timezone.utc)
+#        return int(data.timestamp() * 1000)
+#
+#    if not isinstance(data, (dict, list)):
+#        return data
+#
+#    if isinstance(data, dict):
+#        return {k: fixDatetime(v) for k, v in data.items()}
+#
+#    if isinstance(data, list):
+#        return [fixDatetime(item) for item in data]
 
-    if not isinstance(data, (dict, list)):
-        return data
 
-    if isinstance(data, dict):
-        return {k: fixDatetime(v) for k, v in data.items()}
-
-    if isinstance(data, list):
-        return [fixDatetime(item) for item in data]
+def get_public_user_by_id(userId: int) -> PublicUserModel | None:
+    user = User.get_or_none(User.id == userId)
+    if not user:
+        return None
+    return get_public_user(user)
 
 
-def get_public_user(userId: int) -> PublicUserModel | None:
-    key = f"get_public_user:{userId}"
+def get_public_user(user: User) -> PublicUserModel:
+    key = f"get_public_user:{user.id}"
     cached = cache_get(key)
     if cached:
         decoded = cached.decode("utf-8")  # type: ignore
-        if decoded == "null":
-            return None
         return PublicUserModel.model_validate_json(decoded)
-
-    user = User.get_or_none(User.id == userId)
-    if not user:
-        # hmm, this is probably not worth it...
-        cache_set(key, "null")
-        return None
 
     avatar_url = None
     if user.discord_id:
-        avatar_url = get_discord_avatar_url(user.discord_id)
+        avatar_url = get_discord_avatar_url(str(user.discord_id))
     r = PublicUserModel(
-        id=user.id,
-        discord_id=user.discord_id,
-        name=user.name,
+        id=int(user.id),  # type: ignore
+        discord_id=str(user.discord_id),
+        name=str(user.name),
         avatar_url=avatar_url,
         default_platform=PublicPlatformModel(
             id=user.default_platform.id,
@@ -88,25 +93,21 @@ def get_public_user(userId: int) -> PublicUserModel | None:
     return r
 
 
-def get_public_activity(activityId: int) -> PublicActivityModel | None:
-    key = f"get_public_activity:{activityId}"
+def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
+    activity = Activity.get_or_none(Activity.id == activityId)  # type: ignore
+    if not activity:
+        return None
+    return get_public_activity(activity)
+
+
+def get_public_activity(activity: Activity) -> PublicActivityModel:
+    key = f"get_public_activity:{activity.id}"
     cached = cache_get(key)
     if cached:
         decoded = cached.decode("utf-8")  # type: ignore
-        if decoded == "null" or decoded == "user_null":
-            return None
-        return PublicActivityModel.model_validate_json(cached.decode("utf-8"))  # type: ignore
+        return PublicActivityModel.model_validate_json(decoded)
 
-    activity = Activity.get_or_none(Activity.id == activityId)  # type: ignore
-    if not activity:
-        cache_set(key, "null")
-        return None
-
-    user = get_public_user(activity.user.id)
-    if not user:
-        cache_set(key, "user_null")
-        return None
-
+    user = get_public_user(activity.user)  # type: ignore
     r = PublicActivityModel(
         id=activity.id,  # type: ignore
         timestamp=tsFromActivity(activity),
@@ -218,7 +219,7 @@ def get_user(
     gameId: int | None = None,
     platformId: int | None = None,
 ) -> UserWithStats:
-    user = get_public_user(userId)
+    user = get_public_user_by_id(userId)
     if not user or not user_has_activities(userId):
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -264,6 +265,10 @@ def get_activities(
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
+    if before:
+        before = roundToSecond(before)
+    if after:
+        after = roundToSecond(after)
     key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
     cached = cache_get(key)
     if cached:
@@ -306,9 +311,7 @@ def get_activities(
 
     data = []
     for a in query:
-        aa = get_public_activity(a)
-        if aa:
-            data.append(aa)
+        data.append(get_public_activity(a))
 
     r = PaginatedActivities(
         data=data,
@@ -392,7 +395,7 @@ def get_oldest_activity(
     response_model=PublicActivityModel,
 )
 def get_activity(activity_id: int) -> PublicActivityModel:
-    activity = get_public_activity(activity_id)
+    activity = get_public_activity_by_id(activity_id)
     if not activity:
         return not_found("Activity not found")
     return activity
