@@ -1,11 +1,3 @@
-# Evolution history:
-# - 4.8.0:
-#   ALTER TABLE public.platform ADD COLUMN color_primary varchar(6);
-#   ALTER TABLE public.platform ADD COLUMN color_secondary varchar(6);
-#   ALTER TABLE public.platform ADD COLUMN icon varchar(50);
-# - 4.6.0: DROP INDEX game_name;
-# - 3.4.0: ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
-
 import os
 import logging
 

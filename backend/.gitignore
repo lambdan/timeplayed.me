@@ -129,6 +129,5 @@ cython_debug/
 .pypirc
 .vscode/
 .DS_Store
-*.sql
 
 psql_volume/
