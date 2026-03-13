@@ -1,5 +1,4 @@
 import datetime
-import os
 from typing import Literal
 from fastapi import FastAPI, HTTPException
 from peewee import fn
@@ -34,6 +33,209 @@ import logging
 logger = logging.getLogger("api")
 
 app = FastAPI()
+
+# This file is a mess because of circular imports hell
+
+################ HELPERS ##################
+
+
+def get_discord_avatar_url(discord_user_id: str | int) -> str:
+    discord_user_id = int(discord_user_id)
+    cache_key = f"2_discord_avatar_{discord_user_id}"
+    cached = cache_get(cache_key)
+    if cached:
+        return cached.decode("utf-8")  # type: ignore
+    url = bot.avatar_from_discord_user_id(discord_user_id)
+    cache_set(cache_key, url, ex=3600)
+    return url
+
+
+def get_total_playtime(
+    userId: int | None = None,
+    gameId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> int:
+    query = Activity.select(Activity.seconds)
+    conditions = []
+    if userId:
+        conditions.append(Activity.user == userId)
+    if gameId:
+        conditions.append(Activity.game == gameId)
+    if platformId:
+        conditions.append(Activity.platform == platformId)
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    if len(conditions) > 0:
+        query = query.where(*conditions)
+    total = query.select(fn.SUM(Activity.seconds)).scalar() or 0
+    return total
+
+
+def get_activity_count(
+    userId: int | None = None,
+    gameId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> int:
+    conditions = []
+    if userId:
+        conditions.append(Activity.user == userId)
+    if gameId:
+        conditions.append(Activity.game == gameId)
+    if platformId:
+        conditions.append(Activity.platform == platformId)
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    if len(conditions) > 0:
+        return Activity.select().where(*conditions).count()
+    return Activity.select().count()
+
+
+def get_user_count(
+    before: int | None = None,
+    after: int | None = None,
+    gameId: int | None = None,
+    platformId: int | None = None,
+) -> int:
+    # total = 0
+    # for user in User.select():
+    #     if get_activity_count(userId=user.id, before=before, after=after, gameId=gameId, platformId=platformId) > 0:
+    #         total += 1
+    # return total
+    conditions = []
+    if gameId:
+        conditions.append(Activity.game == gameId)
+    if platformId:
+        conditions.append(Activity.platform == platformId)
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    if len(conditions) > 0:
+        return Activity.select(Activity.user).where(*conditions).distinct().count()
+    return Activity.select(Activity.user).distinct().count()
+
+
+def get_game_count(
+    userId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> int:
+    # iterating over Activity to only get games with activity
+    conditions = []
+    if userId:
+        conditions.append(Activity.user == userId)
+
+    if platformId:
+        conditions.append(Activity.platform == platformId)
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    if len(conditions) > 0:
+        return Activity.select(Activity.game).where(*conditions).distinct().count()
+    return Activity.select(Activity.game).distinct().count()
+
+
+def get_platform_count(
+    userId: int | None = None,
+    gameId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> int:
+    conditions = []
+    if userId:
+        conditions.append(Activity.user == userId)
+    if gameId:
+        conditions.append(Activity.game == gameId)
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    if len(conditions) > 0:
+        return Activity.select(Activity.platform).where(*conditions).distinct().count()
+    return Activity.select(Activity.platform).distinct().count()
+
+
+def get_player_count(
+    gameId: int, before: int | None = None, after: int | None = None
+) -> int:
+    conditions = [Activity.game == gameId]
+
+    before_valid, after_valid = validateTS(before), validateTS(after)
+    if before_valid:
+        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_valid:
+        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    return Activity.select(Activity.user).where(*conditions).distinct().count()
+
+
+def get_oldest_or_newest_activity(
+    oldest: bool,
+    userid: int | None = None,
+    gameid: int | None = None,
+    platformid: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> PublicActivityModel | None:
+    order = "asc" if oldest else "desc"
+    activities = get_activities(
+        offset=0,
+        limit=1,
+        order=order,
+        user=userid,
+        game=gameid,
+        platform=platformid,
+        before=before,
+        after=after,
+    )
+    if len(activities.data) == 0:
+        return None
+    return activities.data[0]
+
+
+def user_has_activities(userId: int) -> bool:
+    """
+    Returns True if user has any activities
+    """
+    any_activity = Activity.select().where(Activity.user == userId).first()
+    return any_activity is not None
 
 
 def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
@@ -157,17 +359,11 @@ def get_public_activity(activity: Activity) -> PublicActivityModel:
     return r
 
 
+######################## API ENDPOINTS ############################
+
 ####################
 # Users
 ####################
-
-
-def user_has_activities(userId: int) -> bool:
-    """
-    Returns True if user has any activities
-    """
-    any_activity = Activity.select().where(Activity.user == userId).first()
-    return any_activity is not None
 
 
 @app.get("/api/users", tags=["users"], response_model=PaginatedUserWithStats)
@@ -242,7 +438,7 @@ def get_user(
 ) -> UserWithStats:
     user = get_public_user_by_id(userId)
     if not user or not user_has_activities(userId):
-        raise HTTPException(status_code=404, detail="User not found")
+        return not_found("User not found")
 
     totals = get_totals(
         userId=userId,
@@ -343,30 +539,6 @@ def get_activities(
 
     cache_set(key, r.model_dump_json(), ex=15)
     return r
-
-
-def get_oldest_or_newest_activity(
-    oldest: bool,
-    userid: int | None = None,
-    gameid: int | None = None,
-    platformid: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> PublicActivityModel | None:
-    order = "asc" if oldest else "desc"
-    activities = get_activities(
-        offset=0,
-        limit=1,
-        order=order,
-        user=userid,
-        game=gameid,
-        platform=platformid,
-        before=before,
-        after=after,
-    )
-    if len(activities.data) == 0:
-        return None
-    return activities.data[0]
 
 
 @app.get(
@@ -542,22 +714,6 @@ def get_game(
     return r
 
 
-def get_player_count(
-    gameId: int, before: int | None = None, after: int | None = None
-) -> int:
-    conditions = [Activity.game == gameId]
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    return Activity.select(Activity.user).where(*conditions).distinct().count()
-
-
 ##############
 # Platforms
 ##############
@@ -714,146 +870,6 @@ def get_totals(
     )
 
 
-def get_total_playtime(
-    userId: int | None = None,
-    gameId: int | None = None,
-    platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> int:
-    query = Activity.select(Activity.seconds)
-    conditions = []
-    if userId:
-        conditions.append(Activity.user == userId)
-    if gameId:
-        conditions.append(Activity.game == gameId)
-    if platformId:
-        conditions.append(Activity.platform == platformId)
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    if len(conditions) > 0:
-        query = query.where(*conditions)
-    total = query.select(fn.SUM(Activity.seconds)).scalar() or 0
-    return total
-
-
-def get_activity_count(
-    userId: int | None = None,
-    gameId: int | None = None,
-    platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> int:
-    conditions = []
-    if userId:
-        conditions.append(Activity.user == userId)
-    if gameId:
-        conditions.append(Activity.game == gameId)
-    if platformId:
-        conditions.append(Activity.platform == platformId)
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    if len(conditions) > 0:
-        return Activity.select().where(*conditions).count()
-    return Activity.select().count()
-
-
-def get_user_count(
-    before: int | None = None,
-    after: int | None = None,
-    gameId: int | None = None,
-    platformId: int | None = None,
-) -> int:
-    # total = 0
-    # for user in User.select():
-    #     if get_activity_count(userId=user.id, before=before, after=after, gameId=gameId, platformId=platformId) > 0:
-    #         total += 1
-    # return total
-    conditions = []
-    if gameId:
-        conditions.append(Activity.game == gameId)
-    if platformId:
-        conditions.append(Activity.platform == platformId)
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    if len(conditions) > 0:
-        return Activity.select(Activity.user).where(*conditions).distinct().count()
-    return Activity.select(Activity.user).distinct().count()
-
-
-def get_game_count(
-    userId: int | None = None,
-    platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> int:
-    # iterating over Activity to only get games with activity
-    conditions = []
-    if userId:
-        conditions.append(Activity.user == userId)
-
-    if platformId:
-        conditions.append(Activity.platform == platformId)
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    if len(conditions) > 0:
-        return Activity.select(Activity.game).where(*conditions).distinct().count()
-    return Activity.select(Activity.game).distinct().count()
-
-
-def get_platform_count(
-    userId: int | None = None,
-    gameId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> int:
-    conditions = []
-    if userId:
-        conditions.append(Activity.user == userId)
-    if gameId:
-        conditions.append(Activity.game == gameId)
-
-    before_valid, after_valid = validateTS(before), validateTS(after)
-    if before_valid:
-        before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_valid:
-        after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    if len(conditions) > 0:
-        return Activity.select(Activity.platform).where(*conditions).distinct().count()
-    return Activity.select(Activity.platform).distinct().count()
-
-
 ##############
 # For chart.js
 ##############
@@ -954,19 +970,3 @@ def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
 )
 def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
     return steamgriddb.get_best_grid(sgdb_game_id)
-
-
-###############
-# Discord
-###############
-
-
-def get_discord_avatar_url(discord_user_id: str | int) -> str:
-    discord_user_id = int(discord_user_id)
-    cache_key = f"2_discord_avatar_{discord_user_id}"
-    cached = cache_get(cache_key)
-    if cached:
-        return cached.decode("utf-8")  # type: ignore
-    url = bot.avatar_from_discord_user_id(discord_user_id)
-    cache_set(cache_key, url, ex=3600)
-    return url
