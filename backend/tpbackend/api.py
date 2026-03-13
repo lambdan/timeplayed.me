@@ -58,6 +58,44 @@ def not_found(msg: str):
 #        return [fixDatetime(item) for item in data]
 
 
+def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
+    pf = Platform.get_or_none(Platform.id == platformId)  # type: ignore
+    if not pf:
+        return None
+    return get_public_platform(pf)
+
+
+def get_public_platform(platform: Platform) -> PublicPlatformModel:
+    key = f"get_public_platform:{platform.id}"
+    cached = cache_get(key)
+    if cached:
+        decoded = cached.decode("utf-8")  # type: ignore
+        return PublicPlatformModel.model_validate_json(decoded)
+
+    name = None
+    color_primary = None
+    color_secondary = None
+    icon = None
+    if platform.name:
+        name = str(platform.name)
+    if platform.color_primary:
+        color_primary = str(platform.color_primary)
+    if platform.color_secondary:
+        color_secondary = str(platform.color_secondary)
+    if platform.icon:
+        icon = str(platform.icon)
+    r = PublicPlatformModel(
+        id=platform.id,  # type: ignore
+        abbreviation=str(platform.abbreviation),
+        name=name,
+        color_primary=color_primary,
+        color_secondary=color_secondary,
+        icon=icon,
+    )
+    cache_set(key, r.model_dump_json())
+    return r
+
+
 def get_public_user_by_id(userId: int) -> PublicUserModel | None:
     user = User.get_or_none(User.id == userId)
     if not user:
@@ -80,14 +118,7 @@ def get_public_user(user: User) -> PublicUserModel:
         discord_id=str(user.discord_id),
         name=str(user.name),
         avatar_url=avatar_url,
-        default_platform=PublicPlatformModel(
-            id=user.default_platform.id,
-            abbreviation=user.default_platform.abbreviation,
-            name=user.default_platform.name,
-            color_primary=user.default_platform.color_primary,
-            color_secondary=user.default_platform.color_secondary,
-            icon=user.default_platform.icon,
-        ),
+        default_platform=get_public_platform(user.default_platform),  # type: ignore
     )
     cache_set(key, r.model_dump_json())
     return r
@@ -121,14 +152,7 @@ def get_public_activity(activity: Activity) -> PublicActivityModel:
             aliases=activity.game.aliases,
             release_year=activity.game.release_year,
         ),
-        platform=PublicPlatformModel(
-            id=activity.platform.id,
-            abbreviation=activity.platform.abbreviation,
-            name=activity.platform.name,
-            color_primary=activity.platform.color_primary,
-            color_secondary=activity.platform.color_secondary,
-            icon=activity.platform.icon,
-        ),
+        platform=get_public_platform(activity.platform),  # type: ignore
         seconds=activity.seconds,  # type: ignore
         emulated=activity.emulated,  # type: ignore
     )
@@ -261,7 +285,6 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
 ) -> PaginatedActivities:
-
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
@@ -632,18 +655,9 @@ def get_platform(
     after: int | None = None,
     gameId: int | None = None,
 ) -> PlatformWithStats:
-    pf = Platform.get_or_none(Platform.id == platformId)  # type: ignore
-    if not pf:
-        raise HTTPException(status_code=404, detail="Platform not found")
-
-    platformModel = PublicPlatformModel(
-        id=pf.id,
-        abbreviation=pf.abbreviation,
-        name=pf.name,
-        color_primary=pf.color_primary,
-        color_secondary=pf.color_secondary,
-        icon=pf.icon,
-    )
+    platformModel = get_public_platform_by_id(platformId)
+    if not platformModel:
+        return not_found("Platform not found")
 
     totals = get_totals(
         userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
