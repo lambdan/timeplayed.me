@@ -12,7 +12,9 @@ logger = logging.getLogger("commands")
 def user_from_message(message: discord.Message) -> User | None:
     if message.author is None:
         return None
-    user, created = User.get_or_create(id=message.author.id, name=message.author.name)
+    user, created = User.get_or_create(
+        discord_id=message.author.id, name=message.author.name
+    )
     if created:
         logger.info(
             "Added new user %s %s to database", message.author.id, message.author.name

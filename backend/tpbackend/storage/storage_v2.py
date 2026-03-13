@@ -14,6 +14,7 @@ from peewee import (
     IntegerField,
     Model,
     TextField,
+    AutoField,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 
@@ -35,6 +36,7 @@ class Platform(BaseModel):
     Platform (V2)
     """
 
+    id = AutoField()
     abbreviation = CharField(unique=True)
     name = CharField(null=True)
     color_primary = CharField(null=True, column_name="color_primary")
@@ -47,7 +49,8 @@ class User(BaseModel):
     User (V2)
     """
 
-    id = CharField(primary_key=True)
+    id = AutoField()
+    discord_id = CharField(unique=True, null=True)
     name = CharField()
     default_platform = ForeignKeyField(
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
@@ -61,6 +64,7 @@ class Game(BaseModel):
     Game (V2)
     """
 
+    id = AutoField()
     name = CharField()
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
@@ -74,8 +78,9 @@ class Activity(BaseModel):
     Activity (V2)
     """
 
+    id = AutoField()
     timestamp = DateTimeField()
-    user = ForeignKeyField(User, backref="activities")
+    user = ForeignKeyField(User, backref="activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="activities")
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
@@ -83,13 +88,15 @@ class Activity(BaseModel):
 
 
 class LiveActivity(BaseModel):
-    user = ForeignKeyField(User, backref="live_activities")
+    id = AutoField()
+    user = ForeignKeyField(User, backref="live_activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="live_activities")
     platform = ForeignKeyField(Platform, backref="live_activities")
     started = DateTimeField()
 
 
 class DiscordHistory(BaseModel):
+    id = AutoField()
     timestamp = DateTimeField(default=lambda: utils.now())
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
@@ -100,4 +107,4 @@ def connect_db():
     if db.connect():
         logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
-        reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory])
+        reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])

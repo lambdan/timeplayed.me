@@ -44,10 +44,15 @@ def parseActivity(activity: PassedActivity) -> bool:
             return True
 
         user, created = User.get_or_create(
-            id=activity["user_id"], name=activity["user_name"]
+            discord_id=activity["user_id"], name=activity["user_name"]
         )
         if created:
-            logger.info("Added new user %s to database", user.name)
+            logger.info(
+                "Added new user '%s' (id: %s, discord id: %s) to database",
+                user.name,
+                user.id,
+                user.discord_id,
+            )
 
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()
