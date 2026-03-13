@@ -31,8 +31,8 @@ class PassedActivity(TypedDict):
     game_name: str
     duration: int
     dt: datetime.datetime
-    user_name: str
-    user_id: int
+    discord_user_name: str
+    discord_user_id: str
     platform: str
 
 
@@ -44,7 +44,7 @@ def parseActivity(activity: PassedActivity) -> bool:
             return True
 
         user, created = User.get_or_create(
-            discord_id=activity["user_id"], name=activity["user_name"]
+            discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
         )
         if created:
             logger.info(
@@ -98,8 +98,8 @@ async def start():
             success = parseActivity(
                 {
                     "dt": o.timestamp,
-                    "user_name": o.user.name,
-                    "user_id": o.user.id,
+                    "discord_user_name": o.user.name,
+                    "discord_user_id": o.user.id,
                     "game_name": o.game.name,
                     "duration": o.seconds,
                     "platform": o.platform,
