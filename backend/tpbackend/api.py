@@ -96,6 +96,33 @@ def get_public_platform(platform: Platform) -> PublicPlatformModel:
     return r
 
 
+def get_public_game_by_id(gameId: int) -> PublicGameModel | None:
+    g = Game.get_or_none(Game.id == gameId)  # type: ignore
+    if not g:
+        return None
+    return get_public_game(g)
+
+
+def get_public_game(game: Game) -> PublicGameModel:
+    key = f"get_public_game:{game.id}"
+    cached = cache_get(key)
+    if cached:
+        decoded = cached.decode("utf-8")  # type: ignore
+        return PublicGameModel.model_validate_json(decoded)
+
+    r = PublicGameModel(
+        id=game.id,  # type: ignore
+        name=game.name,  # type: ignore
+        steam_id=game.steam_id,  # type: ignore
+        sgdb_id=game.sgdb_id,  # type: ignore
+        image_url=game.image_url,  # type: ignore
+        aliases=game.aliases,  # type: ignore
+        release_year=game.release_year,  # type: ignore
+    )
+    cache_set(key, r.model_dump_json())
+    return r
+
+
 def get_public_user_by_id(userId: int) -> PublicUserModel | None:
     user = User.get_or_none(User.id == userId)
     if not user:
@@ -143,15 +170,7 @@ def get_public_activity(activity: Activity) -> PublicActivityModel:
         id=activity.id,  # type: ignore
         timestamp=tsFromActivity(activity),
         user=user,
-        game=PublicGameModel(
-            id=activity.game.id,
-            name=activity.game.name,
-            steam_id=activity.game.steam_id,
-            sgdb_id=activity.game.sgdb_id,
-            image_url=activity.game.image_url,
-            aliases=activity.game.aliases,
-            release_year=activity.game.release_year,
-        ),
+        game=get_public_game(activity.game),  # type: ignore
         platform=get_public_platform(activity.platform),  # type: ignore
         seconds=activity.seconds,  # type: ignore
         emulated=activity.emulated,  # type: ignore
@@ -498,34 +517,14 @@ def get_game(
 ) -> GameWithStats:
     game = Game.get_or_none(Game.id == gameId)  # type: ignore
     if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
+        return not_found("Game not found")
 
-    def redisGet(key: str) -> GameWithStats | None:
-        raw = cache_get(key)
-        if raw:
-            try:
-                decoded = raw.decode("utf-8")  # type: ignore
-                parsed = GameWithStats.model_validate_json(decoded)
-                # logger.info("✅ Hit cache %s", key)
-                return parsed
-            except Exception as _:
-                logger.warning("Exception when parsing redis cache on key %s", key)
-        return None
-
-    cache_key = f"game_with_stats:{gameId}:{userId}:{before}:{after}:{platformId}"
-    cached = redisGet(cache_key)
+    key = f"game_with_stats:{gameId}:{userId}:{before}:{after}:{platformId}"
+    cached = cache_get(key)
     if cached:
-        return cached
+        return GameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    gameModel = PublicGameModel(
-        id=game.id,
-        name=game.name,
-        steam_id=game.steam_id,
-        sgdb_id=game.sgdb_id,
-        image_url=game.image_url,
-        aliases=game.aliases,
-        release_year=game.release_year,
-    )
+    gameModel = get_public_game(game)
 
     totals = get_totals(
         userId=userId, gameId=game.id, before=before, after=after, platformId=platformId
@@ -561,7 +560,7 @@ def get_game(
         ),
     )
 
-    cache_set(cache_key, r.model_dump_json())
+    cache_set(key, r.model_dump_json())
     return r
 
 
