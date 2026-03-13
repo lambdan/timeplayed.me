@@ -518,9 +518,14 @@ export interface components {
         PublicUserModel: {
             /**
              * Id
-             * @description Discord ID for the user
+             * @description ID of the user
              */
-            id: string;
+            id: number;
+            /**
+             * Discord Id
+             * @description Discord ID of the user
+             */
+            discord_id: string | null;
             /**
              * Name
              * @description Name of the user
@@ -676,7 +681,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: string;
+                userId: number;
             };
             cookie?: never;
         };
@@ -708,7 +713,7 @@ export interface operations {
                 offset?: unknown;
                 limit?: unknown;
                 order?: "desc" | "asc";
-                user?: string | null;
+                user?: number | null;
                 game?: number | null;
                 platform?: number | null;
                 before?: number | null;
@@ -743,7 +748,7 @@ export interface operations {
     get_newest_activity_api_activity_newest_get: {
         parameters: {
             query?: {
-                userid?: string | null;
+                userid?: number | null;
                 gameid?: number | null;
                 platformid?: number | null;
                 before?: number | null;
@@ -778,7 +783,7 @@ export interface operations {
     get_oldest_activity_api_activity_oldest_get: {
         parameters: {
             query?: {
-                userid?: string | null;
+                userid?: number | null;
                 gameid?: number | null;
                 platformid?: number | null;
                 before?: number | null;
@@ -846,7 +851,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: string | null;
+                userId?: number | null;
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -880,7 +885,7 @@ export interface operations {
     get_game_api_game__gameId__get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 before?: number | null;
                 after?: number | null;
                 platformId?: number | null;
@@ -918,7 +923,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: string | null;
+                userId?: number | null;
                 gameId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -952,7 +957,7 @@ export interface operations {
     get_platform_api_platform__platformId__get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 before?: number | null;
                 after?: number | null;
                 gameId?: number | null;
@@ -988,7 +993,7 @@ export interface operations {
     get_totals_api_totals_get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 gameId?: number | null;
                 platformId?: number | null;
                 before?: number | null;

@@ -18,7 +18,7 @@ from tpbackend.api_models import (
     UserWithStats,
     Totals,
 )
-from tpbackend.utils import clamp, max_int as max, today, validateTS, tsFromActivity
+from tpbackend.utils import clamp, max_int as max, validateTS, tsFromActivity
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
@@ -53,12 +53,13 @@ def fixDatetime(data):
         return [fixDatetime(item) for item in data]
 
 
-def get_public_user(userId: str) -> PublicUserModel | None:
+def get_public_user(userId: int) -> PublicUserModel | None:
     user = User.get_or_none(User.id == userId)
     if not user:
         return None
     return PublicUserModel(
-        id=str(user.id),
+        id=user.id,
+        discord_id=user.discord_id,
         name=user.name,
         default_platform=PublicPlatformModel(
             id=user.default_platform.id,
@@ -109,7 +110,7 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
 ####################
 
 
-def user_has_activities(userId: str) -> bool:
+def user_has_activities(userId: int) -> bool:
     """
     Returns True if user has any activities
     """
@@ -157,7 +158,7 @@ def get_users(
 
     data = []
     for a in activities:
-        userId = str(a.user.id)
+        userId = a.user.id
         try:
             data.append(
                 get_user(
@@ -181,7 +182,7 @@ def get_users(
 
 @app.get("/api/user/{userId}", tags=["users"], response_model=UserWithStats)
 def get_user(
-    userId: str,
+    userId: int,
     before: int | None = None,
     after: int | None = None,
     gameId: int | None = None,
@@ -223,7 +224,7 @@ def get_activities(
     offset=0,
     limit=25,
     order: Literal["desc", "asc"] = "desc",
-    user: str | None = None,
+    user: int | None = None,
     game: int | None = None,
     platform: int | None = None,
     before: int | None = None,
@@ -299,7 +300,7 @@ def get_activities(
 
 def get_oldest_or_newest_activity(
     oldest: bool,
-    userid: str | None = None,
+    userid: int | None = None,
     gameid: int | None = None,
     platformid: int | None = None,
     before: int | None = None,
@@ -325,7 +326,7 @@ def get_oldest_or_newest_activity(
     "/api/activity/newest", tags=["activities"], response_model=PublicActivityModel
 )
 def get_newest_activity(
-    userid: str | None = None,
+    userid: int | None = None,
     gameid: int | None = None,
     platformid: int | None = None,
     before: int | None = None,
@@ -345,7 +346,7 @@ def get_newest_activity(
     "/api/activity/oldest", tags=["activities"], response_model=PublicActivityModel
 )
 def get_oldest_activity(
-    userid: str | None = None,
+    userid: int | None = None,
     gameid: int | None = None,
     platformid: int | None = None,
     before: int | None = None,
@@ -382,7 +383,7 @@ def get_activity(activity_id: int) -> PublicActivityModel:
 def get_games(
     offset=0,
     limit=25,
-    userId: str | None = None,
+    userId: int | None = None,
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
@@ -440,7 +441,7 @@ def get_games(
 @app.get("/api/game/{gameId}", tags=["games"], response_model=GameWithStats)
 def get_game(
     gameId: int,
-    userId: str | None = None,
+    userId: int | None = None,
     before: int | None = None,
     after: int | None = None,
     platformId: int | None = None,
@@ -544,7 +545,7 @@ def get_player_count(
 def get_platforms(
     offset=0,
     limit=25,
-    userId: str | None = None,
+    userId: int | None = None,
     gameId: int | None = None,
     before: int | None = None,
     after: int | None = None,
@@ -602,7 +603,7 @@ def get_platforms(
 )
 def get_platform(
     platformId: int,
-    userId: str | None = None,
+    userId: int | None = None,
     before: int | None = None,
     after: int | None = None,
     gameId: int | None = None,
@@ -664,7 +665,7 @@ def get_platform(
 
 @app.get("/api/totals", tags=["totals"], response_model=Totals)
 def get_totals(
-    userId: str | None = None,
+    userId: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
     before: int | None = None,
@@ -699,7 +700,7 @@ def get_totals(
 
 
 def get_total_playtime(
-    userId: str | None = None,
+    userId: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
     before: int | None = None,
@@ -729,7 +730,7 @@ def get_total_playtime(
 
 
 def get_activity_count(
-    userId: str | None = None,
+    userId: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
     before: int | None = None,
@@ -787,7 +788,7 @@ def get_user_count(
 
 
 def get_game_count(
-    userId: str | None = None,
+    userId: int | None = None,
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
@@ -814,7 +815,7 @@ def get_game_count(
 
 
 def get_platform_count(
-    userId: str | None = None,
+    userId: int | None = None,
     gameId: int | None = None,
     before: int | None = None,
     after: int | None = None,

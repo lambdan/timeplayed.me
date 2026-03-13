@@ -35,7 +35,8 @@ class PublicPlatformModel(BaseModel):
 
 
 class PublicUserModel(BaseModel):
-    id: str = Field(description="Discord ID for the user")
+    id: int = Field(description="ID of the user")
+    discord_id: str | None = Field(description="Discord ID of the user")
     name: str = Field(description="Name of the user")
     default_platform: PublicPlatformModel = Field(description="User's default platform")
 
