@@ -4,7 +4,6 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from peewee import fn
 from tpbackend.api_models import (
-    DiscordAvatarModel,
     GameWithStats,
     PaginatedActivities,
     PaginatedGameWithStats,
@@ -53,14 +52,18 @@ def fixDatetime(data):
         return [fixDatetime(item) for item in data]
 
 
-def get_public_user(userId: int) -> PublicUserModel | None:
+def get_public_user(userId: int) -> PublicUserModel:
     user = User.get_or_none(User.id == userId)
     if not user:
-        return None
+        assert False, "User not found"
+    avatar_url = None
+    if user.discord_id:
+        avatar_url = get_discord_avatar_url(user.discord_id)
     return PublicUserModel(
         id=user.id,
         discord_id=user.discord_id,
         name=user.name,
+        avatar_url=avatar_url,
         default_platform=PublicPlatformModel(
             id=user.default_platform.id,
             abbreviation=user.default_platform.abbreviation,
@@ -82,7 +85,7 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
     return PublicActivityModel(
         id=activity.id,  # type: ignore
         timestamp=tsFromActivity(activity),
-        user=get_public_user(activity.user.id),  # type: ignore
+        user=get_public_user(activity.user.id),
         game=PublicGameModel(
             id=activity.game.id,
             name=activity.game.name,
@@ -946,21 +949,12 @@ def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
 ###############
 
 
-@app.get(
-    "/api/discord/{discord_user_id}/avatar",
-    tags=["Discord"],
-    response_model=DiscordAvatarModel,
-)
-def get_discord_avatar(discord_user_id: str | int) -> DiscordAvatarModel:
+def get_discord_avatar_url(discord_user_id: str | int) -> str:
     discord_user_id = int(discord_user_id)
-    cache_key = f"1discord_avatar_{discord_user_id}"
+    cache_key = f"2_discord_avatar_{discord_user_id}"
     cached = REDIS_CLIENT.get(cache_key)
     if cached:
-        decoded = cached.decode("utf-8")  # type: ignore
-        return DiscordAvatarModel.model_validate_json(decoded)
-
+        return cached.decode("utf-8")  # type: ignore
     url = bot.avatar_from_discord_user_id(discord_user_id)
-    r = DiscordAvatarModel(url=url)
-    logger.info("Discord avatar cache miss for user %s", discord_user_id)
-    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=3600)
-    return r
+    REDIS_CLIENT.set(cache_key, url, ex=3600)
+    return url

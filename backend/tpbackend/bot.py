@@ -15,11 +15,11 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
-def avatar_from_discord_user_id(id: int) -> str | None:
+def avatar_from_discord_user_id(id: int) -> str:
     user = bot.get_user(id)
     if user and user.display_avatar:
         return str(user.display_avatar.url)
-    return None
+    return f"https://cdn.discordapp.com/embed/avatars/{id % 5}.png"
 
 
 @bot.event

@@ -271,35 +271,10 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/discord/{discord_user_id}/avatar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Discord Avatar */
-        get: operations["get_discord_avatar_api_discord__discord_user_id__avatar_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** DiscordAvatarModel */
-        DiscordAvatarModel: {
-            /**
-             * Url
-             * @description URL for the avatar image
-             */
-            url: string | null;
-        };
         /** GameWithStats */
         GameWithStats: {
             totals: components["schemas"]["Totals"];
@@ -531,6 +506,11 @@ export interface components {
              * @description Name of the user
              */
             name: string;
+            /**
+             * Avatar Url
+             * @description URL to avatar for user
+             */
+            avatar_url: string | null;
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
         };
@@ -1138,37 +1118,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SGDB_Grid"] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_discord_avatar_api_discord__discord_user_id__avatar_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                discord_user_id: string | number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DiscordAvatarModel"];
                 };
             };
             /** @description Validation Error */
