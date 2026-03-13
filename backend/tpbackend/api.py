@@ -29,6 +29,10 @@ logger = logging.getLogger("api")
 app = FastAPI()
 
 
+def not_found(msg: str):
+    raise HTTPException(status_code=404, detail=msg)
+
+
 def fixDatetime(data):
     """
     Recursively converts datetime objects in a dictionary to milliseconds since epoch
@@ -48,14 +52,25 @@ def fixDatetime(data):
         return [fixDatetime(item) for item in data]
 
 
-def get_public_user(userId: int) -> PublicUserModel:
+def get_public_user(userId: int) -> PublicUserModel | None:
+    key = f"get_public_user:{userId}"
+    cached = cache_get(key)
+    if cached:
+        decoded = cached.decode("utf-8")  # type: ignore
+        if decoded == "null":
+            return None
+        return PublicUserModel.model_validate_json(decoded)
+
     user = User.get_or_none(User.id == userId)
     if not user:
-        assert False, "User not found"
+        # hmm, this is probably not worth it...
+        cache_set(key, "null")
+        return None
+
     avatar_url = None
     if user.discord_id:
         avatar_url = get_discord_avatar_url(user.discord_id)
-    return PublicUserModel(
+    r = PublicUserModel(
         id=user.id,
         discord_id=user.discord_id,
         name=user.name,
@@ -69,19 +84,33 @@ def get_public_user(userId: int) -> PublicUserModel:
             icon=user.default_platform.icon,
         ),
     )
+    cache_set(key, r.model_dump_json())
+    return r
 
 
-def get_public_activity(a: Activity | int) -> PublicActivityModel:
-    if isinstance(a, int):
-        a = Activity.get_or_none(Activity.id == a)  # type: ignore
-        if not a:
-            raise HTTPException(status_code=404, detail="Activity not found")
+def get_public_activity(activityId: int) -> PublicActivityModel | None:
+    key = f"get_public_activity:{activityId}"
+    cached = cache_get(key)
+    if cached:
+        decoded = cached.decode("utf-8")  # type: ignore
+        if decoded == "null" or decoded == "user_null":
+            return None
+        return PublicActivityModel.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    activity: Activity = a  # type: ignore
-    return PublicActivityModel(
+    activity = Activity.get_or_none(Activity.id == activityId)  # type: ignore
+    if not activity:
+        cache_set(key, "null")
+        return None
+
+    user = get_public_user(activity.user.id)
+    if not user:
+        cache_set(key, "user_null")
+        return None
+
+    r = PublicActivityModel(
         id=activity.id,  # type: ignore
         timestamp=tsFromActivity(activity),
-        user=get_public_user(activity.user.id),
+        user=user,
         game=PublicGameModel(
             id=activity.game.id,
             name=activity.game.name,
@@ -102,6 +131,8 @@ def get_public_activity(a: Activity | int) -> PublicActivityModel:
         seconds=activity.seconds,  # type: ignore
         emulated=activity.emulated,  # type: ignore
     )
+    cache_set(key, r.model_dump_json(), ex=5)
+    return r
 
 
 ####################
@@ -229,26 +260,14 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
 ) -> PaginatedActivities:
-    def redisGet(key: str) -> PaginatedActivities | None:
-        raw = cache_get(key)
-        if raw:
-            try:
-                decoded = raw.decode("utf-8")  # type: ignore
-                parsed = PaginatedActivities.model_validate_json(decoded)
-                return parsed
-            except Exception as _:
-                logger.warning("Exception when parsing redis cache on key %s", key)
-        return None
 
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
-    cache_key = (
-        f"activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
-    )
-    cached = redisGet(cache_key)
+    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    cached = cache_get(key)
     if cached:
-        return cached
+        return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     before_dt, after_dt = None, None
     if before:
@@ -285,15 +304,21 @@ def get_activities(
         userId=user, gameId=game, platformId=platform, before=before, after=after
     )
 
+    data = []
+    for a in query:
+        aa = get_public_activity(a)
+        if aa:
+            data.append(aa)
+
     r = PaginatedActivities(
-        data=[get_public_activity(activity) for activity in query],
+        data=data,
         total=total_count,
         offset=offset,
         limit=limit,
         order=order,
     )
 
-    cache_set(cache_key, r.model_dump_json(), ex=15)
+    cache_set(key, r.model_dump_json(), ex=15)
     return r
 
 
@@ -367,10 +392,10 @@ def get_oldest_activity(
     response_model=PublicActivityModel,
 )
 def get_activity(activity_id: int) -> PublicActivityModel:
-    activity = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
-    if activity is None:
-        raise HTTPException(status_code=404, detail="Activity not found")
-    return get_public_activity(activity)
+    activity = get_public_activity(activity_id)
+    if not activity:
+        return not_found("Activity not found")
+    return activity
 
 
 ##############

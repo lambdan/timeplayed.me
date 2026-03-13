@@ -41,7 +41,7 @@ def cache_get(key: str):
     return None
 
 
-def cache_set(key: str, value: str, ex=60):
+def cache_set(key: str, value: str, ex=5):
     try:
         REDIS_CLIENT.set(key, value, ex=ex)
         __log(f"Set: {key} (expires in {ex} seconds)")
