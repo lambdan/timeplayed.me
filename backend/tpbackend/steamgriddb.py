@@ -6,7 +6,7 @@ from steamgrid import StyleType, MimeType
 from steamgrid.http import HTTPException
 import json
 
-from tpbackend.cache import cacheGet, cacheSet
+from tpbackend.cache import cache_get, cache_set
 
 REDIS_EXP = 86400  # 1 day
 ONE_DAY = 24 * 60 * 60  # seconds
@@ -60,7 +60,7 @@ def search(query: str) -> list[SGDB_Game]:
 
     key = f"7_sgdb_search_{query}"
 
-    redisCache = cacheGet(key)
+    redisCache = cache_get(key)
     if redisCache:
         decoded = redisCache.decode("utf-8")  # type: ignore
         return jsonDecode(decoded)
@@ -78,7 +78,7 @@ def search(query: str) -> list[SGDB_Game]:
                         release_date=game.release_date.timestamp(),
                     )
                 )
-    cacheSet(key, jsonEncode(res), REDIS_EXP)
+    cache_set(key, jsonEncode(res), REDIS_EXP)
     return res
 
 
@@ -107,7 +107,7 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
         return res
 
     key = f"2sgdb_grids_{game_id}"
-    cached = cacheGet(key)
+    cached = cache_get(key)
     if cached:
         decoded = cached.decode("utf-8")  # type: ignore
         return jsonDecode(decoded)
@@ -152,7 +152,7 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
             )
             gs.append(new_grid)
 
-    cacheSet(key, jsonEncode(gs), REDIS_EXP)
+    cache_set(key, jsonEncode(gs), REDIS_EXP)
     return gs
 
 

@@ -21,7 +21,7 @@ from tpbackend.utils import clamp, max_int as max, validateTS, tsFromActivity
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
-from tpbackend.cache import cacheSet, cacheGet
+from tpbackend.cache import cache_set, cache_get
 import logging
 
 logger = logging.getLogger("api")
@@ -230,7 +230,7 @@ def get_activities(
     after: int | None = None,
 ) -> PaginatedActivities:
     def redisGet(key: str) -> PaginatedActivities | None:
-        raw = cacheGet(key)
+        raw = cache_get(key)
         if raw:
             try:
                 decoded = raw.decode("utf-8")  # type: ignore
@@ -293,7 +293,7 @@ def get_activities(
         order=order,
     )
 
-    cacheSet(cache_key, r.model_dump_json(), ex=15)
+    cache_set(cache_key, r.model_dump_json(), ex=15)
     return r
 
 
@@ -450,7 +450,7 @@ def get_game(
         raise HTTPException(status_code=404, detail="Game not found")
 
     def redisGet(key: str) -> GameWithStats | None:
-        raw = cacheGet(key)
+        raw = cache_get(key)
         if raw:
             try:
                 decoded = raw.decode("utf-8")  # type: ignore
@@ -510,7 +510,7 @@ def get_game(
         ),
     )
 
-    cacheSet(cache_key, r.model_dump_json())
+    cache_set(cache_key, r.model_dump_json())
     return r
 
 
@@ -945,9 +945,9 @@ def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
 def get_discord_avatar_url(discord_user_id: str | int) -> str:
     discord_user_id = int(discord_user_id)
     cache_key = f"2_discord_avatar_{discord_user_id}"
-    cached = cacheGet(cache_key)
+    cached = cache_get(cache_key)
     if cached:
         return cached.decode("utf-8")  # type: ignore
     url = bot.avatar_from_discord_user_id(discord_user_id)
-    cacheSet(cache_key, url, ex=3600)
+    cache_set(cache_key, url, ex=3600)
     return url
