@@ -21,16 +21,12 @@ from tpbackend.utils import clamp, max_int as max, validateTS, tsFromActivity
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
+from tpbackend.cache import cacheSet, cacheGet
 import logging
-import redis
 
 logger = logging.getLogger("api")
 
 app = FastAPI()
-
-REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-REDIS_CLIENT = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
 
 def fixDatetime(data):
@@ -234,7 +230,7 @@ def get_activities(
     after: int | None = None,
 ) -> PaginatedActivities:
     def redisGet(key: str) -> PaginatedActivities | None:
-        raw = REDIS_CLIENT.get(key)
+        raw = cacheGet(key)
         if raw:
             try:
                 decoded = raw.decode("utf-8")  # type: ignore
@@ -297,7 +293,7 @@ def get_activities(
         order=order,
     )
 
-    REDIS_CLIENT.set(cache_key, r.model_dump_json(), ex=15)
+    cacheSet(cache_key, r.model_dump_json(), ex=15)
     return r
 
 
@@ -454,7 +450,7 @@ def get_game(
         raise HTTPException(status_code=404, detail="Game not found")
 
     def redisGet(key: str) -> GameWithStats | None:
-        raw = REDIS_CLIENT.get(key)
+        raw = cacheGet(key)
         if raw:
             try:
                 decoded = raw.decode("utf-8")  # type: ignore
@@ -514,10 +510,7 @@ def get_game(
         ),
     )
 
-    REDIS_CLIENT.set(
-        cache_key, r.model_dump_json(), ex=60
-    )  # 1 minute cache for game stats...
-
+    cacheSet(cache_key, r.model_dump_json())
     return r
 
 
@@ -952,9 +945,9 @@ def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
 def get_discord_avatar_url(discord_user_id: str | int) -> str:
     discord_user_id = int(discord_user_id)
     cache_key = f"2_discord_avatar_{discord_user_id}"
-    cached = REDIS_CLIENT.get(cache_key)
+    cached = cacheGet(cache_key)
     if cached:
         return cached.decode("utf-8")  # type: ignore
     url = bot.avatar_from_discord_user_id(discord_user_id)
-    REDIS_CLIENT.set(cache_key, url, ex=3600)
+    cacheSet(cache_key, url, ex=3600)
     return url
