@@ -28,34 +28,12 @@ from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
 from tpbackend.cache import cache_set, cache_get
+from tpbackend.api_responses import not_found
 import logging
 
 logger = logging.getLogger("api")
 
 app = FastAPI()
-
-
-def not_found(msg: str):
-    raise HTTPException(status_code=404, detail=msg)
-
-
-# def fixDatetime(data):
-#    """
-#    Recursively converts datetime objects in a dictionary to milliseconds since epoch
-#    """
-#    if isinstance(data, datetime.datetime):
-#        if data.tzinfo is None:
-#            data = data.replace(tzinfo=datetime.timezone.utc)
-#        return int(data.timestamp() * 1000)
-#
-#    if not isinstance(data, (dict, list)):
-#        return data
-#
-#    if isinstance(data, dict):
-#        return {k: fixDatetime(v) for k, v in data.items()}
-#
-#    if isinstance(data, list):
-#        return [fixDatetime(item) for item in data]
 
 
 def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
