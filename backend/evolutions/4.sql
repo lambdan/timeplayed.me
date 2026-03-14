@@ -6,7 +6,7 @@ CREATE TABLE users_new (
     name VARCHAR(255) NOT NULL,
     default_platform_id INTEGER NOT NULL REFERENCES platform(id),
     bot_commands_blocked BOOLEAN DEFAULT FALSE,
-    pc_platform VARCHAR(255) DEFAULT 'pc'
+    pc_platform VARCHAR(255) DEFAULT 'win'
 );
 
 -- copy over users, sorted by activity timestamps (eg oldest activity = oldest user)
