@@ -2,6 +2,7 @@ import os
 import logging
 
 from tpbackend import utils
+from tpbackend.permissions import PERMISSION_COMMANDS
 from tpbackend.storage.reset_sequence import reset_sequences
 
 logger = logging.getLogger("storage_v2")
@@ -55,8 +56,21 @@ class User(BaseModel):
     default_platform = ForeignKeyField(
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
-    bot_commands_blocked = BooleanField(default=False)
     pc_platform = CharField(default="win")
+    permissions = ArrayField(TextField, default=lambda: [PERMISSION_COMMANDS])  # type: ignore
+
+    def has_permission(self, permission: str) -> bool:
+        return permission in self.permissions
+
+    def add_permission(self, permission: str):
+        if not self.has_permission(permission):
+            self.permissions.append(permission)  # type: ignore
+            self.save()
+
+    def remove_permission(self, permission: str):
+        if self.has_permission(permission):
+            self.permissions.remove(permission)  # type: ignore
+            self.save()
 
 
 class Game(BaseModel):
@@ -69,7 +83,7 @@ class Game(BaseModel):
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
-    aliases = ArrayField(TextField, default=[])  # type: ignore
+    aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
 
 

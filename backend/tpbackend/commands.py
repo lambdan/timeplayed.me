@@ -1,6 +1,8 @@
 import logging
 import discord
-from tpbackend.storage.storage_v2 import User
+from tpbackend.permissions import PERMISSION_COMMANDS, PERMISSION_DEVELOPER
+from tpbackend.storage.storage_v2 import User, DiscordHistory
+from tpbackend.globals import DEBUG
 
 from tpbackend.command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
 from tpbackend.cmds.help import HelpCommand
@@ -22,17 +24,43 @@ def user_from_message(message: discord.Message) -> User | None:
     return user
 
 
-def dm_receive(message: discord.Message) -> str:
-    user = user_from_message(message)
-    if user is None:
-        logger.error("Could not get internal User for message: %s", message)
-        return "ERROR: Try again later"
+def dm_receive(message: discord.Message) -> str | None:
+    # ! in prod
+    # . while developing
+    c = message.content
 
-    if user.bot_commands_blocked:
-        return "You are blocked from using bot commands"
+    if not c.startswith("!") and not c.startswith("."):
+        # ignore messages without ! or .
+        return None
+
+    user = user_from_message(message)
+    if not user:
+        logger.error(
+            "Could not find or create user for message author %s", message.author
+        )
+        return None
+
+    if DEBUG:
+        if not user.has_permission(PERMISSION_DEVELOPER):
+            return
+        if c.startswith("!"):
+            # ignore prod messages in dev
+            return
+    if not DEBUG and c.startswith("."):
+        # ignore dev messages in prod
+        return
+
+    DiscordHistory.create(
+        event="received_message",
+        user=str(message.author.id),
+        message=str(message.content),
+    )
+
+    if not user.has_permission(PERMISSION_COMMANDS):
+        return "You don't have permission to use commands."
 
     content = message.content.strip()  # utils.normalizeQuotes(message.content.strip())
-    in_cmd = content.split(" ")[0].lower()[1:]  # first word (command) without prefix
+    in_cmd = content.split(" ")[0].lower()[1:]  # first word (command) + remove ! or .
     body = " ".join(content.split(" ")[1:])  # remove command
     cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
     for c in cmds:
@@ -40,7 +68,10 @@ def dm_receive(message: discord.Message) -> str:
             if in_cmd == n and c.can_execute(user, body):
                 try:
                     logger.info(
-                        "Executing `%s`, user %s, body: '%s'...", n, user.id, body
+                        "Executing `%s`, user %s, body: '%s'...",
+                        c.names[0],
+                        user.id,
+                        body,
                     )
                     return c.execute(user, body)
                 except Exception as e:

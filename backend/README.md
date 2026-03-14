@@ -2,20 +2,18 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 
 ## Env variables
 
-| Key                | Default    | Notes                                       |
-| ------------------ | ---------- | ------------------------------------------- |
-| LOGLEVEL           | INFO       |                                             |
-| CACHE_MAX          | 1000       |                                             |
-| ADMINS             |            | Discord user IDs of admins, comma separated |
-| REDIS_HOST         | localhost  |                                             |
-| REDIS_PORT         | 6379       |                                             |
-| DB_HOST            | postgres   |                                             |
-| DB_USER            |            |                                             |
-| DB_PASSWORD        |            |                                             |
-| DB_NAME            | oblivion   | DB that oblivionis is using                 |
-| DB_NAME_TIMEPLAYED | storage_v2 | DB that this thing is using                 |
-| DISCORD_TOKEN      |            |                                             |
-| SGDB_TOKEN         |            |                                             |
+| Key                | Default    | Notes                                                                                                                  |
+| ------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| LOGLEVEL           | INFO       |                                                                                                                        |
+| REDIS_HOST         | localhost  |                                                                                                                        |
+| REDIS_PORT         | 6379       |                                                                                                                        |
+| DB_HOST            | postgres   |                                                                                                                        |
+| DB_USER            |            |                                                                                                                        |
+| DB_PASSWORD        |            |                                                                                                                        |
+| DB_NAME            | oblivion   | DB that oblivionis is using                                                                                            |
+| DB_NAME_TIMEPLAYED | storage_v2 | DB that this thing is using                                                                                            |
+| DISCORD_TOKEN      |            |                                                                                                                        |
+| SGDB_TOKEN         |            |                                                                                                                        |
 | TIMEPLAYED_URL     |            | Base URL of the site (e.g. https://timeplayed.me). Used to link to game pages in bot commands. Leave empty to disable. |
 
 # Restore backup

@@ -1,0 +1,3 @@
+PERMISSION_ADMIN = "admin"
+PERMISSION_COMMANDS = "commands"
+PERMISSION_DEVELOPER = "developer"

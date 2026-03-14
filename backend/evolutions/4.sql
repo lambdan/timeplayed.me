@@ -88,4 +88,9 @@ ALTER COLUMN id SET DEFAULT nextval('user_id_seq');
 
 SELECT setval('user_id_seq', (SELECT MAX(id) FROM "user"));
 
--- done!
+-- done with migration!
+
+-- add roles array to users
+ALTER TABLE "user"
+ADD COLUMN permissions text[] DEFAULT '{"commands"}';
+ALTER TABLE "user" DROP COLUMN bot_commands_blocked;

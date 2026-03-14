@@ -1,5 +1,5 @@
-from tpbackend.globals import ADMINS
 from tpbackend.storage.storage_v2 import User
+from tpbackend.permissions import PERMISSION_COMMANDS, PERMISSION_ADMIN
 from abc import ABC, abstractmethod
 import logging
 
@@ -22,10 +22,10 @@ class Command(ABC):
         self.logger = logging.getLogger(f"command.{self.names[0]}")
 
     def can_execute(self, user: User, msg: str) -> bool:
-        return not user.bot_commands_blocked
+        return user.has_permission(PERMISSION_COMMANDS)
 
     def is_admin(self, user: User) -> bool:
-        return str(user.id) in ADMINS
+        return user.has_permission(PERMISSION_ADMIN)
 
     def get_help_message(self) -> str:
         msg = "# " + self.names[0] + "\n"
