@@ -20,7 +20,7 @@ from tpbackend.api_models import (
 from tpbackend.utils import (
     clamp,
     max_int as max,
-    roundToSecond,
+    truncateMilliseconds,
     validateTS,
     tsFromActivity,
 )
@@ -70,11 +70,11 @@ def get_total_playtime(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -108,11 +108,11 @@ def get_activity_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -150,11 +150,11 @@ def get_user_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -189,11 +189,11 @@ def get_game_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -226,11 +226,11 @@ def get_platform_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -256,11 +256,11 @@ def get_player_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = roundToSecond(before_valid)
+        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = roundToSecond(after_valid)
+        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -452,9 +452,9 @@ def get_users(
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
     if before:
-        before = roundToSecond(before)
+        before = truncateMilliseconds(before)
     if after:
-        after = roundToSecond(after)
+        after = truncateMilliseconds(after)
 
     total = get_user_count(
         before=before, after=after, gameId=gameId, platformId=platformId
@@ -563,9 +563,9 @@ def get_activities(
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
     if before:
-        before = roundToSecond(before)
+        before = truncateMilliseconds(before)
     if after:
-        after = roundToSecond(after)
+        after = truncateMilliseconds(after)
     key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
     cached = cache_get(key)
     if cached:
@@ -698,11 +698,11 @@ def get_games(
     if platformId:
         filters.append(Activity.platform == platformId)
     if before:
-        before = roundToSecond(before)
+        before = truncateMilliseconds(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
-        after = roundToSecond(after)
+        after = truncateMilliseconds(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -830,11 +830,11 @@ def get_platforms(
     if gameId:
         filters.append(Activity.game == gameId)
     if before:
-        before = roundToSecond(before)
+        before = truncateMilliseconds(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
-        after = roundToSecond(after)
+        after = truncateMilliseconds(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 

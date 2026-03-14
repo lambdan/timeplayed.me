@@ -197,7 +197,7 @@ def validateTS(ts) -> int | None:
     return None
 
 
-def roundToSecond(ts: int) -> int:
+def truncateMilliseconds(ts: int) -> int:
     return (ts // 1000) * 1000
 
 
