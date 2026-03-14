@@ -318,11 +318,13 @@ def get_public_user(user: User) -> PublicUserModel:
         return PublicUserModel.model_validate_json(decoded)
 
     avatar_url = None
+    discord_id = None
     if user.discord_id:
+        discord_id = str(user.discord_id)
         avatar_url = get_discord_avatar_url(str(user.discord_id))
     r = PublicUserModel(
         id=int(user.id),  # type: ignore
-        discord_id=str(user.discord_id),
+        discord_id=discord_id,
         name=str(user.name),
         avatar_url=avatar_url,
         default_platform=get_public_platform(user.default_platform),  # type: ignore
