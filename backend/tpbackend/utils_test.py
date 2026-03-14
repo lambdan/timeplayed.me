@@ -160,3 +160,18 @@ class TestActivityName:
         with patch("tpbackend.utils.TIMEPLAYED_URL", "http://example.com"):
             result = utils.activity_name(activity, as_markdown_link=True)
         assert result == "[Activity 456](http://example.com/activity/456)"
+
+
+class TestQueryNormalize:
+    def test_strip_and_lower(self):
+        assert utils.query_normalize("  Hello World  ") == "hello world"
+
+    def test_replace_nbsp(self):
+        assert utils.query_normalize("Hello\u00a0World") == "hello world"
+        assert utils.query_normalize("Hello World") == "hello world"
+
+    def test_remove_extra_spaces(self):
+        assert utils.query_normalize("Hello   World") == "hello world"
+
+    def test_empty_string(self):
+        assert utils.query_normalize("   ") == ""

@@ -279,6 +279,8 @@ def last_platform_for_game(
 def query_normalize(q: str) -> str:
     q = q.lower().strip()
     q = q.replace(" ", " ")  # replace nbsp with regular space
+    while "  " in q:
+        q = q.replace("  ", " ")  # replace multiple spaces with single space
     res = ""
     for c in q:
         # only keep A-Z, 0-9 and space
