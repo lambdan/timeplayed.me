@@ -12,7 +12,7 @@ export class TimeplayedAPI {
     return client;
   }
 
-  static async getUser(userId: number) {
+  static async getUser(userId: string) {
     const { data, error } = await this.getClient().GET("/api/user/{userId}", {
       params: {
         path: {

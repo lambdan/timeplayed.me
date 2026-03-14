@@ -29,7 +29,7 @@ function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
 }
 
 onMounted(async () => {
-  const userId = parseInt(route.params.id as string);
+  const userId = route.params.id as string;
   apiUser.value = await TimeplayedAPI.getUser(userId);
 });
 </script>
