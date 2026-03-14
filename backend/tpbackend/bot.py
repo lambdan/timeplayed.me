@@ -40,20 +40,11 @@ async def on_message(message: discord.Message):
         # Ignore messages in channels
         return
 
-    reply = None
-    try:
-        logger.info("<%s>: %s", message.author, message.content)
-        reply = dm_receive(message)
-    except Exception as e:
-        logger.error("Error processing message from %s: %s", message.author, e)
-
+    reply = dm_receive(message)
     if not reply:
         return
 
-    logger.info("Replying to %s: %s", message.author, reply)
     storage_v2.DiscordHistory.create(
         event="reply", user=str(message.author.id), message=str(reply)
     )
-    if DEBUG:
-        reply = "[D]\n" + reply
     await message.author.send(reply, reference=message)

@@ -62,15 +62,25 @@ class User(BaseModel):
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
 
-    def add_permission(self, permission: str):
+    def add_permission(self, permission: str) -> bool:
+        """
+        Returns true if permission was added, false if user already had permission.
+        """
         if not self.has_permission(permission):
             self.permissions.append(permission)  # type: ignore
             self.save()
+            return True
+        return False
 
-    def remove_permission(self, permission: str):
+    def remove_permission(self, permission: str) -> bool:
+        """
+        Returns true if permission was removed, false if user didn't have permission.
+        """
         if self.has_permission(permission):
             self.permissions.remove(permission)  # type: ignore
             self.save()
+            return True
+        return False
 
 
 class Game(BaseModel):

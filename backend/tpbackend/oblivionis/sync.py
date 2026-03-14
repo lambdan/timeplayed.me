@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 import asyncio
 from typing import TypedDict
@@ -7,7 +6,7 @@ from typing import TypedDict
 from tpbackend import operations
 from tpbackend.consts import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
-from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
+from tpbackend.storage.storage_v2 import User, Platform
 
 logger = logging.getLogger("oblivionis-sync")
 

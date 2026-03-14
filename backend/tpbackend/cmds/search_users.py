@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.admin_command import AdminCommand
+from tpbackend.utils import search_users, user_name
 
 
 class SearchUsersCommand(AdminCommand):
@@ -18,18 +19,26 @@ Usage: `!search <query>`
         )
 
     def execute(self, user: User, msg: str) -> str:
-        if msg == "":
-            return "No query provided. See `!help search` for usage."
-        return self.search(msg)
-
-    def search(self, query: str) -> str:
-        users = (
-            User.select().where(User.name.contains(query)).order_by(User.name).limit(50)
-        )
-        if not users:
+        results = search_users(msg, limit=50)
+        if len(results) == 0:
             return "No users found"
+        if self.is_admin(user):
+            return self.print_admin(results)
+        return self.print_regular(results)
 
+    def print_regular(self, results: list[User]) -> str:
         out = ""
-        for user in users:
-            out += f"- **{user.id}** - {user.name}\n"
+        for r in results:
+            out += f"- {r.id} - {user_name(r)}\n"
+            if len(out) > 1500:
+                return "Output too long. Narrow your search."
+        return out
+
+    def print_admin(self, results: list[User]) -> str:
+        out = ""
+        for r in results:
+            out += f"### {r.id} - {user_name(r)}\n"
+            out += f"Permissions: `{",".join(r.permissions)}`\n"
+            if len(out) > 1500:
+                return "Output too long. Narrow your search."
         return out

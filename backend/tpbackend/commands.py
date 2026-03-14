@@ -10,6 +10,8 @@ from tpbackend.cmds.help_admin import HelpAdminCommand
 
 logger = logging.getLogger("commands")
 
+__CMD = 0
+
 
 def user_from_message(message: discord.Message) -> User | None:
     if message.author is None:
@@ -25,30 +27,51 @@ def user_from_message(message: discord.Message) -> User | None:
 
 
 def dm_receive(message: discord.Message) -> str | None:
+    global __CMD
+    __CMD += 1
+
+    def _info(msg: str):
+        logger.info("[%s] %s", __CMD, msg)
+
+    def _warn(msg: str):
+        logger.warning("[%s] %s", __CMD, msg)
+
+    def _err(msg: str):
+        logger.error("[%s] %s", __CMD, msg)
+
+    def _ret(reply: str | None) -> str | None:
+        if reply:
+            _info(f"Replying: {reply}")
+            return reply
+        _info("(No reply)")
+        return None
+
+    c = message.content
+    _info(f"Received message from {message.author}: {c}")
     # ! in prod
     # . while developing
-    c = message.content
 
     if not c.startswith("!") and not c.startswith("."):
         # ignore messages without ! or .
-        return None
+        _warn("Ignoring because it doesn't have prefix")
+        return _ret(None)
 
     user = user_from_message(message)
     if not user:
-        logger.error(
-            "Could not find or create user for message author %s", message.author
-        )
-        return None
+        _err(f"Could not find or create user for message author {message.author}")
+        return _ret(None)
 
+    _info(f"User is: {user.id} ({user.name}), permissions: {user.permissions}")
     if DEBUG:
         if not user.has_permission(PERMISSION_DEVELOPER):
-            return
+            _warn("Ignoring because user doesn't have developer permission")
+            return _ret(None)
         if c.startswith("!"):
-            # ignore prod messages in dev
-            return
+            _warn("Ignoring prod message")
+            return _ret(None)
     if not DEBUG and c.startswith("."):
-        # ignore dev messages in prod
-        return
+        _warn("Ignoring dev message in prod")
+        return _ret(None)
 
     DiscordHistory.create(
         event="received_message",
@@ -57,7 +80,7 @@ def dm_receive(message: discord.Message) -> str | None:
     )
 
     if not user.has_permission(PERMISSION_COMMANDS):
-        return "You don't have permission to use commands."
+        return _ret("You don't have permission to use commands.")
 
     content = message.content.strip()  # utils.normalizeQuotes(message.content.strip())
     in_cmd = content.split(" ")[0].lower()[1:]  # first word (command) + remove ! or .
@@ -67,15 +90,10 @@ def dm_receive(message: discord.Message) -> str | None:
         for n in c.names:
             if in_cmd == n and c.can_execute(user, body):
                 try:
-                    logger.info(
-                        "Executing `%s`, user %s, body: '%s'...",
-                        c.names[0],
-                        user.id,
-                        body,
-                    )
-                    return c.execute(user, body)
+                    _info(f"Executing command {n} with body '{body}'")
+                    return _ret(c.execute(user, body))
                 except Exception as e:
-                    logger.exception("Error executing command %s: %s", n, e)
-                    return f"Error. Maybe `!help {n}` can... help"
+                    _err(f"Exception while executing command: {e}")
+                    return _ret(f"Error. Maybe `!help {n}` can... help")
 
-    return "Unknown command. Use `!help` to see available commands."
+    return _ret("Unknown command. Use `!help` to see available commands.")

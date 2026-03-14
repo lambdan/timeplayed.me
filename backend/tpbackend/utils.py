@@ -335,15 +335,26 @@ def game_url(game_id) -> str:
 
 
 def activity_url(activity_id) -> str:
-    if not TIMEPLAYED_URL:
-        return ""
     return f"{TIMEPLAYED_URL}/activity/{activity_id}"
 
 
 def platform_url(platform_id) -> str:
-    if not TIMEPLAYED_URL:
-        return ""
     return f"{TIMEPLAYED_URL}/platform/{platform_id}"
+
+
+def user_url(user_id) -> str:
+    return f"{TIMEPLAYED_URL}/user/{user_id}"
+
+
+def user_name(user: User, as_markdown_link=False) -> str:
+    id = int(user.id)  # type: ignore
+    name = f"{user.name}"
+    name = name.strip()
+    if as_markdown_link:
+        url = user_url(id)
+        if url:
+            return f"[{name}]({url})"
+    return name
 
 
 def activity_name(activity: Activity, as_markdown_link=False) -> str:
@@ -407,3 +418,31 @@ def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]
     else:
         platforms = platforms[offset:]
     return platforms
+
+
+def search_users(query: str, offset=0, limit=0) -> list[storage_v2.User]:
+    """
+    Search users by name
+    """
+    query = query_normalize(query)
+    users = []
+    for user in storage_v2.User.select():
+        # search in name
+        if query in query_normalize(user.name):
+            users.append(user)
+            continue
+        if query in query_normalize(str(user.discord_id)):
+            users.append(user)
+            continue
+        if query in query_normalize(str(user.id)):
+            users.append(user)
+            continue
+    logger.info("search_users :: '%s' --> %s results", query, len(users))
+    # order by name
+    users.sort(key=lambda u: u.name.lower())
+    # offset and limit
+    if limit > 0:
+        users = users[offset : offset + limit]
+    else:
+        users = users[offset:]
+    return users
