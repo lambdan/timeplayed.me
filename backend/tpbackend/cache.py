@@ -43,7 +43,7 @@ def cache_get(key: str):
     return None
 
 
-def cache_set(key: str, value: str, ex=5):
+def cache_set(key: str, value: str, ex=60):
     if CACHE_ENABLED:
         try:
             REDIS_CLIENT.set(key, value, ex=ex)
