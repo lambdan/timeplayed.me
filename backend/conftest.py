@@ -22,7 +22,6 @@ os.environ.setdefault("DB_NAME_TIMEPLAYED", "test")
 os.environ.setdefault("DB_USER", "test")
 os.environ.setdefault("DB_PASSWORD", "test")
 os.environ.setdefault("DB_HOST", "localhost")
-os.environ.setdefault("ADMINS", "admin123")
 
 # Replace modules that have circular imports or external dependencies.
 sys.modules["tpbackend.bot"] = MagicMock()
@@ -32,6 +31,7 @@ sys.modules["tpbackend.steamgriddb"] = MagicMock()
 # Import utils first to resolve the circular dependency between
 # tpbackend.utils and tpbackend.storage.storage_v2.
 import tpbackend.utils  # noqa: E402
+from tpbackend.permissions import DEFAULT_PERMISSIONS, PERMISSION_ADMIN
 
 from tpbackend.storage.storage_v2 import (  # noqa: E402
     Activity,
@@ -105,23 +105,28 @@ def make_user(make_platform):
     """Factory fixture — returns a callable that creates mock User objects."""
 
     def _factory(
-        id="user1",
+        id=1,
+        discord_id="user1",
         name="testuser",
-        blocked=False,
+        permissions=DEFAULT_PERMISSIONS,
         default_platform=None,
         pc_platform="win",
     ):
         u = MagicMock(spec=User)
         u.id = id
+        u.discord_id = discord_id
         u.name = name
-        u.bot_commands_blocked = blocked
         u.pc_platform = pc_platform
+        u.permissions = permissions
         # make_platform is the factory callable injected by pytest; calling it
         # here creates a fresh, isolated Platform mock for each user so tests
         # are not accidentally coupled through a shared object.
         u.default_platform = (
             default_platform if default_platform is not None else make_platform()
         )
+        # mock has_permission method
+        u.has_permission = MagicMock(side_effect=lambda p: p in u.permissions)
+
         return u
 
     return _factory
@@ -129,10 +134,9 @@ def make_user(make_platform):
 
 @pytest.fixture
 def make_admin_user(make_user):
-    """Return a factory that builds a user whose id is listed in ADMINS."""
-
     def _factory():
-        return make_user(id="admin123", name="admin")
+        permissions = DEFAULT_PERMISSIONS + [PERMISSION_ADMIN]
+        return make_user(discord_id="admin123", name="admin", permissions=permissions)
 
     return _factory
 

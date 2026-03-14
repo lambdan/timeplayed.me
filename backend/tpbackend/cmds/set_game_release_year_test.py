@@ -48,6 +48,17 @@ def test_game_not_found(cmd, make_user):
     assert "not found" in result
 
 
+def test_must_be_admin(cmd, make_game, make_user, make_admin_user):
+    user = make_user()
+    admin = make_admin_user()
+
+    regular = cmd.can_execute(user, "")
+    admin_perm = cmd.can_execute(admin, "")
+
+    assert not regular
+    assert admin_perm
+
+
 # ---------------------------------------------------------------------------
 # Happy path — setting a specific year
 # ---------------------------------------------------------------------------
