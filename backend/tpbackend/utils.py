@@ -279,8 +279,27 @@ def last_platform_for_game(
 def query_normalize(q: str) -> str:
     q = q.lower().strip()
     q = q.replace(" ", " ")  # replace nbsp with regular space
+    while "  " in q:
+        q = q.replace("  ", " ")  # replace multiple spaces with single space
     res = ""
     for c in q:
+        # Pokémon --> pokemon...
+        if c in "àáâäåä":
+            c = "a"
+        if c in "ç":
+            c = "c"
+        if c in "éèêë":
+            c = "e"
+        if c in "îïíì":
+            c = "i"
+        if c in "ñ":
+            c = "n"
+        if c in "öòóôõøö":
+            c = "o"
+        if c in "ùúûü":
+            c = "u"
+        if c in "ÿ":
+            c = "y"
         # only keep A-Z, 0-9 and space
         if c.isalnum() or c == " ":
             res += c
