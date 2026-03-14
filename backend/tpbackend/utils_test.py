@@ -175,3 +175,6 @@ class TestQueryNormalize:
 
     def test_empty_string(self):
         assert utils.query_normalize("   ") == ""
+
+    def test_pokemon(self):
+        assert utils.query_normalize("Pokémon") == "pokemon"
