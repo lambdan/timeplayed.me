@@ -90,7 +90,7 @@ SELECT setval('user_id_seq', (SELECT MAX(id) FROM "user"));
 
 -- done with migration!
 
--- add roles array to users
+-- add permissions array to users
 ALTER TABLE "user"
 ADD COLUMN permissions text[] DEFAULT '{"commands","manual_activity","oblivionis_sync"}';
 ALTER TABLE "user" DROP COLUMN bot_commands_blocked;
