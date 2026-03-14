@@ -1,12 +1,12 @@
 from tpbackend.storage.storage_v2 import User
-from tpbackend.cmds.admin_command import AdminCommand
+from tpbackend.cmds.command import Command
 from tpbackend.utils import search_users, user_name
 
 
-class SearchUsersCommand(AdminCommand):
+class SearchUsersCommand(Command):
     def __init__(self):
         h = """
-Search for users in the database.
+Search for users 
 Usage: `!search <query>`
         """
         super().__init__(
@@ -29,7 +29,7 @@ Usage: `!search <query>`
     def print_regular(self, results: list[User]) -> str:
         out = ""
         for r in results:
-            out += f"- {r.id} - {user_name(r)}\n"
+            out += f"- {r.id} - {user_name(r, as_markdown_link=True)}\n"
             if len(out) > 1500:
                 return "Output too long. Narrow your search."
         return out
@@ -37,7 +37,7 @@ Usage: `!search <query>`
     def print_admin(self, results: list[User]) -> str:
         out = ""
         for r in results:
-            out += f"### {r.id} - {user_name(r)}\n"
+            out += f"### {r.id} - {user_name(r, as_markdown_link=True)}\n"
             out += f"Permissions: `{",".join(r.permissions)}`\n"
             if len(out) > 1500:
                 return "Output too long. Narrow your search."
