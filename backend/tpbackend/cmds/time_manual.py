@@ -1,10 +1,10 @@
-from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
-from tpbackend.cmds.command import Command
+from tpbackend.cmds.manual_activity_command import ManualActivityCommand
+from tpbackend.storage.storage_v2 import User, LiveActivity
 import datetime
 from tpbackend import utils
 
 
-class TimeManualCommand(Command):
+class TimeManualCommand(ManualActivityCommand):
     def __init__(self):
         names = ["time", "t"]
         d = "Get current duration of running manual activity (started by `!start`)"

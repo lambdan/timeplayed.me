@@ -131,6 +131,5 @@ dist
 .DS_Store
 dev-compose.yml
 build-test
-*.sql
 .pg-data/
 backend/docker-compose.yml

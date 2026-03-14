@@ -4,17 +4,14 @@ from pydantic import BaseModel
 from steamgrid import Game, SteamGridDB
 from steamgrid import StyleType, MimeType
 from steamgrid.http import HTTPException
-import redis
 import json
 
-REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-REDIS_CLIENT = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
-REDIS_EXP = 86400  # 1 day
+from tpbackend.cache import cache_get, cache_set
 
+REDIS_EXP = 86400  # 1 day
+ONE_DAY = 24 * 60 * 60  # seconds
 
 logger = logging.getLogger("SteamGridDB")
-ONE_DAY = 24 * 60 * 60  # seconds
 sgdb = SteamGridDB(os.environ["SGDB_TOKEN"])
 
 
@@ -61,11 +58,10 @@ def search(query: str) -> list[SGDB_Game]:
             res.append(SGDB_Game.model_validate(v))
         return res
 
-    key = f"6sgdb_search_{query}"
+    key = f"7_sgdb_search_{query}"
 
-    redisCache = REDIS_CLIENT.get(key)
+    redisCache = cache_get(key)
     if redisCache:
-        logger.info("Search was cached for query %s", query)
         decoded = redisCache.decode("utf-8")  # type: ignore
         return jsonDecode(decoded)
 
@@ -82,7 +78,7 @@ def search(query: str) -> list[SGDB_Game]:
                         release_date=game.release_date.timestamp(),
                     )
                 )
-    REDIS_CLIENT.setex(key, REDIS_EXP, jsonEncode(res))
+    cache_set(key, jsonEncode(res), REDIS_EXP)
     return res
 
 
@@ -111,9 +107,8 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
         return res
 
     key = f"2sgdb_grids_{game_id}"
-    cached = REDIS_CLIENT.get(key)
+    cached = cache_get(key)
     if cached:
-        logger.info("Grids were cached for game ID %d", game_id)
         decoded = cached.decode("utf-8")  # type: ignore
         return jsonDecode(decoded)
 
@@ -157,7 +152,7 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
             )
             gs.append(new_grid)
 
-    REDIS_CLIENT.setex(key, REDIS_EXP, jsonEncode(gs))
+    cache_set(key, jsonEncode(gs), REDIS_EXP)
     return gs
 
 

@@ -2,7 +2,6 @@ from tpbackend.cmds.add_activity import AddActivityCommand
 from tpbackend.cmds.add_game_sgdb import AddGameSGDBCommand
 from tpbackend.cmds.add_game_admin import AddGameAdminCommand
 from tpbackend.cmds.add_platform import AddPlatformCommand
-from tpbackend.cmds.block_commands import BlockCommandsCommand
 from tpbackend.cmds.delete_activity import DeleteActivityCommand
 from tpbackend.cmds.delete_game import DeleteGameCommand
 from tpbackend.cmds.delete_platform import DeletePlatformCommand
@@ -10,6 +9,8 @@ from tpbackend.cmds.emulated import ToggleEmulatedCommand
 from tpbackend.cmds.get_activity import GetActivityCommand
 from tpbackend.cmds.get_game import GetGameCommand
 from tpbackend.cmds.last import LastActivityCommand
+from tpbackend.cmds.permission_add import AddPermissionCommand
+from tpbackend.cmds.permission_remove import RemovePermissionCommand
 from tpbackend.cmds.search_games import SearchGamesCommand
 from tpbackend.cmds.set_default_platform import SetDefaultPlatformCommand
 from tpbackend.cmds.set_game import SetGameCommand
@@ -90,8 +91,9 @@ ADMIN_COMMANDS = [
     DeleteGameCommand(),
     GamesWithoutActivityAdminCommand(),
     # user mgmt
-    BlockCommandsCommand(),
     SearchUsersCommand(),
+    AddPermissionCommand(),
+    RemovePermissionCommand(),
     SetGameAdminCommand(),
     MoveGameAdminCommand(),
     DeleteActivityAdminCommand(),

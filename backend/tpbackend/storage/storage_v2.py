@@ -1,15 +1,8 @@
-# Evolution history:
-# - 4.8.0:
-#   ALTER TABLE public.platform ADD COLUMN color_primary varchar(6);
-#   ALTER TABLE public.platform ADD COLUMN color_secondary varchar(6);
-#   ALTER TABLE public.platform ADD COLUMN icon varchar(50);
-# - 4.6.0: DROP INDEX game_name;
-# - 3.4.0: ALTER TABLE public.activity ADD COLUMN emulated boolean DEFAULT false;
-
 import os
 import logging
 
 from tpbackend import utils
+from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage.reset_sequence import reset_sequences
 
 logger = logging.getLogger("storage_v2")
@@ -22,6 +15,7 @@ from peewee import (
     IntegerField,
     Model,
     TextField,
+    AutoField,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 
@@ -43,6 +37,7 @@ class Platform(BaseModel):
     Platform (V2)
     """
 
+    id = AutoField()
     abbreviation = CharField(unique=True)
     name = CharField(null=True)
     color_primary = CharField(null=True, column_name="color_primary")
@@ -55,13 +50,37 @@ class User(BaseModel):
     User (V2)
     """
 
-    id = CharField(primary_key=True)
+    id = AutoField()
+    discord_id = CharField(unique=True, null=True)
     name = CharField()
     default_platform = ForeignKeyField(
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
-    bot_commands_blocked = BooleanField(default=False)
     pc_platform = CharField(default="win")
+    permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
+
+    def has_permission(self, permission: str) -> bool:
+        return permission in self.permissions
+
+    def add_permission(self, permission: str) -> bool:
+        """
+        Returns true if permission was added, false if user already had permission.
+        """
+        if not self.has_permission(permission):
+            self.permissions.append(permission)  # type: ignore
+            self.save()
+            return True
+        return False
+
+    def remove_permission(self, permission: str) -> bool:
+        """
+        Returns true if permission was removed, false if user didn't have permission.
+        """
+        if self.has_permission(permission):
+            self.permissions.remove(permission)  # type: ignore
+            self.save()
+            return True
+        return False
 
 
 class Game(BaseModel):
@@ -69,11 +88,12 @@ class Game(BaseModel):
     Game (V2)
     """
 
+    id = AutoField()
     name = CharField()
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
-    aliases = ArrayField(TextField, default=[])  # type: ignore
+    aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
 
 
@@ -82,8 +102,9 @@ class Activity(BaseModel):
     Activity (V2)
     """
 
+    id = AutoField()
     timestamp = DateTimeField()
-    user = ForeignKeyField(User, backref="activities")
+    user = ForeignKeyField(User, backref="activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="activities")
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
@@ -91,13 +112,15 @@ class Activity(BaseModel):
 
 
 class LiveActivity(BaseModel):
-    user = ForeignKeyField(User, backref="live_activities")
+    id = AutoField()
+    user = ForeignKeyField(User, backref="live_activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="live_activities")
     platform = ForeignKeyField(Platform, backref="live_activities")
     started = DateTimeField()
 
 
 class DiscordHistory(BaseModel):
+    id = AutoField()
     timestamp = DateTimeField(default=lambda: utils.now())
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
@@ -108,4 +131,4 @@ def connect_db():
     if db.connect():
         logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
-        reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory])
+        reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])

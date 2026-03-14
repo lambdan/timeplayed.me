@@ -1,10 +1,10 @@
+from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import User, LiveActivity, Game
-from tpbackend.cmds.command import Command
 import tpbackend.utils
 from tpbackend.utils import game_name, last_platform_for_game, search_games
 
 
-class StartManualCommand(Command):
+class StartManualCommand(ManualActivityCommand):
     def __init__(self):
         names = ["start"]
         d = "Start manual activity"

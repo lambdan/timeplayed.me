@@ -271,35 +271,10 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/discord/{discord_user_id}/avatar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Discord Avatar */
-        get: operations["get_discord_avatar_api_discord__discord_user_id__avatar_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** DiscordAvatarModel */
-        DiscordAvatarModel: {
-            /**
-             * Url
-             * @description URL for the avatar image
-             */
-            url: string | null;
-        };
         /** GameWithStats */
         GameWithStats: {
             totals: components["schemas"]["Totals"];
@@ -518,14 +493,24 @@ export interface components {
         PublicUserModel: {
             /**
              * Id
-             * @description Discord ID for the user
+             * @description ID of the user
              */
-            id: string;
+            id: number;
+            /**
+             * Discord Id
+             * @description Discord ID of the user
+             */
+            discord_id: string | null;
             /**
              * Name
              * @description Name of the user
              */
             name: string;
+            /**
+             * Avatar Url
+             * @description URL to avatar for user
+             */
+            avatar_url: string | null;
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
         };
@@ -676,7 +661,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: string;
+                userId: number;
             };
             cookie?: never;
         };
@@ -708,7 +693,7 @@ export interface operations {
                 offset?: unknown;
                 limit?: unknown;
                 order?: "desc" | "asc";
-                user?: string | null;
+                user?: number | null;
                 game?: number | null;
                 platform?: number | null;
                 before?: number | null;
@@ -743,7 +728,7 @@ export interface operations {
     get_newest_activity_api_activity_newest_get: {
         parameters: {
             query?: {
-                userid?: string | null;
+                userid?: number | null;
                 gameid?: number | null;
                 platformid?: number | null;
                 before?: number | null;
@@ -778,7 +763,7 @@ export interface operations {
     get_oldest_activity_api_activity_oldest_get: {
         parameters: {
             query?: {
-                userid?: string | null;
+                userid?: number | null;
                 gameid?: number | null;
                 platformid?: number | null;
                 before?: number | null;
@@ -846,7 +831,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: string | null;
+                userId?: number | null;
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -880,7 +865,7 @@ export interface operations {
     get_game_api_game__gameId__get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 before?: number | null;
                 after?: number | null;
                 platformId?: number | null;
@@ -918,7 +903,7 @@ export interface operations {
             query?: {
                 offset?: unknown;
                 limit?: unknown;
-                userId?: string | null;
+                userId?: number | null;
                 gameId?: number | null;
                 before?: number | null;
                 after?: number | null;
@@ -952,7 +937,7 @@ export interface operations {
     get_platform_api_platform__platformId__get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 before?: number | null;
                 after?: number | null;
                 gameId?: number | null;
@@ -988,7 +973,7 @@ export interface operations {
     get_totals_api_totals_get: {
         parameters: {
             query?: {
-                userId?: string | null;
+                userId?: number | null;
                 gameId?: number | null;
                 platformId?: number | null;
                 before?: number | null;
@@ -1133,37 +1118,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SGDB_Grid"] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_discord_avatar_api_discord__discord_user_id__avatar_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                discord_user_id: string | number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DiscordAvatarModel"];
                 };
             };
             /** @description Validation Error */

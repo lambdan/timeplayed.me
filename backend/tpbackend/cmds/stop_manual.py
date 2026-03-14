@@ -1,11 +1,11 @@
+from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import User, LiveActivity
-from tpbackend.cmds.command import Command
 import datetime
 from tpbackend import utils, operations
 from tpbackend.utils import activity_name, game_name
 
 
-class StopManualCommand(Command):
+class StopManualCommand(ManualActivityCommand):
     def __init__(self):
         names = ["stop"]
         d = "Stop manual activity (started by `!start`) and save it"

@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 import asyncio
 from typing import TypedDict
@@ -7,7 +6,8 @@ from typing import TypedDict
 from tpbackend import operations
 from tpbackend.consts import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
-from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
+from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
+from tpbackend.storage.storage_v2 import User, Platform
 
 logger = logging.getLogger("oblivionis-sync")
 
@@ -31,8 +31,8 @@ class PassedActivity(TypedDict):
     game_name: str
     duration: int
     dt: datetime.datetime
-    user_name: str
-    user_id: int
+    discord_user_name: str
+    discord_user_id: str
     platform: str
 
 
@@ -44,10 +44,23 @@ def parseActivity(activity: PassedActivity) -> bool:
             return True
 
         user, created = User.get_or_create(
-            id=activity["user_id"], name=activity["user_name"]
+            discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
         )
         if created:
-            logger.info("Added new user %s to database", user.name)
+            logger.info(
+                "Added new user '%s' (id: %s, discord id: %s) to database",
+                user.name,
+                user.id,
+                user.discord_id,
+            )
+
+        if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
+            logger.warning(
+                "User '%s' (id: %s) does not have permission to sync, skipping",
+                user.name,
+                user.id,
+            )
+            return True
 
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()
@@ -93,8 +106,8 @@ async def start():
             success = parseActivity(
                 {
                     "dt": o.timestamp,
-                    "user_name": o.user.name,
-                    "user_id": o.user.id,
+                    "discord_user_name": o.user.name,
+                    "discord_user_id": o.user.id,
                     "game_name": o.game.name,
                     "duration": o.seconds,
                     "platform": o.platform,
