@@ -126,6 +126,16 @@ def make_user(make_platform):
         )
         # mock has_permission method
         u.has_permission = MagicMock(side_effect=lambda p: p in u.permissions)
+        u.add_permission = MagicMock(
+            side_effect=lambda p: (
+                u.permissions.append(p) if p not in u.permissions else None
+            )
+        )
+        u.remove_permission = MagicMock(
+            side_effect=lambda p: (
+                u.permissions.remove(p) if p in u.permissions else None
+            )
+        )
 
         return u
 
