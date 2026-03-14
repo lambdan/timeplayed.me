@@ -67,6 +67,7 @@ def get_total_playtime(
         conditions.append(Activity.platform == platformId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -74,9 +75,15 @@ def get_total_playtime(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
     if len(conditions) > 0:
         query = query.where(*conditions)
     total = query.select(fn.SUM(Activity.seconds)).scalar() or 0
+    cache_set(key, str(total))
     return total
 
 
@@ -96,6 +103,7 @@ def get_activity_count(
         conditions.append(Activity.platform == platformId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -103,9 +111,18 @@ def get_activity_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
+    r = 0
     if len(conditions) > 0:
-        return Activity.select().where(*conditions).count()
-    return Activity.select().count()
+        r = Activity.select().where(*conditions).count()
+    else:
+        r = Activity.select().count()
+    cache_set(key, str(r))
+    return r
 
 
 def get_user_count(
@@ -126,6 +143,7 @@ def get_user_count(
         conditions.append(Activity.platform == platformId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -133,9 +151,18 @@ def get_user_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
+    r = 0
     if len(conditions) > 0:
-        return Activity.select(Activity.user).where(*conditions).distinct().count()
-    return Activity.select(Activity.user).distinct().count()
+        r = Activity.select(Activity.user).where(*conditions).distinct().count()
+    else:
+        r = Activity.select(Activity.user).distinct().count()
+    cache_set(key, str(r))
+    return r
 
 
 def get_game_count(
@@ -153,6 +180,7 @@ def get_game_count(
         conditions.append(Activity.platform == platformId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -160,9 +188,18 @@ def get_game_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    key = f"get_game_count:{userId}:{platformId}:{before_dt}:{after_dt}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
+    r = 0
     if len(conditions) > 0:
-        return Activity.select(Activity.game).where(*conditions).distinct().count()
-    return Activity.select(Activity.game).distinct().count()
+        r = Activity.select(Activity.game).where(*conditions).distinct().count()
+    else:
+        r = Activity.select(Activity.game).distinct().count()
+    cache_set(key, str(r))
+    return r
 
 
 def get_platform_count(
@@ -178,6 +215,7 @@ def get_platform_count(
         conditions.append(Activity.game == gameId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -185,9 +223,18 @@ def get_platform_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
+    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
+    r = 0
     if len(conditions) > 0:
-        return Activity.select(Activity.platform).where(*conditions).distinct().count()
-    return Activity.select(Activity.platform).distinct().count()
+        r = Activity.select(Activity.platform).where(*conditions).distinct().count()
+    else:
+        r = Activity.select(Activity.platform).distinct().count()
+    cache_set(key, str(r))
+    return r
 
 
 def get_player_count(
@@ -196,6 +243,7 @@ def get_player_count(
     conditions = [Activity.game == gameId]
 
     before_valid, after_valid = validateTS(before), validateTS(after)
+    before_dt, after_dt = None, None
     if before_valid:
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
@@ -203,7 +251,14 @@ def get_player_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    return Activity.select(Activity.user).where(*conditions).distinct().count()
+    key = f"get_player_count:{gameId}:{before_dt}:{after_dt}"
+    cached = cache_get(key)
+    if cached:
+        return int(cached.decode("utf-8"))  # type: ignore
+
+    r = Activity.select(Activity.user).where(*conditions).distinct().count()
+    cache_set(key, str(r))
+    return r
 
 
 def get_oldest_or_newest_activity(
@@ -215,7 +270,7 @@ def get_oldest_or_newest_activity(
     after: int | None = None,
 ) -> PublicActivityModel | None:
     order = "asc" if oldest else "desc"
-    activities = get_activities(
+    activities = get_activities(  # caches internally...
         offset=0,
         limit=1,
         order=order,
@@ -246,11 +301,11 @@ def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
 
 
 def get_public_platform(platform: Platform) -> PublicPlatformModel:
-    key = f"get_public_platform:{platform.id}"
-    cached = cache_get(key)
-    if cached:
-        decoded = cached.decode("utf-8")  # type: ignore
-        return PublicPlatformModel.model_validate_json(decoded)
+    #    key = f"get_public_platform:{platform.id}"
+    #    cached = cache_get(key)
+    #    if cached:
+    #        decoded = cached.decode("utf-8")  # type: ignore
+    #        return PublicPlatformModel.model_validate_json(decoded)
 
     name = None
     color_primary = None
@@ -272,7 +327,7 @@ def get_public_platform(platform: Platform) -> PublicPlatformModel:
         color_secondary=color_secondary,
         icon=icon,
     )
-    cache_set(key, r.model_dump_json())
+    # cache_set(key, r.model_dump_json())
     return r
 
 
@@ -284,11 +339,11 @@ def get_public_game_by_id(gameId: int) -> PublicGameModel | None:
 
 
 def get_public_game(game: Game) -> PublicGameModel:
-    key = f"get_public_game:{game.id}"
-    cached = cache_get(key)
-    if cached:
-        decoded = cached.decode("utf-8")  # type: ignore
-        return PublicGameModel.model_validate_json(decoded)
+    #    key = f"get_public_game:{game.id}"
+    #    cached = cache_get(key)
+    #    if cached:
+    #        decoded = cached.decode("utf-8")  # type: ignore
+    #        return PublicGameModel.model_validate_json(decoded)
 
     r = PublicGameModel(
         id=game.id,  # type: ignore
@@ -299,7 +354,7 @@ def get_public_game(game: Game) -> PublicGameModel:
         aliases=game.aliases,  # type: ignore
         release_year=game.release_year,  # type: ignore
     )
-    cache_set(key, r.model_dump_json())
+    # cache_set(key, r.model_dump_json())
     return r
 
 
@@ -311,11 +366,11 @@ def get_public_user_by_id(userId: int) -> PublicUserModel | None:
 
 
 def get_public_user(user: User) -> PublicUserModel:
-    key = f"get_public_user:{user.id}"
-    cached = cache_get(key)
-    if cached:
-        decoded = cached.decode("utf-8")  # type: ignore
-        return PublicUserModel.model_validate_json(decoded)
+    #    key = f"get_public_user:{user.id}"
+    #    cached = cache_get(key)
+    #    if cached:
+    #        decoded = cached.decode("utf-8")  # type: ignore
+    #        return PublicUserModel.model_validate_json(decoded)
 
     avatar_url = None
     discord_id = None
@@ -329,7 +384,7 @@ def get_public_user(user: User) -> PublicUserModel:
         avatar_url=avatar_url,
         default_platform=get_public_platform(user.default_platform),  # type: ignore
     )
-    cache_set(key, r.model_dump_json())
+    # cache_set(key, r.model_dump_json())
     return r
 
 
@@ -341,11 +396,11 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
 
 
 def get_public_activity(activity: Activity) -> PublicActivityModel:
-    key = f"get_public_activity:{activity.id}"
-    cached = cache_get(key)
-    if cached:
-        decoded = cached.decode("utf-8")  # type: ignore
-        return PublicActivityModel.model_validate_json(decoded)
+    #    key = f"get_public_activity:{activity.id}"
+    #    cached = cache_get(key)
+    #    if cached:
+    #        decoded = cached.decode("utf-8")  # type: ignore
+    #        return PublicActivityModel.model_validate_json(decoded)
 
     user = get_public_user(activity.user)  # type: ignore
     r = PublicActivityModel(
@@ -357,7 +412,7 @@ def get_public_activity(activity: Activity) -> PublicActivityModel:
         seconds=activity.seconds,  # type: ignore
         emulated=activity.emulated,  # type: ignore
     )
-    cache_set(key, r.model_dump_json(), ex=5)
+    # cache_set(key, r.model_dump_json(), ex=5)
     return r
 
 
