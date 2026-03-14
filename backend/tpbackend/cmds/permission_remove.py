@@ -1,6 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import User
-from tpbackend.permissions import ALL_PERMISSIONS
 
 
 class RemovePermissionCommand(AdminCommand):

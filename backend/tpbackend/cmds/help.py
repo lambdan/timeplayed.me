@@ -17,7 +17,8 @@ class HelpCommand(Command):
     def command_list(self, user: User) -> str:
         msg = ""
         for c in REGULAR_COMMANDS:
-            msg += f"- `!{c.names[0]}` - {c.description}\n"
+            if c.can_execute(user, ""):
+                msg += f"- `!{c.names[0]}` - {c.description}\n"
         if self.is_admin(user):
             msg += "\n\n☣️ You are admin, see `!help_admin`"
         msg += "\nUse `!help <command>` for more info"
@@ -33,10 +34,12 @@ class HelpCommand(Command):
         for c in REGULAR_COMMANDS:
             for name in c.names:
                 if name == command_name:
-                    return c.get_help_message()
+                    if c.can_execute(user, ""):
+                        return c.get_help_message()
         if self.is_admin(user):
             for c in ADMIN_COMMANDS:
                 for name in c.names:
                     if name == command_name:
-                        return c.get_help_message()
+                        if c.can_execute(user, ""):
+                            return c.get_help_message()
         return f"Command `{command_name}` not found."

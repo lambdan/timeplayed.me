@@ -1,8 +1,8 @@
-from tpbackend.storage.storage_v2 import Platform, User, LiveActivity
-from tpbackend.cmds.command import Command
+from tpbackend.cmds.manual_activity_command import ManualActivityCommand
+from tpbackend.storage.storage_v2 import User, LiveActivity
 
 
-class AbortManualCommand(Command):
+class AbortManualCommand(ManualActivityCommand):
     def __init__(self):
         names = ["abort"]
         d = "Abort manual activity (started by `!start`)"

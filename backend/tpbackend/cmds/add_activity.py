@@ -1,4 +1,5 @@
 from tpbackend import api
+from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
@@ -15,7 +16,7 @@ from tpbackend.utils import (
 )
 
 
-class AddActivityCommand(Command):
+class AddActivityCommand(ManualActivityCommand):
     def __init__(self):
         names = ["add_activity", "aa", "add"]
         d = "Add activity manually"
@@ -78,7 +79,7 @@ Returns: Confirmation message
         seconds = (h * 3600) + (m * 60) + s
 
         # check for overlapping?
-        if self.get_overlapping(user_id=str(user.id), seconds=seconds):
+        if self.get_overlapping(user_id=user.id, seconds=seconds):  # type: ignore
             return "Error: Activity overlaps with existing activity."
 
         if seconds > (16 * 3600):
@@ -86,7 +87,7 @@ Returns: Confirmation message
 
         return self.add(user=user, game=game, seconds=seconds)
 
-    def get_overlapping(self, user_id: str, seconds: int) -> bool:
+    def get_overlapping(self, user_id: int, seconds: int) -> bool:
         after_ts = (now().timestamp() * 1000) - (seconds * 1000)
         after_ts = int(after_ts)
         activities = api.get_activities(user=user_id, after=after_ts, limit=1)

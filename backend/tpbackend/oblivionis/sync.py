@@ -6,6 +6,7 @@ from typing import TypedDict
 from tpbackend import operations
 from tpbackend.consts import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
+from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
 from tpbackend.storage.storage_v2 import User, Platform
 
 logger = logging.getLogger("oblivionis-sync")
@@ -52,6 +53,14 @@ def parseActivity(activity: PassedActivity) -> bool:
                 user.id,
                 user.discord_id,
             )
+
+        if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
+            logger.warning(
+                "User '%s' (id: %s) does not have permission to sync, skipping",
+                user.name,
+                user.id,
+            )
+            return True
 
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()

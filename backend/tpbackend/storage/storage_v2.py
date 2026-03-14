@@ -2,7 +2,7 @@ import os
 import logging
 
 from tpbackend import utils
-from tpbackend.permissions import PERMISSION_COMMANDS
+from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage.reset_sequence import reset_sequences
 
 logger = logging.getLogger("storage_v2")
@@ -57,7 +57,7 @@ class User(BaseModel):
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
     pc_platform = CharField(default="win")
-    permissions = ArrayField(TextField, default=lambda: [PERMISSION_COMMANDS])  # type: ignore
+    permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
