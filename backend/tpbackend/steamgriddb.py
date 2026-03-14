@@ -58,7 +58,7 @@ def search(query: str) -> list[SGDB_Game]:
             res.append(SGDB_Game.model_validate(v))
         return res
 
-    key = f"7_sgdb_search_{query}"
+    key = f"sgdb_search:{query}"
 
     redisCache = cache_get(key)
     if redisCache:
@@ -106,7 +106,7 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
             res.append(SGDB_Grid.model_validate(v))
         return res
 
-    key = f"2sgdb_grids_{game_id}"
+    key = f"sgdb_grids:{game_id}"
     cached = cache_get(key)
     if cached:
         decoded = cached.decode("utf-8")  # type: ignore

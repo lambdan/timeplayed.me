@@ -42,7 +42,7 @@ app = FastAPI()
 
 def get_discord_avatar_url(discord_user_id: str | int) -> str:
     discord_user_id = int(discord_user_id)
-    cache_key = f"2_discord_avatar_{discord_user_id}"
+    cache_key = f"get_discord_avatar_url:{discord_user_id}"
     cached = cache_get(cache_key)
     if cached:
         return cached.decode("utf-8")  # type: ignore
