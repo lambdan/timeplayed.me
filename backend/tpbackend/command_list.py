@@ -7,6 +7,7 @@ from tpbackend.cmds.delete_game import DeleteGameCommand
 from tpbackend.cmds.delete_platform import DeletePlatformCommand
 from tpbackend.cmds.emulated import ToggleEmulatedCommand
 from tpbackend.cmds.get_activity import GetActivityCommand
+from tpbackend.cmds.get_cache_stats import GetCacheStats
 from tpbackend.cmds.get_game import GetGameCommand
 from tpbackend.cmds.last import LastActivityCommand
 from tpbackend.cmds.permission_add import AddPermissionCommand
@@ -101,6 +102,7 @@ ADMIN_COMMANDS = [
     UptimeCommand(),
     MissingSGDBAdminCommand(),
     MissingGRYAdminCommand(),
+    GetCacheStats(),
 ]
 
 used = set()
