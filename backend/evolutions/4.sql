@@ -1,3 +1,5 @@
+-- needed if upgrading from < 5.0.0
+
 -- create new users table
 
 CREATE TABLE users_new (
