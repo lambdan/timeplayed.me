@@ -2,7 +2,7 @@
 
 CREATE TABLE users_new (
     id BIGINT PRIMARY KEY,
-    discord_id VARCHAR(255) UNIQUE NOT NULL,
+    discord_id VARCHAR(255) UNIQUE,
     name VARCHAR(255) NOT NULL,
     default_platform_id INTEGER NOT NULL REFERENCES platform(id),
     bot_commands_blocked BOOLEAN DEFAULT FALSE,
