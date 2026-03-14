@@ -1,4 +1,5 @@
 import datetime
+import json
 from typing import Literal
 from fastapi import FastAPI, HTTPException
 from peewee import fn
@@ -69,9 +70,11 @@ def get_total_playtime(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -105,9 +108,11 @@ def get_activity_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -145,9 +150,11 @@ def get_user_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -182,9 +189,11 @@ def get_game_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -217,9 +226,11 @@ def get_platform_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -245,9 +256,11 @@ def get_player_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
+        before_valid = roundToSecond(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
+        after_valid = roundToSecond(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
@@ -438,6 +451,10 @@ def get_users(
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
+    if before:
+        before = roundToSecond(before)
+    if after:
+        after = roundToSecond(after)
 
     total = get_user_count(
         before=before, after=after, gameId=gameId, platformId=platformId
@@ -454,6 +471,11 @@ def get_users(
     if after:
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    key = f"get_users:{offset}:{limit}:{gameId}:{platformId}:{before}:{after}"
+    cached = cache_get(key)
+    if cached:
+        return PaginatedUserWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select()
     if len(filters) > 0:
@@ -477,12 +499,14 @@ def get_users(
         except Exception as e:
             logger.warning("Skipping user %s in get_users: %s", userId, e)
             continue
-    return PaginatedUserWithStats(
+    r = PaginatedUserWithStats(
         data=data,
         total=total,
         offset=offset,
         limit=limit,
     )
+    cache_set(key, r.model_dump_json(), ex=15)
+    return r
 
 
 @app.get("/api/user/{userId}", tags=["users"], response_model=UserWithStats)
@@ -594,7 +618,7 @@ def get_activities(
         order=order,
     )
 
-    cache_set(key, r.model_dump_json(), ex=15)
+    cache_set(key, r.model_dump_json())
     return r
 
 
@@ -674,11 +698,18 @@ def get_games(
     if platformId:
         filters.append(Activity.platform == platformId)
     if before:
+        before = roundToSecond(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
+        after = roundToSecond(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}"
+    cached = cache_get(key)
+    if cached:
+        return PaginatedGameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select()
     if len(filters) > 0:
@@ -706,12 +737,14 @@ def get_games(
         except Exception as e:
             logger.warning("Skipping game %s in get_games: %s", gameId, e)
             continue
-    return PaginatedGameWithStats(
+    r = PaginatedGameWithStats(
         data=data,
         total=total,
         offset=offset,
         limit=limit,
     )
+    cache_set(key, r.model_dump_json())
+    return r
 
 
 @app.get("/api/game/{gameId}", tags=["games"], response_model=GameWithStats)
@@ -797,11 +830,18 @@ def get_platforms(
     if gameId:
         filters.append(Activity.game == gameId)
     if before:
+        before = roundToSecond(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
+        after = roundToSecond(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    key = f"get_platforms:{offset}:{limit}:{userId}:{gameId}:{before}:{after}"
+    cached = cache_get(key)
+    if cached:
+        return PaginatedPlatformsWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select()
     if len(filters) > 0:
@@ -827,12 +867,14 @@ def get_platforms(
         except Exception as e:
             logger.warning("Skipping platform %s in get_platforms: %s", platformId, e)
             continue
-    return PaginatedPlatformsWithStats(
+    r = PaginatedPlatformsWithStats(
         data=data,
         total=total,
         offset=offset,
         limit=limit,
     )
+    cache_set(key, r.model_dump_json())
+    return r
 
 
 @app.get(
@@ -936,6 +978,11 @@ def get_totals(
 def get_playtime_by_day(
     userId: str | None = None, gameId: int | None = None, platformId: int | None = None
 ):
+    cache_key = f"playtime_by_day:{userId}:{gameId}:{platformId}"
+    cached = cache_get(cache_key)
+    if cached:
+        return json.loads(cached.decode("utf-8"))  # type: ignore
+
     query = Activity.select(Activity.timestamp, Activity.seconds)
     conditions = []
     if userId:
@@ -989,6 +1036,7 @@ def get_playtime_by_day(
     for date in sorted(daily_seconds.keys()):
         data["labels"].append(date.strftime("%Y-%m-%d"))
         data["datasets"][0]["data"].append(daily_seconds[date])
+    cache_set(cache_key, json.dumps(data))
     return data
 
 
