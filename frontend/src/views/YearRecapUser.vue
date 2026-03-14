@@ -18,7 +18,7 @@ const route = useRoute();
 const loading = ref<boolean>(true);
 const loadingProgress = ref(0);
 const refYear = ref<number>();
-const refUserId = ref<string>();
+const refUserId = ref<number>();
 const activities = ref<Activity[]>([]);
 const userInfo = ref<User>();
 const gamesList = ref<RecapGameEntry[]>([]);
@@ -394,7 +394,7 @@ async function _fetchActivities() {
 }
 
 onMounted(async () => {
-  const userId = route.params.id as string;
+  const userId = parseInt(route.params.id as string);
   const year = parseInt(route.params.year as string);
 
   // figure out valid years
