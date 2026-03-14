@@ -21,7 +21,7 @@ jobs:
       - name: Check package.json version matches release tag
         run: make check-version TAG=${{ github.event.release.tag_name }}
 
-  test:
+  test-backend:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,3 +45,28 @@ jobs:
       - name: Run tests (pytest)
         working-directory: backend
         run: make test
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Check formatting (prettier)
+        working-directory: frontend
+        run: npm run format-check
+
+      - name: Test building # TODO proper tests!
+        working-directory: frontend
+        run: npm run build
