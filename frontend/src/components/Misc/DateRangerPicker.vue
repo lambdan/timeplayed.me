@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// if you are reading this, i am sorry. i hate this fucking component too.
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   endOfMonth,
   endOfWeek,
@@ -17,40 +16,32 @@ const props = defineProps<{
   toggleable?: boolean;
 }>();
 
-function getStorageKey(
-  what: "before" | "after" | "relativeMillis" | "mode",
-): string {
-  const offset = 1; // inc to reset
-  return `dateRangerPicker::${offset}::${window.location.pathname}::${what}`;
-}
+const emit = defineEmits<{
+  (e: "updated:both", value: EmitData): void;
+}>();
+
+// --- Constants ---
 
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
-const ALL_TIME_MS = -1;
-const THIS_YEAR_MS = -2;
-const THIS_MONTH_MS = -3;
-const THIS_WEEK_MS = -6;
-const LAST_YEAR_MS = -4;
-const LAST_MONTH_MS = -5;
-const LAST_WEEK_MS = -7;
+const DEFAULT_RELATIVE_MILLIS = ONE_DAY * 7;
 
-const _relativeMode = ref(false);
-const _before = ref<Date | undefined>();
-const _after = ref<Date | undefined>(); // timeplayed start date
+/** Sentinel values for calendar-based presets (not real millisecond durations). */
+const PRESET_VALUES = {
+  ALL_TIME: -1,
+  THIS_YEAR: -2,
+  THIS_MONTH: -3,
+  THIS_WEEK: -6,
+  LAST_YEAR: -4,
+  LAST_MONTH: -5,
+  LAST_WEEK: -7,
+} as const;
 
-const _beforeRaw = ref<any>(); // used to show error only,
-const _afterRaw = ref<any>(); // not used for anything else
-
-const _beforeValid = ref(false);
-const _afterValid = ref(false);
-
-const _relativeMillis = ref(props.relativeMillis ?? ALL_TIME_MS);
-
-const _toggleable = ref(true);
+// --- Types ---
 
 interface RelativeOption {
   label: string;
-  milliseconds: number;
+  value: number;
 }
 
 interface EmitData {
@@ -60,460 +51,383 @@ interface EmitData {
   relativeMode: boolean;
 }
 
+// --- Preset options ---
+
 const PRESETS: RelativeOption[] = [
-  //{ label: "Last hour", milliseconds: ONE_HOUR },
-  //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
-  //{ label: "Last day", milliseconds: ONE_HOUR * 24 },
-  { label: "Last 7 days", milliseconds: ONE_DAY * 7 },
-  //{ label: "Last 14 days", milliseconds: ONE_DAY * 14 },
-  { label: "Last 30 days", milliseconds: ONE_DAY * 30 },
-  { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
-  { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
-  { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
-  { label: "This week", milliseconds: THIS_WEEK_MS },
-  { label: "Last week", milliseconds: LAST_WEEK_MS },
-  { label: "This month", milliseconds: THIS_MONTH_MS },
-  { label: "Last month", milliseconds: LAST_MONTH_MS },
-  { label: "This year", milliseconds: THIS_YEAR_MS },
-  { label: "Last year", milliseconds: LAST_YEAR_MS },
-  { label: "All time", milliseconds: ALL_TIME_MS },
+  { label: "Last 7 days", value: ONE_DAY * 7 },
+  { label: "Last 30 days", value: ONE_DAY * 30 },
+  { label: "Last 90 days", value: ONE_DAY * 90 },
+  { label: "Last 180 days", value: ONE_DAY * 180 },
+  { label: "Last 365 days", value: ONE_DAY * 365 },
+  { label: "This week", value: PRESET_VALUES.THIS_WEEK },
+  { label: "Last week", value: PRESET_VALUES.LAST_WEEK },
+  { label: "This month", value: PRESET_VALUES.THIS_MONTH },
+  { label: "Last month", value: PRESET_VALUES.LAST_MONTH },
+  { label: "This year", value: PRESET_VALUES.THIS_YEAR },
+  { label: "Last year", value: PRESET_VALUES.LAST_YEAR },
+  { label: "All time", value: PRESET_VALUES.ALL_TIME },
 ];
 
-const emit = defineEmits<{
-  (e: "updated:both", value: EmitData): void;
-}>();
+// --- LocalStorage helpers ---
 
-function maybeEmitPreset(x: number): boolean {
-  const _f = (x: number): boolean => {
-    const now = new Date();
-    switch (x) {
-      case ALL_TIME_MS:
-        maybeEmit({ newAfter: undefined, newBefore: undefined });
-        return true;
-      case THIS_YEAR_MS:
-        maybeEmit({
-          newAfter: startOfYear(now),
-          newBefore: endOfYear(now),
-        });
-        return true;
-      case LAST_YEAR_MS:
-        const lastYearDate = new Date(now);
-        lastYearDate.setUTCFullYear(lastYearDate.getUTCFullYear() - 1);
-        maybeEmit({
-          newAfter: startOfYear(lastYearDate),
-          newBefore: endOfYear(lastYearDate),
-        });
-        return true;
-      case THIS_MONTH_MS:
-        maybeEmit({
-          newAfter: startOfMonth(now),
-          newBefore: endOfMonth(now),
-        });
-        return true;
-      case LAST_MONTH_MS:
-        const lastMonthDate = new Date(now);
-        lastMonthDate.setUTCMonth(lastMonthDate.getUTCMonth() - 1);
-        maybeEmit({
-          newAfter: startOfMonth(lastMonthDate),
-          newBefore: endOfMonth(lastMonthDate),
-        });
-        return true;
-      case THIS_WEEK_MS:
-        maybeEmit({
-          newAfter: startOfWeek(now),
-          newBefore: endOfWeek(now),
-        });
-        return true;
-      case LAST_WEEK_MS:
-        const lastWeekDate = new Date(now);
-        lastWeekDate.setUTCDate(lastWeekDate.getUTCDate() - 7);
-        maybeEmit({
-          newAfter: startOfWeek(lastWeekDate),
-          newBefore: endOfWeek(lastWeekDate),
-        });
-        return true;
-      default:
-        return false;
-    }
-  };
-  const outcome = _f(x);
-  //console.log("maybeEmitPreset", x, outcome);
-  return outcome;
+const STORAGE_KEY_VERSION = 1; // increment to invalidate stored values
+
+function storageKey(
+  what: "before" | "after" | "relativeMillis" | "mode",
+): string {
+  return `dateRangerPicker::${STORAGE_KEY_VERSION}::${window.location.pathname}::${what}`;
 }
 
-function parseDropDownPreset(x: number): boolean {
-  const emitted = maybeEmitPreset(x);
-  if (emitted) {
-    _relativeMillis.value = x;
-    return true;
+function loadMode(): "absolute" | "relative" | null {
+  const stored = localStorage.getItem(storageKey("mode"));
+  return stored === "absolute" || stored === "relative" ? stored : null;
+}
+
+function saveMode(mode: "absolute" | "relative"): void {
+  localStorage.setItem(storageKey("mode"), mode);
+}
+
+function loadRelativeMillis(): number {
+  const stored = localStorage.getItem(storageKey("relativeMillis"));
+  if (stored !== null) {
+    const val = parseInt(stored);
+    if (!isNaN(val)) return val;
   }
-  return false;
+  return props.relativeMillis ?? DEFAULT_RELATIVE_MILLIS;
 }
 
-function getStoredMode(): "absolute" | "relative" | null {
-  const key = getStorageKey("mode");
-  const stored = localStorage.getItem(key);
-  if (stored === "absolute" || stored === "relative") {
-    return stored;
-  }
-  return null;
+function saveRelativeMillis(val: number): void {
+  localStorage.setItem(storageKey("relativeMillis"), val.toString());
 }
 
-function storeMode(mode: "absolute" | "relative") {
-  const key = getStorageKey("mode");
-  localStorage.setItem(key, mode);
-}
+function loadAbsoluteDates(): { before: Date; after: Date } {
+  const defaultAfter = new Date();
+  defaultAfter.setUTCDate(defaultAfter.getUTCDate() - 7);
+  defaultAfter.setUTCHours(0, 0, 0, 0);
+  const defaultBefore = new Date();
+  defaultBefore.setUTCHours(23, 59, 59, 999);
 
-function getStoredDates() {
-  let after = new Date(Date.now() - 7 * ONE_DAY);
-  after.setUTCHours(0, 0, 0, 0);
-  let before = new Date();
-  before.setUTCHours(23, 59, 59, 999);
+  let after = defaultAfter;
+  let before = defaultBefore;
 
-  let relativeMillis = props.relativeMillis ?? 7 * ONE_DAY;
-
-  const afterKey = getStorageKey("after");
-  const beforeKey = getStorageKey("before");
-  const relativeKey = getStorageKey("relativeMillis");
-
-  let storedAfter = localStorage.getItem(afterKey);
-  let storedBefore = localStorage.getItem(beforeKey);
-  let storedRelativeMillis = localStorage.getItem(relativeKey);
-
-  if (storedAfter) {
+  const storedAfter = localStorage.getItem(storageKey("after"));
+  if (storedAfter !== null) {
     const maybe = new Date(parseInt(storedAfter));
-    if (isValidDate(maybe)) {
-      after = maybe;
-    }
+    if (isValidDate(maybe)) after = maybe;
   }
 
-  if (storedBefore) {
+  const storedBefore = localStorage.getItem(storageKey("before"));
+  if (storedBefore !== null) {
     const maybe = new Date(parseInt(storedBefore));
-    if (isValidDate(maybe)) {
-      before = maybe;
-    }
+    if (isValidDate(maybe)) before = maybe;
   }
 
-  if (storedRelativeMillis) {
-    const maybe = parseInt(storedRelativeMillis);
-    if (!isNaN(maybe)) {
-      relativeMillis = maybe;
-    }
-  }
-  return {
-    after,
-    before,
-    relativeMillis,
-  };
+  return { before, after };
 }
 
-function isValidDate(d: any): boolean {
+function saveAbsoluteDates(before: Date, after: Date): void {
+  localStorage.setItem(storageKey("before"), before.getTime().toString());
+  localStorage.setItem(storageKey("after"), after.getTime().toString());
+}
+
+// --- Validation ---
+
+function isValidDate(d: unknown): d is Date {
   try {
-    const date = new Date(d);
-    if (isNaN(date.getTime())) {
-      return false;
-    }
-
-    if (date.getUTCFullYear() < 2000 || date.getUTCFullYear() > 2100) {
-      return false;
-    }
-
-    return true;
-  } catch (e) {
+    const date = d instanceof Date ? d : new Date(d as string | number);
+    if (isNaN(date.getTime())) return false;
+    const year = date.getUTCFullYear();
+    return year >= 2000 && year <= 2100;
+  } catch {
     return false;
   }
 }
 
-let LAST_EMIT: EmitData | null = null;
-let DEBOUNCE_ID = 0;
-async function _emit(data: EmitData) {
-  if (JSON.stringify(LAST_EMIT) === JSON.stringify(data)) {
-    //console.log("_emit: no changes detected, not emitting");
-    return;
-  }
+// --- State ---
 
-  // debounce
-  DEBOUNCE_ID++;
-  const id = DEBOUNCE_ID;
-  await new Promise((r) => setTimeout(r, 400));
-  if (id !== DEBOUNCE_ID) {
-    return;
-  }
+const relativeMode = ref(true);
+const toggleable = computed(() => props.toggleable !== false);
 
-  LAST_EMIT = data;
+// Relative mode state
+const selectedPreset = ref<number>(
+  props.relativeMillis ?? DEFAULT_RELATIVE_MILLIS,
+);
+
+// Absolute mode state
+const absoluteBefore = ref<Date | undefined>();
+const absoluteAfter = ref<Date | undefined>();
+const beforeInputRaw = ref("");
+const afterInputRaw = ref("");
+const beforeInputValid = ref(true);
+const afterInputValid = ref(true);
+
+// --- Emit with deduplication and debounce ---
+
+let lastEmitted: string | null = null;
+let debounceId = 0;
+
+async function emitUpdate(data: EmitData): Promise<void> {
+  const serialized = JSON.stringify(data);
+  if (serialized === lastEmitted) return;
+
+  debounceId++;
+  const myId = debounceId;
+  await new Promise<void>((resolve) => setTimeout(resolve, 400));
+  if (myId !== debounceId) return;
+
+  lastEmitted = serialized;
   emit("updated:both", data);
 }
 
-function store(which: "after" | "before", date: Date) {
-  const key = getStorageKey(which);
-  localStorage.setItem(key, date.getTime().toString());
-}
+// --- Preset resolution ---
 
-function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
-  //console.log("maybeEmit", opts);
-  if (_relativeMode.value && isValidDate(opts.newBefore)) {
-    _before.value = opts.newBefore;
-  } else if (_relativeMode.value || opts.newBefore === undefined) {
-    _before.value = undefined;
-  } else if (isValidDate(opts.newBefore)) {
-    _before.value = opts.newBefore;
-  }
-  _beforeValid.value = isValidDate(opts.newBefore);
+function resolveDateRange(presetValue: number): {
+  before: Date | undefined;
+  after: Date | undefined;
+} {
+  const now = new Date();
+  switch (presetValue) {
+    case PRESET_VALUES.ALL_TIME:
+      return { before: undefined, after: undefined };
 
-  if (opts.newAfter === undefined) {
-    _after.value = undefined;
-  } else if (isValidDate(opts.newAfter)) {
-    _after.value = opts.newAfter;
-  }
-  _afterValid.value = isValidDate(opts.newAfter);
+    case PRESET_VALUES.THIS_WEEK:
+      return { before: endOfWeek(now), after: startOfWeek(now) };
 
-  if (_before.value && _after.value) {
-    if (_before.value < _after.value) {
-      // invalid range
-      _beforeValid.value = false;
-      _afterValid.value = false;
-      _beforeRaw.value = _before.value.toISOString().slice(0, 10);
-      _afterRaw.value = _after.value.toISOString().slice(0, 10);
-      return;
+    case PRESET_VALUES.LAST_WEEK: {
+      const lastWeek = new Date(now);
+      lastWeek.setUTCDate(lastWeek.getUTCDate() - 7);
+      return { before: endOfWeek(lastWeek), after: startOfWeek(lastWeek) };
+    }
+
+    case PRESET_VALUES.THIS_MONTH:
+      return { before: endOfMonth(now), after: startOfMonth(now) };
+
+    case PRESET_VALUES.LAST_MONTH: {
+      const lastMonth = new Date(now);
+      lastMonth.setUTCMonth(lastMonth.getUTCMonth() - 1);
+      return { before: endOfMonth(lastMonth), after: startOfMonth(lastMonth) };
+    }
+
+    case PRESET_VALUES.THIS_YEAR:
+      return { before: endOfYear(now), after: startOfYear(now) };
+
+    case PRESET_VALUES.LAST_YEAR: {
+      const lastYear = new Date(now);
+      lastYear.setUTCFullYear(lastYear.getUTCFullYear() - 1);
+      return { before: endOfYear(lastYear), after: startOfYear(lastYear) };
+    }
+
+    default: {
+      // Positive millisecond duration: rolling window ending now
+      const after = new Date(Date.now() - presetValue);
+      after.setUTCHours(0, 0, 0, 0);
+      return { before: undefined, after };
     }
   }
+}
 
-  if (_before.value && _after.value) {
-    // store before and after
-    store("before", _before.value);
-    store("after", _after.value);
-  }
+// --- Relative mode ---
 
-  _emit({
-    before: _before.value,
-    after: _after.value,
-    relativeMode: _relativeMode.value,
-    allTime: _after.value === undefined && _before.value === undefined,
+function applyRelativePreset(value: number): void {
+  selectedPreset.value = value;
+  saveRelativeMillis(value);
+  const { before, after } = resolveDateRange(value);
+  emitUpdate({
+    before,
+    after,
+    relativeMode: true,
+    allTime: before === undefined && after === undefined,
   });
 }
 
-function iso8601(date: Date): string {
+// --- Absolute mode ---
+
+function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function getAbsoluteDateDisplayString(which: "before" | "after"): string {
+const beforeDisplayValue = computed(() =>
+  beforeInputValid.value && absoluteBefore.value
+    ? toISODate(absoluteBefore.value)
+    : beforeInputRaw.value,
+);
+
+const afterDisplayValue = computed(() =>
+  afterInputValid.value && absoluteAfter.value
+    ? toISODate(absoluteAfter.value)
+    : afterInputRaw.value,
+);
+
+function onAbsoluteDateChange(which: "before" | "after", event: Event): void {
+  const val = (event.target as HTMLInputElement).value;
+
   if (which === "before") {
-    if (_beforeValid.value === false) {
-      return _beforeRaw.value;
-    }
-    return iso8601(_before.value!);
-  }
-
-  if (which === "after") {
-    if (_afterValid.value === false) {
-      return _afterRaw.value;
-    }
-    return iso8601(_after.value!);
-  }
-
-  throw new Error("youll never get here");
-}
-
-function switchToRelative() {
-  const stored = getStoredDates().relativeMillis;
-  _relativeMillis.value = stored;
-  if (!maybeEmitPreset(stored)) {
-    const after = new Date(Date.now() - stored);
-    after.setUTCHours(0, 0, 0, 0);
-    maybeEmit({ newAfter: after, newBefore: undefined });
-  }
-
-  storeMode("relative");
-}
-
-function switchToAbsolute() {
-  const stored = getStoredDates();
-  _before.value = stored.before;
-  _after.value = stored.after;
-  maybeEmit({ newBefore: stored.before, newAfter: stored.after });
-  storeMode("absolute");
-}
-
-function toggleMode() {
-  _relativeMode.value = !_relativeMode.value;
-  if (_relativeMode.value) {
-    switchToRelative();
+    beforeInputRaw.value = val;
   } else {
-    switchToAbsolute();
-  }
-}
-
-function absoluteChanged(which: "before" | "after", newValue: any) {
-  //console.log("absoluteChanged", which, newValue, typeof newValue);
-  const val = (newValue as HTMLInputElement).value;
-  //console.log("New date value:", val);
-
-  if (which === "before") {
-    _beforeRaw.value = val;
-    //console.log("_beforeRaw", _beforeRaw.value);
-  } else if (which === "after") {
-    _afterRaw.value = val;
-    //console.log("_afterRaw", _afterRaw.value);
+    afterInputRaw.value = val;
   }
 
-  let newDate: Date;
-  try {
-    newDate = new Date(val);
-    console.log("Parsed date:", newDate);
-  } catch (e) {
-    //console.warn("absoluteChanged: invalid date format", newValue, e);
-    if (which === "before") {
-      _beforeValid.value = false;
-    } else if (which === "after") {
-      _afterValid.value = false;
-    }
+  const parsed = new Date(val);
+  if (!isValidDate(parsed)) {
+    if (which === "before") beforeInputValid.value = false;
+    else afterInputValid.value = false;
     return;
   }
 
-  let adjusted = newDate;
-
+  const adjusted = new Date(parsed);
   if (which === "before") {
-    // set to end of day
     adjusted.setUTCHours(23, 59, 59, 999);
-  } else if (which === "after") {
-    // set to start of day
+    absoluteBefore.value = adjusted;
+    beforeInputValid.value = true;
+  } else {
     adjusted.setUTCHours(0, 0, 0, 0);
+    absoluteAfter.value = adjusted;
+    afterInputValid.value = true;
   }
 
-  if (which === "before") {
-    maybeEmit({ newBefore: adjusted, newAfter: _after.value });
-  } else if (which === "after") {
-    maybeEmit({ newAfter: adjusted, newBefore: _before.value });
-  }
-}
-
-function getDropdownValue(): string {
-  for (const option of PRESETS) {
-    const x = option.milliseconds.toString();
-    const y = _relativeMillis.value.toString();
-    if (x === y) {
-      return x;
+  // Validate that end date is not before start date
+  if (absoluteBefore.value && absoluteAfter.value) {
+    if (absoluteBefore.value < absoluteAfter.value) {
+      beforeInputValid.value = false;
+      afterInputValid.value = false;
+      return;
     }
-  }
-  console.warn(
-    "getDropdownValue: no matching value for",
-    _relativeMillis.value,
-  );
-  return "-1";
-}
-
-function parseDropdown(n: any) {
-  function store(val: number) {
-    const key = getStorageKey("relativeMillis");
-    localStorage.setItem(key, val.toString());
+    saveAbsoluteDates(absoluteBefore.value, absoluteAfter.value);
   }
 
-  if (typeof n === "string") {
-    n = parseInt(n);
-  }
-  if (typeof n !== "number") {
-    console.warn("parseDropdown: invalid value type", n);
-    return;
-  }
-  store(n);
-  if (parseDropDownPreset(n)) {
-    return;
-  }
-  const after = new Date(Date.now() - n);
-  after.setUTCHours(0, 0, 0, 0);
-  maybeEmit({ newAfter: after, newBefore: undefined });
+  emitUpdate({
+    before: absoluteBefore.value,
+    after: absoluteAfter.value,
+    relativeMode: false,
+    allTime: false,
+  });
 }
+
+// --- Mode switching ---
+
+function switchToRelative(): void {
+  relativeMode.value = true;
+  saveMode("relative");
+  applyRelativePreset(loadRelativeMillis());
+}
+
+function switchToAbsolute(): void {
+  relativeMode.value = false;
+  saveMode("absolute");
+  const stored = loadAbsoluteDates();
+  absoluteBefore.value = stored.before;
+  absoluteAfter.value = stored.after;
+  beforeInputRaw.value = toISODate(stored.before);
+  afterInputRaw.value = toISODate(stored.after);
+  beforeInputValid.value = true;
+  afterInputValid.value = true;
+  emitUpdate({
+    before: stored.before,
+    after: stored.after,
+    relativeMode: false,
+    allTime: false,
+  });
+}
+
+function toggleMode(): void {
+  if (relativeMode.value) {
+    switchToAbsolute();
+  } else {
+    switchToRelative();
+  }
+}
+
+// --- Init ---
 
 onMounted(() => {
-  _toggleable.value = props.toggleable !== false;
-
-  if (getStoredMode() === "absolute") {
+  if (loadMode() === "absolute") {
     switchToAbsolute();
     return;
   }
 
   if (props.before && props.after) {
-    _relativeMode.value = false;
-    maybeEmit({ newBefore: props.before, newAfter: props.after });
-  } else {
-    _relativeMode.value = true;
-    switchToRelative();
+    relativeMode.value = false;
+    absoluteBefore.value = props.before;
+    absoluteAfter.value = props.after;
+    beforeInputRaw.value = toISODate(props.before);
+    afterInputRaw.value = toISODate(props.after);
+    beforeInputValid.value = true;
+    afterInputValid.value = true;
+    emitUpdate({
+      before: props.before,
+      after: props.after,
+      relativeMode: false,
+      allTime: false,
+    });
+    return;
   }
+
+  relativeMode.value = true;
+  applyRelativePreset(loadRelativeMillis());
 });
 </script>
 
 <template>
   <div class="row">
-    <div class="col" v-if="!_relativeMode">
-      <!-- absolute mode: one row for both dates -->
+    <div class="col">
       <div class="input-group mb-2">
-        <input
-          type="date"
-          id="after"
-          class="form-control"
-          :class="{ 'text-danger': !_afterValid }"
-          :value="getAbsoluteDateDisplayString('after')"
-          @change="absoluteChanged('after', $event.target as HTMLInputElement)"
-        />
-        <span class="input-group-text">-</span>
-        <input
-          id="before"
-          type="date"
-          class="form-control"
-          :class="_beforeValid ? '' : 'text-danger'"
-          :value="getAbsoluteDateDisplayString('before')"
-          @change="absoluteChanged('before', $event.target as HTMLInputElement)"
-        />
-        <!-- Switch mode button -->
-        <button
-          v-if="_toggleable"
-          class="btn btn-sm btn-outline-secondary"
-          @click="toggleMode()"
-          type="button"
-          title="Switch to relative mode"
-        >
-          <i
-            class="bi"
-            :class="_relativeMode ? 'bi-calendar-date' : 'bi-clock-history'"
-          ></i>
-        </button>
-      </div>
-    </div>
-    <div class="col" v-else>
-      <!-- relative mode-->
-      <div class="col">
-        <div class="input-group mb-2">
+        <!-- Absolute mode: start and end date inputs -->
+        <template v-if="!relativeMode">
+          <input
+            type="date"
+            id="after"
+            class="form-control"
+            :class="{ 'text-danger': !afterInputValid }"
+            :value="afterDisplayValue"
+            @change="onAbsoluteDateChange('after', $event)"
+          />
+          <span class="input-group-text">-</span>
+          <input
+            id="before"
+            type="date"
+            class="form-control"
+            :class="{ 'text-danger': !beforeInputValid }"
+            :value="beforeDisplayValue"
+            @change="onAbsoluteDateChange('before', $event)"
+          />
+        </template>
+
+        <!-- Relative mode: preset dropdown -->
+        <template v-else>
           <select
             class="form-select"
-            :value="getDropdownValue()"
+            :value="selectedPreset"
             @change="
-              (e) => {
-                const val = (e.target as HTMLSelectElement).value;
-                parseDropdown(val);
-              }
+              applyRelativePreset(
+                parseInt(($event.target as HTMLSelectElement).value),
+              )
             "
           >
             <option
               v-for="option in PRESETS"
               :key="option.label"
-              :value="option.milliseconds"
+              :value="option.value"
             >
               {{ option.label }}
             </option>
           </select>
-          <button
-            v-if="_toggleable"
-            class="btn btn-sm btn-outline-secondary"
-            @click="toggleMode()"
-            type="button"
-            title="Switch to absolute mode"
-          >
-            <i
-              class="bi"
-              :class="_relativeMode ? 'bi-calendar-date' : 'bi-clock-history'"
-            ></i>
-          </button>
-        </div>
+        </template>
+
+        <!-- Mode toggle button -->
+        <button
+          v-if="toggleable"
+          class="btn btn-sm btn-outline-secondary"
+          @click="toggleMode"
+          type="button"
+          :title="
+            relativeMode ? 'Switch to absolute mode' : 'Switch to relative mode'
+          "
+        >
+          <i
+            class="bi"
+            :class="relativeMode ? 'bi-calendar-date' : 'bi-clock-history'"
+          ></i>
+        </button>
       </div>
     </div>
   </div>
