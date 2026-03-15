@@ -16,9 +16,28 @@ function getStorageKey(
   return `dateRangerPicker::${offset}::${window.location.pathname}::${what}`;
 }
 
-function startOfYear(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+function startOfYear(year: number): Date {
+  return new Date(Date.UTC(year, 0, 1));
+}
+
+function endOfYear(year: number): Date {
+  return new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
+}
+
+function startOfMonth(year: number, month: number): Date {
+  return new Date(Date.UTC(year, month, 1));
+}
+
+function endOfMonth(year: number, month: number): Date {
+  return new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+}
+
+function currentYear(): number {
+  return new Date().getUTCFullYear();
+}
+
+function currentMonth(): number {
+  return new Date().getUTCMonth();
 }
 
 const ONE_HOUR = 60 * 60 * 1000;
@@ -52,7 +71,7 @@ interface EmitData {
   relativeMode: boolean;
 }
 
-const RELATIVE_VALUES: RelativeOption[] = [
+const PRESETS: RelativeOption[] = [
   //{ label: "Last hour", milliseconds: ONE_HOUR },
   //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
   //{ label: "Last day", milliseconds: ONE_HOUR * 24 },
@@ -238,7 +257,7 @@ function switchToRelative() {
   if (stored === ALL_TIME_MS) {
     maybeEmit({ newAfter: undefined, newBefore: undefined });
   } else if (stored === THIS_YEAR_MS) {
-    maybeEmit({ newAfter: startOfYear(), newBefore: undefined });
+    maybeEmit({ newAfter: startOfYear(currentYear()), newBefore: undefined });
   } else {
     const after = new Date(Date.now() - stored);
     after.setUTCHours(0, 0, 0, 0);
@@ -310,7 +329,7 @@ function absoluteChanged(which: "before" | "after", newValue: any) {
 }
 
 function getDropdownValue(): string {
-  for (const option of RELATIVE_VALUES) {
+  for (const option of PRESETS) {
     const x = option.milliseconds.toString();
     const y = _relativeMillis.value.toString();
     if (x === y) {
@@ -345,7 +364,7 @@ function parseDropdown(n: any) {
   } else if (n === THIS_YEAR_MS) {
     _relativeMillis.value = THIS_YEAR_MS;
     store(THIS_YEAR_MS);
-    maybeEmit({ newAfter: startOfYear(), newBefore: undefined });
+    maybeEmit({ newAfter: startOfYear(currentYear()), newBefore: undefined });
     return;
   } else {
     store(n);
@@ -425,7 +444,7 @@ onMounted(() => {
             "
           >
             <option
-              v-for="option in RELATIVE_VALUES"
+              v-for="option in PRESETS"
               :key="option.label"
               :value="option.milliseconds"
             >
