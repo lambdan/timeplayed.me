@@ -44,6 +44,9 @@ const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
 const THIS_YEAR_MS = -2;
+const THIS_MONTH_MS = -3;
+const LAST_YEAR_MS = -4;
+const LAST_MONTH_MS = -5;
 
 const _relativeMode = ref(false);
 const _before = ref<Date | undefined>();
@@ -81,13 +84,74 @@ const PRESETS: RelativeOption[] = [
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
   { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
+  { label: "This month", milliseconds: THIS_MONTH_MS },
+  { label: "Last month", milliseconds: LAST_MONTH_MS },
   { label: "This year", milliseconds: THIS_YEAR_MS },
+  { label: "Last year", milliseconds: LAST_YEAR_MS },
   { label: "All time", milliseconds: ALL_TIME_MS },
 ];
 
 const emit = defineEmits<{
   (e: "updated:both", value: EmitData): void;
 }>();
+
+function maybeEmitPreset(x: number): boolean {
+  const _f = (x: number): boolean => {
+    switch (x) {
+      case ALL_TIME_MS:
+        maybeEmit({ newAfter: undefined, newBefore: undefined });
+        return true;
+      case THIS_YEAR_MS:
+        maybeEmit({
+          newAfter: startOfYear(currentYear()),
+          newBefore: endOfYear(currentYear()),
+        });
+        return true;
+      case THIS_MONTH_MS:
+        const year = currentYear();
+        const month = currentMonth();
+        maybeEmit({
+          newAfter: startOfMonth(year, month),
+          newBefore: endOfMonth(year, month),
+        });
+        return true;
+      case LAST_YEAR_MS:
+        const lastYear = currentYear() - 1;
+        maybeEmit({
+          newAfter: startOfYear(lastYear),
+          newBefore: endOfYear(lastYear),
+        });
+        return true;
+      case LAST_MONTH_MS:
+        const now = new Date();
+        const yearForLastMonth =
+          now.getUTCMonth() === 0
+            ? now.getUTCFullYear() - 1
+            : now.getUTCFullYear();
+        const monthForLastMonth =
+          now.getUTCMonth() === 0 ? 11 : now.getUTCMonth() - 1;
+        maybeEmit({
+          newAfter: startOfMonth(yearForLastMonth, monthForLastMonth),
+          newBefore: endOfMonth(yearForLastMonth, monthForLastMonth),
+        });
+        return true;
+      default:
+        return false;
+    }
+  };
+  const outcome = _f(x);
+  //console.log("maybeEmitPreset", x, outcome);
+  return outcome;
+}
+
+function parseDropDownPreset(x: number): boolean {
+  const emitted = maybeEmitPreset(x);
+  if (emitted) {
+    _relativeMillis.value = x;
+    return true;
+  }
+  return false;
+}
 
 function getStoredMode(): "absolute" | "relative" | null {
   const key = getStorageKey("mode");
@@ -254,11 +318,7 @@ function getAbsoluteDateDisplayString(which: "before" | "after"): string {
 function switchToRelative() {
   const stored = getStoredDates().relativeMillis;
   _relativeMillis.value = stored;
-  if (stored === ALL_TIME_MS) {
-    maybeEmit({ newAfter: undefined, newBefore: undefined });
-  } else if (stored === THIS_YEAR_MS) {
-    maybeEmit({ newAfter: startOfYear(currentYear()), newBefore: undefined });
-  } else {
+  if (!maybeEmitPreset(stored)) {
     const after = new Date(Date.now() - stored);
     after.setUTCHours(0, 0, 0, 0);
     maybeEmit({ newAfter: after, newBefore: undefined });
@@ -356,22 +416,13 @@ function parseDropdown(n: any) {
     console.warn("parseDropdown: invalid value type", n);
     return;
   }
-  if (n === ALL_TIME_MS) {
-    _relativeMillis.value = ALL_TIME_MS;
-    store(ALL_TIME_MS);
-    maybeEmit({ newAfter: undefined, newBefore: undefined });
+  store(n);
+  if (parseDropDownPreset(n)) {
     return;
-  } else if (n === THIS_YEAR_MS) {
-    _relativeMillis.value = THIS_YEAR_MS;
-    store(THIS_YEAR_MS);
-    maybeEmit({ newAfter: startOfYear(currentYear()), newBefore: undefined });
-    return;
-  } else {
-    store(n);
-    const after = new Date(Date.now() - n);
-    after.setUTCHours(0, 0, 0, 0);
-    maybeEmit({ newAfter: after, newBefore: undefined });
   }
+  const after = new Date(Date.now() - n);
+  after.setUTCHours(0, 0, 0, 0);
+  maybeEmit({ newAfter: after, newBefore: undefined });
 }
 
 onMounted(() => {
