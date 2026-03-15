@@ -1,6 +1,14 @@
 <script setup lang="ts">
 // if you are reading this, i am sorry. i hate this fucking component too.
 import { ref, onMounted } from "vue";
+import {
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+} from "../../utils.date";
 
 const props = defineProps<{
   before?: Date;
@@ -16,37 +24,15 @@ function getStorageKey(
   return `dateRangerPicker::${offset}::${window.location.pathname}::${what}`;
 }
 
-function startOfYear(year: number): Date {
-  return new Date(Date.UTC(year, 0, 1));
-}
-
-function endOfYear(year: number): Date {
-  return new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
-}
-
-function startOfMonth(year: number, month: number): Date {
-  return new Date(Date.UTC(year, month, 1));
-}
-
-function endOfMonth(year: number, month: number): Date {
-  return new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-}
-
-function currentYear(): number {
-  return new Date().getUTCFullYear();
-}
-
-function currentMonth(): number {
-  return new Date().getUTCMonth();
-}
-
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
 const THIS_YEAR_MS = -2;
 const THIS_MONTH_MS = -3;
+const THIS_WEEK_MS = -6;
 const LAST_YEAR_MS = -4;
 const LAST_MONTH_MS = -5;
+const LAST_WEEK_MS = -7;
 
 const _relativeMode = ref(false);
 const _before = ref<Date | undefined>();
@@ -84,6 +70,8 @@ const PRESETS: RelativeOption[] = [
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
   { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
+  { label: "This week", milliseconds: THIS_WEEK_MS },
+  { label: "Last week", milliseconds: LAST_WEEK_MS },
   { label: "This month", milliseconds: THIS_MONTH_MS },
   { label: "Last month", milliseconds: LAST_MONTH_MS },
   { label: "This year", milliseconds: THIS_YEAR_MS },
@@ -97,42 +85,51 @@ const emit = defineEmits<{
 
 function maybeEmitPreset(x: number): boolean {
   const _f = (x: number): boolean => {
+    const now = new Date();
     switch (x) {
       case ALL_TIME_MS:
         maybeEmit({ newAfter: undefined, newBefore: undefined });
         return true;
       case THIS_YEAR_MS:
         maybeEmit({
-          newAfter: startOfYear(currentYear()),
-          newBefore: endOfYear(currentYear()),
-        });
-        return true;
-      case THIS_MONTH_MS:
-        const year = currentYear();
-        const month = currentMonth();
-        maybeEmit({
-          newAfter: startOfMonth(year, month),
-          newBefore: endOfMonth(year, month),
+          newAfter: startOfYear(now),
+          newBefore: endOfYear(now),
         });
         return true;
       case LAST_YEAR_MS:
-        const lastYear = currentYear() - 1;
+        const lastYearDate = new Date(now);
+        lastYearDate.setUTCFullYear(lastYearDate.getUTCFullYear() - 1);
         maybeEmit({
-          newAfter: startOfYear(lastYear),
-          newBefore: endOfYear(lastYear),
+          newAfter: startOfYear(lastYearDate),
+          newBefore: endOfYear(lastYearDate),
+        });
+        return true;
+      case THIS_MONTH_MS:
+        maybeEmit({
+          newAfter: startOfMonth(now),
+          newBefore: endOfMonth(now),
         });
         return true;
       case LAST_MONTH_MS:
-        const now = new Date();
-        const yearForLastMonth =
-          now.getUTCMonth() === 0
-            ? now.getUTCFullYear() - 1
-            : now.getUTCFullYear();
-        const monthForLastMonth =
-          now.getUTCMonth() === 0 ? 11 : now.getUTCMonth() - 1;
+        const lastMonthDate = new Date(now);
+        lastMonthDate.setUTCMonth(lastMonthDate.getUTCMonth() - 1);
         maybeEmit({
-          newAfter: startOfMonth(yearForLastMonth, monthForLastMonth),
-          newBefore: endOfMonth(yearForLastMonth, monthForLastMonth),
+          newAfter: startOfMonth(lastMonthDate),
+          newBefore: endOfMonth(lastMonthDate),
+        });
+        return true;
+      case THIS_WEEK_MS:
+        maybeEmit({
+          newAfter: startOfWeek(now),
+          newBefore: endOfWeek(now),
+        });
+        return true;
+      case LAST_WEEK_MS:
+        const lastWeekDate = new Date(now);
+        lastWeekDate.setUTCDate(lastWeekDate.getUTCDate() - 7);
+        maybeEmit({
+          newAfter: startOfWeek(lastWeekDate),
+          newBefore: endOfWeek(lastWeekDate),
         });
         return true;
       default:
