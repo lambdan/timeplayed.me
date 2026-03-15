@@ -253,8 +253,10 @@ function store(which: "after" | "before", date: Date) {
 }
 
 function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
-  if (_relativeMode.value || opts.newBefore === undefined) {
-    // before is always undefined in relative mode
+  //console.log("maybeEmit", opts);
+  if (_relativeMode.value && isValidDate(opts.newBefore)) {
+    _before.value = opts.newBefore;
+  } else if (_relativeMode.value || opts.newBefore === undefined) {
     _before.value = undefined;
   } else if (isValidDate(opts.newBefore)) {
     _before.value = opts.newBefore;
