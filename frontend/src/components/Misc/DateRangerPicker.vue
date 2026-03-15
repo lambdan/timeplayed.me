@@ -1,6 +1,14 @@
 <script setup lang="ts">
 // if you are reading this, i am sorry. i hate this fucking component too.
 import { ref, onMounted } from "vue";
+import {
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+} from "../../utils.date";
 
 const props = defineProps<{
   before?: Date;
@@ -19,6 +27,12 @@ function getStorageKey(
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
+const THIS_YEAR_MS = -2;
+const THIS_MONTH_MS = -3;
+const THIS_WEEK_MS = -6;
+const LAST_YEAR_MS = -4;
+const LAST_MONTH_MS = -5;
+const LAST_WEEK_MS = -7;
 
 const _relativeMode = ref(false);
 const _before = ref<Date | undefined>();
@@ -46,7 +60,7 @@ interface EmitData {
   relativeMode: boolean;
 }
 
-const RELATIVE_VALUES: RelativeOption[] = [
+const PRESETS: RelativeOption[] = [
   //{ label: "Last hour", milliseconds: ONE_HOUR },
   //{ label: "Last 12 hours", milliseconds: ONE_HOUR * 12 },
   //{ label: "Last day", milliseconds: ONE_HOUR * 24 },
@@ -56,12 +70,85 @@ const RELATIVE_VALUES: RelativeOption[] = [
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
   { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
+  { label: "This week", milliseconds: THIS_WEEK_MS },
+  { label: "Last week", milliseconds: LAST_WEEK_MS },
+  { label: "This month", milliseconds: THIS_MONTH_MS },
+  { label: "Last month", milliseconds: LAST_MONTH_MS },
+  { label: "This year", milliseconds: THIS_YEAR_MS },
+  { label: "Last year", milliseconds: LAST_YEAR_MS },
   { label: "All time", milliseconds: ALL_TIME_MS },
 ];
 
 const emit = defineEmits<{
   (e: "updated:both", value: EmitData): void;
 }>();
+
+function maybeEmitPreset(x: number): boolean {
+  const _f = (x: number): boolean => {
+    const now = new Date();
+    switch (x) {
+      case ALL_TIME_MS:
+        maybeEmit({ newAfter: undefined, newBefore: undefined });
+        return true;
+      case THIS_YEAR_MS:
+        maybeEmit({
+          newAfter: startOfYear(now),
+          newBefore: endOfYear(now),
+        });
+        return true;
+      case LAST_YEAR_MS:
+        const lastYearDate = new Date(now);
+        lastYearDate.setUTCFullYear(lastYearDate.getUTCFullYear() - 1);
+        maybeEmit({
+          newAfter: startOfYear(lastYearDate),
+          newBefore: endOfYear(lastYearDate),
+        });
+        return true;
+      case THIS_MONTH_MS:
+        maybeEmit({
+          newAfter: startOfMonth(now),
+          newBefore: endOfMonth(now),
+        });
+        return true;
+      case LAST_MONTH_MS:
+        const lastMonthDate = new Date(now);
+        lastMonthDate.setUTCMonth(lastMonthDate.getUTCMonth() - 1);
+        maybeEmit({
+          newAfter: startOfMonth(lastMonthDate),
+          newBefore: endOfMonth(lastMonthDate),
+        });
+        return true;
+      case THIS_WEEK_MS:
+        maybeEmit({
+          newAfter: startOfWeek(now),
+          newBefore: endOfWeek(now),
+        });
+        return true;
+      case LAST_WEEK_MS:
+        const lastWeekDate = new Date(now);
+        lastWeekDate.setUTCDate(lastWeekDate.getUTCDate() - 7);
+        maybeEmit({
+          newAfter: startOfWeek(lastWeekDate),
+          newBefore: endOfWeek(lastWeekDate),
+        });
+        return true;
+      default:
+        return false;
+    }
+  };
+  const outcome = _f(x);
+  //console.log("maybeEmitPreset", x, outcome);
+  return outcome;
+}
+
+function parseDropDownPreset(x: number): boolean {
+  const emitted = maybeEmitPreset(x);
+  if (emitted) {
+    _relativeMillis.value = x;
+    return true;
+  }
+  return false;
+}
 
 function getStoredMode(): "absolute" | "relative" | null {
   const key = getStorageKey("mode");
@@ -163,8 +250,10 @@ function store(which: "after" | "before", date: Date) {
 }
 
 function maybeEmit(opts: { newBefore?: Date; newAfter?: Date }) {
-  if (_relativeMode.value || opts.newBefore === undefined) {
-    // before is always undefined in relative mode
+  //console.log("maybeEmit", opts);
+  if (_relativeMode.value && isValidDate(opts.newBefore)) {
+    _before.value = opts.newBefore;
+  } else if (_relativeMode.value || opts.newBefore === undefined) {
     _before.value = undefined;
   } else if (isValidDate(opts.newBefore)) {
     _before.value = opts.newBefore;
@@ -228,9 +317,7 @@ function getAbsoluteDateDisplayString(which: "before" | "after"): string {
 function switchToRelative() {
   const stored = getStoredDates().relativeMillis;
   _relativeMillis.value = stored;
-  if (stored === ALL_TIME_MS) {
-    maybeEmit({ newAfter: undefined, newBefore: undefined });
-  } else {
+  if (!maybeEmitPreset(stored)) {
     const after = new Date(Date.now() - stored);
     after.setUTCHours(0, 0, 0, 0);
     maybeEmit({ newAfter: after, newBefore: undefined });
@@ -301,7 +388,7 @@ function absoluteChanged(which: "before" | "after", newValue: any) {
 }
 
 function getDropdownValue(): string {
-  for (const option of RELATIVE_VALUES) {
+  for (const option of PRESETS) {
     const x = option.milliseconds.toString();
     const y = _relativeMillis.value.toString();
     if (x === y) {
@@ -328,18 +415,13 @@ function parseDropdown(n: any) {
     console.warn("parseDropdown: invalid value type", n);
     return;
   }
-  if (n === ALL_TIME_MS) {
-    // all time
-    _relativeMillis.value = ALL_TIME_MS;
-    store(-1);
-    maybeEmit({ newAfter: undefined, newBefore: undefined });
+  store(n);
+  if (parseDropDownPreset(n)) {
     return;
-  } else {
-    store(n);
-    const after = new Date(Date.now() - n);
-    after.setUTCHours(0, 0, 0, 0);
-    maybeEmit({ newAfter: after, newBefore: undefined });
   }
+  const after = new Date(Date.now() - n);
+  after.setUTCHours(0, 0, 0, 0);
+  maybeEmit({ newAfter: after, newBefore: undefined });
 }
 
 onMounted(() => {
@@ -412,7 +494,7 @@ onMounted(() => {
             "
           >
             <option
-              v-for="option in RELATIVE_VALUES"
+              v-for="option in PRESETS"
               :key="option.label"
               :value="option.milliseconds"
             >
