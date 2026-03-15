@@ -72,14 +72,14 @@ onMounted(async () => {
                 :title="new Date(activity.timestamp).toUTCString()"
               >
                 <i class="bi bi-calendar"></i>
-                {{ new Date(activity.timestamp).toLocaleString() }}
+                {{ iso8601Date(new Date(activity.timestamp), true) }}
               </li>
               <li
                 class="list-group-item"
                 :title="activity.seconds + ' seconds'"
               >
                 <i class="bi bi-stopwatch"></i> 
-                {{ formatDuration(activity.seconds) }}
+                {{ formatDuration(activity.seconds, true) }}
               </li>
             </ul>
           </div>

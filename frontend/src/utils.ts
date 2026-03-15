@@ -2,21 +2,42 @@ import { TimeplayedAPI } from "./api.client";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
+  return iso8601Date(date, true);
+  /*if (!date) return "";
   if (typeof date === "number") {
     date = new Date(date);
   }
-  return date.toLocaleString();
+  return date.toLocaleString();*/
 }
 
-export function formatDuration(secs?: number): string {
-  if (!secs) return "00:00:00";
+export function formatDuration(secs?: number, hhmmss = false): string {
+  if (!secs && hhmmss) return "00:00:00";
+  if (!secs) return "0 seconds";
   // HH:MM:SS
-  const hours = Math.floor(secs / 3600);
-  const minutes = Math.floor((secs % 3600) / 60);
-  const seconds = Math.floor(secs % 60);
-  return `${hours.toString().padStart(2, "0")}:${minutes
-    .toString()
-    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  if (hhmmss) {
+    const h = Math.floor(secs / 3600)
+      .toString()
+      .padStart(2, "0");
+    const m = Math.floor((secs % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(secs % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+  const h = secs / 3600;
+  if (h > 100) {
+    return h.toFixed(0) + "h";
+  }
+  if (h >= 1) {
+    return h.toFixed(1) + "h";
+  }
+  const m = secs / 60;
+  if (m >= 1) {
+    return m.toFixed(0) + "m";
+  }
+  return secs + "s";
 }
 
 export function timeAgo(other?: Date | number, short = false): string {
@@ -28,6 +49,11 @@ export function timeAgo(other?: Date | number, short = false): string {
 
   const now = new Date();
   const seconds = Math.floor((now.getTime() - other.getTime()) / 1000);
+  const delta = Math.abs(seconds);
+
+  if (delta > 86400 && delta < 172800) {
+    return "yesterday";
+  }
 
   let intervals = [
     { label: "year", seconds: 31536000 },
@@ -215,11 +241,16 @@ export async function getGameCoverUrl(
   return `https://placehold.co/${size}?text=No+Cover+Found`;
 }
 
-export function iso8601Date(date: Date | number): string {
+export function iso8601Date(date: Date | number, includeTime = false): string {
   if (typeof date === "number") {
     date = new Date(date);
   }
-  return date.toISOString().slice(0, 10);
+  let output = date.toISOString().slice(0, 10);
+  if (!includeTime) {
+    return output;
+  }
+  output += " " + date.toISOString().slice(11, 19) + " UTC";
+  return output;
 }
 
 export function clamp(num: number, min: number, max: number): number {
