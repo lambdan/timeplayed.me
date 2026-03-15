@@ -69,7 +69,7 @@ onMounted(async () => {
 
               <li
                 class="list-group-item"
-                :title="new Date(activity.timestamp).toUTCString()"
+                :title="new Date(activity.timestamp).toString()"
               >
                 <i class="bi bi-calendar"></i>
                 {{ iso8601Date(new Date(activity.timestamp), true) }}

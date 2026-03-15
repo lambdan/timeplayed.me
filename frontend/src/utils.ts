@@ -27,17 +27,17 @@ export function formatDuration(secs?: number, hhmmss = false): string {
     return `${h}:${m}:${s}`;
   }
   const h = secs / 3600;
-  if (h > 100) {
-    return h.toFixed(0) + "h";
-  }
   if (h >= 1) {
-    return h.toFixed(1) + "h";
+    if (h >= 24) {
+      return h.toFixed(0) + " h";
+    }
+    return h.toFixed(1) + " h";
   }
   const m = secs / 60;
   if (m >= 1) {
-    return m.toFixed(0) + "m";
+    return m.toFixed(0) + " m";
   }
-  return secs + "s";
+  return secs + " s";
 }
 
 export function timeAgo(other?: Date | number, short = false): string {
@@ -80,7 +80,7 @@ export function timeAgo(other?: Date | number, short = false): string {
       return `${count} ${i.label}${count !== 1 ? "s" : ""} ago`;
     }
     if (count > 0 && short) {
-      return `${count}${i.label} ago`;
+      return `${count} ${i.label} ago`;
     }
   }
 
