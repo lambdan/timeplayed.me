@@ -16,9 +16,15 @@ function getStorageKey(
   return `dateRangerPicker::${offset}::${window.location.pathname}::${what}`;
 }
 
+function startOfYear(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+}
+
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const ALL_TIME_MS = -1;
+const THIS_YEAR_MS = -2;
 
 const _relativeMode = ref(false);
 const _before = ref<Date | undefined>();
@@ -56,6 +62,7 @@ const RELATIVE_VALUES: RelativeOption[] = [
   { label: "Last 90 days", milliseconds: ONE_DAY * 90 },
   { label: "Last 180 days", milliseconds: ONE_DAY * 180 },
   { label: "Last 365 days", milliseconds: ONE_DAY * 365 },
+  { label: "This year", milliseconds: THIS_YEAR_MS },
   { label: "All time", milliseconds: ALL_TIME_MS },
 ];
 
@@ -230,6 +237,8 @@ function switchToRelative() {
   _relativeMillis.value = stored;
   if (stored === ALL_TIME_MS) {
     maybeEmit({ newAfter: undefined, newBefore: undefined });
+  } else if (stored === THIS_YEAR_MS) {
+    maybeEmit({ newAfter: startOfYear(), newBefore: undefined });
   } else {
     const after = new Date(Date.now() - stored);
     after.setUTCHours(0, 0, 0, 0);
@@ -329,10 +338,14 @@ function parseDropdown(n: any) {
     return;
   }
   if (n === ALL_TIME_MS) {
-    // all time
     _relativeMillis.value = ALL_TIME_MS;
-    store(-1);
+    store(ALL_TIME_MS);
     maybeEmit({ newAfter: undefined, newBefore: undefined });
+    return;
+  } else if (n === THIS_YEAR_MS) {
+    _relativeMillis.value = THIS_YEAR_MS;
+    store(THIS_YEAR_MS);
+    maybeEmit({ newAfter: startOfYear(), newBefore: undefined });
     return;
   } else {
     store(n);
