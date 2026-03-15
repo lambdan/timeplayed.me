@@ -6,7 +6,7 @@ import { TimeplayedAPI } from "../api.client";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
-import { formatDuration } from "../utils";
+import { formatDuration, iso8601Date } from "../utils";
 
 const route = useRoute();
 const platform = ref<PlatformWithStats>();
@@ -47,8 +47,7 @@ onMounted(async () => {
           <tr>
             <th>Total playtime</th>
             <td>
-              {{ (platform.totals.playtime_secs / 3600).toFixed(0) }}
-              hours
+              {{ formatDuration(platform.totals.playtime_secs) }}
               <br />
               <span class="text-muted">
                 {{
@@ -71,7 +70,10 @@ onMounted(async () => {
             <td>
               <a :href="'/activity/' + platform.oldest_activity.id">
                 {{
-                  new Date(platform.oldest_activity.timestamp).toLocaleString()
+                  iso8601Date(
+                    new Date(platform.oldest_activity.timestamp),
+                    true,
+                  )
                 }}</a
               >
             </td>
@@ -82,7 +84,10 @@ onMounted(async () => {
             <td>
               <a :href="'/activity/' + platform.newest_activity.id">
                 {{
-                  new Date(platform.newest_activity.timestamp).toLocaleString()
+                  iso8601Date(
+                    new Date(platform.newest_activity.timestamp),
+                    true,
+                  )
                 }}</a
               >
             </td>
