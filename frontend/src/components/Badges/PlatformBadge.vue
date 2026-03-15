@@ -3,14 +3,23 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import type { Platform } from "../../api.models.ts";
 
 const props = withDefaults(
-  defineProps<{ platform: Platform; showName?: boolean; emulated?: boolean }>(),
+  defineProps<{
+    platform: Platform;
+    showName?: boolean;
+    emulated?: boolean;
+    showAbbreviation?: boolean;
+  }>(),
   {
     showName: true,
     emulated: false,
+    showAbbreviation: false,
   },
 );
 
-function displayName() {
+function displayedText() {
+  if (props.showAbbreviation) {
+    return props.platform.abbreviation.toUpperCase();
+  }
   return props.platform.name || props.platform.abbreviation;
 }
 
@@ -40,15 +49,19 @@ function getIcon() {
 </script>
 
 <template>
-  <a :href="'/platform/' + platform.id" class="text-decoration-none">
+  <a
+    :href="'/platform/' + platform.id"
+    class="text-decoration-none"
+    :title="displayedText()"
+  >
     <span
       :style="{ backgroundColor: getBackgroundColor(), color: getTextColor() }"
       class="badge"
     >
       <i :class="['bi', getIcon()]"></i>
-      <span v-if="showName"
+      <span v-if="showName || showAbbreviation"
         > 
-        {{ displayName() }}
+        {{ displayedText() }}
         <sup v-if="emulated">EMU</sup>
       </span>
     </span>

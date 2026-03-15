@@ -137,7 +137,7 @@ onMounted(() => {
 
 <template>
   <tr class="align-middle" :key="_id">
-    <td v-if="props.activity" class="d-none d-md-table-cell">
+    <!--<td v-if="props.activity" class="d-none d-md-table-cell">
       <small title="Activity ID" class="text-secondary">
         <a
           :href="'/activity/' + props.activity.id"
@@ -145,7 +145,7 @@ onMounted(() => {
           >{{ props.activity.id }}</a
         ></small
       >
-    </td>
+    </td>-->
 
     <td v-if="shouldShowAvatar()">
       <DiscordAvatar
@@ -228,14 +228,37 @@ onMounted(() => {
     </td>
 
     <td v-if="props.activity" class="d-none d-md-table-cell">
+      <!-- frontpage: show badge (no name) -->
       <PlatformBadge
+        v-if="props.context == 'frontPage'"
         :platform="props.activity.platform"
         :emulated="props.activity.emulated"
+        :showName="false"
+        :showAbbreviation="false"
+      />
+
+      <!-- any other page (big table): show name -->
+      <PlatformBadge
+        v-else
+        :platform="props.activity.platform"
+        :emulated="props.activity.emulated"
+        :showName="true"
       />
     </td>
 
-    <td :title="`${_durationSeconds} seconds`">
-      <i class="bi bi-stopwatch"></i> {{ _timeDisplayed }}
+    <!-- Duration (always seen) -->
+    <td :title="`${_durationSeconds} seconds`" class="p-2 text-nowrap">
+      <i class="bi bi-stopwatch"> </i>
+      <a
+        v-if="props.activity"
+        :href="'/activity/' + props.activity.id"
+        class="link-underline link-underline-opacity-0"
+      >
+        {{ _timeDisplayed }}</a
+      >
+      <span v-else>
+        {{ _timeDisplayed }}
+      </span>
 
       <!-- Share % -->
       <small
@@ -251,7 +274,12 @@ onMounted(() => {
       </small>
     </td>
 
-    <td v-if="_date && props.showDate" :title="_date.toLocaleString()">
+    <!-- Date (hidden on mobile) -->
+    <td
+      v-if="_date && props.showDate"
+      :title="_date.toLocaleString()"
+      class="p-2 text-nowrap d-none d-md-table-cell"
+    >
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
 
