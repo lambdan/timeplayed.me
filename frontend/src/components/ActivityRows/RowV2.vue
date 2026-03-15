@@ -277,7 +277,7 @@ onMounted(() => {
     <!-- Date (hidden on mobile) -->
     <td
       v-if="_date && props.showDate"
-      :title="_date.toLocaleString()"
+      :title="_date.toString()"
       class="p-2 text-nowrap d-none d-md-table-cell"
     >
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
