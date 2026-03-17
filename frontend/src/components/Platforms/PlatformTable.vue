@@ -165,6 +165,7 @@ onMounted(() => {
           <th
             @click="setSort('recency')"
             v-if="_after === undefined && _showDate"
+            class="d-none d-md-table-cell"
           >
             Last Played
             <i
