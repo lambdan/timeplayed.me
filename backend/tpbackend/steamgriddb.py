@@ -8,7 +8,6 @@ import json
 
 from tpbackend.cache import cache_get, cache_set
 
-REDIS_EXP = 86400  # 1 day
 ONE_DAY = 24 * 60 * 60  # seconds
 
 logger = logging.getLogger("SteamGridDB")
@@ -78,7 +77,7 @@ def search(query: str) -> list[SGDB_Game]:
                         release_date=game.release_date.timestamp(),
                     )
                 )
-    cache_set(key, jsonEncode(res), REDIS_EXP)
+    cache_set(key, jsonEncode(res), ex=ONE_DAY)
     return res
 
 
@@ -152,7 +151,7 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
             )
             gs.append(new_grid)
 
-    cache_set(key, jsonEncode(gs), REDIS_EXP)
+    cache_set(key, jsonEncode(gs), ex=ONE_DAY)
     return gs
 
 

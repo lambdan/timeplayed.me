@@ -20,7 +20,7 @@ class DeleteGameCommand(AdminCommand):
         game = Game.get_or_none(Game.id == game_id)  # type: ignore
         if not game:
             return f"Error: Game with id {game_id} not found."
-        activities = api.get_activities(game=game_id)
+        activities = api.get_activities_impl(game=game_id)
         if activities.total > 0:
             return f"Error: game ({game.name}) has activities"
 

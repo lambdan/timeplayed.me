@@ -13,7 +13,7 @@ class GamesWithoutActivityAdminCommand(AdminCommand):
         games = Game.select()
         games_without_activity = []
         for game in games:
-            activities = api.get_activities(game=game.id, limit=1)
+            activities = api.get_activities_impl(game=game.id, limit=1)
             if activities.total == 0:
                 games_without_activity.append(game)
 
