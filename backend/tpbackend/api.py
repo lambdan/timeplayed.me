@@ -302,8 +302,7 @@ def user_has_activities(userId: int) -> bool:
     """
     Returns True if user has any activities
     """
-    any_activity = Activity.select().where(Activity.user == userId).first()
-    return any_activity is not None
+    return get_activities_impl(user=userId, limit=1).total > 0
 
 
 def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
