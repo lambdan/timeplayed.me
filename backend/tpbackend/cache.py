@@ -2,13 +2,14 @@ import redis
 import os
 import logging
 
+logger = logging.getLogger("cache")
+
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 REDIS_CLIENT = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
-logger = logging.getLogger("cache")
-
 CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "true").lower() == "true"
+CACHE_DEFAULT_EX = int(os.environ.get("CACHE_DEFAULT_EX", 10))
 CACHE_LOG_ENABLED = os.environ.get("CACHE_LOG_ENABLED", "false").lower() == "true"
 
 __STATS = {}
@@ -70,7 +71,7 @@ def cache_get(key: str):
     return None
 
 
-def cache_set(key: str, value: str, ex=60):
+def cache_set(key: str, value: str, ex=CACHE_DEFAULT_EX):
     if CACHE_ENABLED:
         try:
             REDIS_CLIENT.set(key, value, ex=ex)
