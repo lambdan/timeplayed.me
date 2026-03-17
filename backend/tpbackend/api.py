@@ -505,7 +505,7 @@ def get_users(
         offset=offset,
         limit=limit,
     )
-    cache_set(key, r.model_dump_json(), ex=15)
+    cache_set(key, r.model_dump_json())
     return r
 
 
@@ -559,6 +559,31 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
 ) -> PaginatedActivities:
+    # through API: use cache
+    return get_activities_impl(
+        use_cache=True,
+        offset=offset,
+        limit=limit,
+        order=order,
+        user=user,
+        game=game,
+        platform=platform,
+        before=before,
+        after=after,
+    )
+
+
+def get_activities_impl(
+    offset=0,
+    limit=25,
+    order: Literal["desc", "asc"] = "desc",
+    user: int | None = None,
+    game: int | None = None,
+    platform: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+    use_cache=False,
+) -> PaginatedActivities:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
@@ -567,7 +592,7 @@ def get_activities(
     if after:
         after = truncateMilliseconds(after)
     key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
-    cached = cache_get(key)
+    cached = use_cache and cache_get(key)
     if cached:
         return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
@@ -618,7 +643,7 @@ def get_activities(
         order=order,
     )
 
-    cache_set(key, r.model_dump_json())
+    cache_set(key, r.model_dump_json(), ex=60)
     return r
 
 
