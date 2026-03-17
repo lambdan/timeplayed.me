@@ -90,7 +90,7 @@ Returns: Confirmation message
     def get_overlapping(self, user_id: int, seconds: int) -> bool:
         after_ts = (now().timestamp() * 1000) - (seconds * 1000)
         after_ts = int(after_ts)
-        activities = api.get_activities(user=user_id, after=after_ts, limit=1)
+        activities = api.get_activities_impl(user=user_id, after=after_ts, limit=1)
         return activities.total > 0
 
     def add(self, user: User, game: Game, seconds: int) -> str:
