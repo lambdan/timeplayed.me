@@ -4,31 +4,31 @@ import logging
 
 logger = logging.getLogger("cache")
 
-REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
-REDIS_CLIENT = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+__REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+__REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+__REDIS_CLIENT = redis.Redis(host=__REDIS_HOST, port=__REDIS_PORT, db=0)
 
-CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "true").lower() == "true"
-CACHE_DEFAULT_EX = int(os.environ.get("CACHE_DEFAULT_EX", 10))
-CACHE_LOG_ENABLED = os.environ.get("CACHE_LOG_ENABLED", "false").lower() == "true"
+__CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "true").lower() == "true"
+__CACHE_DEFAULT_EX = int(os.environ.get("CACHE_DEFAULT_EX", 10))
+__CACHE_LOG_ENABLED = os.environ.get("CACHE_LOG_ENABLED", "false").lower() == "true"
 
 __STATS = {}
 
 
 def __log(message: str):
-    if not CACHE_LOG_ENABLED:
+    if not __CACHE_LOG_ENABLED:
         return
     logger.info(message)
 
 
 def __warn(message: str):
-    if not CACHE_LOG_ENABLED:
+    if not __CACHE_LOG_ENABLED:
         return
     logger.warning(message)
 
 
 def __error(message: str):
-    if not CACHE_LOG_ENABLED:
+    if not __CACHE_LOG_ENABLED:
         return
     logger.error(message)
 
@@ -51,7 +51,7 @@ def get_cache_stats() -> str:
 
 
 def cache_get(key: str):
-    if CACHE_ENABLED:
+    if __CACHE_ENABLED:
         src = key.split(":")[0] if ":" in key else "unknown"
         if src not in __STATS:
             __STATS[src] = {
@@ -59,7 +59,7 @@ def cache_get(key: str):
                 "miss": 0,
             }
         try:
-            cached = REDIS_CLIENT.get(key)
+            cached = __REDIS_CLIENT.get(key)
             if cached:
                 __log(f"Hit: {key}")
                 __STATS[src]["hit"] += 1
@@ -71,10 +71,10 @@ def cache_get(key: str):
     return None
 
 
-def cache_set(key: str, value: str, ex=CACHE_DEFAULT_EX):
-    if CACHE_ENABLED:
+def cache_set(key: str, value: str, ex=__CACHE_DEFAULT_EX):
+    if __CACHE_ENABLED:
         try:
-            REDIS_CLIENT.set(key, value, ex=ex)
+            __REDIS_CLIENT.set(key, value, ex=ex)
             __log(f"Set: {key} (expires in {ex} seconds)")
         except Exception as e:
             __error(f"Exception caught setting cache for key {key}: {e}")
