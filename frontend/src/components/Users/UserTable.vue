@@ -159,6 +159,7 @@ onMounted(() => {
         <th
           @click="setSort('recency')"
           v-if="_after === undefined && props.showLastPlayed"
+          class="d-none d-md-table-cell"
         >
           Last Played
           <i

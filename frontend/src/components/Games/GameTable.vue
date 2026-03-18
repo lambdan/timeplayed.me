@@ -190,7 +190,11 @@ onMounted(() => {
             "
           />
         </th>
-        <th @click="setSort('recency')" v-if="_showDate">
+        <th
+          @click="setSort('recency')"
+          v-if="_showDate"
+          class="d-none d-md-table-cell"
+        >
           Last Played
           <i
             :class="
