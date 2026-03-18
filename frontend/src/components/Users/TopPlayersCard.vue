@@ -74,7 +74,10 @@ onMounted(() => {});
             <th></th>
             <th>User</th>
             <th>Time played</th>
-            <th v-if="props.context !== 'frontPage' && _after === undefined">
+            <th
+              v-if="props.context !== 'frontPage' && _after === undefined"
+              class="d-none d-md-table-cell"
+            >
               Last played
             </th>
           </tr>
