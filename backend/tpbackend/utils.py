@@ -307,7 +307,9 @@ def query_normalize(q: str) -> str:
     return res
 
 
-def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
+def search_games(
+    query: str, offset=0, limit=0, include_hidden=False
+) -> list[storage_v2.Game]:
     """
     Search games by name or alias
     """
@@ -315,6 +317,8 @@ def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
     query = query_normalize(query)
     games = []
     for game in storage_v2.Game.select():
+        if not include_hidden and game.hidden:
+            continue
         # search in name
         # game.name is cleaned as well, eg to allow
         # "belmonts revenge" to match "Belmont's Revenge"
@@ -333,7 +337,12 @@ def search_games(query: str, offset=0, limit=0) -> list[storage_v2.Game]:
         # nothing found, we can try removing a term and go again
         parts = query.split(" ")
         last_term_removed = " ".join(parts[:-1])
-        return search_games(query=last_term_removed, offset=offset, limit=limit)
+        return search_games(
+            query=last_term_removed,
+            offset=offset,
+            limit=limit,
+            include_hidden=include_hidden,
+        )
     # order by name
     games.sort(key=lambda g: g.name.lower())
     # offset and limit

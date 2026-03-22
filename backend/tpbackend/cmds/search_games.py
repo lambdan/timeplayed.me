@@ -19,10 +19,10 @@ Returns: list of game id's and names matching the query
     def execute(self, user: User, msg: str) -> str:
         if msg == "":
             return "No query provided. See `!help search` for usage."
-        return self.search(msg)
+        return self.search(msg, self.is_admin(user))
 
-    def search(self, query: str) -> str:
-        games = search_games(query=query, limit=0, offset=0)
+    def search(self, query: str, is_admin: bool) -> str:
+        games = search_games(query=query, limit=0, offset=0, include_hidden=is_admin)
         if len(games) == 0:
             return "No games found"
 
@@ -30,7 +30,7 @@ Returns: list of game id's and names matching the query
         count = 0
         for game in games:
             count += 1
-            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)}\n"  # type: ignore
+            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)} {"(🙈)" if game.get_hidden() else ""}\n"  # type: ignore
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""
