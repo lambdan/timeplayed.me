@@ -45,6 +45,9 @@ class Platform(BaseModel):
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
 
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
 
 class User(BaseModel):
     """
@@ -59,6 +62,9 @@ class User(BaseModel):
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
@@ -98,6 +104,9 @@ class Game(BaseModel):
     release_year = IntegerField(null=True, default=None)
     hidden = BooleanField(default=False)
 
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
 
@@ -118,6 +127,9 @@ class Activity(BaseModel):
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
     emulated = BooleanField(default=False)
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
 
 
 class LiveActivity(BaseModel):
