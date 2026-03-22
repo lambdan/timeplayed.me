@@ -66,6 +66,9 @@ class User(BaseModel):
     def get_id(self) -> int:
         return cast(int, self.id)
 
+    def get_default_platform(self) -> Platform:
+        return cast(Platform, self.default_platform)
+
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
 
@@ -131,6 +134,15 @@ class Activity(BaseModel):
     def get_id(self) -> int:
         return cast(int, self.id)
 
+    def get_game(self) -> Game:
+        return cast(Game, self.game)
+
+    def get_platform(self) -> Platform:
+        return cast(Platform, self.platform)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
 
 class LiveActivity(BaseModel):
     id = AutoField()
@@ -138,6 +150,18 @@ class LiveActivity(BaseModel):
     game = ForeignKeyField(Game, backref="live_activities")
     platform = ForeignKeyField(Platform, backref="live_activities")
     started = DateTimeField()
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
+    def get_game(self) -> Game:
+        return cast(Game, self.game)
+
+    def get_platform(self) -> Platform:
+        return cast(Platform, self.platform)
 
 
 class DiscordHistory(BaseModel):
