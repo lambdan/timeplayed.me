@@ -752,11 +752,32 @@ def get_games(
     before: int | None = None,
     after: int | None = None,
 ) -> PaginatedGameWithStats:
+    return get_games_impl(
+        offset=offset,
+        limit=limit,
+        userId=userId,
+        platformId=platformId,
+        before=before,
+        after=after,
+    )
+
+
+def get_games_impl(
+    offset=0,
+    limit=25,
+    userId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+    include_hidden_games=False,
+) -> PaginatedGameWithStats:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
 
     filters = []
+    if not include_hidden_games:
+        filters.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if userId:
         filters.append(Activity.user == userId)
     if platformId:
@@ -770,7 +791,7 @@ def get_games(
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}"
+    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return PaginatedGameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
@@ -821,6 +842,8 @@ def get_game(
 ) -> GameWithStats:
     game = Game_or_none(gameId)
     if not game:
+        return not_found("Game not found")
+    if game.get_hidden():
         return not_found("Game not found")
 
     key = f"game_with_stats:{gameId}:{userId}:{before}:{after}:{platformId}"
