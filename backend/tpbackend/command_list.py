@@ -43,6 +43,7 @@ from tpbackend.cmds.missing_game_release_year_admin import MissingGRYAdminComman
 from tpbackend.cmds.set_platform_colors import SetPlatformColorsCommand
 from tpbackend.cmds.get_platform import GetPlatformCommand
 from tpbackend.cmds.set_platform_icon import SetPlatformIconCommand
+from tpbackend.cmds.hide_game import HideGameCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -91,6 +92,7 @@ ADMIN_COMMANDS = [
     DeleteGameAliasCommand(),
     DeleteGameCommand(),
     GamesWithoutActivityAdminCommand(),
+    HideGameCommand(),
     # user mgmt
     SearchUsersCommand(),
     AddPermissionCommand(),
