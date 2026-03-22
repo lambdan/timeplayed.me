@@ -143,6 +143,9 @@ class Activity(BaseModel):
     def get_user(self) -> User:
         return cast(User, self.user)
 
+    def is_hidden(self) -> bool:
+        return self.game.get_hidden()
+
 
 class LiveActivity(BaseModel):
     id = AutoField()
