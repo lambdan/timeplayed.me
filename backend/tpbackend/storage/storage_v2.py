@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import cast
 
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -95,6 +96,14 @@ class Game(BaseModel):
     image_url = CharField(null=True, default=None)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
+    hidden = BooleanField(default=False)
+
+    def get_hidden(self) -> bool:
+        return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        self.hidden = hidden
+        self.save()
 
 
 class Activity(BaseModel):
@@ -132,3 +141,31 @@ def connect_db():
         logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
         reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])
+
+
+def Game_or_none(game_id: int) -> Game | None:
+    g = Game.get_or_none(Game.id == game_id)
+    if g:
+        return cast(Game, g)
+    return None
+
+
+def User_or_none(user_id: int) -> User | None:
+    u = User.get_or_none(User.id == user_id)
+    if u:
+        return cast(User, u)
+    return None
+
+
+def Activity_or_none(activity_id: int) -> Activity | None:
+    a = Activity.get_or_none(Activity.id == activity_id)
+    if a:
+        return cast(Activity, a)
+    return None
+
+
+def Platform_or_none(platform_id: int) -> Platform | None:
+    p = Platform.get_or_none(Platform.id == platform_id)
+    if p:
+        return cast(Platform, p)
+    return None
