@@ -66,9 +66,12 @@ def get_total_playtime(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_hidden_games=False,
 ) -> int:
     query = Activity.select(Activity.seconds)
     conditions = []
+    if not include_hidden_games:
+        conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -87,7 +90,7 @@ def get_total_playtime(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -105,8 +108,11 @@ def get_activity_count(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_hidden_games=False,
 ) -> int:
     conditions = []
+    if not include_hidden_games:
+        conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -125,7 +131,7 @@ def get_activity_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -144,6 +150,7 @@ def get_user_count(
     after: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
+    include_hidden_games=False,
 ) -> int:
     # total = 0
     # for user in User.select():
@@ -151,6 +158,8 @@ def get_user_count(
     #         total += 1
     # return total
     conditions = []
+    if not include_hidden_games:
+        conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if gameId:
         conditions.append(Activity.game == gameId)
     if platformId:
@@ -167,7 +176,7 @@ def get_user_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}"
+    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -186,9 +195,14 @@ def get_game_count(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_hidden_games=False,
 ) -> int:
     # iterating over Activity to only get games with activity
     conditions = []
+
+    if not include_hidden_games:
+        conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
+
     if userId:
         conditions.append(Activity.user == userId)
 
@@ -206,7 +220,7 @@ def get_game_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_game_count:{userId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_game_count:{userId}:{platformId}:{before_dt}:{after_dt}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -225,8 +239,11 @@ def get_platform_count(
     gameId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_hidden_games=False,
 ) -> int:
     conditions = []
+    if not include_hidden_games:
+        conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -243,7 +260,7 @@ def get_platform_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}"
+    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}:{include_hidden_games}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -292,16 +309,27 @@ def get_oldest_or_newest_activity(
     after: int | None = None,
 ) -> PublicActivityModel | None:
     order = "asc" if oldest else "desc"
-    activities = get_activities(  # caches internally...
-        offset=0,
-        limit=1,
-        order=order,
-        user=userid,
-        game=gameid,
-        platform=platformid,
-        before=before,
-        after=after,
-    )
+    offset = 0
+
+    def _f():
+        return get_activities(
+            offset=offset,
+            limit=1,
+            order=order,
+            user=userid,
+            game=gameid,
+            platform=platformid,
+            before=before,
+            after=after,
+        )
+
+    activities = _f()
+    # if users last activity is a hidden game,
+    # we have to offset until we find one that isnt hidden...
+    while len(activities.data) == 0 and offset < 100:
+        offset += 1
+        activities = _f()
+    # logger.info("Found after offset %s: %s activities", offset, len(activities.data))
     if len(activities.data) == 0:
         return None
     return activities.data[0]
@@ -591,6 +619,7 @@ def get_activities_impl(
     before: int | None = None,
     after: int | None = None,
     use_cache=False,
+    include_hidden_games=False,
 ) -> PaginatedActivities:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
@@ -599,7 +628,7 @@ def get_activities_impl(
         before = truncateMilliseconds(before)
     if after:
         after = truncateMilliseconds(after)
-    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{include_hidden_games}"
     cached = use_cache and cache_get(key)
     if cached:
         return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
@@ -612,6 +641,8 @@ def get_activities_impl(
 
     # Build filters once
     filters = []
+    if not include_hidden_games:
+        filters.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
     if user is not None:
         filters.append(Activity.user == user)
     if game is not None:
@@ -1026,6 +1057,10 @@ def get_playtime_by_day(
 
     query = Activity.select(Activity.timestamp, Activity.seconds)
     conditions = []
+
+    # filter out hidden games
+    conditions.append(~(Activity.game.in_(Game.select().where(Game.hidden))))  # type: ignore
+
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
