@@ -1,5 +1,5 @@
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
-from tpbackend.storage.storage_v2 import User, LiveActivity
+from tpbackend.storage.storage_v2 import LiveActivity_or_none, User, LiveActivity
 import datetime
 from tpbackend import utils
 
@@ -11,14 +11,11 @@ class TimeManualCommand(ManualActivityCommand):
         super().__init__(names=names, description=d)
 
     def execute(self, user: User, msg: str) -> str:
-        live = LiveActivity.get_or_none(LiveActivity.user == user)
+        live = LiveActivity_or_none(user=user)
         if not live:
             return "Error: no manual activity running"
 
-        started: datetime.datetime = live.started
-        if started.tzinfo is None:
-            # tz info is lost in the database, assume UTC
-            started = started.replace(tzinfo=datetime.timezone.utc)
+        started = live.get_started_datetime()
         duration = utils.now() - started
         seconds = int(duration.total_seconds())
         game_name = live.game.name

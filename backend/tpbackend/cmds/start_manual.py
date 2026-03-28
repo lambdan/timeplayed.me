@@ -1,5 +1,11 @@
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
-from tpbackend.storage.storage_v2 import User, LiveActivity, Game
+from tpbackend.storage.storage_v2 import (
+    Game_or_none,
+    LiveActivity_or_none,
+    User,
+    LiveActivity,
+    Game,
+)
 import tpbackend.utils
 from tpbackend.utils import game_name, last_platform_for_game, search_games
 
@@ -28,7 +34,7 @@ Use the stop command when you are done playing to save the activity.
         try:
             splitted = msg.split(" ")
             game_id = splitted[0].strip()
-            game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
+            game = Game_or_none(game_id=int(game_id))
             if not game:
                 return f"Error: Game with id {game_id} not found."
             return self.start(user=user, game=game)
@@ -51,7 +57,7 @@ Use the stop command when you are done playing to save the activity.
 
     def start(self, user: User, game: Game) -> str:
 
-        runningSession = LiveActivity.get_or_none(LiveActivity.user == user)
+        runningSession = LiveActivity_or_none(user=user)
         if runningSession:
             return "You already have a manual activity running, stop it first."
 
@@ -59,7 +65,7 @@ Use the stop command when you are done playing to save the activity.
         platform = last_platform_for_game(user=user, game=game)
         if not platform:
             self.logger.debug("No last platform found, using default platform")
-            platform = user.default_platform
+            platform = user.get_default_platform()
 
         timestamp = tpbackend.utils.now()
         LiveActivity.create(user=user, game=game, platform=platform, started=timestamp)

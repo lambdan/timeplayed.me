@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import cast
-from datetime import datetime
+from datetime import datetime, timezone
 
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -55,6 +55,9 @@ class Platform(BaseModel):
     def get_name(self) -> str | None:
         return cast(str | None, self.name)
 
+    def get_display_name(self) -> str:
+        return (self.get_name() or self.get_abbreviation()).strip()
+
 
 class User(BaseModel):
     """
@@ -81,6 +84,9 @@ class User(BaseModel):
 
     def get_default_platform(self) -> Platform:
         return cast(Platform, self.default_platform)
+
+    def get_pc_platform(self) -> str:
+        return cast(str, self.pc_platform)
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
@@ -180,10 +186,12 @@ class Activity(BaseModel):
         return cast(int, self.seconds)
 
     def get_datetime(self) -> datetime:
-        return cast(datetime, self.timestamp)
+        return utils.assertTimezone(self.timestamp)
 
     def get_timestamp(self) -> int:
-        # confusing!
+        """
+        Returns timestamp in milliseconds since epoch
+        """
         return int(self.get_datetime().timestamp() * 1000)
 
     def get_emulated(self) -> bool:
@@ -214,6 +222,12 @@ class LiveActivity(BaseModel):
 
     def get_platform(self) -> Platform:
         return cast(Platform, self.platform)
+
+    def get_started_datetime(self) -> datetime:
+        return utils.assertTimezone(self.started)
+
+    def get_started_timestamp(self) -> int:
+        return int(self.get_started_datetime().timestamp() * 1000)
 
 
 class DiscordHistory(BaseModel):
@@ -260,4 +274,18 @@ def Platform_or_none(platform_id: int) -> Platform | None:
     p = Platform.get_or_none(Platform.id == platform_id)
     if p:
         return cast(Platform, p)
+    return None
+
+
+def LiveActivity_or_none(
+    id: int | None = None, user: User | None = None
+) -> LiveActivity | None:
+    if id is not None:
+        la = LiveActivity.get_or_none(LiveActivity.id == id)
+        if la:
+            return cast(LiveActivity, la)
+    elif user is not None:
+        la = LiveActivity.get_or_none(LiveActivity.user == user)
+        if la:
+            return cast(LiveActivity, la)
     return None

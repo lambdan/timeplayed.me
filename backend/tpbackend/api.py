@@ -22,7 +22,6 @@ from tpbackend.utils import (
     max_int as max,
     truncateMilliseconds,
     validateTS,
-    tsFromActivity,
 )
 from tpbackend import bot
 from tpbackend import steamgriddb
@@ -407,7 +406,7 @@ def get_public_activity(activity: Activity) -> PublicActivityModel:
     user = get_public_user(activity.user)  # type: ignore
     r = PublicActivityModel(
         id=activity.id,  # type: ignore
-        timestamp=tsFromActivity(activity),
+        timestamp=activity.get_timestamp(),
         user=user,
         game=get_public_game(activity.game),  # type: ignore
         platform=get_public_platform(activity.platform),  # type: ignore

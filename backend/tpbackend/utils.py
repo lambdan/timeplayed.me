@@ -237,21 +237,6 @@ def sanitize(s: str) -> str:
     return s
 
 
-def tsFromActivity(activity: storage_v2.Activity) -> int:
-    """
-    Returns a timestamp in milliseconds from an Activity
-    """
-    dt = activity.timestamp
-    if isinstance(dt, int):
-        # logger.info("tsFromActivity :: Returning %s", dt)
-        return dt
-    if dt.tzinfo is None:  # type: ignore
-        dt = dt.replace(tzinfo=datetime.timezone.utc)  # type: ignore
-    res = int(dt.timestamp() * 1000)  # type: ignore
-    # logger.info("tsFromActivity :: Returning %s", res)
-    return res
-
-
 def last_platform_for_game(
     user: storage_v2.User, game: storage_v2.Game
 ) -> storage_v2.Platform | None:
@@ -411,7 +396,7 @@ def game_name(game: Game, as_markdown_link=False) -> str:
 
 def platform_name(platform: Platform, as_markdown_link=False) -> str:
     id = platform.get_id()
-    name = str(platform.get_name() or platform.get_abbreviation()).strip()
+    name = platform.get_display_name()
     if as_markdown_link:
         url = platform_url(id)
         if url:
@@ -474,3 +459,10 @@ def search_users(query: str, offset=0, limit=0) -> list[storage_v2.User]:
     else:
         users = users[offset:]
     return users
+
+
+def assertTimezone(dt) -> datetime.datetime:
+    assert isinstance(dt, datetime.datetime)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
