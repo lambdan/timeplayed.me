@@ -2,14 +2,11 @@ import logging
 import discord
 from discord.ext import commands
 
-from tpbackend.storage import storage_v2
 from tpbackend.commands import dm_receive
-from tpbackend.globals import DEBUG
 
 logger = logging.getLogger("bot")
 
 intents = discord.Intents.default()
-# intents.presences = True
 intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -44,7 +41,4 @@ async def on_message(message: discord.Message):
     if not reply:
         return
 
-    storage_v2.DiscordHistory.create(
-        event="reply", user=str(message.author.id), message=str(reply)
-    )
     await message.author.send(reply, reference=message)

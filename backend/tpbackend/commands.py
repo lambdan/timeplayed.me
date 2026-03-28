@@ -41,6 +41,9 @@ def dm_receive(message: discord.Message) -> str | None:
 
     def _ret(reply: str | None) -> str | None:
         if reply:
+            DiscordHistory.create(
+                event="reply", user=str(message.author.id), message=reply
+            )
             _info(f"Replying: {reply}")
             return reply
         _info("(No reply)")
