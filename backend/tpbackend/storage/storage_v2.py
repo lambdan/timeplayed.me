@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage.reset_sequence import reset_sequences
+from tpbackend.api_models import PublicGameModel, PublicPlatformModel
 
 logger = logging.getLogger("storage_v2")
 
@@ -57,6 +58,25 @@ class Platform(BaseModel):
 
     def get_display_name(self) -> str:
         return (self.get_name() or self.get_abbreviation()).strip()
+
+    def get_color_primary(self) -> str | None:
+        return cast(str | None, self.color_primary)
+
+    def get_color_secondary(self) -> str | None:
+        return cast(str | None, self.color_secondary)
+
+    def get_icon(self) -> str | None:
+        return cast(str | None, self.icon)
+
+    def get_api_model(self) -> PublicPlatformModel:
+        return PublicPlatformModel(
+            id=self.get_id(),
+            abbreviation=self.get_abbreviation(),
+            name=self.get_name(),
+            color_primary=self.get_color_primary(),
+            color_secondary=self.get_color_secondary(),
+            icon=self.get_icon(),
+        )
 
 
 class User(BaseModel):
@@ -154,6 +174,17 @@ class Game(BaseModel):
 
     def set_hidden(self, hidden: bool):
         self.hidden = hidden
+
+    def get_api_model(self) -> PublicGameModel:
+        return PublicGameModel(
+            id=self.get_id(),
+            name=self.get_name(),
+            steam_id=self.get_steam_id(),
+            sgdb_id=self.get_sgdb_id(),
+            image_url=self.get_image_url(),
+            aliases=self.get_aliases(),
+            release_year=self.get_release_year(),
+        )
 
 
 class Activity(BaseModel):

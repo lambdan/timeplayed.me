@@ -298,65 +298,14 @@ def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
     pf = Platform_or_none(platformId)
     if not pf:
         return None
-    return get_public_platform(pf)
-
-
-def get_public_platform(platform: Platform) -> PublicPlatformModel:
-    #    key = f"get_public_platform:{platform.id}"
-    #    cached = cache_get(key)
-    #    if cached:
-    #        decoded = cached.decode("utf-8")  # type: ignore
-    #        return PublicPlatformModel.model_validate_json(decoded)
-
-    name = None
-    color_primary = None
-    color_secondary = None
-    icon = None
-    if platform.name:
-        name = str(platform.name)
-    if platform.color_primary:
-        color_primary = str(platform.color_primary)
-    if platform.color_secondary:
-        color_secondary = str(platform.color_secondary)
-    if platform.icon:
-        icon = str(platform.icon)
-    r = PublicPlatformModel(
-        id=platform.id,  # type: ignore
-        abbreviation=str(platform.abbreviation),
-        name=name,
-        color_primary=color_primary,
-        color_secondary=color_secondary,
-        icon=icon,
-    )
-    # cache_set(key, r.model_dump_json())
-    return r
+    return pf.get_api_model()
 
 
 def get_public_game_by_id(gameId: int) -> PublicGameModel | None:
     g = Game_or_none(gameId)
     if not g:
         return None
-    return get_public_game(g)
-
-
-def get_public_game(game: Game) -> PublicGameModel:
-    #    key = f"get_public_game:{game.id}"
-    #    cached = cache_get(key)
-    #    if cached:
-    #        decoded = cached.decode("utf-8")  # type: ignore
-    #        return PublicGameModel.model_validate_json(decoded)
-
-    r = PublicGameModel(
-        id=game.id,  # type: ignore
-        name=game.name,  # type: ignore
-        steam_id=game.steam_id,  # type: ignore
-        sgdb_id=game.sgdb_id,  # type: ignore
-        image_url=game.image_url,  # type: ignore
-        aliases=game.aliases,  # type: ignore
-        release_year=game.release_year,  # type: ignore
-    )
-    # cache_set(key, r.model_dump_json())
-    return r
+    return g.get_api_model()
 
 
 def get_public_user_by_id(userId: int) -> PublicUserModel | None:
@@ -367,25 +316,17 @@ def get_public_user_by_id(userId: int) -> PublicUserModel | None:
 
 
 def get_public_user(user: User) -> PublicUserModel:
-    #    key = f"get_public_user:{user.id}"
-    #    cached = cache_get(key)
-    #    if cached:
-    #        decoded = cached.decode("utf-8")  # type: ignore
-    #        return PublicUserModel.model_validate_json(decoded)
-
     avatar_url = None
-    discord_id = None
-    if user.discord_id:
-        discord_id = str(user.discord_id)
-        avatar_url = get_discord_avatar_url(str(user.discord_id))
+    discord_id = user.get_discord_id()
+    if discord_id:
+        avatar_url = get_discord_avatar_url(discord_id)
     r = PublicUserModel(
-        id=int(user.id),  # type: ignore
+        id=user.get_id(),
+        name=user.get_name(),
         discord_id=discord_id,
-        name=str(user.name),
         avatar_url=avatar_url,
-        default_platform=get_public_platform(user.default_platform),  # type: ignore
+        default_platform=user.get_default_platform().get_api_model(),
     )
-    # cache_set(key, r.model_dump_json())
     return r
 
 
@@ -397,23 +338,16 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
 
 
 def get_public_activity(activity: Activity) -> PublicActivityModel:
-    #    key = f"get_public_activity:{activity.id}"
-    #    cached = cache_get(key)
-    #    if cached:
-    #        decoded = cached.decode("utf-8")  # type: ignore
-    #        return PublicActivityModel.model_validate_json(decoded)
-
-    user = get_public_user(activity.user)  # type: ignore
+    user = get_public_user(activity.get_user())
     r = PublicActivityModel(
-        id=activity.id,  # type: ignore
+        id=activity.get_id(),
         timestamp=activity.get_timestamp(),
         user=user,
-        game=get_public_game(activity.game),  # type: ignore
-        platform=get_public_platform(activity.platform),  # type: ignore
-        seconds=activity.seconds,  # type: ignore
-        emulated=activity.emulated,  # type: ignore
+        game=activity.get_game().get_api_model(),
+        platform=activity.get_platform().get_api_model(),
+        seconds=activity.get_seconds(),
+        emulated=activity.get_emulated(),
     )
-    # cache_set(key, r.model_dump_json(), ex=5)
     return r
 
 
@@ -771,7 +705,7 @@ def get_game(
     if cached:
         return GameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    gameModel = get_public_game(game)
+    gameModel = game.get_api_model()
 
     totals = get_totals(
         userId=userId,
