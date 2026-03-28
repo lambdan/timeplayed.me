@@ -113,10 +113,6 @@ class Game(BaseModel):
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
 
-    def set_hidden(self, hidden: bool):
-        self.hidden = hidden
-        self.save()
-
 
 class Activity(BaseModel):
     """

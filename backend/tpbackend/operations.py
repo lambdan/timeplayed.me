@@ -147,6 +147,10 @@ def add_session(
             timestamp=timestamp,
         )
 
+        # auto hide activity if game is hidden
+        activity.hidden = game.get_hidden()
+        activity.save()
+
         logger.info(
             "Added activity %s for user %s: %s (%s) - %s seconds @ %s",
             activity.id,
