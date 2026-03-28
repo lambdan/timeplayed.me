@@ -9,7 +9,7 @@ from tpbackend.storage.storage_v2 import (
     Platform,
     Activity,
 )
-from tpbackend.consts import MINIMUM_SESSION_LENGTH
+from tpbackend.globals import MINIMUM_SESSION_LENGTH
 
 logger = logging.getLogger("operations")
 

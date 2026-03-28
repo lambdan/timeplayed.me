@@ -4,7 +4,7 @@ import asyncio
 from typing import TypedDict
 
 from tpbackend import operations
-from tpbackend.consts import MINIMUM_SESSION_LENGTH
+from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
 from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
 from tpbackend.storage.storage_v2 import User, Platform
