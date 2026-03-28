@@ -44,6 +44,8 @@ logger = logging.getLogger("api")
 
 app = FastAPI()
 
+ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
+
 # This file is a mess because of circular imports hell
 
 ################ HELPERS ##################
@@ -68,8 +70,7 @@ def get_total_playtime(
     after: int | None = None,
 ) -> int:
     query = Activity.select(Activity.seconds)
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -93,8 +94,7 @@ def get_total_playtime(
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
 
-    if len(conditions) > 0:
-        query = query.where(*conditions)
+    query = query.where(*conditions)
     total = query.select(fn.SUM(Activity.seconds)).scalar() or 0
     cache_set(key, str(total))
     return total
@@ -107,8 +107,7 @@ def get_activity_count(
     before: int | None = None,
     after: int | None = None,
 ) -> int:
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -132,11 +131,7 @@ def get_activity_count(
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
 
-    r = 0
-    if len(conditions) > 0:
-        r = Activity.select().where(*conditions).count()
-    else:
-        r = Activity.select().count()
+    r = Activity.select().where(*conditions).count()
     cache_set(key, str(r))
     return r
 
@@ -147,13 +142,7 @@ def get_user_count(
     gameId: int | None = None,
     platformId: int | None = None,
 ) -> int:
-    # total = 0
-    # for user in User.select():
-    #     if get_activity_count(userId=user.id, before=before, after=after, gameId=gameId, platformId=platformId) > 0:
-    #         total += 1
-    # return total
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if gameId:
         conditions.append(Activity.game == gameId)
     if platformId:
@@ -175,11 +164,7 @@ def get_user_count(
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
 
-    r = 0
-    if len(conditions) > 0:
-        r = Activity.select(Activity.user).where(*conditions).distinct().count()
-    else:
-        r = Activity.select(Activity.user).distinct().count()
+    r = Activity.select(Activity.user).where(*conditions).distinct().count()
     cache_set(key, str(r))
     return r
 
@@ -191,8 +176,7 @@ def get_game_count(
     after: int | None = None,
 ) -> int:
     # iterating over Activity to only get games with activity
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
 
@@ -215,11 +199,7 @@ def get_game_count(
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
 
-    r = 0
-    if len(conditions) > 0:
-        r = Activity.select(Activity.game).where(*conditions).distinct().count()
-    else:
-        r = Activity.select(Activity.game).distinct().count()
+    r = Activity.select(Activity.game).where(*conditions).distinct().count()
     cache_set(key, str(r))
     return r
 
@@ -230,8 +210,7 @@ def get_platform_count(
     before: int | None = None,
     after: int | None = None,
 ) -> int:
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -253,11 +232,7 @@ def get_platform_count(
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
 
-    r = 0
-    if len(conditions) > 0:
-        r = Activity.select(Activity.platform).where(*conditions).distinct().count()
-    else:
-        r = Activity.select(Activity.platform).distinct().count()
+    r = Activity.select(Activity.platform).where(*conditions).distinct().count()
     cache_set(key, str(r))
     return r
 
@@ -265,7 +240,8 @@ def get_platform_count(
 def get_player_count(
     gameId: int, before: int | None = None, after: int | None = None
 ) -> int:
-    conditions = [Activity.game == gameId, Activity.hidden == False]  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
+    conditions.append(Activity.game == gameId)
 
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
@@ -473,8 +449,7 @@ def get_users(
         before=before, after=after, gameId=gameId, platformId=platformId
     )
 
-    filters = []
-    filters.append(Activity.hidden == False)  # noqa: E712
+    filters = ACTIVITY_BASE_FILTERS.copy()
     if gameId:
         filters.append(Activity.game == gameId)
     if platformId:
@@ -491,9 +466,7 @@ def get_users(
     if cached:
         return PaginatedUserWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    query = Activity.select()
-    if len(filters) > 0:
-        query = query.where(*filters)
+    query = Activity.select().where(*filters)
     query = query.order_by(Activity.user.asc()).distinct(Activity.user)
     activities = query[offset : offset + limit]  # type: ignore
 
@@ -617,8 +590,7 @@ def get_activities_impl(
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
 
     # Build filters once
-    filters = []
-    filters.append(Activity.hidden == False)  # noqa: E712
+    filters = ACTIVITY_BASE_FILTERS.copy()
     if user is not None:
         filters.append(Activity.user == user)
     if game is not None:
@@ -631,9 +603,7 @@ def get_activities_impl(
     if after_dt:
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    query = Activity.select()
-    if filters:
-        query = query.where(*filters)
+    query = Activity.select().where(*filters)
     query = (
         query.order_by(
             Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc()
@@ -732,8 +702,7 @@ def get_games(
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
 
-    filters = []
-    filters.append(Activity.hidden == False)  # noqa: E712
+    filters = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         filters.append(Activity.user == userId)
     if platformId:
@@ -752,9 +721,7 @@ def get_games(
     if cached:
         return PaginatedGameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    query = Activity.select()
-    if len(filters) > 0:
-        query = query.where(*filters)
+    query = Activity.select().where(*filters)
     query = query.order_by(Activity.game.asc()).distinct(Activity.game)
     activities = query[offset : offset + limit]  # type: ignore
 
@@ -873,7 +840,7 @@ def get_platforms(
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
 
-    filters = []
+    filters = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         filters.append(Activity.user == userId)
     if gameId:
@@ -892,9 +859,7 @@ def get_platforms(
     if cached:
         return PaginatedPlatformsWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    query = Activity.select()
-    if len(filters) > 0:
-        query = query.where(*filters)
+    query = Activity.select().where(*filters)
     query = query.order_by(Activity.platform.asc()).distinct(Activity.platform)
     activities = query[offset : offset + limit]  # type: ignore
 
@@ -1033,16 +998,14 @@ def get_playtime_by_day(
         return json.loads(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select(Activity.timestamp, Activity.seconds)
-    conditions = []
-    conditions.append(Activity.hidden == False)  # noqa: E712
+    conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
         conditions.append(Activity.game == gameId)
     if platformId:
         conditions.append(Activity.platform == platformId)
-    if conditions:
-        query = query.where(*conditions)
+    query = query.where(*conditions)
 
     daily_seconds: dict[datetime.date, int] = {}
     for activity in query:
