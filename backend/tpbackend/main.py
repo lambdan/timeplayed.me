@@ -18,7 +18,9 @@ async def start_bot():
 
 
 async def async_main():
-    await asyncio.gather(start_api(), start_bot(), oblivionisSync.start())
+    await asyncio.gather(
+        start_api(), start_bot(), oblivionisSync.sync_loop(), storage_v2.clean_loop()
+    )
 
 
 def main():

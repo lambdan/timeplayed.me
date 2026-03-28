@@ -1,7 +1,8 @@
+import asyncio
 import os
 import logging
 from typing import cast
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -274,6 +275,22 @@ def connect_db():
         logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
         reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])
+
+
+async def clean_loop():
+    def cleanupDiscordHistory():
+        cutoff = utils.now() - timedelta(days=30)
+        logger.info(
+            f"Cleaning up DiscordHistory entries older than {cutoff.isoformat()}..."
+        )
+        deleted = DiscordHistory.delete().where(DiscordHistory.timestamp < cutoff).execute()  # type: ignore
+        logger.info(f"Deleted {deleted} old entries from DiscordHistory")
+
+    while True:
+        logger.info("Cleaning up... 🧹")
+        cleanupDiscordHistory()
+        logger.info("Cleanup complete! 🧹")
+        await asyncio.sleep(86400)  # every day
 
 
 def Game_or_none(game_id: int, include_hidden=False) -> Game | None:

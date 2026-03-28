@@ -77,8 +77,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         return False
 
 
-async def start():
+async def sync_loop():
     while True:
+        logger.info("Checking...")
         oblivionisActivities = storage.Activity.select()
         parsedIds = []
 
