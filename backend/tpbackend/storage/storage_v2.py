@@ -1,5 +1,7 @@
 import os
 import logging
+from typing import cast
+from datetime import datetime, timezone
 
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -44,6 +46,18 @@ class Platform(BaseModel):
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
 
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_abbreviation(self) -> str:
+        return cast(str, self.abbreviation)
+
+    def get_name(self) -> str | None:
+        return cast(str | None, self.name)
+
+    def get_display_name(self) -> str:
+        return (self.get_name() or self.get_abbreviation()).strip()
+
 
 class User(BaseModel):
     """
@@ -58,6 +72,21 @@ class User(BaseModel):
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_discord_id(self) -> str | None:
+        return cast(str | None, self.discord_id)
+
+    def get_name(self) -> str:
+        return cast(str, self.name)
+
+    def get_default_platform(self) -> Platform:
+        return cast(Platform, self.default_platform)
+
+    def get_pc_platform(self) -> str:
+        return cast(str, self.pc_platform)
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
@@ -95,6 +124,36 @@ class Game(BaseModel):
     image_url = CharField(null=True, default=None)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
+    hidden = BooleanField(default=False)
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_name(self) -> str:
+        return cast(str, self.name)
+
+    def get_steam_id(self) -> int | None:
+        return cast(int | None, self.steam_id)
+
+    def get_sgdb_id(self) -> int | None:
+        return cast(int | None, self.sgdb_id)
+
+    def get_image_url(self) -> str | None:
+        return cast(str | None, self.image_url)
+
+    def get_aliases(self) -> list[str]:
+        if not self.aliases:
+            return []
+        return cast(list[str], self.aliases)
+
+    def get_release_year(self) -> int | None:
+        return cast(int | None, self.release_year)
+
+    def get_hidden(self) -> bool:
+        return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        self.hidden = hidden
 
 
 class Activity(BaseModel):
@@ -109,6 +168,40 @@ class Activity(BaseModel):
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
     emulated = BooleanField(default=False)
+    hidden = BooleanField(default=False, column_name="hidden")
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_game(self) -> Game:
+        return cast(Game, self.game)
+
+    def get_platform(self) -> Platform:
+        return cast(Platform, self.platform)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
+    def get_seconds(self) -> int:
+        return cast(int, self.seconds)
+
+    def get_datetime(self) -> datetime:
+        return utils.assertTimezone(self.timestamp)
+
+    def get_timestamp(self) -> int:
+        """
+        Returns timestamp in milliseconds since epoch
+        """
+        return int(self.get_datetime().timestamp() * 1000)
+
+    def get_emulated(self) -> bool:
+        return cast(bool, self.emulated)
+
+    def get_hidden(self) -> bool:
+        return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        self.hidden = hidden
 
 
 class LiveActivity(BaseModel):
@@ -117,6 +210,24 @@ class LiveActivity(BaseModel):
     game = ForeignKeyField(Game, backref="live_activities")
     platform = ForeignKeyField(Platform, backref="live_activities")
     started = DateTimeField()
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
+    def get_game(self) -> Game:
+        return cast(Game, self.game)
+
+    def get_platform(self) -> Platform:
+        return cast(Platform, self.platform)
+
+    def get_started_datetime(self) -> datetime:
+        return utils.assertTimezone(self.started)
+
+    def get_started_timestamp(self) -> int:
+        return int(self.get_started_datetime().timestamp() * 1000)
 
 
 class DiscordHistory(BaseModel):
@@ -132,3 +243,49 @@ def connect_db():
         logger.info("DB connected")
         db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
         reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])
+
+
+def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
+    g = Game.get_or_none(Game.id == game_id)
+    if g:
+        game = cast(Game, g)
+        if include_hidden or not game.get_hidden():
+            return game
+    return None
+
+
+def User_or_none(user_id: int) -> User | None:
+    u = User.get_or_none(User.id == user_id)
+    if u:
+        return cast(User, u)
+    return None
+
+
+def Activity_or_none(activity_id: int, include_hidden=False) -> Activity | None:
+    a = Activity.get_or_none(Activity.id == activity_id)
+    if a:
+        activity = cast(Activity, a)
+        if include_hidden or not activity.get_hidden():
+            return activity
+    return None
+
+
+def Platform_or_none(platform_id: int) -> Platform | None:
+    p = Platform.get_or_none(Platform.id == platform_id)
+    if p:
+        return cast(Platform, p)
+    return None
+
+
+def LiveActivity_or_none(
+    id: int | None = None, user: User | None = None
+) -> LiveActivity | None:
+    if id is not None:
+        la = LiveActivity.get_or_none(LiveActivity.id == id)
+        if la:
+            return cast(LiveActivity, la)
+    elif user is not None:
+        la = LiveActivity.get_or_none(LiveActivity.user == user)
+        if la:
+            return cast(LiveActivity, la)
+    return None

@@ -1,3 +1,4 @@
+from typing import cast
 from tpbackend import api
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import Platform, User
@@ -100,8 +101,9 @@ Returns: Confirmation message
         platform = last_platform_for_game(user=user, game=game)
         if not platform:
             self.logger.debug("No last platform found, using default")
-            platform = user.default_platform
-        platform = Platform.get_by_id(platform.id)  # type: ignore
+            platform = user.get_default_platform()
+        platform = Platform.get_by_id(platform.id)
+        platform = cast(Platform, platform)
 
         result = add_session(
             user=user,
@@ -112,11 +114,11 @@ Returns: Confirmation message
         )
         sesh = result[0]
         if sesh:
-            formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
+            formatted_dt = sesh.get_datetime().strftime("%Y-%m-%d %H:%M:%S UTC")
             msg = f"{activity_name(sesh, as_markdown_link=True)} added ✅\n"
-            msg += f"- Game: {game_name(game=sesh.game, as_markdown_link=True)}\n"  # type: ignore
-            msg += f"- Duration: {secsToHHMMSS(int(str(sesh.seconds)))}\n"
+            msg += f"- Game: {game_name(game=sesh.get_game(), as_markdown_link=True)}\n"  # type: ignore
+            msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Date: {formatted_dt}\n"
-            msg += f"- Platform: {sesh.platform.name or sesh.platform.abbreviation}\n"
+            msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
             return msg.strip()
         return f"ERROR: {result[1]}"

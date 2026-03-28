@@ -1,9 +1,16 @@
 import datetime
 import logging
+from typing import cast
 
 from tpbackend import utils
-from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
-from tpbackend.consts import MINIMUM_SESSION_LENGTH
+from tpbackend.storage.storage_v2 import (
+    Activity_or_none,
+    User,
+    Game,
+    Platform,
+    Activity,
+)
+from tpbackend.globals import MINIMUM_SESSION_LENGTH
 
 logger = logging.getLogger("operations")
 
@@ -65,10 +72,10 @@ def get_overlapping_activity(
     platform: Platform,
     incoming_ended_dt: datetime.datetime,
     incoming_seconds: int,
-) -> int | None:
+) -> Activity | None:
     """
     Returns None if no overlap.
-    Returns id of old activity if overlap is detected (it should be removed)
+    Returns old activity if overlap is detected (it should be removed)
     """
     # get last activity for this user/game/platform
     last_activity = (
@@ -84,7 +91,8 @@ def get_overlapping_activity(
     if not last_activity:
         return None
 
-    last_ended_ts = utils.tsFromActivity(last_activity)
+    last_activity = cast(Activity, last_activity)
+    last_ended_ts = last_activity.get_timestamp()
     new_ended_ts = int(incoming_ended_dt.timestamp() * 1000)
     # calculate time between the activities
     delta_ms = new_ended_ts - last_ended_ts
@@ -92,7 +100,7 @@ def get_overlapping_activity(
     if delta_s < incoming_seconds:
         # if the last_activity ended when you were still playing (according to this new incoming activity), it's an overlap
         logger.info("⚠️ Detected overlapping activity: %s", last_activity)
-        return last_activity.id
+        return last_activity
     return None
 
 
@@ -113,14 +121,15 @@ def add_session(
         )
 
     try:
-        if platform is None:  # Use default platform if not provided
-            platform = user.default_platform  # type: ignore
+        # use default platform if not provided
+        platform = platform or user.get_default_platform()
+        if platform.get_abbreviation() == "pc":
+            platform, created = Platform.get_or_create(
+                abbreviation=user.get_pc_platform()
+            )
 
-        if platform.abbreviation == "pc":  # type: ignore
-            platform, created = Platform.get_or_create(abbreviation=user.pc_platform)
-
-        if timestamp is None:  # Use current time if not provided
-            timestamp = utils.now()
+        # now if not provided
+        timestamp = timestamp or utils.now()
 
         # Check for overlapping activity
         overlapping_activity = get_overlapping_activity(
@@ -131,15 +140,14 @@ def add_session(
             incoming_seconds=seconds,
         )
         if overlapping_activity is not None:
-            # Remove overlapping activity
-            Activity.delete().where(Activity.id == overlapping_activity).execute()  # type: ignore
             logger.info(
-                "Deleted overlapping activity %s for user %s",
+                "Deleting overlapping activity %s for user %s",
                 overlapping_activity,
                 user,
             )
+            overlapping_activity.delete_instance()  # or maybe just hide...
 
-        activity = Activity.create(
+        raw_activity = Activity.create(
             user=user,
             game=game,
             seconds=seconds,
@@ -147,14 +155,23 @@ def add_session(
             timestamp=timestamp,
         )
 
+        activity = Activity_or_none(raw_activity.id, include_hidden=True)
+        if not activity:
+            raise Exception("Failed to retrieve newly created activity")
+
+        # auto hide activity if game is hidden
+        activity.set_hidden(game.get_hidden())
+        activity.save()
+
         logger.info(
-            "Added activity %s for user %s: %s (%s) - %s seconds @ %s",
-            activity.id,
-            user,
-            game,
-            platform,
-            seconds,
-            timestamp.isoformat(),
+            "Added activity id %s for user %s: %s (%s) - %s seconds @ %s (hidden: %s)",
+            activity.get_id(),
+            activity.get_user().get_name(),
+            activity.get_game().get_name(),
+            activity.get_platform().get_abbreviation(),
+            activity.get_seconds(),
+            activity.get_datetime().isoformat(),
+            activity.get_hidden(),
         )
 
         return activity, None
