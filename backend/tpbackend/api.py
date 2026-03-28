@@ -69,7 +69,7 @@ def get_total_playtime(
 ) -> int:
     query = Activity.select(Activity.seconds)
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -108,7 +108,7 @@ def get_activity_count(
     after: int | None = None,
 ) -> int:
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -153,7 +153,7 @@ def get_user_count(
     #         total += 1
     # return total
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if gameId:
         conditions.append(Activity.game == gameId)
     if platformId:
@@ -192,7 +192,7 @@ def get_game_count(
 ) -> int:
     # iterating over Activity to only get games with activity
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if userId:
         conditions.append(Activity.user == userId)
 
@@ -231,7 +231,7 @@ def get_platform_count(
     after: int | None = None,
 ) -> int:
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
@@ -265,7 +265,7 @@ def get_platform_count(
 def get_player_count(
     gameId: int, before: int | None = None, after: int | None = None
 ) -> int:
-    conditions = [Activity.game == gameId, not Activity.hidden]
+    conditions = [Activity.game == gameId, Activity.hidden == False]  # noqa: E712
 
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
@@ -474,7 +474,7 @@ def get_users(
     )
 
     filters = []
-    filters.append(not Activity.hidden)
+    filters.append(Activity.hidden == False)  # noqa: E712
     if gameId:
         filters.append(Activity.game == gameId)
     if platformId:
@@ -618,7 +618,7 @@ def get_activities_impl(
 
     # Build filters once
     filters = []
-    filters.append(not Activity.hidden)
+    filters.append(Activity.hidden == False)  # noqa: E712
     if user is not None:
         filters.append(Activity.user == user)
     if game is not None:
@@ -733,7 +733,7 @@ def get_games(
     before, after = validateTS(before), validateTS(after)
 
     filters = []
-    filters.append(not Activity.hidden)
+    filters.append(Activity.hidden == False)  # noqa: E712
     if userId:
         filters.append(Activity.user == userId)
     if platformId:
@@ -1034,7 +1034,7 @@ def get_playtime_by_day(
 
     query = Activity.select(Activity.timestamp, Activity.seconds)
     conditions = []
-    conditions.append(not Activity.hidden)
+    conditions.append(Activity.hidden == False)  # noqa: E712
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
