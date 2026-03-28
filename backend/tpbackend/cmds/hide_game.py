@@ -1,5 +1,6 @@
 from tpbackend.storage.storage_v2 import Game_or_none, User, Game, Activity
 from tpbackend.cmds.admin_command import AdminCommand
+from typing import cast
 
 
 class HideGameCommand(AdminCommand):
@@ -26,6 +27,7 @@ class HideGameCommand(AdminCommand):
         activities = Activity.select().where(Activity.game == game)
         changed = 0
         for activity in activities:
+            activity = cast(Activity, activity)
             if activity.get_hidden() == game.get_hidden():
                 continue
             activity.set_hidden(game.get_hidden())
