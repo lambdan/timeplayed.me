@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+from typing import cast
 
 from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
@@ -317,18 +318,18 @@ def search_games(
     query = query_normalize(query)
     games = []
     for game in storage_v2.Game.select():
-        if not include_hidden and game.hidden:
+        game = cast(Game, game)
+        if not include_hidden and game.get_hidden():
             continue
         # search in name
         # game.name is cleaned as well, eg to allow
         # "belmonts revenge" to match "Belmont's Revenge"
-        if query in query_normalize(game.name):
+        if query in query_normalize(game.get_name()):
             games.append(game)
             continue
-        if not game.aliases or len(game.aliases) == 0:
-            # no aliases
+        if len(game.get_aliases()) == 0:
             continue
-        for alias in game.aliases:
+        for alias in game.get_aliases():
             if query in query_normalize(alias):
                 games.append(game)
                 break
@@ -344,7 +345,7 @@ def search_games(
             include_hidden=include_hidden,
         )
     # order by name
-    games.sort(key=lambda g: g.name.lower())
+    games.sort(key=lambda g: g.get_name().lower())
     # offset and limit
     if limit > 0:
         games = games[offset : offset + limit]
@@ -375,9 +376,8 @@ def user_url(user_id) -> str:
 
 
 def user_name(user: User, as_markdown_link=False) -> str:
-    id = int(user.id)  # type: ignore
-    name = f"{user.name}"
-    name = name.strip()
+    id = user.get_id()
+    name = user.get_name().strip()
     if as_markdown_link:
         url = user_url(id)
         if url:
@@ -386,9 +386,8 @@ def user_name(user: User, as_markdown_link=False) -> str:
 
 
 def activity_name(activity: Activity, as_markdown_link=False) -> str:
-    id = int(activity.id)  # type: ignore
-    name = f"Activity {id}"
-    name = name.strip()
+    id = activity.get_id()
+    name = f"Activity {id}".strip()
     if as_markdown_link:
         url = activity_url(id)
         if url:
@@ -397,10 +396,11 @@ def activity_name(activity: Activity, as_markdown_link=False) -> str:
 
 
 def game_name(game: Game, as_markdown_link=False) -> str:
-    id = int(game.id)  # type: ignore
-    name = f"{game.name}"
-    if game.release_year:
-        name += f" ({game.release_year})"
+    id = game.get_id()
+    name = game.get_name().strip()
+    year = game.get_release_year()
+    if year:
+        name += f" ({year})"
     name = name.strip()
     if as_markdown_link:
         url = game_url(id)
@@ -410,8 +410,8 @@ def game_name(game: Game, as_markdown_link=False) -> str:
 
 
 def platform_name(platform: Platform, as_markdown_link=False) -> str:
-    id = int(platform.id)  # type: ignore
-    name = str(platform.name or platform.abbreviation).strip()
+    id = platform.get_id()
+    name = str(platform.get_name() or platform.get_abbreviation()).strip()
     if as_markdown_link:
         url = platform_url(id)
         if url:
@@ -426,20 +426,19 @@ def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]
     query = query_normalize(query)
     platforms = []
     for platform in storage_v2.Platform.select():
-        platform: storage_v2.Platform
+        platform = cast(Platform, platform)
         # search in abbreviation
-        if platform.abbreviation and query in query_normalize(
-            str(platform.abbreviation)
-        ):
+        if query in query_normalize(platform.get_abbreviation()):
             platforms.append(platform)
             continue
         # search in name
-        if platform.name and query in query_normalize(str(platform.name)):
+        name = platform.get_name()
+        if name and query in query_normalize(name):
             platforms.append(platform)
             continue
     logger.info("search_platforms :: '%s' --> %s results", query, len(platforms))
     # order by abbreviation
-    platforms.sort(key=lambda p: p.abbreviation.lower())
+    platforms.sort(key=lambda p: cast(Platform, p).get_abbreviation().lower())
     # offset and limit
     if limit > 0:
         platforms = platforms[offset : offset + limit]
@@ -455,19 +454,20 @@ def search_users(query: str, offset=0, limit=0) -> list[storage_v2.User]:
     query = query_normalize(query)
     users = []
     for user in storage_v2.User.select():
+        user = cast(User, user)
         # search in name
-        if query in query_normalize(user.name):
+        if query in query_normalize(user.get_name()):
             users.append(user)
             continue
-        if query in query_normalize(str(user.discord_id)):
+        if query in query_normalize(str(user.get_discord_id())):
             users.append(user)
             continue
-        if query in query_normalize(str(user.id)):
+        if query in query_normalize(str(user.get_id())):
             users.append(user)
             continue
     logger.info("search_users :: '%s' --> %s results", query, len(users))
     # order by name
-    users.sort(key=lambda u: u.name.lower())
+    users.sort(key=lambda u: cast(User, u).get_name().lower())
     # offset and limit
     if limit > 0:
         users = users[offset : offset + limit]

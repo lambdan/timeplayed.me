@@ -1,6 +1,7 @@
 import os
 import logging
 from typing import cast
+from datetime import datetime
 
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -48,6 +49,12 @@ class Platform(BaseModel):
     def get_id(self) -> int:
         return cast(int, self.id)
 
+    def get_abbreviation(self) -> str:
+        return cast(str, self.abbreviation)
+
+    def get_name(self) -> str | None:
+        return cast(str | None, self.name)
+
 
 class User(BaseModel):
     """
@@ -65,6 +72,12 @@ class User(BaseModel):
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_discord_id(self) -> str | None:
+        return cast(str | None, self.discord_id)
+
+    def get_name(self) -> str:
+        return cast(str, self.name)
 
     def get_default_platform(self) -> Platform:
         return cast(Platform, self.default_platform)
@@ -110,8 +123,31 @@ class Game(BaseModel):
     def get_id(self) -> int:
         return cast(int, self.id)
 
+    def get_name(self) -> str:
+        return cast(str, self.name)
+
+    def get_steam_id(self) -> int | None:
+        return cast(int | None, self.steam_id)
+
+    def get_sgdb_id(self) -> int | None:
+        return cast(int | None, self.sgdb_id)
+
+    def get_image_url(self) -> str | None:
+        return cast(str | None, self.image_url)
+
+    def get_aliases(self) -> list[str]:
+        if not self.aliases:
+            return []
+        return cast(list[str], self.aliases)
+
+    def get_release_year(self) -> int | None:
+        return cast(int | None, self.release_year)
+
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        self.hidden = hidden
 
 
 class Activity(BaseModel):
@@ -140,8 +176,24 @@ class Activity(BaseModel):
     def get_user(self) -> User:
         return cast(User, self.user)
 
+    def get_seconds(self) -> int:
+        return cast(int, self.seconds)
+
+    def get_datetime(self) -> datetime:
+        return cast(datetime, self.timestamp)
+
+    def get_timestamp(self) -> int:
+        # confusing!
+        return int(self.get_datetime().timestamp() * 1000)
+
+    def get_emulated(self) -> bool:
+        return cast(bool, self.emulated)
+
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        self.hidden = hidden
 
 
 class LiveActivity(BaseModel):
@@ -179,10 +231,12 @@ def connect_db():
         reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])
 
 
-def Game_or_none(game_id: int) -> Game | None:
+def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
     g = Game.get_or_none(Game.id == game_id)
     if g:
-        return cast(Game, g)
+        game = cast(Game, g)
+        if include_hidden or not game.get_hidden():
+            return game
     return None
 
 
@@ -193,10 +247,12 @@ def User_or_none(user_id: int) -> User | None:
     return None
 
 
-def Activity_or_none(activity_id: int) -> Activity | None:
+def Activity_or_none(activity_id: int, include_hidden=False) -> Activity | None:
     a = Activity.get_or_none(Activity.id == activity_id)
     if a:
-        return cast(Activity, a)
+        activity = cast(Activity, a)
+        if include_hidden or not activity.get_hidden():
+            return activity
     return None
 
 

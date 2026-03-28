@@ -2,7 +2,13 @@ import datetime
 import logging
 
 from tpbackend import utils
-from tpbackend.storage.storage_v2 import User, Game, Platform, Activity
+from tpbackend.storage.storage_v2 import (
+    Activity_or_none,
+    User,
+    Game,
+    Platform,
+    Activity,
+)
 from tpbackend.consts import MINIMUM_SESSION_LENGTH
 
 logger = logging.getLogger("operations")
@@ -139,7 +145,7 @@ def add_session(
                 user,
             )
 
-        activity = Activity.create(
+        raw_activity = Activity.create(
             user=user,
             game=game,
             seconds=seconds,
@@ -147,18 +153,23 @@ def add_session(
             timestamp=timestamp,
         )
 
+        activity = Activity_or_none(raw_activity.id, include_hidden=True)
+        if not activity:
+            raise Exception("Failed to retrieve newly created activity")
+
         # auto hide activity if game is hidden
-        activity.hidden = game.get_hidden()
+        activity.set_hidden(game.get_hidden())
         activity.save()
 
         logger.info(
-            "Added activity %s for user %s: %s (%s) - %s seconds @ %s",
-            activity.id,
-            user,
-            game,
-            platform,
-            seconds,
-            timestamp.isoformat(),
+            "Added activity id %s for user %s: %s (%s) - %s seconds @ %s (hidden: %s)",
+            activity.get_id(),
+            activity.get_user().get_name(),
+            activity.get_game().get_name(),
+            activity.get_platform().get_abbreviation(),
+            activity.get_seconds(),
+            activity.get_datetime().isoformat(),
+            activity.get_hidden(),
         )
 
         return activity, None
