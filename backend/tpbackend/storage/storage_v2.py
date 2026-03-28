@@ -130,6 +130,8 @@ class Activity(BaseModel):
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
     emulated = BooleanField(default=False)
+    auto_hidden = BooleanField(default=False, column_name="auto_hidden")
+    # manual hidden in the future?
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -144,7 +146,7 @@ class Activity(BaseModel):
         return cast(User, self.user)
 
     def is_hidden(self) -> bool:
-        return self.game.get_hidden()
+        return cast(bool, self.auto_hidden)
 
 
 class LiveActivity(BaseModel):
