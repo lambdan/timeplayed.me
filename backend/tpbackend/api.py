@@ -2,6 +2,7 @@ import datetime
 import json
 from typing import Literal, cast
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from peewee import fn
 from tpbackend.api_models import (
     GameWithStats,
@@ -48,17 +49,6 @@ ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 # This file is a mess because of circular imports hell
 
 ################ HELPERS ##################
-
-
-def get_discord_avatar_url(discord_user_id: str | int) -> str:
-    discord_user_id = int(discord_user_id)
-    cache_key = f"get_discord_avatar_url:{discord_user_id}"
-    cached = cache_get(cache_key)
-    if cached:
-        return cached.decode("utf-8")  # type: ignore
-    url = bot.avatar_from_discord_user_id(discord_user_id)
-    cache_set(cache_key, url, ex=3600)
-    return url
 
 
 def get_total_playtime(
@@ -312,43 +302,14 @@ def get_public_user_by_id(userId: int) -> PublicUserModel | None:
     user = User_or_none(userId)
     if not user:
         return None
-    return get_public_user(user)
-
-
-def get_public_user(user: User) -> PublicUserModel:
-    avatar_url = None
-    discord_id = user.get_discord_id()
-    if discord_id:
-        avatar_url = get_discord_avatar_url(discord_id)
-    r = PublicUserModel(
-        id=user.get_id(),
-        name=user.get_name(),
-        discord_id=discord_id,
-        avatar_url=avatar_url,
-        default_platform=user.get_default_platform().get_api_model(),
-    )
-    return r
+    return user.get_api_model()
 
 
 def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
     activity = Activity_or_none(activityId)
     if not activity:
         return None
-    return get_public_activity(activity)
-
-
-def get_public_activity(activity: Activity) -> PublicActivityModel:
-    user = get_public_user(activity.get_user())
-    r = PublicActivityModel(
-        id=activity.get_id(),
-        timestamp=activity.get_timestamp(),
-        user=user,
-        game=activity.get_game().get_api_model(),
-        platform=activity.get_platform().get_api_model(),
-        seconds=activity.get_seconds(),
-        emulated=activity.get_emulated(),
-    )
-    return r
+    return activity.get_api_model()
 
 
 ######################## API ENDPOINTS ############################
@@ -551,7 +512,7 @@ def get_activities_impl(
 
     data = []
     for a in query:
-        data.append(get_public_activity(a))
+        data.append(a.get_api_model())
 
     r = PaginatedActivities(
         data=data,
@@ -1021,3 +982,22 @@ def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
 )
 def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
     return steamgriddb.get_best_grid(sgdb_game_id)
+
+
+@app.get(
+    "/api/discord/avatar/{discord_user_id}",
+    tags=["Discord"],
+    description="Returns redirect to Discord avatar URL for a given Discord user ID",
+)
+def redirect_discord_avatar(discord_user_id: str | int):
+    def _get_url(discord_user_id: str | int) -> str:
+        discord_user_id = int(discord_user_id)
+        cache_key = f"get_discord_avatar_url:{discord_user_id}"
+        cached = cache_get(cache_key)
+        if cached:
+            return cached.decode("utf-8")  # type: ignore
+        url = bot.avatar_from_discord_user_id(discord_user_id)
+        cache_set(cache_key, url, ex=3600)
+        return url
+
+    return RedirectResponse(_get_url(discord_user_id), status_code=307)

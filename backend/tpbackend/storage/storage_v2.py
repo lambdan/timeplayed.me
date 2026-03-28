@@ -7,7 +7,12 @@ from datetime import datetime, timezone, timedelta
 from tpbackend import utils
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage.reset_sequence import reset_sequences
-from tpbackend.api_models import PublicGameModel, PublicPlatformModel
+from tpbackend.api_models import (
+    PublicGameModel,
+    PublicPlatformModel,
+    PublicUserModel,
+    PublicActivityModel,
+)
 
 logger = logging.getLogger("storage_v2")
 
@@ -132,6 +137,14 @@ class User(BaseModel):
             return True
         return False
 
+    def get_api_model(self) -> PublicUserModel:
+        return PublicUserModel(
+            id=self.get_id(),
+            discord_id=self.get_discord_id(),
+            name=self.get_name(),
+            default_platform=self.get_default_platform().get_api_model(),
+        )
+
 
 class Game(BaseModel):
     """
@@ -234,6 +247,17 @@ class Activity(BaseModel):
 
     def set_hidden(self, hidden: bool):
         self.hidden = hidden
+
+    def get_api_model(self) -> PublicActivityModel:
+        return PublicActivityModel(
+            id=self.get_id(),
+            timestamp=self.get_timestamp(),
+            seconds=self.get_seconds(),
+            user=self.get_user().get_api_model(),
+            game=self.get_game().get_api_model(),
+            platform=self.get_platform().get_api_model(),
+            emulated=self.get_emulated(),
+        )
 
 
 class LiveActivity(BaseModel):

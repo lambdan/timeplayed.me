@@ -13,8 +13,8 @@ const props = withDefaults(
 );
 
 onMounted(() => {
-  if (props.user.avatar_url) {
-    avatarUrl.value = props.user.avatar_url;
+  if (props.user.discord_id) {
+    avatarUrl.value = `/api/discord/avatar/${props.user.discord_id}`;
   } else {
     avatarUrl.value = "https://placehold.co/512x512?text=" + props.user.name;
   }

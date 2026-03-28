@@ -34,7 +34,6 @@ class PublicUserModel(BaseModel):
     id: int = Field(description="ID of the user")
     discord_id: str | None = Field(description="Discord ID of the user")
     name: str = Field(description="Name of the user")
-    avatar_url: str | None = Field(description="URL to avatar for user")
     default_platform: PublicPlatformModel = Field(description="User's default platform")
 
 

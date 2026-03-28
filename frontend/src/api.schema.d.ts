@@ -271,6 +271,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/discord/avatar/{discord_user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Redirect Discord Avatar
+         * @description Returns redirect to Discord avatar URL for a given Discord user ID
+         */
+        get: operations["redirect_discord_avatar_api_discord_avatar__discord_user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -506,11 +526,6 @@ export interface components {
              * @description Name of the user
              */
             name: string;
-            /**
-             * Avatar Url
-             * @description URL to avatar for user
-             */
-            avatar_url: string | null;
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
         };
@@ -1118,6 +1133,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SGDB_Grid"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    redirect_discord_avatar_api_discord_avatar__discord_user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                discord_user_id: string | number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
