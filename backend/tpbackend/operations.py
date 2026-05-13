@@ -153,15 +153,12 @@ def add_session(
             seconds=seconds,
             platform=platform,
             timestamp=timestamp,
+            hidden=game.get_hidden(),
         )
 
         activity = Activity_or_none(raw_activity.id, include_hidden=True)
         if not activity:
             raise Exception("Failed to retrieve newly created activity")
-
-        # auto hide activity if game is hidden
-        activity.set_hidden(game.get_hidden())
-        activity.save()
 
         logger.info(
             "Added activity id %s for user %s: %s (%s) - %s seconds @ %s (hidden: %s)",

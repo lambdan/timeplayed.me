@@ -62,7 +62,8 @@ def parseActivity(activity: PassedActivity) -> bool:
         success = operations.add_session(
             user=user,
             game=game,
-            timestamp=activity["dt"],
+            # #62: Discord timestamps cant be trusted... passing None to let it default to now
+            # timestamp=activity["dt"],
             seconds=activity["duration"],
             platform=platform,
         )
@@ -102,4 +103,4 @@ async def sync_loop():
         if len(parsedIds) > 0:
             storage.Activity.delete().where(storage.Activity.id.in_(parsedIds)).execute()  # type: ignore
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(1)
