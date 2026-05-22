@@ -21,7 +21,7 @@ from tpbackend.api_models import (
 from tpbackend.utils import (
     clamp,
     max_int as max,
-    search_games,
+    search_games_for_api,
     truncateMilliseconds,
     validateTS,
 )
@@ -31,9 +31,6 @@ from tpbackend.storage.storage_v2 import (
     Activity_or_none,
     Game_or_none,
     Platform_or_none,
-    User,
-    Game,
-    Platform,
     Activity,
     User_or_none,
 )
@@ -620,21 +617,23 @@ def get_games(
     total = 0
     data = []
     if search:
-        results = search_games(query=search, limit=limit, offset=offset)
+        results, total = search_games_for_api(query=search, limit=limit, offset=offset)
         for r in results:
             try:
-                data.append(
-                    get_game(
-                        userId=userId,
-                        gameId=r.get_id(),
-                        platformId=platformId,
-                        before=before,
-                        after=after,
-                    )
+                gameWithStats = get_game(
+                    userId=userId,
+                    gameId=r.get_id(),
+                    platformId=platformId,
+                    before=before,
+                    after=after,
                 )
+                if userId and gameWithStats.totals.playtime_secs == 0:
+                    # if user page: dont include games user havent played
+                    total = max(0, total - 1)
+                    continue
+                data.append(gameWithStats)
             except Exception as e:
                 logger.warning("Skipping game %s in get_games: %s", r.get_id(), e)
-        total = len(results)
     else:
         # only return games with activity
         query = Activity.select().where(*filters)

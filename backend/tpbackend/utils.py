@@ -293,6 +293,19 @@ def query_normalize(q: str) -> str:
     return res
 
 
+def search_games_for_api(
+    query: str, offset: int, limit: int
+) -> tuple[list[storage_v2.Game], int]:
+    """
+    Search games by name or alias, and return total count for pagination
+    """
+    # this is craaaaaazzzyyy ineffective
+    all_games = search_games(query=query, offset=0, limit=0, include_hidden=False)
+    total_count = len(all_games)
+    games = all_games[offset : offset + limit]
+    return games, total_count
+
+
 def search_games(
     query: str, offset=0, limit=0, include_hidden=False
 ) -> list[storage_v2.Game]:
