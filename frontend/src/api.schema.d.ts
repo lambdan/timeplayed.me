@@ -850,6 +850,7 @@ export interface operations {
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
+                search?: string | null;
             };
             header?: never;
             path?: never;
