@@ -35,7 +35,7 @@ from tpbackend.storage.storage_v2 import (
     User_or_none,
 )
 from tpbackend.cache import cache_set, cache_get
-from tpbackend.api_responses import not_found
+from tpbackend.api_responses import bad_request, not_found
 import logging
 
 logger = logging.getLogger("api")
@@ -617,6 +617,8 @@ def get_games(
     total = 0
     data = []
     if search:
+        if len(search) < 2:
+            return bad_request("Search query must be at least 2 characters long")
         results, total = search_games_for_api(query=search, limit=limit, offset=offset)
         for r in results:
             try:
