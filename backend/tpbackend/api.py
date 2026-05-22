@@ -21,6 +21,7 @@ from tpbackend.api_models import (
 from tpbackend.utils import (
     clamp,
     max_int as max,
+    search_games_for_api,
     truncateMilliseconds,
     validateTS,
 )
@@ -30,14 +31,11 @@ from tpbackend.storage.storage_v2 import (
     Activity_or_none,
     Game_or_none,
     Platform_or_none,
-    User,
-    Game,
-    Platform,
     Activity,
     User_or_none,
 )
 from tpbackend.cache import cache_set, cache_get
-from tpbackend.api_responses import not_found
+from tpbackend.api_responses import bad_request, not_found
 import logging
 
 logger = logging.getLogger("api")
@@ -591,6 +589,7 @@ def get_games(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    search: str | None = None,
 ) -> PaginatedGameWithStats:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
@@ -610,35 +609,54 @@ def get_games(
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}"
+    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}:{search}"
     cached = cache_get(key)
     if cached:
         return PaginatedGameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
-    query = Activity.select().where(*filters)
-    query = query.order_by(Activity.game.asc()).distinct(Activity.game)
-    activities = query[offset : offset + limit]  # type: ignore
-
-    total = get_game_count(
-        userId=userId, platformId=platformId, before=before, after=after
-    )
-
+    total = 0
     data = []
-    for a in activities:
-        gameId = int(a.game.id)
-        try:
-            data.append(
-                get_game(
+    if search:
+        if len(search) < 2:
+            return bad_request("Search query must be at least 2 characters long")
+        results, total = search_games_for_api(
+            query=search, limit=limit, offset=offset, userId=userId
+        )
+        for r in results:
+            try:
+                gameWithStats = get_game(
                     userId=userId,
-                    gameId=gameId,
+                    gameId=r.get_id(),
                     platformId=platformId,
                     before=before,
                     after=after,
                 )
-            )
-        except Exception as e:
-            logger.warning("Skipping game %s in get_games: %s", gameId, e)
-            continue
+                data.append(gameWithStats)
+            except Exception as e:
+                logger.warning("Skipping game %s in get_games: %s", r.get_id(), e)
+    else:
+        # only return games with activity
+        query = Activity.select().where(*filters)
+        query = query.order_by(Activity.game.asc()).distinct(Activity.game)
+        activities = query[offset : offset + limit]  # type: ignore
+        total = get_game_count(
+            userId=userId, platformId=platformId, before=before, after=after
+        )
+        for a in activities:
+            gameId = int(a.game.id)
+            try:
+                data.append(
+                    get_game(
+                        userId=userId,
+                        gameId=gameId,
+                        platformId=platformId,
+                        before=before,
+                        after=after,
+                    )
+                )
+            except Exception as e:
+                logger.warning("Skipping game %s in get_games: %s", gameId, e)
+
     r = PaginatedGameWithStats(
         data=data,
         total=total,

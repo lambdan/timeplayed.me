@@ -34,6 +34,7 @@ if (props.user || props.platform) {
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
+const _search = ref("");
 
 const _loadingPercent = ref(0);
 const _gamesData = ref<GameWithStats[]>([]);
@@ -45,8 +46,11 @@ const _shownAmount = ref(props.limit || 10);
 
 const SHOWN_INCREMENT = props.limit || 10;
 
-async function fetchGames() {
-  if (loading.value) return;
+let currentRequest = 0;
+
+async function fetchGames(search?: string) {
+  const requestId = ++currentRequest;
+
   loading.value = true;
   _displayedGames.value = [];
   _gamesData.value = [];
@@ -60,17 +64,46 @@ async function fetchGames() {
       platformId: props.platform ? props.platform.id : undefined,
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
+      search,
     });
+
+    if (requestId !== currentRequest) {
+      // stale request -> stop immediately
+      return;
+    }
+
     _gamesData.value.push(...f.data);
-    _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
+    if (f.total > 0) {
+      _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
+    } else {
+      _loadingPercent.value = 100;
+    }
     if (_gamesData.value.length >= f.total) {
-      await new Promise((r) => setTimeout(r, 500)); // slight delay to show 100%
       break;
     }
   }
-  sort();
 
+  if (requestId !== currentRequest) {
+    return;
+  }
+  sort();
   loading.value = false;
+}
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+function searchChange() {
+  clearTimeout(searchTimeout);
+  const val = _search.value.trim();
+  searchTimeout = setTimeout(() => {
+    if (!val) {
+      fetchGames();
+      return;
+    }
+    if (val.length < 2) {
+      return;
+    }
+    fetchGames(val);
+  }, 200);
 }
 
 async function updateDisplayedGames() {
@@ -148,9 +181,16 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchGames();
+        searchChange();
       }
     "
+  />
+  <input
+    v-model="_search"
+    @input="searchChange()"
+    type="text"
+    class="form-control mb-2"
+    placeholder="Search games..."
   />
 
   <LoadingBar v-if="loading" :percent="_loadingPercent" />
