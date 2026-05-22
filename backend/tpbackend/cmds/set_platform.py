@@ -69,8 +69,8 @@ Returns: Confirmation message
             if act.user.id != user.id:
                 msg += f"- {activity_id}: ❌ not yours!\n"
                 continue
-            old_platform = act.platform.abbreviation
+            old_platform = act.get_platform().get_abbreviation()
             act.set_platform(platform)
             act.save()
-            msg += f"- {activity_id}: {old_platform} -> {act.platform.abbreviation}\n"
+            msg += f"- {activity_id}: {old_platform} -> {act.get_platform().get_abbreviation()}\n"
         return msg

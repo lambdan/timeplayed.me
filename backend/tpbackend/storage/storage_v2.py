@@ -115,6 +115,9 @@ class Platform(BaseModel):
         message = f"[{now_iso()}] {message}"
         self.history.append(message)  # type: ignore
 
+    def get_history(self) -> list[str]:
+        return cast(list[str], self.history)
+
 
 class User(BaseModel):
     """
@@ -190,6 +193,7 @@ class Game(BaseModel):
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
     hidden = BooleanField(default=False)
+    history = ArrayField(TextField, default=lambda: [])  # type: ignore
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -197,28 +201,75 @@ class Game(BaseModel):
     def get_name(self) -> str:
         return cast(str, self.name)
 
+    def set_name(self, name: str):
+        old_name = self.get_name()
+        self.name = name
+        self.add_history(f"Name changed from '{old_name}' to '{name}'")
+
     def get_steam_id(self) -> int | None:
         return cast(int | None, self.steam_id)
+
+    def set_steam_id(self, steam_id: int | None):
+        old_steam_id = self.get_steam_id()
+        self.steam_id = steam_id
+        self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
         return cast(int | None, self.sgdb_id)
 
+    def set_sgdb_id(self, sgdb_id: int | None):
+        old_sgdb_id = self.get_sgdb_id()
+        self.sgdb_id = sgdb_id
+        self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
+
     def get_image_url(self) -> str | None:
         return cast(str | None, self.image_url)
+
+    def set_image_url(self, image_url: str | None):
+        old_image_url = self.get_image_url()
+        self.image_url = image_url
+        self.add_history(f"Image URL changed from '{old_image_url}' to '{image_url}'")
 
     def get_aliases(self) -> list[str]:
         if not self.aliases:
             return []
         return cast(list[str], self.aliases)
 
+    def add_alias(self, alias: str) -> bool:
+        aliases = self.get_aliases()
+        if alias not in aliases:
+            aliases.append(alias)
+            self.aliases = aliases  # type: ignore
+            self.add_history(f"Added alias '{alias}'")
+            return True
+        return False
+
+    def remove_alias(self, alias: str) -> bool:
+        aliases = self.get_aliases()
+        if alias in aliases:
+            aliases.remove(alias)
+            self.aliases = aliases  # type: ignore
+            self.add_history(f"Removed alias '{alias}'")
+            return True
+        return False
+
     def get_release_year(self) -> int | None:
         return cast(int | None, self.release_year)
+
+    def set_release_year(self, release_year: int | None):
+        old_release_year = self.get_release_year()
+        self.release_year = release_year
+        self.add_history(
+            f"Release year changed from '{old_release_year}' to '{release_year}'"
+        )
 
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
+        old_hidden = self.get_hidden()
         self.hidden = hidden
+        self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
     def get_api_model(self) -> PublicGameModel:
         return PublicGameModel(
@@ -242,6 +293,13 @@ class Game(BaseModel):
             .limit(1)
         )
         return len(activities) > 0
+
+    def add_history(self, message: str):
+        message = f"[{now_iso()}] {message}"
+        self.history.append(message)  # type: ignore
+
+    def get_history(self) -> list[str]:
+        return cast(list[str], self.history)
 
 
 class Activity(BaseModel):
@@ -344,6 +402,9 @@ class Activity(BaseModel):
     def add_history(self, message: str):
         message = f"[{now_iso()}] {message}"
         self.history.append(message)  # type: ignore
+
+    def get_history(self) -> list[str]:
+        return cast(list[str], self.history)
 
 
 class LiveActivity(BaseModel):

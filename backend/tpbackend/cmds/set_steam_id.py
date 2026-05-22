@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
 
 
@@ -18,9 +18,9 @@ class SetSteamIDCommand(AdminCommand):
         steam_id = None
         if splitted[1].strip().lower() != "null":
             steam_id = int(splitted[1].strip())
-        game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
+        game = Game_or_none(int(game_id))
         if not game:
             return f"Error: Game with id {game_id} not found."
-        game.steam_id = steam_id
+        game.set_steam_id(steam_id)
         game.save()
         return f"{game.name} - Steam ID set to: {game.steam_id}"
