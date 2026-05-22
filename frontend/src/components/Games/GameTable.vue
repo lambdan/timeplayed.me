@@ -73,7 +73,11 @@ async function fetchGames(search?: string) {
     }
 
     _gamesData.value.push(...f.data);
-    _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
+    if (f.total > 0) {
+      _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
+    } else {
+      _loadingPercent.value = 100;
+    }
     if (_gamesData.value.length >= f.total) {
       break;
     }
