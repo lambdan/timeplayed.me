@@ -306,14 +306,27 @@ def search_games_for_api(
     return games, total_count
 
 
+CACHED_SEARCHES = {}
+CACHED_SEARCHES_WIPED = 0
+
+
 def search_games(
     query: str, offset=0, limit=0, include_hidden=False
 ) -> list[storage_v2.Game]:
-    """
-    Search games by name or alias
-    """
-    # TODO: cache/optimize :) this probably pretty slow once we have thousands of games
     query = query_normalize(query)
+    key = f"search_games:{query}:{include_hidden}:{offset}:{limit}"
+
+    # clean up cache first
+    global CACHED_SEARCHES_WIPED
+    cache_age = datetime.datetime.now().timestamp() - CACHED_SEARCHES_WIPED
+    if cache_age > 30 or len(CACHED_SEARCHES) > 30:
+        CACHED_SEARCHES.clear()
+        CACHED_SEARCHES_WIPED = datetime.datetime.now().timestamp()
+
+    if key in CACHED_SEARCHES:
+        logger.info("search_games :: cache hit for key '%s'", key)
+        return CACHED_SEARCHES[key]
+
     games = []
     for game in storage_v2.Game.select():
         game = cast(Game, game)
@@ -349,6 +362,8 @@ def search_games(
         games = games[offset : offset + limit]
     else:
         games = games[offset:]
+
+    CACHED_SEARCHES[key] = games
     return games
 
 
