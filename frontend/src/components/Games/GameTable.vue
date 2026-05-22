@@ -177,7 +177,7 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchGames();
+        searchChange();
       }
     "
   />
