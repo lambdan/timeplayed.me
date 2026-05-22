@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import User, Platform
+from tpbackend.storage.storage_v2 import Platform_or_none, User, Platform
 from tpbackend.cmds.command import Command
 from tpbackend.utils import platform_name
 
@@ -11,10 +11,9 @@ class GetPlatformCommand(Command):
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
-        platform = Platform.get_or_none(Platform.id == int(msg))  # type: ignore
+        platform = Platform_or_none(int(msg))
         if not platform:
             return f"Error: platform with id {msg} not found."
-        platform: Platform
 
         msg = ""
         msg += f"## {platform_name(platform, as_markdown_link=True)}\n"
@@ -27,6 +26,11 @@ class GetPlatformCommand(Command):
             msg += f"Color primary: {platform.color_primary}\n"
             msg += f"Color secondary: {platform.color_secondary}\n"
             msg += f"Icon: {platform.icon}\n"
+            msg += "```"
+
+            msg += "# History\n```"
+            for h in platform.get_history():
+                msg += h + "\n"
             msg += "```"
 
         return msg.strip()

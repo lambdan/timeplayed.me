@@ -27,4 +27,11 @@ class GetActivityCommand(Command):
         msg += f"- Platform: *{activity.get_platform().get_display_name()}*\n"
         msg += f"- Date: {formatted_dt}\n"
         msg += f"- Duration: {formatted_duration}\n"
+
+        if self.is_admin(user):
+            msg += "# History\n```"
+            for h in activity.get_history():
+                msg += h + "\n"
+            msg += "```"
+
         return msg.strip()
