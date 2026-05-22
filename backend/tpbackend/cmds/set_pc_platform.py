@@ -37,6 +37,6 @@ Set your PC platform to mac```
         if new_os not in VALID:
             return f"Invalid. See `!help {self.names[0]}` for help"
 
-        user.pc_platform = new_os  # type: ignore
+        user.set_pc_platform(new_os)
         user.save()
-        return f"Your PC platform is now **{user.pc_platform}**"
+        return f"Your PC platform is now **{user.get_pc_platform()}**"

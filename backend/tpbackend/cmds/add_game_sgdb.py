@@ -1,6 +1,6 @@
 from tpbackend import steamgriddb
 from tpbackend.operations import get_game_by_name_or_alias
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 
@@ -77,4 +77,10 @@ Returns: Confirmation message
         out += f"- Year: {game_year}\n"
         out += f"- SGDB ID: {new_game.sgdb_id}\n"
         out += f"- Game ID: {new_game.id}"
+
+        g = Game_or_none(new_game.id)
+        if g:
+            g.add_history("Game added by SGDB ID by user " + user.get_name())
+            g.save()
+
         return out

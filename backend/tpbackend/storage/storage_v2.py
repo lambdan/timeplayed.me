@@ -132,6 +132,7 @@ class User(BaseModel):
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
+    history = ArrayField(TextField, default=lambda: [])  # type: ignore
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -139,14 +140,40 @@ class User(BaseModel):
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)
 
+    def set_discord_id(self, discord_id: str | None):
+        old_discord_id = self.get_discord_id()
+        self.discord_id = cast(CharField, discord_id)
+        self.add_history(
+            f"Discord ID changed from '{old_discord_id}' to '{discord_id}'"
+        )
+
     def get_name(self) -> str:
         return cast(str, self.name)
+
+    def set_name(self, name: str):
+        old_name = self.get_name()
+        self.name = cast(CharField, name)
+        self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_default_platform(self) -> Platform:
         return cast(Platform, self.default_platform)
 
+    def set_default_platform(self, platform: Platform):
+        old_platform = self.get_default_platform()
+        self.default_platform = cast(ForeignKeyField, platform)
+        self.add_history(
+            f"Default platform changed from '{old_platform.get_display_name()}' ({old_platform.get_id()}) to '{platform.get_display_name()}' ({platform.get_id()})"
+        )
+
     def get_pc_platform(self) -> str:
         return cast(str, self.pc_platform)
+
+    def set_pc_platform(self, pc_platform: str):
+        old_pc_platform = self.get_pc_platform()
+        self.pc_platform = cast(CharField, pc_platform)
+        self.add_history(
+            f"PC platform changed from '{old_pc_platform}' to '{pc_platform}'"
+        )
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions
@@ -157,7 +184,7 @@ class User(BaseModel):
         """
         if not self.has_permission(permission):
             self.permissions.append(permission)  # type: ignore
-            self.save()
+            self.add_history(f"Added permission '{permission}'")
             return True
         return False
 
@@ -167,9 +194,12 @@ class User(BaseModel):
         """
         if self.has_permission(permission):
             self.permissions.remove(permission)  # type: ignore
-            self.save()
+            self.add_history(f"Removed permission '{permission}'")
             return True
         return False
+
+    def get_permissions(self) -> list[str]:
+        return cast(list[str], self.permissions)
 
     def get_api_model(self) -> PublicUserModel:
         return PublicUserModel(
@@ -178,6 +208,13 @@ class User(BaseModel):
             name=self.get_name(),
             default_platform=self.get_default_platform().get_api_model(),
         )
+
+    def add_history(self, message: str):
+        message = f"[{now_iso()}] {message}"
+        self.history.append(message)  # type: ignore
+
+    def get_history(self) -> list[str]:
+        return cast(list[str], self.history)
 
 
 class Game(BaseModel):
@@ -203,7 +240,7 @@ class Game(BaseModel):
 
     def set_name(self, name: str):
         old_name = self.get_name()
-        self.name = name
+        self.name = cast(CharField, name)
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_steam_id(self) -> int | None:
@@ -211,7 +248,7 @@ class Game(BaseModel):
 
     def set_steam_id(self, steam_id: int | None):
         old_steam_id = self.get_steam_id()
-        self.steam_id = steam_id
+        self.steam_id = cast(IntegerField, steam_id)
         self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
@@ -219,7 +256,7 @@ class Game(BaseModel):
 
     def set_sgdb_id(self, sgdb_id: int | None):
         old_sgdb_id = self.get_sgdb_id()
-        self.sgdb_id = sgdb_id
+        self.sgdb_id = cast(IntegerField, sgdb_id)
         self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
 
     def get_image_url(self) -> str | None:
@@ -227,7 +264,7 @@ class Game(BaseModel):
 
     def set_image_url(self, image_url: str | None):
         old_image_url = self.get_image_url()
-        self.image_url = image_url
+        self.image_url = cast(CharField, image_url)
         self.add_history(f"Image URL changed from '{old_image_url}' to '{image_url}'")
 
     def get_aliases(self) -> list[str]:
@@ -238,8 +275,7 @@ class Game(BaseModel):
     def add_alias(self, alias: str) -> bool:
         aliases = self.get_aliases()
         if alias not in aliases:
-            aliases.append(alias)
-            self.aliases = aliases  # type: ignore
+            self.aliases.append(alias)  # type: ignore
             self.add_history(f"Added alias '{alias}'")
             return True
         return False
@@ -247,8 +283,7 @@ class Game(BaseModel):
     def remove_alias(self, alias: str) -> bool:
         aliases = self.get_aliases()
         if alias in aliases:
-            aliases.remove(alias)
-            self.aliases = aliases  # type: ignore
+            self.aliases.remove(alias)  # type: ignore
             self.add_history(f"Removed alias '{alias}'")
             return True
         return False
@@ -258,7 +293,7 @@ class Game(BaseModel):
 
     def set_release_year(self, release_year: int | None):
         old_release_year = self.get_release_year()
-        self.release_year = release_year
+        self.release_year = cast(IntegerField, release_year)
         self.add_history(
             f"Release year changed from '{old_release_year}' to '{release_year}'"
         )
@@ -268,7 +303,7 @@ class Game(BaseModel):
 
     def set_hidden(self, hidden: bool):
         old_hidden = self.get_hidden()
-        self.hidden = hidden
+        self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
     def get_api_model(self) -> PublicGameModel:
@@ -473,10 +508,10 @@ def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
     return None
 
 
-def User_or_none(user_id: int | None) -> User | None:
+def User_or_none(user_id: str | int | None) -> User | None:
     if user_id is None:
         return None
-    u = User.get_or_none(User.id == user_id)
+    u = User.get_or_none(User.id == int(user_id))
     if u:
         return cast(User, u)
     return None
@@ -491,8 +526,8 @@ def Activity_or_none(activity_id: int, include_hidden=False) -> Activity | None:
     return None
 
 
-def Platform_or_none(platform_id: int) -> Platform | None:
-    p = Platform.get_or_none(Platform.id == platform_id)
+def Platform_or_none(platform_id: int | str) -> Platform | None:
+    p = Platform.get_or_none(Platform.id == int(platform_id))
     if p:
         return cast(Platform, p)
     return None

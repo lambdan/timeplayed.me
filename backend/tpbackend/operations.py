@@ -23,7 +23,7 @@ def get_game_by_alias(alias: str) -> Game | None:
     Returns a game by its alias.
     If no game is found, returns None.
     """
-    return Game.get_or_none(Game.aliases.contains(alias))
+    return Game.get_or_none(Game.aliases.contains(alias))  # type: ignore
 
 
 def get_game_by_name_or_alias(s: str) -> Game | None:

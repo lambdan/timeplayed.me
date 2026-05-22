@@ -1,4 +1,9 @@
-from tpbackend.storage.storage_v2 import Activity_or_none, Platform, User
+from tpbackend.storage.storage_v2 import (
+    Activity_or_none,
+    Platform,
+    Platform_or_none,
+    User,
+)
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
 from tpbackend.utils import search_platforms
@@ -38,8 +43,7 @@ Returns: Confirmation message
         activities = splitted[0].split(",")
         platform = None
         try:
-            platform_id = int(splitted[1].strip())
-            platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+            platform = Platform_or_none(splitted[1].strip())
         except Exception:
             # hmm maybe user did !set_platform 123 snes, try searching for it!
             search_results = search_platforms(" ".join(splitted[1:]))

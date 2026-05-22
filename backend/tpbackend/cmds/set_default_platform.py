@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Platform, Platform_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import search_platforms
 
@@ -42,8 +42,7 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
 
         platform = None
         try:
-            platform_id = int(msg)
-            platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+            platform = Platform_or_none(msg.strip())
         except Exception:
             # hmm maybe user did !platform snes, try searching for it!
             search_results = search_platforms(msg)
@@ -62,10 +61,10 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
         return self.update(user, platform)
 
     def get_current(self, user: User) -> str:
-        platform = user.default_platform
-        return f"Your default platform is: **{platform.abbreviation}** (id: {platform.id}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."  # type: ignore
+        platform = user.get_default_platform()
+        return f"Your default platform is: **{platform.get_abbreviation()}** (id: {platform.get_id()}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."
 
     def update(self, user: User, new_platform: Platform) -> str:
-        user.default_platform = new_platform  # type: ignore
+        user.set_default_platform(new_platform)
         user.save()
-        return f"Your default platform is now **{new_platform.abbreviation}** (id: {new_platform.id})"  # type: ignore
+        return f"Your default platform is now **{new_platform.get_abbreviation()}** (id: {new_platform.get_id()})"

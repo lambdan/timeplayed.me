@@ -38,6 +38,8 @@ def parseActivity(activity: PassedActivity) -> bool:
                 user.id,
                 user.discord_id,
             )
+            user.add_history("Created from Oblivionis sync")
+            user.save()
 
         if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
             logger.warning(
@@ -58,6 +60,8 @@ def parseActivity(activity: PassedActivity) -> bool:
         platform, created = Platform.get_or_create(abbreviation=platform_abbr)
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)
+            platform.add_history("Created from Oblivionis sync")
+            platform.save()
 
         success = operations.add_session(
             user=user,
@@ -70,7 +74,7 @@ def parseActivity(activity: PassedActivity) -> bool:
         if success[0]:
             logger.info("Activity synced successfully")
             created_activity = success[0]
-            created_activity.add_history("Synced from Oblivionis")
+            created_activity.add_history("Activity source: Oblivionis")
             created_activity.save()
             return True
 

@@ -1,6 +1,6 @@
 from tpbackend import api
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.utils import game_name
 
@@ -17,7 +17,7 @@ class DeleteGameCommand(AdminCommand):
         game_id = int(parts[0])
         confirmed = len(parts) > 1 and parts[1].lower() == "y"
 
-        game = Game.get_or_none(Game.id == game_id)  # type: ignore
+        game = Game_or_none(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
         activities = api.get_activities_impl(game=game_id)

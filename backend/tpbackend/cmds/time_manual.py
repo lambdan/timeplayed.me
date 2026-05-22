@@ -1,7 +1,6 @@
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
-from tpbackend.storage.storage_v2 import LiveActivity_or_none, User, LiveActivity
-import datetime
-from tpbackend import utils
+from tpbackend.storage.storage_v2 import LiveActivity_or_none, User
+from tpbackend import utils2
 
 
 class TimeManualCommand(ManualActivityCommand):
@@ -16,7 +15,7 @@ class TimeManualCommand(ManualActivityCommand):
             return "Error: no manual activity running"
 
         started = live.get_started_datetime()
-        duration = utils.now() - started
+        duration = utils2.now() - started
         seconds = int(duration.total_seconds())
-        game_name = live.game.name
-        return f"You have been playing *{game_name}* for {utils.secsToHHMMSS(seconds)}"
+        game_name = live.get_game().get_name()
+        return f"You have been playing *{game_name}* for {utils2.secsToHHMMSS(seconds)}"

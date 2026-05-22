@@ -120,5 +120,9 @@ Returns: Confirmation message
             msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Date: {formatted_dt}\n"
             msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
+
+            sesh.add_history("Activity source: manual add command")
+            sesh.save()
+
             return msg.strip()
         return f"ERROR: {result[1]}"

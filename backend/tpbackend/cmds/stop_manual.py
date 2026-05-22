@@ -37,6 +37,10 @@ class StopManualCommand(ManualActivityCommand):
             msg += f"- Game: *{game_name(sesh.get_game(), as_markdown_link=True)}*\n"  # type: ignore
             msg += f"- Duration: {utils.secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
+
+            sesh.add_history("Activity source: live activity")
+            sesh.save()
+
             return msg.strip()
         if isinstance(result[1], ValueError):
             return "Session ended, but not saved because it was too short"

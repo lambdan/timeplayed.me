@@ -1,7 +1,7 @@
 import datetime
 from tpbackend import steamgriddb
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.cmds.set_sgdb_id import SetSGDBIDCommand
 from tpbackend.utils import query_normalize
@@ -18,11 +18,11 @@ class AutoSGDBAdminCommand(AdminCommand):
         game_id = int(splitted[0].strip())
         confirmed = len(splitted) > 1 and splitted[1].strip().lower() == "y"
 
-        game = Game.get_or_none(Game.id == game_id)  # type: ignore
+        game = Game_or_none(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        sgdb_games = steamgriddb.search(query=query_normalize(game.name))
+        sgdb_games = steamgriddb.search(query=query_normalize(game.get_name()))
         if len(sgdb_games) == 0:
             return "Error: no SGDB games found"
 

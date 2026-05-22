@@ -2,7 +2,7 @@ from typing import Optional
 
 from tpbackend.cmds.command import Command
 from tpbackend.cmds.set_game import set_game_actually
-from tpbackend.storage.storage_v2 import Activity, Game, User
+from tpbackend.storage.storage_v2 import Activity, Game, Game_or_none, User
 
 
 def execute_move_game(
@@ -21,14 +21,14 @@ def execute_move_game(
     confirmed = len(splitted) >= 3 and splitted[2].strip().lower() == "y"
 
     try:
-        from_game = Game.get_or_none(Game.id == int(from_game_id))  # type: ignore
+        from_game = Game_or_none(int(from_game_id))
     except ValueError:
         return f"Error: Invalid game ID '{from_game_id}'. Please provide a numeric ID."
     if not from_game:
         return f"Error: Game with id {from_game_id} not found."
 
     try:
-        to_game = Game.get_or_none(Game.id == int(to_game_id))  # type: ignore
+        to_game = Game_or_none(int(to_game_id))
     except ValueError:
         return f"Error: Invalid game ID '{to_game_id}'. Please provide a numeric ID."
     if not to_game:
