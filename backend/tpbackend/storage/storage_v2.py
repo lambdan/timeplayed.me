@@ -13,6 +13,7 @@ from tpbackend.api_models import (
     PublicUserModel,
     PublicActivityModel,
 )
+from tpbackend.utils2 import js_iso, now_iso
 
 logger = logging.getLogger("storage_v2")
 
@@ -235,31 +236,47 @@ class Activity(BaseModel):
         return cast(Game, self.game)
 
     def set_game(self, game: Game):
+        old_game = self.get_game()
         self.game = cast(ForeignKeyField, game)
+        self.add_history(
+            f"Game changed from '{old_game.get_name()}' ({old_game.get_id()}) to '{game.get_name()}' ({game.get_id()})"
+        )
 
     def get_platform(self) -> Platform:
         return cast(Platform, self.platform)
 
     def set_platform(self, platform: Platform):
+        old_platform = self.get_platform()
         self.platform = cast(ForeignKeyField, platform)
+        self.add_history(
+            f"Platform changed from '{old_platform.get_display_name()}' ({old_platform.get_id()}) to '{platform.get_display_name()}' ({platform.get_id()})"
+        )
 
     def get_user(self) -> User:
         return cast(User, self.user)
 
     def set_user(self, user: User):
+        old_user = self.get_user()
         self.user = cast(ForeignKeyField, user)
+        self.add_history(
+            f"User changed from '{old_user.get_name()}' ({old_user.get_id()}) to '{user.get_name()}' ({user.get_id()})"
+        )
 
     def get_seconds(self) -> int:
         return cast(int, self.seconds)
 
     def set_seconds(self, seconds: int):
+        old_seconds = self.get_seconds()
         self.seconds = cast(IntegerField, seconds)
+        self.add_history(f"Seconds changed from {old_seconds} to {seconds}")
 
     def get_datetime(self) -> datetime:
         return utils.assertTimezone(self.timestamp)
 
     def set_datetime(self, dt: datetime):
+        old_date = self.get_datetime()
         self.timestamp = cast(DateTimeField, dt)
+        self.add_history(f"Timestamp changed from {js_iso(old_date)} to {js_iso(dt)}")
 
     def get_timestamp(self) -> int:
         """
@@ -271,13 +288,17 @@ class Activity(BaseModel):
         return cast(bool, self.emulated)
 
     def set_emulated(self, emulated: bool):
+        old_emulated = self.get_emulated()
         self.emulated = cast(BooleanField, emulated)
+        self.add_history(f"Emulated changed from {old_emulated} to {emulated}")
 
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
+        old_hidden = self.get_hidden()
         self.hidden = cast(BooleanField, hidden)
+        self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
     def get_api_model(self) -> PublicActivityModel:
         return PublicActivityModel(
@@ -289,6 +310,10 @@ class Activity(BaseModel):
             platform=self.get_platform().get_api_model(),
             emulated=self.get_emulated(),
         )
+
+    def add_history(self, message: str):
+        message = f"[{now_iso()}] {message}"
+        self.history.append(message)  # type: ignore
 
 
 class LiveActivity(BaseModel):

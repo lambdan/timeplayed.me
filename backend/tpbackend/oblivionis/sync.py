@@ -69,6 +69,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         )
         if success[0]:
             logger.info("Activity synced successfully")
+            created_activity = success[0]
+            created_activity.add_history("Synced from Oblivionis")
+            created_activity.save()
             return True
 
         logger.error("Error when syncing activity: %s", success[1])

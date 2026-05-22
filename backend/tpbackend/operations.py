@@ -5,12 +5,14 @@ from typing import cast
 from tpbackend import utils
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
+    Platform_or_none,
     User,
     Game,
     Platform,
     Activity,
 )
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
+from tpbackend.utils2 import js_iso
 
 logger = logging.getLogger("operations")
 
@@ -128,6 +130,10 @@ def add_session(
                 abbreviation=user.get_pc_platform()
             )
 
+        platform = Platform_or_none(platform.id)  # type: ignore
+        if not platform:
+            raise Exception("Platform is None somehow... this shouldnt be possible")
+
         # now if not provided
         timestamp = timestamp or utils.now()
 
@@ -135,7 +141,7 @@ def add_session(
         overlapping_activity = get_overlapping_activity(
             user=user,
             game=game,
-            platform=platform,  # type: ignore
+            platform=platform,
             incoming_ended_dt=timestamp,
             incoming_seconds=seconds,
         )
@@ -159,6 +165,11 @@ def add_session(
         activity = Activity_or_none(raw_activity.id, include_hidden=True)
         if not activity:
             raise Exception("Failed to retrieve newly created activity")
+
+        activity.add_history(
+            f"Created with user '{user.get_name()}' ({user.id}), game '{game.get_name()}' ({game.id}), platform '{platform.get_abbreviation()}' ({platform.get_id()}), seconds {seconds}, timestamp {js_iso(timestamp)}"
+        )
+        activity.save()
 
         logger.info(
             "Added activity id %s for user %s: %s (%s) - %s seconds @ %s (hidden: %s)",
