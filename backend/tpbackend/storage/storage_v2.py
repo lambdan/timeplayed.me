@@ -226,6 +226,7 @@ class Activity(BaseModel):
     seconds = IntegerField()
     emulated = BooleanField(default=False)
     hidden = BooleanField(default=False, column_name="hidden")
+    history = ArrayField(TextField, default=lambda: [])  # type: ignore
 
     def get_id(self) -> int:
         return cast(int, self.id)
