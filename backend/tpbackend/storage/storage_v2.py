@@ -233,17 +233,32 @@ class Activity(BaseModel):
     def get_game(self) -> Game:
         return cast(Game, self.game)
 
+    def set_game(self, game: Game):
+        self.game = cast(ForeignKeyField, game)
+
     def get_platform(self) -> Platform:
         return cast(Platform, self.platform)
+
+    def set_platform(self, platform: Platform):
+        self.platform = cast(ForeignKeyField, platform)
 
     def get_user(self) -> User:
         return cast(User, self.user)
 
+    def set_user(self, user: User):
+        self.user = cast(ForeignKeyField, user)
+
     def get_seconds(self) -> int:
         return cast(int, self.seconds)
 
+    def set_seconds(self, seconds: int):
+        self.seconds = cast(IntegerField, seconds)
+
     def get_datetime(self) -> datetime:
         return utils.assertTimezone(self.timestamp)
+
+    def set_datetime(self, dt: datetime):
+        self.timestamp = cast(DateTimeField, dt)
 
     def get_timestamp(self) -> int:
         """
@@ -254,11 +269,14 @@ class Activity(BaseModel):
     def get_emulated(self) -> bool:
         return cast(bool, self.emulated)
 
+    def set_emulated(self, emulated: bool):
+        self.emulated = cast(BooleanField, emulated)
+
     def get_hidden(self) -> bool:
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
-        self.hidden = hidden
+        self.hidden = cast(BooleanField, hidden)
 
     def get_api_model(self) -> PublicActivityModel:
         return PublicActivityModel(

@@ -213,24 +213,24 @@ def set_default_platform(user: User, platform: str) -> str:
 
 
 def set_platform_for_session(user: User, sessionId: int, platform: Platform) -> bool:
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId)
     if not activity:
         return False
     if activity.user.id != user.id:
         return False
     if activity.platform == platform:
         return False
-    activity.platform = platform
+    activity.set_platform(platform)
     activity.save()
     return True
 
 
 def modify_session_date(user: User, sessionId: int, new_date: datetime.datetime) -> str:
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId)
     if not activity:
         return f"ERROR: Session {sessionId} not found"
     if activity.user != user:
         return f"ERROR: Session {sessionId} does not belong to you"
-    activity.timestamp = new_date
+    activity.set_datetime(new_date)
     activity.save()
     return f"Session {sessionId} date has been modified to {new_date.strftime('%Y-%m-%d %H:%M:%S')} UTC"

@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Activity_or_none, Platform, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
 from tpbackend.utils import search_platforms
@@ -62,7 +62,7 @@ Returns: Confirmation message
     ) -> str:
         msg = ""
         for activity_id in activity_ids:
-            act = Activity.get_or_none(Activity.id == int(activity_id))  # type: ignore
+            act = Activity_or_none(int(activity_id))
             if not act:
                 msg += f"- {activity_id}: ❌ not found\n"
                 continue
@@ -70,7 +70,7 @@ Returns: Confirmation message
                 msg += f"- {activity_id}: ❌ not yours!\n"
                 continue
             old_platform = act.platform.abbreviation
-            act.platform = platform
+            act.set_platform(platform)
             act.save()
             msg += f"- {activity_id}: {old_platform} -> {act.platform.abbreviation}\n"
         return msg
