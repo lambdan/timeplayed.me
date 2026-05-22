@@ -5,7 +5,14 @@ from typing import cast
 
 from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
-from tpbackend.storage.storage_v2 import Game, Activity, Platform, User, User_or_none
+from tpbackend.storage.storage_v2 import (
+    Game,
+    Activity,
+    Platform,
+    Platform_or_none,
+    User,
+    User_or_none,
+)
 
 logger = logging.getLogger("utils")
 
@@ -254,8 +261,7 @@ def last_platform_for_game(
         )
         if not last_activity:
             return None
-        platform = storage_v2.Platform.get_or_none(storage_v2.Platform.id == last_activity.platform_id)  # type: ignore
-        return platform
+        return Platform_or_none(last_activity.platform_id)
     except Exception as e:
         logger.error("last_platform_for_game :: exception: %s", e)
         pass

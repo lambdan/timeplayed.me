@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Platform, Platform_or_none, User
 
 
 class SetPlatformNameCommand(AdminCommand):
@@ -15,11 +15,9 @@ class SetPlatformNameCommand(AdminCommand):
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         platform_id = int(splitted[0].strip())
         name = " ".join(splitted[1:]).strip()
-        platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+        platform = Platform_or_none(platform_id)
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
-        platform.name = name
+        platform.set_name(name)
         platform.save()
-        return (
-            f"Platform {platform_id} (`{platform.abbreviation}`) name set to *{name}*"
-        )
+        return f"Platform {platform_id} (`{platform.get_abbreviation()}`) name set to *{platform.get_name()}*. Its display name is now `{platform.get_display_name()}`."

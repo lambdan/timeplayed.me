@@ -53,6 +53,7 @@ class Platform(BaseModel):
     color_primary = CharField(null=True, column_name="color_primary")
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
+    history = ArrayField(TextField, default=lambda: [])  # type: ignore
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -60,8 +61,18 @@ class Platform(BaseModel):
     def get_abbreviation(self) -> str:
         return cast(str, self.abbreviation)
 
+    def set_abbreviation(self, abbreviation: str):
+        old_abbr = self.get_abbreviation()
+        self.abbreviation = abbreviation
+        self.add_history(f"Abbreviation changed from '{old_abbr}' to '{abbreviation}'")
+
     def get_name(self) -> str | None:
         return cast(str | None, self.name)
+
+    def set_name(self, name: str | None):
+        old_name = self.get_name()
+        self.name = name
+        self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_display_name(self) -> str:
         return (self.get_name() or self.get_abbreviation()).strip()
@@ -69,11 +80,26 @@ class Platform(BaseModel):
     def get_color_primary(self) -> str | None:
         return cast(str | None, self.color_primary)
 
+    def set_color_primary(self, color: str | None):
+        old_color = self.get_color_primary()
+        self.color_primary = color
+        self.add_history(f"Primary color changed from '{old_color}' to '{color}'")
+
     def get_color_secondary(self) -> str | None:
         return cast(str | None, self.color_secondary)
 
+    def set_color_secondary(self, color: str | None):
+        old_color = self.get_color_secondary()
+        self.color_secondary = color
+        self.add_history(f"Secondary color changed from '{old_color}' to '{color}'")
+
     def get_icon(self) -> str | None:
         return cast(str | None, self.icon)
+
+    def set_icon(self, icon: str | None):
+        old_icon = self.get_icon()
+        self.icon = icon
+        self.add_history(f"Icon changed from '{old_icon}' to '{icon}'")
 
     def get_api_model(self) -> PublicPlatformModel:
         return PublicPlatformModel(
@@ -84,6 +110,10 @@ class Platform(BaseModel):
             color_secondary=self.get_color_secondary(),
             icon=self.get_icon(),
         )
+
+    def add_history(self, message: str):
+        message = f"[{now_iso()}] {message}"
+        self.history.append(message)  # type: ignore
 
 
 class User(BaseModel):

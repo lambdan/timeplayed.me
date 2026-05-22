@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Platform, Platform_or_none, User
 
 
 class SetPlatformColorsCommand(AdminCommand):
@@ -22,7 +22,7 @@ Use null to remove a color:
         if len(splitted) < 3:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         platform_id = int(splitted[0].strip())
-        platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+        platform = Platform_or_none(platform_id)
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
 
@@ -37,16 +37,16 @@ Use null to remove a color:
         else:
             secondary = secondary.lstrip("#")  # remove # if user included it
 
-        old_primary = platform.color_primary
-        old_secondary = platform.color_secondary
+        old_primary = platform.get_color_primary()
+        old_secondary = platform.get_color_secondary()
         if primary != "-":
-            platform.color_primary = primary
+            platform.set_color_primary(primary)
         if secondary != "-":
-            platform.color_secondary = secondary
+            platform.set_color_secondary(secondary)
         platform.save()
 
         return f"""```
-{platform.name or platform.abbreviation}:\n
-primary: {old_primary} --> {platform.color_primary}\n
-secondary: {old_secondary} --> {platform.color_secondary}
+{platform.get_display_name()}:\n
+primary: {old_primary} --> {platform.get_color_primary()}\n
+secondary: {old_secondary} --> {platform.get_color_secondary()}
         ```"""

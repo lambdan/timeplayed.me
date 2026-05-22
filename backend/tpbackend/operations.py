@@ -5,6 +5,7 @@ from typing import cast
 from tpbackend import utils
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
+    Game_or_none,
     Platform_or_none,
     User,
     Game,
@@ -195,7 +196,7 @@ def remove_game_images(game: Game) -> str:
 
 
 def remove_session(user: User, sessionId: int):
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId, include_hidden=True)
     if not activity:
         return f"ERROR: Session {sessionId} not found"
     if activity.user != user:
@@ -205,10 +206,10 @@ def remove_session(user: User, sessionId: int):
 
 
 def merge_games(user: User, gameId1: int, gameId2: int):
-    game1 = Game.get_or_none(Game.id == gameId1)  # type: ignore
+    game1 = Game_or_none(gameId1)
     if not game1:
         return f"ERROR: Game with ID {gameId1} not found"
-    game2 = Game.get_or_none(Game.id == gameId2)  # type: ignore
+    game2 = Game_or_none(gameId2)
     if not game2:
         return f"ERROR: Game with ID {gameId2} not found"
     Activity.update(game=game2).where(
