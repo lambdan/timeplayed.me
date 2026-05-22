@@ -5,7 +5,7 @@ from typing import cast
 
 from tpbackend.globals import TIMEPLAYED_URL
 from tpbackend.storage import storage_v2
-from tpbackend.storage.storage_v2 import Game, Activity, Platform, User
+from tpbackend.storage.storage_v2 import Game, Activity, Platform, User, User_or_none
 
 logger = logging.getLogger("utils")
 
@@ -294,13 +294,15 @@ def query_normalize(q: str) -> str:
 
 
 def search_games_for_api(
-    query: str, offset: int, limit: int
+    query: str, offset: int, limit: int, userId: int | None = None
 ) -> tuple[list[storage_v2.Game], int]:
     """
     Search games by name or alias, and return total count for pagination
     """
     # this is craaaaaazzzyyy ineffective
-    all_games = search_games(query=query, offset=0, limit=0, include_hidden=False)
+    all_games = search_games(
+        query=query, offset=0, limit=0, include_hidden=False, userId=userId
+    )
     total_count = len(all_games)
     games = all_games[offset : offset + limit]
     return games, total_count
@@ -311,10 +313,10 @@ CACHED_SEARCHES_WIPED = 0
 
 
 def search_games(
-    query: str, offset=0, limit=0, include_hidden=False
+    query: str, offset=0, limit=0, include_hidden=False, userId: int | None = None
 ) -> list[storage_v2.Game]:
     query = query_normalize(query)
-    key = f"search_games:{query}:{include_hidden}:{offset}:{limit}"
+    key = f"search_games:{query}:{include_hidden}:{offset}:{limit}:{userId}"
 
     # clean up cache first
     global CACHED_SEARCHES_WIPED
@@ -330,6 +332,9 @@ def search_games(
     games = []
     for game in storage_v2.Game.select():
         game = cast(Game, game)
+        user = User_or_none(userId)
+        if user and not game.user_has_played(user):
+            continue
         if not include_hidden and game.get_hidden():
             continue
         # search in name

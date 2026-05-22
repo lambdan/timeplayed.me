@@ -619,7 +619,9 @@ def get_games(
     if search:
         if len(search) < 2:
             return bad_request("Search query must be at least 2 characters long")
-        results, total = search_games_for_api(query=search, limit=limit, offset=offset)
+        results, total = search_games_for_api(
+            query=search, limit=limit, offset=offset, userId=userId
+        )
         for r in results:
             try:
                 gameWithStats = get_game(
@@ -629,10 +631,6 @@ def get_games(
                     before=before,
                     after=after,
                 )
-                if userId and gameWithStats.totals.playtime_secs == 0:
-                    # if user page: dont include games user havent played
-                    total = max(0, total - 1)
-                    continue
                 data.append(gameWithStats)
             except Exception as e:
                 logger.warning("Skipping game %s in get_games: %s", r.get_id(), e)

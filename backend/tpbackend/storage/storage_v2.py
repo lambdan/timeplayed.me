@@ -200,6 +200,18 @@ class Game(BaseModel):
             release_year=self.get_release_year(),
         )
 
+    def user_has_played(self, user: User) -> bool:
+        activities = (
+            Activity.select()
+            .where(
+                (Activity.game == self)
+                & (Activity.user == user)
+                & (Activity.hidden == False)  # noqa: E712
+            )
+            .limit(1)
+        )
+        return len(activities) > 0
+
 
 class Activity(BaseModel):
     """
@@ -326,7 +338,9 @@ def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
     return None
 
 
-def User_or_none(user_id: int) -> User | None:
+def User_or_none(user_id: int | None) -> User | None:
+    if user_id is None:
+        return None
     u = User.get_or_none(User.id == user_id)
     if u:
         return cast(User, u)
