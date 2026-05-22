@@ -167,11 +167,6 @@ def add_session(
         if not activity:
             raise Exception("Failed to retrieve newly created activity")
 
-        activity.add_history(
-            f"Created with user '{user.get_name()}' ({user.id}), game '{game.get_name()}' ({game.id}), platform '{platform.get_abbreviation()}' ({platform.get_id()}), seconds {seconds}, timestamp {js_iso(timestamp)}"
-        )
-        activity.save()
-
         logger.info(
             "Added activity id %s for user %s: %s (%s) - %s seconds @ %s (hidden: %s)",
             activity.get_id(),
