@@ -28,6 +28,12 @@ class PublicPlatformModel(BaseModel):
     color_primary: str | None = Field(description="Primary color for the platform")
     color_secondary: str | None = Field(description="Secondary color for the platform")
     icon: str | None = Field(description="Icon name")
+    created: int = Field(
+        description="Timestamp (in milliseconds) for the creation of the platform"
+    )
+    updated: int = Field(
+        description="Timestamp (in milliseconds) for the last update of the platform"
+    )
 
 
 class PublicUserModel(BaseModel):
@@ -35,6 +41,12 @@ class PublicUserModel(BaseModel):
     discord_id: str | None = Field(description="Discord ID of the user")
     name: str = Field(description="Name of the user")
     default_platform: PublicPlatformModel = Field(description="User's default platform")
+    created: int = Field(
+        description="Timestamp (in milliseconds) for the creation of the user"
+    )
+    updated: int = Field(
+        description="Timestamp (in milliseconds) for the last update of the user"
+    )
 
 
 class PublicGameModel(BaseModel):
@@ -47,11 +59,17 @@ class PublicGameModel(BaseModel):
     image_url: str | None = Field(description="Image URL for the game")
     aliases: list[str] = Field(description="List of aliases for the game")
     release_year: int | None = Field(description="Release year of the game")
+    created: int = Field(
+        description="Timestamp (in milliseconds) for the creation of the game"
+    )
+    updated: int = Field(
+        description="Timestamp (in milliseconds) for the last update of the game"
+    )
 
 
 class PublicActivityModel(BaseModel):
     id: int = Field(description="ID for the activity")
-    timestamp: int = Field(description="Timestamp for the activity")
+    timestamp: int = Field(description="Timestamp (in milliseconds) for the activity")
     seconds: int = Field(description="Duration of the activity in seconds")
     user: PublicUserModel = Field(description="User associated with the activity")
     game: PublicGameModel = Field(description="Game associated with the activity")
@@ -59,6 +77,12 @@ class PublicActivityModel(BaseModel):
         description="Platform associated with the activity"
     )
     emulated: bool = Field(description="True if the activity was played in an emulator")
+    created: int = Field(
+        description="Timestamp (in milliseconds) for the creation of the activity"
+    )
+    updated: int = Field(
+        description="Timestamp (in milliseconds) for the last update of the activity"
+    )
 
 
 class GameOrPlatformStats(BaseModel):

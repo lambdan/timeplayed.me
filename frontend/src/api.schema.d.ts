@@ -418,7 +418,7 @@ export interface components {
             id: number;
             /**
              * Timestamp
-             * @description Timestamp for the activity
+             * @description Timestamp (in milliseconds) for the activity
              */
             timestamp: number;
             /**
@@ -437,6 +437,16 @@ export interface components {
              * @description True if the activity was played in an emulator
              */
             emulated: boolean;
+            /**
+             * Created
+             * @description Timestamp (in milliseconds) for the creation of the activity
+             */
+            created: number;
+            /**
+             * Updated
+             * @description Timestamp (in milliseconds) for the last update of the activity
+             */
+            updated: number;
         };
         /** PublicGameModel */
         PublicGameModel: {
@@ -475,6 +485,16 @@ export interface components {
              * @description Release year of the game
              */
             release_year: number | null;
+            /**
+             * Created
+             * @description Timestamp (in milliseconds) for the creation of the game
+             */
+            created: number;
+            /**
+             * Updated
+             * @description Timestamp (in milliseconds) for the last update of the game
+             */
+            updated: number;
         };
         /** PublicPlatformModel */
         PublicPlatformModel: {
@@ -508,6 +528,16 @@ export interface components {
              * @description Icon name
              */
             icon: string | null;
+            /**
+             * Created
+             * @description Timestamp (in milliseconds) for the creation of the platform
+             */
+            created: number;
+            /**
+             * Updated
+             * @description Timestamp (in milliseconds) for the last update of the platform
+             */
+            updated: number;
         };
         /** PublicUserModel */
         PublicUserModel: {
@@ -528,6 +558,16 @@ export interface components {
             name: string;
             /** @description User's default platform */
             default_platform: components["schemas"]["PublicPlatformModel"];
+            /**
+             * Created
+             * @description Timestamp (in milliseconds) for the creation of the user
+             */
+            created: number;
+            /**
+             * Updated
+             * @description Timestamp (in milliseconds) for the last update of the user
+             */
+            updated: number;
         };
         /** SGDB_Author */
         SGDB_Author: {
