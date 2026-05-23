@@ -53,9 +53,21 @@ class Platform(BaseModel):
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_abbreviation(self) -> str:
         return cast(str, self.abbreviation)
@@ -132,9 +144,21 @@ class User(BaseModel):
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)
@@ -230,9 +254,21 @@ class Game(BaseModel):
     release_year = IntegerField(null=True, default=None)
     hidden = BooleanField(default=False)
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_name(self) -> str:
         return cast(str, self.name)
@@ -350,6 +386,18 @@ class Activity(BaseModel):
     emulated = BooleanField(default=False)
     hidden = BooleanField(default=False, column_name="hidden")
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_id(self) -> int:
         return cast(int, self.id)
