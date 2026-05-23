@@ -41,7 +41,7 @@ Get your last n activities: `!last n`
         for act in activities:
             emulated = " (emu)" if act.emulated else ""
             lines.append(
-                f"#{act}\t{act.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{secsToHHMMSS(act.seconds)}"
+                f"#{act}\t{act.timestamp.isoformat().split('.')[0].replace('T',' ')} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{secsToHHMMSS(act.seconds)}"
             )
         out = "```\n"
         out += "\n".join(lines)
