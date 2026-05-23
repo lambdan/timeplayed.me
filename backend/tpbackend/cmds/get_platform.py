@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import Platform_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import platform_name
+from tpbackend.utils2 import js_iso
 
 
 class GetPlatformCommand(Command):
@@ -20,6 +21,8 @@ class GetPlatformCommand(Command):
         msg += f"- ID: {platform.id}\n"  # type: ignore
         msg += f"- Abbreviation: {platform.abbreviation}\n"
         msg += f"- Name: {'not set' if platform.name is None else platform.name}\n"
+        msg += f"- Created: {js_iso(platform.get_created())}\n"
+        msg += f"- Updated: {js_iso(platform.get_updated())}\n"
 
         if self.is_admin(user):
             msg += "```"

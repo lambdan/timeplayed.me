@@ -36,6 +36,8 @@ class GetActivityCommand(Command):
         msg += f"- Platform: *{activity.get_platform().get_display_name()}*\n"
         msg += f"- Date: {js_iso(activity.get_datetime())}\n"
         msg += f"- Duration: {formatted_duration}\n"
+        msg += f"- Created: {js_iso(activity.get_created())}\n"
+        msg += f"- Updated: {js_iso(activity.get_updated())}\n"
 
         if activity.get_hidden():
             msg += "- **This activity is hidden**\n"

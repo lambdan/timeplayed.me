@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_url
+from tpbackend.utils2 import js_iso
 
 
 class GetGameCommand(Command):
@@ -36,6 +37,8 @@ class GetGameCommand(Command):
         else:
             msg += "- SGDB ID: None\n"
         msg += f"- Year: {game.get_release_year()}\n"
+        msg += f"- Created: {js_iso(game.get_created())}\n"
+        msg += f"- Updated: {js_iso(game.get_updated())}\n"
 
         if self.is_admin(user):
             msg += "# History\n```"
