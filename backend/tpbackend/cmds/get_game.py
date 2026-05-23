@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_url
+from tpbackend.utils2 import js_iso
 
 
 class GetGameCommand(Command):
@@ -20,27 +21,36 @@ class GetGameCommand(Command):
             aliases_list.append(alias)
 
         msg = ""
-        msg += f"## {game.get_name()}\n"
+        msg += f"# {game.get_name()}\n"
+
         url = game_url(game.get_id())
         if url:
             msg += f"- ID: [{game.get_id()}]({url})\n"
         else:
             msg += f"- ID: {game.get_id()}\n"
-        if len(aliases_list) > 0:
-            msg += "Aliases: ```"
-            for alias in aliases_list:
-                msg += f"{alias}\n"
-            msg += "```\n"
+
         if game.get_sgdb_id():
             msg += f"- SGDB ID: [{game.get_sgdb_id()}](https://www.steamgriddb.com/game/{game.get_sgdb_id()})\n"
         else:
             msg += "- SGDB ID: None\n"
         msg += f"- Year: {game.get_release_year()}\n"
+        msg += f"- Created: {js_iso(game.get_created())}\n"
+        msg += f"- Updated: {js_iso(game.get_updated())}\n"
+
+        if len(aliases_list) > 0:
+            msg += "Aliases:\n```"
+            for alias in aliases_list:
+                msg += f"{alias}\n"
+            msg += "```\n"
 
         if self.is_admin(user):
-            msg += "# History\n```"
-            for h in game.get_history():
-                msg += h + "\n"
-            msg += "```"
+            msg += "# History\n"
+            if len(game.get_history()) == 0:
+                msg += "No history\n"
+            else:
+                msg += "```"
+                for h in game.get_history():
+                    msg += h + "\n"
+                msg += "```"
 
         return msg.strip()

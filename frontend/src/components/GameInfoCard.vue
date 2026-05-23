@@ -201,6 +201,18 @@ onMounted(async () => {
                         }}</code>
                       </td>
                     </tr>
+                    <tr>
+                      <td><b>Created:</b></td>
+                      <td>
+                        <code>{{ formatDate(game.created) }}</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><b>Updated:</b></td>
+                      <td>
+                        <code>{{ formatDate(game.updated) }}</code>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

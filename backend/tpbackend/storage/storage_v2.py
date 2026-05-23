@@ -53,9 +53,21 @@ class Platform(BaseModel):
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_abbreviation(self) -> str:
         return cast(str, self.abbreviation)
@@ -108,6 +120,8 @@ class Platform(BaseModel):
             color_primary=self.get_color_primary(),
             color_secondary=self.get_color_secondary(),
             icon=self.get_icon(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
         )
 
     def add_history(self, message: str):
@@ -132,9 +146,21 @@ class User(BaseModel):
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)
@@ -206,6 +232,8 @@ class User(BaseModel):
             discord_id=self.get_discord_id(),
             name=self.get_name(),
             default_platform=self.get_default_platform().get_api_model(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
         )
 
     def add_history(self, message: str):
@@ -230,9 +258,21 @@ class Game(BaseModel):
     release_year = IntegerField(null=True, default=None)
     hidden = BooleanField(default=False)
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_name(self) -> str:
         return cast(str, self.name)
@@ -314,6 +354,8 @@ class Game(BaseModel):
             image_url=self.get_image_url(),
             aliases=self.get_aliases(),
             release_year=self.get_release_year(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
         )
 
     def user_has_played(self, user: User) -> bool:
@@ -350,6 +392,18 @@ class Activity(BaseModel):
     emulated = BooleanField(default=False)
     hidden = BooleanField(default=False, column_name="hidden")
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    created = DateTimeField(default=lambda: now())
+    updated = DateTimeField(default=lambda: now())
+
+    def save(self, *args, **kwargs):
+        self.updated = now()
+        return super().save(*args, **kwargs)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_updated(self) -> datetime:
+        return assertTimezone(self.updated)
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -431,6 +485,8 @@ class Activity(BaseModel):
             game=self.get_game().get_api_model(),
             platform=self.get_platform().get_api_model(),
             emulated=self.get_emulated(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
         )
 
     def add_history(self, message: str):
