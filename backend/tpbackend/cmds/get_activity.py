@@ -33,7 +33,10 @@ class GetActivityCommand(Command):
         msg += f"{activity_name(activity, as_markdown_link=True)}\n"
         msg += f"- User: {activity.get_user().get_name()}\n"
         msg += f"- Game: {game_name(activity.get_game(), as_markdown_link=True)}\n"
-        msg += f"- Platform: *{activity.get_platform().get_display_name()}*\n"
+        msg += f"- Platform: *{activity.get_platform().get_display_name()}*"
+        if activity.get_emulated():
+            msg += " (Emulated)"
+        msg += "\n"
         msg += f"- Date: {js_iso(activity.get_datetime())}\n"
         msg += f"- Duration: {formatted_duration}\n"
         msg += f"- Created: {js_iso(activity.get_created())}\n"
@@ -43,9 +46,13 @@ class GetActivityCommand(Command):
             msg += "- **This activity is hidden**\n"
 
         if self.is_admin(user):
-            msg += "# History\n```"
-            for h in activity.get_history():
-                msg += h + "\n"
-            msg += "```"
+            msg += "# History\n"
+            if len(activity.get_history()) == 0:
+                msg += "No history\n"
+            else:
+                msg += "```"
+                for h in activity.get_history():
+                    msg += h + "\n"
+                msg += "```"
 
         return msg.strip()

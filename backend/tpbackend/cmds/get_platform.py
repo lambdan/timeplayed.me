@@ -25,15 +25,19 @@ class GetPlatformCommand(Command):
         msg += f"- Updated: {js_iso(platform.get_updated())}\n"
 
         if self.is_admin(user):
-            msg += "```"
+            msg += "\n```"
             msg += f"Color primary: {platform.color_primary}\n"
             msg += f"Color secondary: {platform.color_secondary}\n"
             msg += f"Icon: {platform.icon}\n"
-            msg += "```"
+            msg += "```\n"
 
-            msg += "# History\n```"
-            for h in platform.get_history():
-                msg += h + "\n"
-            msg += "```"
+            msg += "# History\n"
+            if len(platform.get_history()) == 0:
+                msg += "No history\n"
+            else:
+                msg += "```"
+                for h in platform.get_history():
+                    msg += h + "\n"
+                msg += "```"
 
         return msg.strip()
