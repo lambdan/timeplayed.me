@@ -618,11 +618,16 @@ def get_games(
 
     total = 0
     data = []
+
     if search:
         if len(search) < 2:
             return bad_request("Search query must be at least 2 characters long")
         results, total = search_games_for_api(
-            query=search, limit=limit, offset=offset, userId=userId
+            query=search,
+            limit=limit,
+            offset=offset,
+            userId=userId,
+            platformId=platformId,
         )
         for r in results:
             try:
