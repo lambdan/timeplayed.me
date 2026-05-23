@@ -1,6 +1,10 @@
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import (
+    Activity_or_none,
+    Platform,
+    Platform_or_none,
+    User,
+)
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Activity
 from tpbackend.utils import search_platforms
 
 
@@ -38,8 +42,7 @@ Returns: Confirmation message
         activities = splitted[0].split(",")
         platform = None
         try:
-            platform_id = int(splitted[1].strip())
-            platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+            platform = Platform_or_none(splitted[1].strip())
         except Exception:
             # hmm maybe user did !set_platform 123 snes, try searching for it!
             search_results = search_platforms(" ".join(splitted[1:]))
@@ -62,15 +65,15 @@ Returns: Confirmation message
     ) -> str:
         msg = ""
         for activity_id in activity_ids:
-            act = Activity.get_or_none(Activity.id == int(activity_id))  # type: ignore
+            act = Activity_or_none(int(activity_id))
             if not act:
                 msg += f"- {activity_id}: ❌ not found\n"
                 continue
             if act.user.id != user.id:
                 msg += f"- {activity_id}: ❌ not yours!\n"
                 continue
-            old_platform = act.platform.abbreviation
-            act.platform = platform
+            old_platform = act.get_platform()
+            act.set_platform(platform)
             act.save()
-            msg += f"- {activity_id}: {old_platform} -> {act.platform.abbreviation}\n"
+            msg += f"- {activity_id}: {old_platform.get_abbreviation()} -> {act.get_platform().get_abbreviation()}\n"
         return msg

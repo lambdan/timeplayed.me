@@ -4,10 +4,10 @@ from tpbackend.storage.storage_v2 import Game, Activity
 
 
 def set_game_actually(act: Activity, new_game: Game) -> str:
-    old_game = act.game.name
-    act.game = new_game  # type: ignore
+    old_game = act.get_game().get_name()
+    act.set_game(new_game)
     act.save()
-    return f"{old_game} -> {act.game.name}"
+    return f"{old_game} -> {act.get_game().get_name()}"
 
 
 class SetGameCommand(Command):

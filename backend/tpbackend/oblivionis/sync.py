@@ -38,6 +38,8 @@ def parseActivity(activity: PassedActivity) -> bool:
                 user.id,
                 user.discord_id,
             )
+            user.add_history("Created during Oblivionis sync")
+            user.save()
 
         if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
             logger.warning(
@@ -50,7 +52,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()
 
-        game = operations.get_game_by_name_or_alias_or_create(game_name)
+        game = operations.get_game_by_name_or_alias_or_create(
+            game_name, "Created during Oblivionis sync"
+        )
 
         platform_abbr = activity["platform"]
         if platform_abbr == "pc":
@@ -58,6 +62,8 @@ def parseActivity(activity: PassedActivity) -> bool:
         platform, created = Platform.get_or_create(abbreviation=platform_abbr)
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)
+            platform.add_history("Created during Oblivionis sync")
+            platform.save()
 
         success = operations.add_session(
             user=user,
@@ -69,6 +75,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         )
         if success[0]:
             logger.info("Activity synced successfully")
+            created_activity = success[0]
+            created_activity.add_history("Activity source: Oblivionis")
+            created_activity.save()
             return True
 
         logger.error("Error when syncing activity: %s", success[1])

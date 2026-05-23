@@ -1,6 +1,5 @@
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Activity_or_none, User
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Activity
 
 
 class DeleteActivityAdminCommand(AdminCommand):
@@ -22,7 +21,7 @@ class DeleteActivityAdminCommand(AdminCommand):
         return output.strip()
 
     def delete(self, activity_id: int) -> str:
-        act = Activity.get_or_none(Activity.id == activity_id)  # type: ignore
+        act = Activity_or_none(activity_id)
         if not act:
             return "not found"
         act.delete_instance()

@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Platform_or_none, User
 
 
 class SetPlatformIconCommand(AdminCommand):
@@ -14,17 +14,17 @@ class SetPlatformIconCommand(AdminCommand):
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         platform_id = int(splitted[0].strip())
         icon = splitted[1].strip()
-        platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
+        platform = Platform_or_none(platform_id)
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
-        old_icon = platform.icon
+        old_icon = platform.get_icon()
         if icon == "-" or icon == "null":
-            platform.icon = None
+            platform.set_icon(None)
         else:
-            platform.icon = icon
+            platform.set_icon(icon)
         platform.save()
         out = f"""```
-{platform.name or platform.abbreviation}:\n
-icon: {old_icon} --> {platform.icon}\n
+{platform.get_display_name()}:\n
+icon: {old_icon} --> {platform.get_icon()}\n
         ```"""
         return out.strip()

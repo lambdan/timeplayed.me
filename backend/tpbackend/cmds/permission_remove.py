@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import User, User_or_none
 
 
 class RemovePermissionCommand(AdminCommand):
@@ -18,7 +18,7 @@ class RemovePermissionCommand(AdminCommand):
         if user_id == "":
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
 
-        target_user = User.get_or_none(User.id == user_id)  # type: ignore
+        target_user = User_or_none(user_id)
         if not target_user:
             return f"Error: User with id {user_id} not found."
         assert isinstance(target_user, User)
@@ -26,6 +26,7 @@ class RemovePermissionCommand(AdminCommand):
         permission_name = splitted[1].strip().lower() if len(splitted) > 1 else ""
         if target_user.has_permission(permission_name):
             target_user.remove_permission(permission_name)
+            target_user.save()
             return "OK, permission was removed"
-        target_user_permissions = ",".join(target_user.permissions)
+        target_user_permissions = ",".join(target_user.get_permissions())
         return f"Permission NOT removed (user probably didn't have it). User has these permissions: `{target_user_permissions}`"

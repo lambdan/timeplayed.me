@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import User
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
 
 
@@ -18,7 +18,7 @@ class SetGameReleaseYearCommand(AdminCommand):
         year = None
         if splitted[1].strip().lower() != "null":
             year = int(splitted[1].strip())
-        game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
+        game = Game_or_none(int(game_id))
         if not game:
             return f"Error: Game with id {game_id} not found."
         # Check for a conflict with another game of the same name and the same target year.
@@ -42,6 +42,6 @@ class SetGameReleaseYearCommand(AdminCommand):
                 f"Error: A game named '{conflict.name}' with release year {year_str} "  # type: ignore
                 f"already exists (id: {conflict.id})."  # type: ignore
             )
-        game.release_year = year
+        game.set_release_year(year)
         game.save()
         return f"{game.name} - release year set to: `{game.release_year}`"

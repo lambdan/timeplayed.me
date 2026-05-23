@@ -19,9 +19,11 @@ from tpbackend.api_models import (
     Totals,
 )
 from tpbackend.utils import (
+    search_games_for_api,
+)
+from tpbackend.utils2 import (
     clamp,
     max_int as max,
-    search_games_for_api,
     truncateMilliseconds,
     validateTS,
 )

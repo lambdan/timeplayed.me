@@ -2,9 +2,11 @@ import datetime
 import logging
 from typing import cast
 
-from tpbackend import utils
+from tpbackend import utils2
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
+    Game_or_none,
+    Platform_or_none,
     User,
     Game,
     Platform,
@@ -20,7 +22,7 @@ def get_game_by_alias(alias: str) -> Game | None:
     Returns a game by its alias.
     If no game is found, returns None.
     """
-    return Game.get_or_none(Game.aliases.contains(alias))
+    return Game.get_or_none(Game.aliases.contains(alias))  # type: ignore
 
 
 def get_game_by_name_or_alias(s: str) -> Game | None:
@@ -54,7 +56,7 @@ def get_game_by_name_or_alias(s: str) -> Game | None:
     return None
 
 
-def get_game_by_name_or_alias_or_create(s: str) -> Game:
+def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
     game = get_game_by_name_or_alias(s)
     if game:
         return game
@@ -63,6 +65,12 @@ def get_game_by_name_or_alias_or_create(s: str) -> Game:
     # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
     game = Game.create(name=s)  # type: ignore
     logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
+
+    g = Game_or_none(game.id)
+    if g:
+        g.add_history(creation_message)
+        g.save()
+
     return game
 
 
@@ -128,14 +136,18 @@ def add_session(
                 abbreviation=user.get_pc_platform()
             )
 
+        platform = Platform_or_none(platform.id)  # type: ignore
+        if not platform:
+            raise Exception("Platform is None somehow... this shouldnt be possible")
+
         # now if not provided
-        timestamp = timestamp or utils.now()
+        timestamp = timestamp or utils2.now()
 
         # Check for overlapping activity
         overlapping_activity = get_overlapping_activity(
             user=user,
             game=game,
-            platform=platform,  # type: ignore
+            platform=platform,
             incoming_ended_dt=timestamp,
             incoming_seconds=seconds,
         )
@@ -184,7 +196,7 @@ def remove_game_images(game: Game) -> str:
 
 
 def remove_session(user: User, sessionId: int):
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId, include_hidden=True)
     if not activity:
         return f"ERROR: Session {sessionId} not found"
     if activity.user != user:
@@ -194,10 +206,10 @@ def remove_session(user: User, sessionId: int):
 
 
 def merge_games(user: User, gameId1: int, gameId2: int):
-    game1 = Game.get_or_none(Game.id == gameId1)  # type: ignore
+    game1 = Game_or_none(gameId1)
     if not game1:
         return f"ERROR: Game with ID {gameId1} not found"
-    game2 = Game.get_or_none(Game.id == gameId2)  # type: ignore
+    game2 = Game_or_none(gameId2)
     if not game2:
         return f"ERROR: Game with ID {gameId2} not found"
     Activity.update(game=game2).where(
@@ -213,24 +225,24 @@ def set_default_platform(user: User, platform: str) -> str:
 
 
 def set_platform_for_session(user: User, sessionId: int, platform: Platform) -> bool:
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId)
     if not activity:
         return False
     if activity.user.id != user.id:
         return False
     if activity.platform == platform:
         return False
-    activity.platform = platform
+    activity.set_platform(platform)
     activity.save()
     return True
 
 
 def modify_session_date(user: User, sessionId: int, new_date: datetime.datetime) -> str:
-    activity = Activity.get_or_none(Activity.id == sessionId)  # type: ignore
+    activity = Activity_or_none(sessionId)
     if not activity:
         return f"ERROR: Session {sessionId} not found"
     if activity.user != user:
         return f"ERROR: Session {sessionId} does not belong to you"
-    activity.timestamp = new_date
+    activity.set_datetime(new_date)
     activity.save()
     return f"Session {sessionId} date has been modified to {new_date.strftime('%Y-%m-%d %H:%M:%S')} UTC"

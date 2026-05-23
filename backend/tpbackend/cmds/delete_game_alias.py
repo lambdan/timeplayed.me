@@ -15,6 +15,7 @@ class DeleteGameAliasCommand(AdminCommand):
         game = get_game_by_alias(alias)
         if not game:
             return "Error: No game found with that alias"
-        game.aliases.remove(alias)  # type: ignore
-        game.save()
-        return f"Removed alias from *{game.name}*"
+        if game.remove_alias(alias):
+            game.save()
+            return f"✅ Removed alias from *{game.name}*"
+        return "Could not remove alias... most likely the game didnt have it?"

@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import Game, User
+from tpbackend.storage.storage_v2 import Game, Game_or_none, User
 from tpbackend.cmds.admin_command import AdminCommand
 
 
@@ -34,4 +34,10 @@ Returns: Confirmation message with the game ID and name.
         # Use Game.create() directly so we always produce a new row and never
         # silently return an existing game matched by alias or case-insensitive name.
         game = Game.create(name=s)  # type: ignore
+
+        g = Game_or_none(game.id)
+        if g:
+            g.add_history("Game added by admin")
+            g.save()
+
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore

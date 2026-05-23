@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Platform, User
+from tpbackend.storage.storage_v2 import Platform, Platform_or_none, User
 
 
 class AddPlatformCommand(AdminCommand):
@@ -19,4 +19,10 @@ class AddPlatformCommand(AdminCommand):
         platform, created = Platform.get_or_create(abbreviation=abbr)  # type: ignore
         if not created:
             return "Error: platform was not created"
+
+        p = Platform_or_none(platform.id)
+        if p:
+            p.add_history(f"Platform added by command by {user.name}")
+            p.save()
+
         return f"✅ Platform {abbr} added, id {platform.id}"
