@@ -52,7 +52,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         game_name = activity["game_name"]
         game_name = game_name.removesuffix(" with Medal").strip()
 
-        game = operations.get_game_by_name_or_alias_or_create(game_name)
+        game = operations.get_game_by_name_or_alias_or_create(
+            game_name, "Created during Oblivionis sync"
+        )
 
         platform_abbr = activity["platform"]
         if platform_abbr == "pc":

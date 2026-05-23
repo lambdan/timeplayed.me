@@ -56,7 +56,7 @@ def get_game_by_name_or_alias(s: str) -> Game | None:
     return None
 
 
-def get_game_by_name_or_alias_or_create(s: str) -> Game:
+def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
     game = get_game_by_name_or_alias(s)
     if game:
         return game
@@ -65,6 +65,12 @@ def get_game_by_name_or_alias_or_create(s: str) -> Game:
     # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
     game = Game.create(name=s)  # type: ignore
     logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
+
+    g = Game_or_none(game.id)
+    if g:
+        g.add_history(creation_message)
+        g.save()
+
     return game
 
 
