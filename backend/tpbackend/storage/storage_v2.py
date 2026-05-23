@@ -260,6 +260,7 @@ class Game(BaseModel):
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
     created = DateTimeField(default=lambda: now())
     updated = DateTimeField(default=lambda: now())
+    parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
     def save(self, *args, **kwargs):
         self.updated = now()
@@ -345,7 +346,24 @@ class Game(BaseModel):
         self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
+    def get_parent(self) -> "Game | None":
+        if self.parent:
+            return cast(Game, self.parent)
+        return None
+
+    def set_parent(self, parent: "Game | None"):
+        raise NotImplementedError("not implemented")
+
+    def get_children(self) -> list["Game"]:
+        return cast(list[Game], list(self.children))  # type: ignore
+
     def get_api_model(self) -> PublicGameModel:
+        parent_id = self.get_parent()
+        if parent_id:
+            parent_id = parent_id.get_id()
+        child_ids = []
+        for c in self.get_children():
+            child_ids.append(c.get_id())
         return PublicGameModel(
             id=self.get_id(),
             name=self.get_name(),
@@ -356,6 +374,8 @@ class Game(BaseModel):
             release_year=self.get_release_year(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
+            parent_id=parent_id,
+            child_ids=child_ids,
         )
 
     def user_has_played(self, user: User) -> bool:
