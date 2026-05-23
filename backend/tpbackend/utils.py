@@ -42,14 +42,23 @@ def last_platform_for_game(
 
 
 def search_games_for_api(
-    query: str, offset: int, limit: int, userId: int | None = None
+    query: str,
+    offset: int,
+    limit: int,
+    userId: int | None = None,
+    platformId: int | None = None,
 ) -> tuple[list[storage_v2.Game], int]:
     """
     Search games by name or alias, and return total count for pagination
     """
     # this is craaaaaazzzyyy ineffective
     all_games = search_games(
-        query=query, offset=0, limit=0, include_hidden=False, userId=userId
+        query=query,
+        offset=0,
+        limit=0,
+        include_hidden=False,
+        userId=userId,
+        platformId=platformId,
     )
     total_count = len(all_games)
     games = all_games[offset : offset + limit]
@@ -61,10 +70,17 @@ CACHED_SEARCHES_WIPED = 0
 
 
 def search_games(
-    query: str, offset=0, limit=0, include_hidden=False, userId: int | None = None
+    query: str,
+    offset=0,
+    limit=0,
+    include_hidden=False,
+    userId: int | None = None,
+    platformId: int | None = None,
 ) -> list[storage_v2.Game]:
     query = query_normalize(query)
-    key = f"search_games:{query}:{include_hidden}:{offset}:{limit}:{userId}"
+    key = (
+        f"search_games:{query}:{include_hidden}:{offset}:{limit}:{userId}:{platformId}"
+    )
 
     # clean up cache first
     global CACHED_SEARCHES_WIPED
@@ -80,9 +96,15 @@ def search_games(
     games = []
     for game in storage_v2.Game.select():
         game = cast(Game, game)
+
         user = User_or_none(userId)
         if user and not game.user_has_played(user):
             continue
+
+        platform = Platform_or_none(platformId)
+        if platform and not game.platform_has_played(platform):
+            continue
+
         if not include_hidden and game.get_hidden():
             continue
         # search in name
@@ -107,6 +129,8 @@ def search_games(
             offset=offset,
             limit=limit,
             include_hidden=include_hidden,
+            userId=userId,
+            platformId=platformId,
         )
     # order by name
     games.sort(key=lambda g: g.get_name().lower())

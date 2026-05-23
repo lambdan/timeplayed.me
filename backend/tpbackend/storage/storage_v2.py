@@ -370,6 +370,18 @@ class Game(BaseModel):
         )
         return len(activities) > 0
 
+    def platform_has_played(self, platform: Platform) -> bool:
+        activities = (
+            Activity.select()
+            .where(
+                (Activity.game == self)
+                & (Activity.platform == platform)
+                & (Activity.hidden == False)  # noqa: E712
+            )
+            .limit(1)
+        )
+        return len(activities) > 0
+
     def add_history(self, message: str):
         message = f"[{now_iso()}] {message}"
         self.history.append(message)  # type: ignore
@@ -581,7 +593,9 @@ def Activity_or_none(activity_id: int, include_hidden=False) -> Activity | None:
     return None
 
 
-def Platform_or_none(platform_id: int | str) -> Platform | None:
+def Platform_or_none(platform_id: int | str | None) -> Platform | None:
+    if platform_id is None:
+        return None
     p = Platform.get_or_none(Platform.id == int(platform_id))
     if p:
         return cast(Platform, p)
