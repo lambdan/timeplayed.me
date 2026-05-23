@@ -1,8 +1,5 @@
-"""Tests for tpbackend.utils."""
-
 import datetime
 import pytest
-from unittest.mock import patch
 import tpbackend.utils2 as utils
 
 
