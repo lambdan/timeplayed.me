@@ -94,14 +94,14 @@ def search_games(
         return CACHED_SEARCHES[key]
 
     games = []
+    user = User_or_none(userId)
+    platform = Platform_or_none(platformId)
     for game in storage_v2.Game.select():
         game = cast(Game, game)
 
-        user = User_or_none(userId)
         if user and not game.user_has_played(user):
             continue
 
-        platform = Platform_or_none(platformId)
         if platform and not game.platform_has_played(platform):
             continue
 
