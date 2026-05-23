@@ -1,10 +1,10 @@
 .PHONY: format format-check test
 
 format:
-	black conftest.py tpbackend
+	black tpbackend
 
 format-check:
-	black --check conftest.py tpbackend
+	black --check tpbackend
 
 test:
 	pytest -v
