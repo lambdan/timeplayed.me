@@ -2,7 +2,7 @@ from typing import Optional
 
 from tpbackend.cmds.command import Command
 from tpbackend.cmds.set_game import set_game_actually
-from tpbackend.storage.storage_v2 import Activity, Game, Game_or_none, User
+from tpbackend.storage.storage_v2 import Activity, Game_or_none, User
 
 
 def execute_move_game(

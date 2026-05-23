@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import Platform_or_none, User, Platform
+from tpbackend.storage.storage_v2 import Platform_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import platform_name
 

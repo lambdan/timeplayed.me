@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import Game_or_none, User, Game
+from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_url
 

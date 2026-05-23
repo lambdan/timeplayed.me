@@ -4,19 +4,6 @@ import logging
 from typing import cast
 from datetime import datetime, timezone, timedelta
 
-from tpbackend import utils
-from tpbackend.permissions import DEFAULT_PERMISSIONS
-from tpbackend.storage.reset_sequence import reset_sequences
-from tpbackend.api_models import (
-    PublicGameModel,
-    PublicPlatformModel,
-    PublicUserModel,
-    PublicActivityModel,
-)
-from tpbackend.utils2 import js_iso, now_iso
-
-logger = logging.getLogger("storage_v2")
-
 from peewee import (
     BooleanField,
     CharField,
@@ -28,6 +15,18 @@ from peewee import (
     AutoField,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
+from tpbackend.permissions import DEFAULT_PERMISSIONS
+from tpbackend.storage.reset_sequence import reset_sequences
+from tpbackend.api_models import (
+    PublicGameModel,
+    PublicPlatformModel,
+    PublicUserModel,
+    PublicActivityModel,
+)
+from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
+
+logger = logging.getLogger("storage_v2")
+
 
 db = PostgresqlExtDatabase(
     os.environ.get("DB_NAME_TIMEPLAYED"),
@@ -394,7 +393,7 @@ class Activity(BaseModel):
         self.add_history(f"Seconds changed from {old_seconds} to {seconds}")
 
     def get_datetime(self) -> datetime:
-        return utils.assertTimezone(self.timestamp)
+        return assertTimezone(self.timestamp)
 
     def set_datetime(self, dt: datetime):
         old_date = self.get_datetime()
@@ -462,7 +461,7 @@ class LiveActivity(BaseModel):
         return cast(Platform, self.platform)
 
     def get_started_datetime(self) -> datetime:
-        return utils.assertTimezone(self.started)
+        return assertTimezone(self.started)
 
     def get_started_timestamp(self) -> int:
         return int(self.get_started_datetime().timestamp() * 1000)
@@ -470,7 +469,7 @@ class LiveActivity(BaseModel):
 
 class DiscordHistory(BaseModel):
     id = AutoField()
-    timestamp = DateTimeField(default=lambda: utils.now())
+    timestamp = DateTimeField(default=lambda: now())
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
     message = TextField()
@@ -485,7 +484,7 @@ def connect_db():
 
 async def clean_loop():
     def cleanupDiscordHistory():
-        cutoff = utils.now() - timedelta(days=30)
+        cutoff = now() - timedelta(days=30)
         logger.info(
             f"Cleaning up DiscordHistory entries older than {cutoff.isoformat()}..."
         )

@@ -2,7 +2,7 @@ import datetime
 import logging
 from typing import cast
 
-from tpbackend import utils
+from tpbackend import utils2
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
     Game_or_none,
@@ -13,7 +13,6 @@ from tpbackend.storage.storage_v2 import (
     Activity,
 )
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
-from tpbackend.utils2 import js_iso
 
 logger = logging.getLogger("operations")
 
@@ -136,7 +135,7 @@ def add_session(
             raise Exception("Platform is None somehow... this shouldnt be possible")
 
         # now if not provided
-        timestamp = timestamp or utils.now()
+        timestamp = timestamp or utils2.now()
 
         # Check for overlapping activity
         overlapping_activity = get_overlapping_activity(

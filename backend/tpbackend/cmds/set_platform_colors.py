@@ -1,5 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Platform, Platform_or_none, User
+from tpbackend.storage.storage_v2 import Platform_or_none, User
 
 
 class SetPlatformColorsCommand(AdminCommand):

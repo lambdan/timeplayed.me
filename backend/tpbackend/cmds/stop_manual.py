@@ -1,7 +1,8 @@
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
+from tpbackend.operations import add_session
 from tpbackend.storage.storage_v2 import LiveActivity_or_none, User
-from tpbackend import utils, operations
 from tpbackend.utils import activity_name, game_name
+from tpbackend.utils2 import now, secsToHHMMSS
 
 
 class StopManualCommand(ManualActivityCommand):
@@ -20,10 +21,10 @@ class StopManualCommand(ManualActivityCommand):
             return "Error: You haven't started playing anything"
 
         started = live.get_started_datetime()
-        duration = utils.now() - started
+        duration = now() - started
         seconds = int(duration.total_seconds())
 
-        result = operations.add_session(
+        result = add_session(
             user=user,
             platform=live.get_platform(),
             game=live.get_game(),
@@ -35,7 +36,7 @@ class StopManualCommand(ManualActivityCommand):
         if sesh:
             msg = f"{activity_name(sesh, as_markdown_link=True)} saved ✅\n"
             msg += f"- Game: *{game_name(sesh.get_game(), as_markdown_link=True)}*\n"  # type: ignore
-            msg += f"- Duration: {utils.secsToHHMMSS(sesh.get_seconds())}\n"
+            msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
 
             sesh.add_history("Activity source: live activity")

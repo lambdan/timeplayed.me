@@ -1,6 +1,5 @@
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Game_or_none, User
-from tpbackend.storage.storage_v2 import Game
 
 
 class SetSteamIDCommand(AdminCommand):

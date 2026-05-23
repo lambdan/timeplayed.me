@@ -5,7 +5,6 @@ from tpbackend.storage.storage_v2 import (
     User,
 )
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Activity
 from tpbackend.utils import search_platforms
 
 
@@ -73,8 +72,8 @@ Returns: Confirmation message
             if act.user.id != user.id:
                 msg += f"- {activity_id}: ❌ not yours!\n"
                 continue
-            old_platform = act.get_platform().get_abbreviation()
+            old_platform = act.get_platform()
             act.set_platform(platform)
             act.save()
-            msg += f"- {activity_id}: {old_platform} -> {act.get_platform().get_abbreviation()}\n"
+            msg += f"- {activity_id}: {old_platform.get_abbreviation()} -> {act.get_platform().get_abbreviation()}\n"
         return msg

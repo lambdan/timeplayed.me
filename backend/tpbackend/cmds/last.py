@@ -1,7 +1,8 @@
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Activity
-from tpbackend import utils
+from tpbackend.utils import activity_url, game_name
+from tpbackend.utils2 import secsToHHMMSS
 
 TOO_LONG_ERR = "Output too long for Discord. Try with a smaller number."
 
@@ -40,7 +41,7 @@ Get your last n activities: `!last n`
         for act in activities:
             emulated = " (emu)" if act.emulated else ""
             lines.append(
-                f"#{act}\t{act.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{utils.secsToHHMMSS(act.seconds)}"
+                f"#{act}\t{act.timestamp.isoformat().split(".")[0].replace("T"," ")} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{secsToHHMMSS(act.seconds)}"
             )
         out = "```\n"
         out += "\n".join(lines)
@@ -53,18 +54,18 @@ Get your last n activities: `!last n`
         out = ""
         for act in activities:
             ts = act.timestamp.isoformat().split(".")[0].replace("T", " ")
-            url = utils.activity_url(act.id)
+            url = activity_url(act.id)
             if url:
                 out += f"[#{act.id}]({url})\n"
             else:
                 out += f"{act.id}\n"
-            out += f"- *{utils.game_name(act.game)}*\n"
+            out += f"- *{game_name(act.game)}*\n"
             out += f"- {act.platform.name or act.platform.abbreviation}"
             if act.emulated:
                 out += " (emu)"
             out += "\n"
             out += f"- {ts} UTC\n"
-            out += f"- {utils.secsToHHMMSS(act.seconds)}\n"
+            out += f"- {secsToHHMMSS(act.seconds)}\n"
             out += "\n"
             if len(out) >= 2000:
                 return TOO_LONG_ERR

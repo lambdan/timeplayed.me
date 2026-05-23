@@ -1,4 +1,4 @@
-from tpbackend.storage.storage_v2 import User, Platform
+from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import search_platforms
 

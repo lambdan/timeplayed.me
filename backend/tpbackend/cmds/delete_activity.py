@@ -1,6 +1,5 @@
 from tpbackend.storage.storage_v2 import Activity_or_none, User
 from tpbackend.cmds.command import Command
-from tpbackend.storage.storage_v2 import Activity
 
 
 class DeleteActivityCommand(Command):

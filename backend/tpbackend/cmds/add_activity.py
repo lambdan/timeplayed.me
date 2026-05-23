@@ -10,11 +10,11 @@ from tpbackend.operations import (
 from tpbackend.utils import (
     activity_name,
     game_name,
-    now,
     last_platform_for_game,
     search_games,
-    secsToHHMMSS,
 )
+
+from tpbackend.utils2 import secsToHHMMSS, now
 
 
 class AddActivityCommand(ManualActivityCommand):

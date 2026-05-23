@@ -4,7 +4,7 @@ from tpbackend.storage.storage_v2 import (
 )
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_name, activity_name
-from tpbackend import utils
+from tpbackend.utils2 import secsToHHMMSS
 
 
 class GetActivityCommand(Command):
@@ -18,7 +18,7 @@ class GetActivityCommand(Command):
         activity = Activity_or_none(int(msg))
         if not activity:
             return f"Error: Activity with id {msg} not found."
-        formatted_duration = utils.secsToHHMMSS(activity.get_seconds())
+        formatted_duration = secsToHHMMSS(activity.get_seconds())
         formatted_dt = activity.get_datetime().strftime("%Y-%m-%d %H:%M:%S UTC")
         msg = ""
         msg += f"{activity_name(activity, as_markdown_link=True)}\n"
