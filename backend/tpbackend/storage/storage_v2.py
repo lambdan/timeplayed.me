@@ -284,7 +284,12 @@ class Game(BaseModel):
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_steam_id(self) -> int | None:
-        return cast(int | None, self.steam_id)
+        if self.steam_id:
+            return cast(int, self.steam_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_steam_id()
+        return None
 
     def set_steam_id(self, steam_id: int | None):
         old_steam_id = self.get_steam_id()
@@ -292,7 +297,12 @@ class Game(BaseModel):
         self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
-        return cast(int | None, self.sgdb_id)
+        if self.sgdb_id:
+            return cast(int, self.sgdb_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_sgdb_id()
+        return None
 
     def set_sgdb_id(self, sgdb_id: int | None):
         old_sgdb_id = self.get_sgdb_id()
@@ -300,7 +310,12 @@ class Game(BaseModel):
         self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
 
     def get_image_url(self) -> str | None:
-        return cast(str | None, self.image_url)
+        if self.image_url:
+            return cast(str, self.image_url)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_image_url()
+        return None
 
     def set_image_url(self, image_url: str | None):
         old_image_url = self.get_image_url()
@@ -339,6 +354,10 @@ class Game(BaseModel):
         )
 
     def get_hidden(self) -> bool:
+        # hide if parent is hidden
+        parent = self.get_parent()
+        if parent:
+            return parent.get_hidden()
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
