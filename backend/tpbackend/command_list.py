@@ -44,6 +44,7 @@ from tpbackend.cmds.set_platform_colors import SetPlatformColorsCommand
 from tpbackend.cmds.get_platform import GetPlatformCommand
 from tpbackend.cmds.set_platform_icon import SetPlatformIconCommand
 from tpbackend.cmds.hide_game import HideGameCommand
+from tpbackend.cmds.set_parent import SetParentCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
@@ -93,6 +94,7 @@ ADMIN_COMMANDS = [
     DeleteGameCommand(),
     GamesWithoutActivityAdminCommand(),
     HideGameCommand(),
+    SetParentCommand(),
     # user mgmt
     SearchUsersCommand(),
     AddPermissionCommand(),

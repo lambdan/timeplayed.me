@@ -1,6 +1,7 @@
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.utils import game_name
+from typing import cast
 
 
 class MissingSGDBAdminCommand(AdminCommand):
@@ -10,7 +11,12 @@ class MissingSGDBAdminCommand(AdminCommand):
         super().__init__(names=names, description=d)
 
     def execute(self, user: User, msg: str) -> str:
-        missing = Game.select().where(Game.sgdb_id.is_null())  # type: ignore
+        missing = []
+        for game in Game.select():
+            game = cast(Game, game)
+            if game.get_sgdb_id() is None:
+                missing.append(game)
+
         if len(missing) == 0:
             return "All games have SGDB id! 🥳"
         count = 0
@@ -19,6 +25,6 @@ class MissingSGDBAdminCommand(AdminCommand):
             count += 1
             out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
             if count > 20 or len(out) > 1337:
-                out += f"... and {missing.count() - count} more"
+                out += f"... and {len(missing) - count} more\n"
                 break
         return out

@@ -23,6 +23,10 @@ class GetGameCommand(Command):
         msg = ""
         msg += f"# {game.get_name()}\n"
 
+        parent = game.get_parent()
+        if parent:
+            msg += f"### Child of {parent.get_name()} ({parent.get_id()})\n"
+
         url = game_url(game.get_id())
         if url:
             msg += f"- ID: [{game.get_id()}]({url})\n"

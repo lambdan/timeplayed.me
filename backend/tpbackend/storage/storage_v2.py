@@ -284,6 +284,9 @@ class Game(BaseModel):
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_steam_id(self) -> int | None:
+        """
+        Get Steam ID (or parents)
+        """
         if self.steam_id:
             return cast(int, self.steam_id)
         parent = self.get_parent()
@@ -297,6 +300,9 @@ class Game(BaseModel):
         self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
+        """
+        Get SGDB ID (or parents)
+        """
         if self.sgdb_id:
             return cast(int, self.sgdb_id)
         parent = self.get_parent()
@@ -310,6 +316,9 @@ class Game(BaseModel):
         self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
 
     def get_image_url(self) -> str | None:
+        """
+        Get image url (or parents)
+        """
         if self.image_url:
             return cast(str, self.image_url)
         parent = self.get_parent()
@@ -370,8 +379,26 @@ class Game(BaseModel):
             return cast(Game, self.parent)
         return None
 
-    def set_parent(self, parent: "Game | None"):
-        raise NotImplementedError("not implemented")
+    def set_parent(self, new_parent: "Game | None"):
+        if new_parent == self.get_parent():
+            raise ValueError("No change")
+        if new_parent:
+            # avoid self
+            if self.get_id() == new_parent.get_id():
+                raise ValueError("Game cannot be its own parent")
+            # avoid setting parent to a child
+            children = self.get_children()
+            if any(c.get_id() == new_parent.get_id() for c in children):
+                raise ValueError("Game cannot be parent of a child")
+        old_parent = self.get_parent()
+        old_parent_name = "None"
+        if old_parent:
+            old_parent_name = f"'{old_parent.get_name()}' ({old_parent.get_id()})"
+        self.parent = cast(ForeignKeyField, new_parent)
+        new_parent_name = "None"
+        if new_parent:
+            new_parent_name = f"'{new_parent.get_name()}' ({new_parent.get_id()})"
+        self.add_history(f"Parent changed from {old_parent_name} to {new_parent_name}")
 
     def get_children(self) -> list["Game"]:
         return cast(list[Game], list(self.children))  # type: ignore
