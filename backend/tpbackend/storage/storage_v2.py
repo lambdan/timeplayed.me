@@ -308,6 +308,9 @@ class Game(BaseModel):
         parent = self.get_parent()
         if parent:
             return parent.get_sgdb_id()
+        if self.sgdb_id == 0:
+            # 0 means not on SGDB
+            return 0
         return None
 
     def set_sgdb_id(self, sgdb_id: int | None):
