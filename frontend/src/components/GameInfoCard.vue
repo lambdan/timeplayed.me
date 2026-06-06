@@ -251,21 +251,23 @@ onMounted(async () => {
                     <tr>
                       <td><b>Steam ID:</b></td>
                       <td>
-                        <code>{{ game.steam_id || "-" }}</code>
+                        <code>{{ game.steam_id }}</code>
                       </td>
                     </tr>
                     <tr>
                       <td><b>SteamGridDB ID:</b></td>
                       <td>
-                        <code>{{ game.sgdb_id || "-" }}</code>
+                        <code>{{ game.sgdb_id }}</code>
                       </td>
                     </tr>
                     <tr>
                       <td><b>Aliases:</b></td>
                       <td>
-                        <code>{{
-                          game.aliases.length > 0 ? game.aliases.join(",") : "-"
-                        }}</code>
+                        <ul>
+                          <li v-for="alias in game.aliases" :key="alias">
+                            {{ alias }}
+                          </li>
+                        </ul>
                       </td>
                     </tr>
                     <tr>

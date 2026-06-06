@@ -201,6 +201,11 @@ export async function getGameCoverUrl(
         return gameData.image_url;
       }
 
+      // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
+      if (gameData.sgdb_id === 0) {
+        return `https://placehold.co/600x900?text=Unknown+game`;
+      }
+
       // 2nd priority: SteamGridDB
       // sgdb_id is null when not set,
       // or 0 when SGDB doesnt have it (or it shouldnt be used)...

@@ -303,14 +303,15 @@ class Game(BaseModel):
         """
         Get SGDB ID (or parents)
         """
-        if self.sgdb_id:
-            return cast(int, self.sgdb_id)
-        parent = self.get_parent()
-        if parent:
-            return parent.get_sgdb_id()
         if self.sgdb_id == 0:
             # 0 means not on SGDB
             return 0
+        if self.sgdb_id:
+            return cast(int, self.sgdb_id)
+        # try parent
+        parent = self.get_parent()
+        if parent:
+            return parent.get_sgdb_id()
         return None
 
     def set_sgdb_id(self, sgdb_id: int | None):

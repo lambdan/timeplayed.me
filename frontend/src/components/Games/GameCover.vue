@@ -18,9 +18,9 @@ const props = withDefaults(
   },
 );
 
-const FALLBACK = `https://placehold.co/600x900?text=Loading...`;
+const LOADING_COVER = `https://placehold.co/600x900?text=Loading...`;
 const clickable = ref(props.clickable);
-const imageUrl = ref<string>(FALLBACK);
+const imageUrl = ref<string>(LOADING_COVER);
 
 onMounted(async () => {
   imageUrl.value = await getGameCoverUrl(props.gameId, props.thumb);
