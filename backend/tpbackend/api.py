@@ -554,7 +554,12 @@ def get_activities_impl(
     )
 
     total_count = get_activity_count(
-        userId=user, gameId=game, platformId=platform, before=before, after=after
+        userId=user,
+        gameId=game,
+        platformId=platform,
+        before=before,
+        after=after,
+        include_game_children=include_game_children,
     )
 
     data = []
