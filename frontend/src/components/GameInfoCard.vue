@@ -4,6 +4,7 @@ import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
+import ChildGameBadge from "./Badges/ChildGameBadge.vue";
 
 const props = defineProps<{ game: Game }>();
 
@@ -101,19 +102,10 @@ onMounted(async () => {
                     <tr v-if="game.children.length > 0">
                       <td><b>Children:</b></td>
                       <td>
-                        <code>
-                          <span
-                            v-for="child in game.children"
-                            class="badge bg-secondary me-1 mb-1"
-                          >
-                            <a
-                              :href="'/game/' + child"
-                              class="text-white text-decoration-none"
-                            >
-                              {{ child }}
-                            </a>
-                          </span>
-                        </code>
+                        <ChildGameBadge
+                          v-for="child in game.children"
+                          :gameId="child"
+                        ></ChildGameBadge>
                       </td>
                     </tr>
                     <tr>
