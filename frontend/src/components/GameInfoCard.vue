@@ -38,7 +38,7 @@ onMounted(async () => {
         ({{ game.release_year }})
       </span>
       <div class="text-muted" style="font-size: 0.5em" v-if="game.parent">
-        Sub-game of
+        Child of
         <a :href="'/game/' + game.parent.id">{{ game.parent.name }}</a>
       </div>
     </h1>
@@ -99,7 +99,7 @@ onMounted(async () => {
                 <table class="table table-responsive table-hover">
                   <tbody>
                     <tr v-if="game.children.length > 0">
-                      <td><b>Sub-games:</b></td>
+                      <td><b>Children:</b></td>
                       <td>
                         <code>
                           <span
@@ -123,7 +123,7 @@ onMounted(async () => {
                         <span
                           v-if="game.children.length > 0"
                           class="text-muted"
-                          title="(excluding sub-games)"
+                          title="(excluding children)"
                         >
                           ({{
                             formatDuration(
@@ -141,7 +141,7 @@ onMounted(async () => {
                         <span
                           v-if="game.children.length > 0"
                           class="text-muted"
-                          title="(excluding sub-games)"
+                          title="(excluding children)"
                         >
                           ({{ stats.totals_excl_children.activity_count }})
                         </span>
@@ -155,7 +155,7 @@ onMounted(async () => {
                         <span
                           v-if="game.children.length > 0"
                           class="text-muted"
-                          title="(excluding sub-games)"
+                          title="(excluding children)"
                         >
                           ({{ stats.totals_excl_children.user_count }})
                         </span>
@@ -169,7 +169,7 @@ onMounted(async () => {
                         <span
                           v-if="game.children.length > 0"
                           class="text-muted"
-                          title="(excluding sub-games)"
+                          title="(excluding children)"
                         >
                           ({{ stats.totals_excl_children.platform_count }})
                         </span>
