@@ -495,6 +495,13 @@ export interface components {
              * @description Timestamp (in milliseconds) for the last update of the game
              */
             updated: number;
+            /**
+             * Children
+             * @description List of child game IDs for the game. Empty if no children.
+             */
+            children: number[];
+            /** @description Parent game for the game. Null if no parent. */
+            parent: components["schemas"]["PublicGameModel"] | null;
         };
         /** PublicPlatformModel */
         PublicPlatformModel: {

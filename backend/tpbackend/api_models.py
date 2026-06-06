@@ -65,9 +65,11 @@ class PublicGameModel(BaseModel):
     updated: int = Field(
         description="Timestamp (in milliseconds) for the last update of the game"
     )
-    parent_id: int | None = Field(description="Parent game ID. Null if no parent")
-    child_ids: list[int] = Field(
-        description="List of child game IDs. Empty if no children"
+    children: list[int] = Field(
+        description="List of child game IDs for the game. Empty if no children."
+    )
+    parent: "PublicGameModel | None" = Field(
+        description="Parent game for the game. Null if no parent."
     )
 
 

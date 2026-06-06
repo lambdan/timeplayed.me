@@ -358,9 +358,9 @@ class Game(BaseModel):
         return cast(list[Game], list(self.children))  # type: ignore
 
     def get_api_model(self) -> PublicGameModel:
-        parent_id = self.get_parent()
-        if parent_id:
-            parent_id = parent_id.get_id()
+        parent = self.get_parent()
+        if parent:
+            parent = parent.get_api_model()
         child_ids = []
         for c in self.get_children():
             child_ids.append(c.get_id())
@@ -374,8 +374,8 @@ class Game(BaseModel):
             release_year=self.get_release_year(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
-            parent_id=parent_id,
-            child_ids=child_ids,
+            parent=parent,
+            children=child_ids,
         )
 
     def user_has_played(self, user: User) -> bool:

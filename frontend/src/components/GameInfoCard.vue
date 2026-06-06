@@ -32,7 +32,16 @@ onMounted(async () => {
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">{{ game.name }}</h1>
+    <h1 class="card-header">
+      {{ game.name }}
+      <span class="text-muted" v-if="game.release_year">
+        ({{ game.release_year }})
+      </span>
+      <div class="text-muted" style="font-size: 0.5em" v-if="game.parent">
+        Sub-game of
+        <a :href="'/game/' + game.parent.id">{{ game.parent.name }}</a>
+      </div>
+    </h1>
     <div class="card-body">
       <div class="row">
         <div
@@ -175,12 +184,30 @@ onMounted(async () => {
                         <code>{{ game.id }}</code>
                       </td>
                     </tr>
-                    <tr>
+                    <tr v-if="game.children.length > 0">
+                      <td><b>Sub-games:</b></td>
+                      <td>
+                        <code>
+                          <span
+                            v-for="child in game.children"
+                            class="badge bg-secondary me-1 mb-1"
+                          >
+                            <a
+                              :href="'/game/' + child"
+                              class="text-white text-decoration-none"
+                            >
+                              {{ child }}
+                            </a>
+                          </span>
+                        </code>
+                      </td>
+                    </tr>
+                    <!-- <tr>
                       <td><b>Year:</b></td>
                       <td>
                         <code>{{ game.release_year || "-" }}</code>
                       </td>
-                    </tr>
+                    </tr> -->
                     <tr>
                       <td><b>Steam ID:</b></td>
                       <td>
