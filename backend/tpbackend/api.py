@@ -71,6 +71,8 @@ def get_total_playtime(
                 for child in game.get_children():
                     game_ids.append(child.get_id())
             conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -115,6 +117,8 @@ def get_activity_count(
                 for child in game.get_children():
                     game_ids.append(child.get_id())
             conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -155,6 +159,8 @@ def get_user_count(
                 for child in game.get_children():
                     game_ids.append(child.get_id())
             conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -232,6 +238,8 @@ def get_platform_count(
                 for child in game.get_children():
                     game_ids.append(child.get_id())
             conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
 
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
