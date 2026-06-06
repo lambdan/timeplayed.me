@@ -196,14 +196,12 @@ export async function getGameCoverUrl(
     try {
       const gameData = (await TimeplayedAPI.getGame(gameId)).game;
 
+      // top priority: explicit image_url
       if (gameData.image_url) {
         return gameData.image_url;
       }
 
-      if (gameData.steam_id) {
-        return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
-      }
-
+      // 2nd priority: SteamGridDB
       // sgdb_id is null when not set,
       // or 0 when SGDB doesnt have it (or it shouldnt be used)...
       // this check should catch both cases
@@ -214,7 +212,12 @@ export async function getGameCoverUrl(
         }
       }
 
-      // search
+      // third: steam
+      if (gameData.steam_id) {
+        return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
+      }
+
+      // give up and search
       const search = await TimeplayedAPI.searchSGDB(gameData.name);
 
       if (search && search.length > 0) {

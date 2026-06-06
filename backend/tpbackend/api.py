@@ -57,13 +57,22 @@ def get_total_playtime(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     query = Activity.select(Activity.seconds)
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -78,7 +87,7 @@ def get_total_playtime(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -95,12 +104,21 @@ def get_activity_count(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -115,7 +133,7 @@ def get_activity_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -130,10 +148,19 @@ def get_user_count(
     after: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -148,7 +175,7 @@ def get_user_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}"
+    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -198,12 +225,21 @@ def get_platform_count(
     gameId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
+        else:
+            return 0
 
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
@@ -216,7 +252,7 @@ def get_platform_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}"
+    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -260,6 +296,7 @@ def get_oldest_or_newest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     order = "asc" if oldest else "desc"
     activities = get_activities(  # caches internally...
@@ -271,6 +308,7 @@ def get_oldest_or_newest_activity(
         platform=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
     if len(activities.data) == 0:
         return None
@@ -439,6 +477,7 @@ def get_activities(
     platform: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PaginatedActivities:
     # through API: use cache
     return get_activities_impl(
@@ -451,6 +490,7 @@ def get_activities(
         platform=platform,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -464,6 +504,7 @@ def get_activities_impl(
     before: int | None = None,
     after: int | None = None,
     use_cache=False,
+    include_game_children=False,
 ) -> PaginatedActivities:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
@@ -472,7 +513,7 @@ def get_activities_impl(
         before = truncateMilliseconds(before)
     if after:
         after = truncateMilliseconds(after)
-    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{include_game_children}"
     cached = use_cache and cache_get(key)
     if cached:
         return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
@@ -488,7 +529,13 @@ def get_activities_impl(
     if user is not None:
         filters.append(Activity.user == user)
     if game is not None:
-        filters.append(Activity.game == game)
+        g = Game_or_none(game)
+        if g:
+            game_ids = [g.get_id()]
+            if include_game_children:
+                for child in g.get_children():
+                    game_ids.append(child.get_id())
+            filters.append(Activity.game.in_(game_ids))  # type: ignore
     if platform is not None:
         filters.append(Activity.platform == platform)
 
@@ -507,7 +554,12 @@ def get_activities_impl(
     )
 
     total_count = get_activity_count(
-        userId=user, gameId=game, platformId=platform, before=before, after=after
+        userId=user,
+        gameId=game,
+        platformId=platform,
+        before=before,
+        after=after,
+        include_game_children=include_game_children,
     )
 
     data = []
@@ -535,6 +587,7 @@ def get_newest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
         oldest=False,
@@ -543,6 +596,7 @@ def get_newest_activity(
         platformid=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -555,6 +609,7 @@ def get_oldest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
         oldest=True,
@@ -563,6 +618,7 @@ def get_oldest_activity(
         platformid=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -693,38 +749,35 @@ def get_game(
 
     gameModel = game.get_api_model()
 
-    totals = get_totals(
+    totals_incl_children = get_totals(
         userId=userId,
         gameId=game.get_id(),
         before=before,
         after=after,
         platformId=platformId,
+        include_game_children=True,
     )
 
-    total_playtime_all_games = get_total_playtime(
-        userId=userId, before=before, after=after, platformId=platformId
-    )
-    total_playtime_this_game = get_total_playtime(
+    totals_excl_children = get_totals(
         userId=userId,
         gameId=game.get_id(),
         before=before,
         after=after,
         platformId=platformId,
+        include_game_children=False,
     )
-    percent = 0
-    if total_playtime_all_games > 0:
-        percent = total_playtime_this_game / total_playtime_all_games
 
     r = GameWithStats(
         game=gameModel,
-        totals=totals,
-        percent=percent,
+        totals=totals_incl_children,
+        totals_excl_children=totals_excl_children,
         oldest_activity=get_oldest_activity(
             userid=userId,
             gameid=game.get_id(),
             before=before,
             after=after,
             platformid=platformId,
+            include_game_children=True,
         ),
         newest_activity=get_newest_activity(
             userid=userId,
@@ -732,6 +785,7 @@ def get_game(
             before=before,
             after=after,
             platformid=platformId,
+            include_game_children=True,
         ),
     )
 
@@ -828,20 +882,9 @@ def get_platform(
         userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
     )
 
-    total_playtime_all_pfs = get_total_playtime(
-        userId=userId, before=before, after=after, gameId=gameId
-    )
-    total_playtime_this_pf = get_total_playtime(
-        userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
-    )
-    percent = 0
-    if total_playtime_all_pfs > 0:
-        percent = total_playtime_this_pf / total_playtime_all_pfs
-
     r = PlatformWithStats(
         platform=platformModel,
         totals=totals,
-        percent=percent,
         oldest_activity=get_oldest_activity(
             userid=userId,
             gameid=gameId,
@@ -873,6 +916,7 @@ def get_totals(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> Totals:
 
     return Totals(
@@ -882,6 +926,7 @@ def get_totals(
             userId=userId,
             gameId=gameId,
             platformId=platformId,
+            include_game_children=include_game_children,
         ),
         activity_count=get_activity_count(
             before=before,
@@ -889,15 +934,24 @@ def get_totals(
             userId=userId,
             gameId=gameId,
             platformId=platformId,
+            include_game_children=include_game_children,
         ),
         user_count=get_user_count(
-            before=before, after=after, gameId=gameId, platformId=platformId
+            before=before,
+            after=after,
+            gameId=gameId,
+            platformId=platformId,
+            include_game_children=include_game_children,
         ),
         game_count=get_game_count(
             before=before, after=after, userId=userId, platformId=platformId
         ),
         platform_count=get_platform_count(
-            before=before, after=after, userId=userId, gameId=gameId
+            before=before,
+            after=after,
+            userId=userId,
+            gameId=gameId,
+            include_game_children=include_game_children,
         ),
     )
 

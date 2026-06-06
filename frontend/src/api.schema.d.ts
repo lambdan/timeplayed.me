@@ -300,12 +300,8 @@ export interface components {
             totals: components["schemas"]["Totals"];
             oldest_activity: components["schemas"]["PublicActivityModel"] | null;
             newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            /**
-             * Percent
-             * @description Share of total playtime
-             */
-            percent: number;
             game: components["schemas"]["PublicGameModel"];
+            totals_excl_children: components["schemas"]["Totals"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -402,11 +398,6 @@ export interface components {
             totals: components["schemas"]["Totals"];
             oldest_activity: components["schemas"]["PublicActivityModel"] | null;
             newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            /**
-             * Percent
-             * @description Share of total playtime
-             */
-            percent: number;
             platform: components["schemas"]["PublicPlatformModel"];
         };
         /** PublicActivityModel */
@@ -495,6 +486,13 @@ export interface components {
              * @description Timestamp (in milliseconds) for the last update of the game
              */
             updated: number;
+            /**
+             * Children
+             * @description List of child game IDs for the game. Empty if no children.
+             */
+            children: number[];
+            /** @description Parent game for the game. Null if no parent. */
+            parent: components["schemas"]["PublicGameModel"] | null;
         };
         /** PublicPlatformModel */
         PublicPlatformModel: {
@@ -753,6 +751,7 @@ export interface operations {
                 platform?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -788,6 +787,7 @@ export interface operations {
                 platformid?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -823,6 +823,7 @@ export interface operations {
                 platformid?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -1034,6 +1035,7 @@ export interface operations {
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;

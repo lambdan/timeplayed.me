@@ -260,6 +260,7 @@ class Game(BaseModel):
     history = ArrayField(TextField, default=lambda: [])  # type: ignore
     created = DateTimeField(default=lambda: now())
     updated = DateTimeField(default=lambda: now())
+    parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
     def save(self, *args, **kwargs):
         self.updated = now()
@@ -283,7 +284,15 @@ class Game(BaseModel):
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_steam_id(self) -> int | None:
-        return cast(int | None, self.steam_id)
+        """
+        Get Steam ID (or parents)
+        """
+        if self.steam_id:
+            return cast(int, self.steam_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_steam_id()
+        return None
 
     def set_steam_id(self, steam_id: int | None):
         old_steam_id = self.get_steam_id()
@@ -291,7 +300,15 @@ class Game(BaseModel):
         self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
-        return cast(int | None, self.sgdb_id)
+        """
+        Get SGDB ID (or parents)
+        """
+        if self.sgdb_id:
+            return cast(int, self.sgdb_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_sgdb_id()
+        return None
 
     def set_sgdb_id(self, sgdb_id: int | None):
         old_sgdb_id = self.get_sgdb_id()
@@ -299,7 +316,15 @@ class Game(BaseModel):
         self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
 
     def get_image_url(self) -> str | None:
-        return cast(str | None, self.image_url)
+        """
+        Get image url (or parents)
+        """
+        if self.image_url:
+            return cast(str, self.image_url)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_image_url()
+        return None
 
     def set_image_url(self, image_url: str | None):
         old_image_url = self.get_image_url()
@@ -338,6 +363,10 @@ class Game(BaseModel):
         )
 
     def get_hidden(self) -> bool:
+        # hide if parent is hidden
+        parent = self.get_parent()
+        if parent and parent.get_hidden():
+            return True
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
@@ -345,7 +374,53 @@ class Game(BaseModel):
         self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
+    def get_parent(self) -> "Game | None":
+        if self.parent:
+            return cast(Game, self.parent)
+        return None
+
+    def set_parent(self, new_parent: "Game | None"):
+        if new_parent == self.get_parent():
+            raise ValueError("No change")
+        if new_parent:
+            # avoid self
+            if self.get_id() == new_parent.get_id():
+                raise ValueError("Game cannot be its own parent")
+            # avoid setting parent to a child
+            children = self.get_children()
+            if any(c.get_id() == new_parent.get_id() for c in children):
+                raise ValueError("Game cannot be parent of a child")
+        old_parent = self.get_parent()
+        old_parent_name = "None"
+        if old_parent:
+            old_parent_name = f"'{old_parent.get_name()}' ({old_parent.get_id()})"
+        self.parent = cast(ForeignKeyField, new_parent)
+        new_parent_name = "None"
+        if new_parent:
+            new_parent_name = f"'{new_parent.get_name()}' ({new_parent.get_id()})"
+        self.add_history(f"Parent changed from {old_parent_name} to {new_parent_name}")
+
+    def get_children(self, recursive=True) -> list["Game"]:
+        child_ids = set()
+        for c in cast(list[Game], list(self.children)):  # type: ignore
+            child_ids.add(c.get_id())
+            if recursive:
+                for cc in c.get_children():
+                    child_ids.add(cc.get_id())
+        children = []
+        for c in child_ids:
+            g = Game_or_none(c)
+            if g:
+                children.append(g)
+        return children
+
     def get_api_model(self) -> PublicGameModel:
+        parent = self.get_parent()
+        if parent:
+            parent = parent.get_api_model()
+        child_ids = []
+        for c in self.get_children(recursive=False):
+            child_ids.append(c.get_id())
         return PublicGameModel(
             id=self.get_id(),
             name=self.get_name(),
@@ -356,6 +431,8 @@ class Game(BaseModel):
             release_year=self.get_release_year(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
+            parent=parent,
+            children=child_ids,
         )
 
     def user_has_played(self, user: User) -> bool:

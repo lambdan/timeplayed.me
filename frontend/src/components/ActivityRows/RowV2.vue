@@ -259,19 +259,6 @@ onMounted(() => {
       <span v-else>
         {{ _timeDisplayed }}
       </span>
-
-      <!-- Share % -->
-      <small
-        v-if="props.platform || props.game"
-        class="mb-0 text-muted"
-        :title="
-          ((props.platform || props.game!).percent * 100).toFixed(2) +
-          '% of all playtime'
-        "
-      >
-        <br />
-        {{ ((props.platform || props.game!).percent * 100).toFixed(2) }}%
-      </small>
     </td>
 
     <!-- Date (hidden on mobile) -->

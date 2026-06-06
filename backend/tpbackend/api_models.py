@@ -65,6 +65,12 @@ class PublicGameModel(BaseModel):
     updated: int = Field(
         description="Timestamp (in milliseconds) for the last update of the game"
     )
+    children: list[int] = Field(
+        description="List of child game IDs for the game. Empty if no children."
+    )
+    parent: "PublicGameModel | None" = Field(
+        description="Parent game for the game. Null if no parent."
+    )
 
 
 class PublicActivityModel(BaseModel):
@@ -89,7 +95,6 @@ class GameOrPlatformStats(BaseModel):
     totals: Totals
     oldest_activity: PublicActivityModel | None
     newest_activity: PublicActivityModel | None
-    percent: float = Field(description="Share of total playtime")
 
 
 class UserWithStats(BaseModel):
@@ -106,6 +111,7 @@ class UserWithStats(BaseModel):
 
 class GameWithStats(GameOrPlatformStats):
     game: PublicGameModel
+    totals_excl_children: Totals
 
 
 class PlatformWithStats(GameOrPlatformStats):

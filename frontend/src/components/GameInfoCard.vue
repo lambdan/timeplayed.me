@@ -4,6 +4,7 @@ import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
+import ChildGameBadge from "./Badges/ChildGameBadge.vue";
 
 const props = defineProps<{ game: Game }>();
 
@@ -32,7 +33,20 @@ onMounted(async () => {
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">{{ game.name }}</h1>
+    <h1 class="card-header">
+      {{ game.name }}
+      <span class="text-muted" v-if="game.release_year">
+        ({{ game.release_year }})
+      </span>
+      <span
+        class="text-muted d-block"
+        style="font-size: 0.5em"
+        v-if="game.parent"
+      >
+        Child of
+        <a :href="'/game/' + game.parent.id">{{ game.parent.name }}</a>
+      </span>
+    </h1>
     <div class="card-body">
       <div class="row">
         <div
@@ -89,27 +103,74 @@ onMounted(async () => {
               <div class="card-body" v-if="stats">
                 <table class="table table-responsive table-hover">
                   <tbody>
+                    <tr v-if="game.children.length > 0">
+                      <td><b>Children:</b></td>
+                      <td>
+                        <ChildGameBadge
+                          v-for="child in game.children"
+                          :key="child"
+                          :gameId="child"
+                        ></ChildGameBadge>
+                      </td>
+                    </tr>
                     <tr>
                       <td><b>Playtime:</b></td>
                       <td>
-                        {{
-                          stats
-                            ? formatDuration(stats.totals.playtime_secs)
-                            : "-"
-                        }}
+                        {{ formatDuration(stats.totals.playtime_secs) }}
+                        <span
+                          v-if="game.children.length > 0"
+                          class="text-muted"
+                          title="(excluding children)"
+                        >
+                          ({{
+                            formatDuration(
+                              stats.totals_excl_children.playtime_secs,
+                            )
+                          }})
+                        </span>
                       </td>
                     </tr>
                     <tr>
                       <td><b>Activity count:</b></td>
-                      <td>{{ stats.totals.activity_count ?? "-" }}</td>
+                      <td>
+                        {{ stats.totals.activity_count }}
+
+                        <span
+                          v-if="game.children.length > 0"
+                          class="text-muted"
+                          title="(excluding children)"
+                        >
+                          ({{ stats.totals_excl_children.activity_count }})
+                        </span>
+                      </td>
                     </tr>
                     <tr>
                       <td><b>User count:</b></td>
-                      <td>{{ stats.totals.user_count ?? "-" }}</td>
+                      <td>
+                        {{ stats.totals.user_count }}
+
+                        <span
+                          v-if="game.children.length > 0"
+                          class="text-muted"
+                          title="(excluding children)"
+                        >
+                          ({{ stats.totals_excl_children.user_count }})
+                        </span>
+                      </td>
                     </tr>
                     <tr>
                       <td><b>Platform count:</b></td>
-                      <td>{{ stats.totals.platform_count ?? "-" }}</td>
+                      <td>
+                        {{ stats.totals.platform_count }}
+
+                        <span
+                          v-if="game.children.length > 0"
+                          class="text-muted"
+                          title="(excluding children)"
+                        >
+                          ({{ stats.totals_excl_children.platform_count }})
+                        </span>
+                      </td>
                     </tr>
                     <tr v-if="stats.oldest_activity">
                       <td><b>First played:</b></td>
@@ -175,12 +236,12 @@ onMounted(async () => {
                         <code>{{ game.id }}</code>
                       </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                       <td><b>Year:</b></td>
                       <td>
                         <code>{{ game.release_year || "-" }}</code>
                       </td>
-                    </tr>
+                    </tr> -->
                     <tr>
                       <td><b>Steam ID:</b></td>
                       <td>
