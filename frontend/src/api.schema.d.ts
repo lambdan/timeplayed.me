@@ -306,6 +306,7 @@ export interface components {
              */
             percent: number;
             game: components["schemas"]["PublicGameModel"];
+            totals_excl_children: components["schemas"]["Totals"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1041,6 +1042,7 @@ export interface operations {
                 platformId?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;

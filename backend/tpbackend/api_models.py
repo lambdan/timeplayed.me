@@ -112,6 +112,7 @@ class UserWithStats(BaseModel):
 
 class GameWithStats(GameOrPlatformStats):
     game: PublicGameModel
+    totals_excl_children: Totals
 
 
 class PlatformWithStats(GameOrPlatformStats):
