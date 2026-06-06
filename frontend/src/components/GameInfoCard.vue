@@ -98,6 +98,24 @@ onMounted(async () => {
               <div class="card-body" v-if="stats">
                 <table class="table table-responsive table-hover">
                   <tbody>
+                    <tr v-if="game.children.length > 0">
+                      <td><b>Sub-games:</b></td>
+                      <td>
+                        <code>
+                          <span
+                            v-for="child in game.children"
+                            class="badge bg-secondary me-1 mb-1"
+                          >
+                            <a
+                              :href="'/game/' + child"
+                              class="text-white text-decoration-none"
+                            >
+                              {{ child }}
+                            </a>
+                          </span>
+                        </code>
+                      </td>
+                    </tr>
                     <tr>
                       <td><b>Playtime:</b></td>
                       <td>
@@ -219,24 +237,6 @@ onMounted(async () => {
                       <td><b>Internal ID:</b></td>
                       <td>
                         <code>{{ game.id }}</code>
-                      </td>
-                    </tr>
-                    <tr v-if="game.children.length > 0">
-                      <td><b>Sub-games:</b></td>
-                      <td>
-                        <code>
-                          <span
-                            v-for="child in game.children"
-                            class="badge bg-secondary me-1 mb-1"
-                          >
-                            <a
-                              :href="'/game/' + child"
-                              class="text-white text-decoration-none"
-                            >
-                              {{ child }}
-                            </a>
-                          </span>
-                        </code>
                       </td>
                     </tr>
                     <!-- <tr>
