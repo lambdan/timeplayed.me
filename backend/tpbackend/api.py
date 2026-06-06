@@ -288,6 +288,7 @@ def get_oldest_or_newest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     order = "asc" if oldest else "desc"
     activities = get_activities(  # caches internally...
@@ -299,6 +300,7 @@ def get_oldest_or_newest_activity(
         platform=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
     if len(activities.data) == 0:
         return None
@@ -467,6 +469,7 @@ def get_activities(
     platform: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PaginatedActivities:
     # through API: use cache
     return get_activities_impl(
@@ -479,6 +482,7 @@ def get_activities(
         platform=platform,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -492,6 +496,7 @@ def get_activities_impl(
     before: int | None = None,
     after: int | None = None,
     use_cache=False,
+    include_game_children=False,
 ) -> PaginatedActivities:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
@@ -500,7 +505,7 @@ def get_activities_impl(
         before = truncateMilliseconds(before)
     if after:
         after = truncateMilliseconds(after)
-    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}"
+    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{include_game_children}"
     cached = use_cache and cache_get(key)
     if cached:
         return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
@@ -516,7 +521,13 @@ def get_activities_impl(
     if user is not None:
         filters.append(Activity.user == user)
     if game is not None:
-        filters.append(Activity.game == game)
+        g = Game_or_none(game)
+        if g:
+            game_ids = [g.get_id()]
+            if include_game_children:
+                for child in g.get_children():
+                    game_ids.append(child.get_id())
+            filters.append(Activity.game.in_(game_ids))  # type: ignore
     if platform is not None:
         filters.append(Activity.platform == platform)
 
@@ -563,6 +574,7 @@ def get_newest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
         oldest=False,
@@ -571,6 +583,7 @@ def get_newest_activity(
         platformid=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -583,6 +596,7 @@ def get_oldest_activity(
     platformid: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> PublicActivityModel | None:
     return get_oldest_or_newest_activity(
         oldest=True,
@@ -591,6 +605,7 @@ def get_oldest_activity(
         platformid=platformid,
         before=before,
         after=after,
+        include_game_children=include_game_children,
     )
 
 
@@ -764,6 +779,7 @@ def get_game(
             before=before,
             after=after,
             platformid=platformId,
+            include_game_children=True,
         ),
         newest_activity=get_newest_activity(
             userid=userId,
@@ -771,6 +787,7 @@ def get_game(
             before=before,
             after=after,
             platformid=platformId,
+            include_game_children=True,
         ),
     )
 

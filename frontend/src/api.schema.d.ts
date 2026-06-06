@@ -761,6 +761,7 @@ export interface operations {
                 platform?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -796,6 +797,7 @@ export interface operations {
                 platformid?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -831,6 +833,7 @@ export interface operations {
                 platformid?: number | null;
                 before?: number | null;
                 after?: number | null;
+                include_game_children?: boolean;
             };
             header?: never;
             path?: never;
