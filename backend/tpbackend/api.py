@@ -57,13 +57,20 @@ def get_total_playtime(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     query = Activity.select(Activity.seconds)
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -78,7 +85,7 @@ def get_total_playtime(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
@@ -95,12 +102,19 @@ def get_activity_count(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
+    include_game_children: bool = False,
 ) -> int:
     conditions = ACTIVITY_BASE_FILTERS.copy()
     if userId:
         conditions.append(Activity.user == userId)
     if gameId:
-        conditions.append(Activity.game == gameId)
+        game = Game_or_none(gameId)
+        if game:
+            game_ids = [gameId]
+            if include_game_children:
+                for child in game.get_children():
+                    game_ids.append(child.get_id())
+            conditions.append(Activity.game.in_(game_ids))  # type: ignore
     if platformId:
         conditions.append(Activity.platform == platformId)
 
@@ -115,7 +129,7 @@ def get_activity_count(
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}"
+    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
     cached = cache_get(key)
     if cached:
         return int(cached.decode("utf-8"))  # type: ignore
