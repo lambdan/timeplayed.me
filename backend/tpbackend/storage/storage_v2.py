@@ -400,15 +400,26 @@ class Game(BaseModel):
             new_parent_name = f"'{new_parent.get_name()}' ({new_parent.get_id()})"
         self.add_history(f"Parent changed from {old_parent_name} to {new_parent_name}")
 
-    def get_children(self) -> list["Game"]:
-        return cast(list[Game], list(self.children))  # type: ignore
+    def get_children(self, recursive=True) -> list["Game"]:
+        child_ids = set()
+        for c in cast(list[Game], list(self.children)):  # type: ignore
+            child_ids.add(c.get_id())
+            if recursive:
+                for cc in c.get_children():
+                    child_ids.add(cc.get_id())
+        children = []
+        for c in child_ids:
+            g = Game_or_none(c)
+            if g:
+                children.append(g)
+        return children
 
     def get_api_model(self) -> PublicGameModel:
         parent = self.get_parent()
         if parent:
             parent = parent.get_api_model()
         child_ids = []
-        for c in self.get_children():
+        for c in self.get_children(recursive=False):
             child_ids.append(c.get_id())
         return PublicGameModel(
             id=self.get_id(),
