@@ -300,11 +300,6 @@ export interface components {
             totals: components["schemas"]["Totals"];
             oldest_activity: components["schemas"]["PublicActivityModel"] | null;
             newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            /**
-             * Percent
-             * @description Share of total playtime
-             */
-            percent: number;
             game: components["schemas"]["PublicGameModel"];
             totals_excl_children: components["schemas"]["Totals"];
         };
@@ -403,11 +398,6 @@ export interface components {
             totals: components["schemas"]["Totals"];
             oldest_activity: components["schemas"]["PublicActivityModel"] | null;
             newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            /**
-             * Percent
-             * @description Share of total playtime
-             */
-            percent: number;
             platform: components["schemas"]["PublicPlatformModel"];
         };
         /** PublicActivityModel */

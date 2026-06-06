@@ -48,14 +48,6 @@ onMounted(async () => {
             <th>Total playtime</th>
             <td>
               {{ formatDuration(platform.totals.playtime_secs) }}
-              <br />
-              <span class="text-muted">
-                {{
-                  platform.percent
-                    ? `(${(platform.percent * 100).toFixed(2)}% of all tracked playtime)`
-                    : ""
-                }}
-              </span>
             </td>
           </tr>
 

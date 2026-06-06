@@ -43,10 +43,6 @@ onMounted(async () => {});
     <div class="col">
       Playtime<br />
       <DurationBadge :secs="props.platform.totals.playtime_secs" />
-      <br />
-      <span class="text-muted small">
-        {{ (props.platform.percent * 100).toFixed(1) }}% of total
-      </span>
     </div>
   </div>
   <hr />

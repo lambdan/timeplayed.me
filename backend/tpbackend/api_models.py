@@ -95,7 +95,6 @@ class GameOrPlatformStats(BaseModel):
     totals: Totals
     oldest_activity: PublicActivityModel | None
     newest_activity: PublicActivityModel | None
-    percent: float = Field(description="Share of total playtime")
 
 
 class UserWithStats(BaseModel):

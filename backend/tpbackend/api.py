@@ -767,25 +767,10 @@ def get_game(
         include_game_children=False,
     )
 
-    total_playtime_all_games = get_total_playtime(
-        userId=userId, before=before, after=after, platformId=platformId
-    )
-    total_playtime_this_game = get_total_playtime(
-        userId=userId,
-        gameId=game.get_id(),
-        before=before,
-        after=after,
-        platformId=platformId,
-    )
-    percent = 0
-    if total_playtime_all_games > 0:
-        percent = total_playtime_this_game / total_playtime_all_games
-
     r = GameWithStats(
         game=gameModel,
         totals=totals_incl_children,
         totals_excl_children=totals_excl_children,
-        percent=percent,
         oldest_activity=get_oldest_activity(
             userid=userId,
             gameid=game.get_id(),
@@ -897,20 +882,9 @@ def get_platform(
         userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
     )
 
-    total_playtime_all_pfs = get_total_playtime(
-        userId=userId, before=before, after=after, gameId=gameId
-    )
-    total_playtime_this_pf = get_total_playtime(
-        userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
-    )
-    percent = 0
-    if total_playtime_all_pfs > 0:
-        percent = total_playtime_this_pf / total_playtime_all_pfs
-
     r = PlatformWithStats(
         platform=platformModel,
         totals=totals,
-        percent=percent,
         oldest_activity=get_oldest_activity(
             userid=userId,
             gameid=gameId,
