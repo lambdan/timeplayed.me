@@ -38,10 +38,14 @@ onMounted(async () => {
       <span class="text-muted" v-if="game.release_year">
         ({{ game.release_year }})
       </span>
-      <div class="text-muted" style="font-size: 0.5em" v-if="game.parent">
+      <span
+        class="text-muted d-block"
+        style="font-size: 0.5em"
+        v-if="game.parent"
+      >
         Child of
         <a :href="'/game/' + game.parent.id">{{ game.parent.name }}</a>
-      </div>
+      </span>
     </h1>
     <div class="card-body">
       <div class="row">
