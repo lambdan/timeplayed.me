@@ -104,6 +104,7 @@ onMounted(async () => {
                       <td>
                         <ChildGameBadge
                           v-for="child in game.children"
+                          :key="child"
                           :gameId="child"
                         ></ChildGameBadge>
                       </td>
