@@ -365,8 +365,8 @@ class Game(BaseModel):
     def get_hidden(self) -> bool:
         # hide if parent is hidden
         parent = self.get_parent()
-        if parent:
-            return parent.get_hidden()
+        if parent and parent.get_hidden():
+            return True
         return cast(bool, self.hidden)
 
     def set_hidden(self, hidden: bool):
