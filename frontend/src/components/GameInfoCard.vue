@@ -5,11 +5,14 @@ import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
 import ChildGameBadge from "./Badges/ChildGameBadge.vue";
+import { fetchOrGetCachedGameName } from "../utils.api";
 
 const props = defineProps<{ game: Game }>();
 
 const stats = ref<GameWithStats>();
 const loadingStats = ref(true);
+
+const parentGameName = ref("...");
 
 // Collapse state for each column
 const showStats = ref(true);
@@ -24,10 +27,13 @@ function toggleColumn(column: "stats" | "metadata" | "platforms") {
 
 onMounted(async () => {
   const res = await fetch(`/api/game/${props.game.id}`);
-  //await sleep(1000);
   const data = (await res.json()) as GameWithStats;
   stats.value = data;
   loadingStats.value = false;
+
+  if (props.game.parent_id) {
+    parentGameName.value = await fetchOrGetCachedGameName(props.game.parent_id);
+  }
 });
 </script>
 
@@ -41,10 +47,10 @@ onMounted(async () => {
       <span
         class="text-muted d-block"
         style="font-size: 0.5em"
-        v-if="game.parent"
+        v-if="game.parent_id"
       >
         Child of
-        <a :href="'/game/' + game.parent.id">{{ game.parent.name }}</a>
+        <a :href="'/game/' + game.parent_id">{{ parentGameName }}</a>
       </span>
     </h1>
     <div class="card-body">

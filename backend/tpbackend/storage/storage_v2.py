@@ -412,8 +412,9 @@ class Game(BaseModel):
 
     def get_api_model(self) -> PublicGameModel:
         parent = self.get_parent()
+        parent_id = None
         if parent:
-            parent = parent.get_api_model()
+            parent_id = parent.get_id()
         child_ids = []
         for c in self.get_children(recursive=False):
             child_ids.append(c.get_id())
@@ -427,7 +428,7 @@ class Game(BaseModel):
             release_year=self.get_release_year(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
-            parent=parent,
+            parent_id=parent_id,
             children=child_ids,
         )
 

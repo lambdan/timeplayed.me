@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { onMounted, ref } from "vue";
-import { TimeplayedAPI } from "../../api.client";
+import { fetchOrGetCachedGameName } from "../../utils.api";
 
 const props = defineProps<{
   gameId: number;
@@ -10,20 +10,8 @@ const props = defineProps<{
 const text = ref(props.gameId + "");
 const fetched = ref(false);
 
-async function fetchOrGetCachedGame(gameId: number): Promise<string> {
-  const storageKey = `game_name_${gameId}`;
-  const cachedName = sessionStorage.getItem(storageKey);
-  if (cachedName) {
-    return cachedName;
-  }
-  const game = await TimeplayedAPI.getGame(gameId);
-  const gameName = game.game.name;
-  sessionStorage.setItem(storageKey, gameName);
-  return gameName;
-}
-
 onMounted(async () => {
-  text.value = await fetchOrGetCachedGame(props.gameId);
+  text.value = await fetchOrGetCachedGameName(props.gameId);
   fetched.value = true;
 });
 </script>

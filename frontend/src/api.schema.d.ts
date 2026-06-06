@@ -488,11 +488,14 @@ export interface components {
             updated: number;
             /**
              * Children
-             * @description List of child game IDs for the game. Empty if no children.
+             * @description List of child game IDs
              */
             children: number[];
-            /** @description Parent game for the game. Null if no parent. */
-            parent: components["schemas"]["PublicGameModel"] | null;
+            /**
+             * Parent Id
+             * @description Parent game ID. Null if no parent.
+             */
+            parent_id: number | null;
         };
         /** PublicPlatformModel */
         PublicPlatformModel: {
