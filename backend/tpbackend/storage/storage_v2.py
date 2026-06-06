@@ -378,9 +378,7 @@ class Game(BaseModel):
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
     def get_parent(self) -> "Game | None":
-        if self.parent:
-            return cast(Game, self.parent)
-        return None
+        return cast(Game | None, self.parent)
 
     def set_parent(self, new_parent: "Game | None"):
         if new_parent == self.get_parent():
@@ -404,17 +402,12 @@ class Game(BaseModel):
         self.add_history(f"Parent changed from {old_parent_name} to {new_parent_name}")
 
     def get_children(self, recursive=True) -> list["Game"]:
-        child_ids = set()
+        children = []
         for c in cast(list[Game], list(self.children)):  # type: ignore
-            child_ids.add(c.get_id())
+            children.append(c)
             if recursive:
                 for cc in c.get_children():
-                    child_ids.add(cc.get_id())
-        children = []
-        for c in child_ids:
-            g = Game_or_none(c)
-            if g:
-                children.append(g)
+                    children.append(cc)
         return children
 
     def get_api_model(self) -> PublicGameModel:
