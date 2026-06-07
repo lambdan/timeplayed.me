@@ -1,6 +1,6 @@
 import datetime
 from typing import Literal, cast
-from peewee import fn
+from peewee import JOIN, fn
 from tpbackend.api_v2_models import (
     GameStatsV2,
     PlatformStatsV2,
@@ -31,12 +31,33 @@ from tpbackend.storage.storage_v2 import (
 from tpbackend.api_responses import bad_request
 from tpbackend.api import get_totals
 import logging
+from typing import TypeAlias
 
 from fastapi import APIRouter, Query, Path
 
 logger = logging.getLogger("api_v2")
 router = APIRouter()
 
+AscDescOrder: TypeAlias = Literal["asc", "desc"]
+
+UserSort: TypeAlias = Literal[
+    "activity_count",
+    "activity_timestamp",
+    "playtime",
+    "game_count",
+    "platform_count",
+    "name",
+    "id",
+]
+USER_SORTS = {
+    "activity_count": User.activity_count_expr().alias("activity_count"),
+    "activity_timestamp": User.latest_activity_expr().alias("latest_activity"),
+    "game_count": User.game_count_expr().alias("game_count"),
+    "platform_count": User.platform_count_expr().alias("platform_count"),
+    "name": User.name,
+    "id": User.id,
+    "playtime": User.playtime_expr().alias("playtime"),
+}
 
 IDS_CSV = Path(
     description="Specify single ID, or multiple (separated by comma)",
@@ -197,6 +218,7 @@ def get_users_stats(
                 activity_count=totals.activity_count,
                 game_count=totals.game_count,
                 platform_count=totals.platform_count,
+                playtime=user.playtime,
             )
         )
     return res
@@ -210,13 +232,28 @@ def get_all_users_stats(
     platformId: int | None = None,
     before: int | None = TS_QUERY_BEFORE,
     after: int | None = TS_QUERY_AFTER,
+    sort: UserSort = "activity_timestamp",
+    order: AscDescOrder = "desc",
 ) -> list[UserStatsV2]:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
 
-    all_users = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
-    ids = ",".join(str(u.id) for u in all_users)
+    column = USER_SORTS[sort]
+
+    query = (
+        User.select(
+            User,
+            *USER_SORTS.values(),
+        )
+        .join(Activity, JOIN.LEFT_OUTER)
+        .group_by(User.id)
+        .order_by(column.desc() if order == "desc" else column.asc())
+        .offset(offset)
+        .limit(limit)
+    )
+
+    ids = ",".join(str(u.id) for u in query)
     return get_users_stats(
         ids, game_id=gameId, platform_id=platformId, before=before, after=after
     )
@@ -261,7 +298,7 @@ def get_all_users(
 def get_all_activities(
     offset=0,
     limit=25,
-    order: Literal["desc", "asc"] = "desc",
+    order: AscDescOrder = "desc",
     sort: Literal["timestamp", "id"] = "timestamp",
     user: int | None = None,
     game: int | None = None,
