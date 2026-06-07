@@ -25,6 +25,10 @@ class PublicUserModelV2(BaseModel):
     default_platform_id: int
     created: int
     updated: int
+    playtime: int
+    game_count: int
+    platform_count: int
+    activity_count: int
 
 
 class PublicGameModelV2(BaseModel):

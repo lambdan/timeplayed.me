@@ -13,6 +13,8 @@ from peewee import (
     Model,
     TextField,
     AutoField,
+    fn,
+    Case,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -263,6 +265,10 @@ class User(BaseModel):
             default_platform_id=self.get_default_platform().get_id(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
+            playtime=self.get_playtime(),
+            game_count=self.get_game_count(),
+            platform_count=self.get_platform_count(),
+            activity_count=self.get_activity_count(),
         )
 
     def add_history(self, message: str):
@@ -282,6 +288,76 @@ class User(BaseModel):
             .first()
         )
         return exists is not None
+
+    @classmethod
+    def activity_count_expr(cls):
+        return fn.COUNT(Activity.id)
+
+    @classmethod
+    def latest_activity_expr(cls):
+        return fn.MAX(Activity.timestamp)
+
+    @classmethod
+    def oldest_activity_expr(cls):
+        return fn.MIN(Activity.timestamp)
+
+    @classmethod
+    def game_count_expr(cls):
+        return fn.COUNT(fn.DISTINCT(Activity.game))
+
+    @classmethod
+    def platform_count_expr(cls):
+        return fn.COUNT(fn.DISTINCT(Activity.platform))
+
+    @classmethod
+    def playtime_expr(cls):
+        return fn.SUM(
+            Case(
+                None,
+                ((Activity.hidden == False, Activity.seconds),),  # noqa: E712
+                0,
+            )
+        )
+
+    def get_playtime(self) -> int:
+        playtime = (
+            Activity.select(self.playtime_expr())
+            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
+            .scalar()
+        )
+        if playtime is None:
+            return 0
+        return cast(int, playtime)
+
+    def get_activity_count(self) -> int:
+        count = (
+            Activity.select(self.activity_count_expr())
+            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
+            .scalar()
+        )
+        if count is None:
+            return 0
+        return cast(int, count)
+
+    def get_game_count(self) -> int:
+        count = (
+            Activity.select(self.game_count_expr())
+            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
+            .scalar()
+        )
+        if count is None:
+            return 0
+        return cast(int, count)
+
+    def get_platform_count(self) -> int:
+        count = (
+            Activity.select(self.platform_count_expr())
+            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
+            .scalar()
+        )
+        if count is None:
+            return 0
+        return cast(int, count)
 
 
 class Game(BaseModel):
