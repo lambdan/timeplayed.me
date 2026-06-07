@@ -29,16 +29,12 @@ class PublicPlatformModelV2(BaseModel):
 
 
 class PublicUserModelV2(BaseModel):
-    id: int = Field(description="ID of the user")
-    discord_id: str | None = Field(description="Discord ID of the user")
-    name: str = Field(description="Name of the user")
-    default_platform_id: int = Field(description="User's default platform")
-    created: int = Field(
-        description="Timestamp (in milliseconds) for the creation of the user"
-    )
-    updated: int = Field(
-        description="Timestamp (in milliseconds) for the last update of the user"
-    )
+    id: int
+    discord_id: str | None
+    name: str
+    default_platform_id: int
+    created: int
+    updated: int
 
 
 class PublicGameModelV2(BaseModel):
@@ -77,18 +73,13 @@ class PublicActivityModelV2(BaseModel):
     )
 
 
-class OldestNewestActivityIds(BaseModel):
-    oldest_activity_id: int | None
-    newest_activity_id: int | None
-
-
-class GameStatsV2(PublicGameModelV2, GameTotals, OldestNewestActivityIds):
+class GameStatsV2(PublicGameModelV2, GameTotals):
     pass
 
 
-class PlatformStatsV2(PublicPlatformModelV2, PlatformTotals, OldestNewestActivityIds):
+class PlatformStatsV2(PublicPlatformModelV2, PlatformTotals):
     pass
 
 
-class UserStatsV2(PublicUserModelV2, UserTotals, OldestNewestActivityIds):
+class UserStatsV2(PublicUserModelV2, UserTotals):
     pass
