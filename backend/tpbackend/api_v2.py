@@ -28,7 +28,7 @@ from tpbackend.storage.storage_v2 import (
     Game,
     User,
 )
-from tpbackend.api_responses import bad_request, not_found
+from tpbackend.api_responses import bad_request
 from tpbackend.api import get_totals
 import logging
 
@@ -45,15 +45,20 @@ ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
 
 def parse_csv(input: int | str) -> list[int]:
+    def ret(v):
+        logger.info("parse_csv: '%s' -> %s", input, v)
+        return v
+
     if isinstance(input, int):
-        return [input]
+        return ret([input])
     res = []
+    input = input.replace("%2C", ",")  # replace url encoded
     for part in input.split(","):
         try:
             res.append(int(part))
         except Exception:
             continue
-    return res
+    return ret(res)
 
 
 def get_total_playtime(
@@ -137,8 +142,8 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModelV2 | None:
 ####################
 
 
-@router.get("/users", tags=["users"], response_model=list[UserStatsV2])
-def get_users(
+@router.get("/users/stats", tags=["users", "stats"], response_model=list[UserStatsV2])
+def get_all_users_stats(
     offset=0,
     limit=25,
     gameId: int | None = None,
@@ -152,13 +157,15 @@ def get_users(
 
     all_users = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
     ids = ",".join(str(u.id) for u in all_users)
-    return get_user(
+    return get_users_stats(
         ids, game_id=gameId, platform_id=platformId, before=before, after=after
     )
 
 
-@router.get("/users/{user_ids}", tags=["users"], response_model=list[UserStatsV2])
-def get_user(
+@router.get(
+    "/users/{user_ids}/stats", tags=["users", "stats"], response_model=list[UserStatsV2]
+)
+def get_users_stats(
     user_ids: int | str,
     before: int | None = None,
     after: int | None = None,
@@ -173,7 +180,7 @@ def get_user(
     for userId in uids:
         user = get_public_user_by_id(userId)
         if not user or not user_has_activities(userId):
-            return not_found("User not found")
+            continue
 
         totals = get_totals(
             userId=userId,
@@ -208,7 +215,7 @@ def get_user(
 @router.get(
     "/activities", tags=["activities"], response_model=list[PublicActivityModelV2]
 )
-def get_activities(
+def get_all_activities(
     offset=0,
     limit=25,
     order: Literal["desc", "asc"] = "desc",
@@ -218,30 +225,6 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
     include_game_children: bool = False,
-) -> list[PublicActivityModelV2]:
-    return get_activities_impl(
-        offset=offset,
-        limit=limit,
-        order=order,
-        user=user,
-        game=game,
-        platform=platform,
-        before=before,
-        after=after,
-        include_game_children=include_game_children,
-    )
-
-
-def get_activities_impl(
-    offset=0,
-    limit=25,
-    order: Literal["desc", "asc"] = "desc",
-    user: int | None = None,
-    game: int | None = None,
-    platform: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-    include_game_children=False,
 ) -> list[PublicActivityModelV2]:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
@@ -350,7 +333,7 @@ def get_activities_ids_impl(
     tags=["activities"],
     response_model=list[PublicActivityModelV2],
 )
-def get_activity(activity_ids: str | int) -> list[PublicActivityModelV2]:
+def get_activities(activity_ids: str | int) -> list[PublicActivityModelV2]:
     aids = parse_csv(activity_ids)  # haha
     if len(aids) > 100:
         return bad_request("Cannot request more than 100 activities at once")
@@ -367,8 +350,39 @@ def get_activity(activity_ids: str | int) -> list[PublicActivityModelV2]:
 #############
 
 
-@router.get("/games", tags=["games"], response_model=list[GameStatsV2])
-def get_games(
+@router.get("/games", tags=["games"], response_model=list[PublicGameModelV2])
+def get_all_games(
+    offset=0,
+    limit=25,
+    search: str | None = None,
+    userId: int | None = None,
+    platformId: int | None = None,
+) -> list[PublicGameModelV2]:
+    logger.info("HIT /games")
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
+
+    res = []
+    raw = []
+    if search:
+        if len(search) < 2:
+            return bad_request("Search query must be at least 2 characters long")
+        raw = search_games(
+            query=search,
+            limit=limit,
+            offset=offset,
+            userId=userId,
+            platformId=platformId,
+        )
+    else:
+        raw = Game.select().order_by(Game.id.asc()).offset(offset).limit(limit)
+    for g in raw:
+        res.append(cast(Game, g).get_api_v2_model())
+    return res
+
+
+@router.get("/games/stats", tags=["games", "stats"], response_model=list[GameStatsV2])
+def get_all_games_stats(
     offset=0,
     limit=25,
     userId: int | None = None,
@@ -400,19 +414,17 @@ def get_games(
         for g in all_games:
             gids.append(g.id)
     gids_str = ",".join(str(gid) for gid in gids)
-    return get_game(
+    return get_games_stats(
         gids_str, userId=userId, platformId=platformId, before=before, after=after
     )
 
 
 @router.get(
-    "/games/{game_ids}",
-    tags=["games"],
+    "/games/{game_ids}/stats",
+    tags=["games", "stats"],
     response_model=list[GameStatsV2],
-    name="get_games_by_ids",
-    description="Get a game or multiple games by ID (comma separated)",
 )
-def get_game(
+def get_games_stats(
     game_ids: int | str,
     userId: int | None = None,
     before: int | None = None,
@@ -427,7 +439,7 @@ def get_game(
     for gameId in gids:
         game = Game_or_none(gameId)
         if not game:
-            return not_found("Game not found")
+            continue
 
         gameModel = game.get_api_v2_model()
 
@@ -473,17 +485,31 @@ def get_game(
     return res
 
 
+@router.get("/games/{ids}", tags=["games"], response_model=list[PublicGameModelV2])
+def get_games(ids: int | str) -> list[PublicGameModelV2]:
+    logger.info("HIT /games/ids")
+    gids = parse_csv(ids)
+    if len(gids) > 100:
+        return bad_request("Cannot request more than 100 games at once")
+    res = []
+    for gid in gids:
+        g = get_public_game_by_id(gid)
+        if g:
+            res.append(g)
+    return res
+
+
 ##############
 # Platforms
 ##############
 
 
 @router.get(
-    "/platforms",
-    tags=["platforms"],
+    "/platforms/stats",
+    tags=["platforms", "stats"],
     response_model=list[PlatformStatsV2],
 )
-def get_platforms(
+def get_all_platforms_stats(
     offset=0,
     limit=25,
     userId: int | None = None,
@@ -499,15 +525,17 @@ def get_platforms(
         Platform.select().order_by(Platform.id.asc()).offset(offset).limit(limit)
     )
     ids = ",".join(str(p.id) for p in all_platforms)
-    return get_platform(ids, userId=userId, gameId=gameId, before=before, after=after)
+    return get_platforms_stats(
+        ids, userId=userId, gameId=gameId, before=before, after=after
+    )
 
 
 @router.get(
-    "/platforms/{platform_ids}",
+    "/platforms/{platform_ids}/stats",
     tags=["platforms"],
     response_model=list[PlatformStatsV2],
 )
-def get_platform(
+def get_platforms_stats(
     platform_ids: int | str,
     userId: int | None = None,
     before: int | None = None,
@@ -522,7 +550,7 @@ def get_platform(
     for platformId in pids:
         platformModel = get_public_platform_by_id(platformId)
         if not platformModel:
-            return not_found("Platform not found")
+            continue
 
         platform_totals = get_totals(
             userId=userId,
