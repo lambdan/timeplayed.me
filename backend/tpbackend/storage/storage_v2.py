@@ -2,7 +2,7 @@ import asyncio
 import os
 import logging
 from typing import cast
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
 from peewee import (
     BooleanField,
@@ -22,6 +22,13 @@ from tpbackend.api_models import (
     PublicPlatformModel,
     PublicUserModel,
     PublicActivityModel,
+)
+
+from tpbackend.api_v2_models import (
+    PublicGameModelV2,
+    PublicPlatformModelV2,
+    PublicUserModelV2,
+    PublicActivityModelV2,
 )
 from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
 
@@ -114,6 +121,18 @@ class Platform(BaseModel):
 
     def get_api_model(self) -> PublicPlatformModel:
         return PublicPlatformModel(
+            id=self.get_id(),
+            abbreviation=self.get_abbreviation(),
+            name=self.get_name(),
+            color_primary=self.get_color_primary(),
+            color_secondary=self.get_color_secondary(),
+            icon=self.get_icon(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
+        )
+
+    def get_api_v2_model(self) -> PublicPlatformModelV2:
+        return PublicPlatformModelV2(
             id=self.get_id(),
             abbreviation=self.get_abbreviation(),
             name=self.get_name(),
@@ -232,6 +251,16 @@ class User(BaseModel):
             discord_id=self.get_discord_id(),
             name=self.get_name(),
             default_platform=self.get_default_platform().get_api_model(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
+        )
+
+    def get_api_v2_model(self) -> PublicUserModelV2:
+        return PublicUserModelV2(
+            id=self.get_id(),
+            discord_id=self.get_discord_id(),
+            name=self.get_name(),
+            default_platform_id=self.get_default_platform().get_id(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),
         )
@@ -433,6 +462,28 @@ class Game(BaseModel):
             children=child_ids,
         )
 
+    def get_api_v2_model(self) -> PublicGameModelV2:
+        parent = self.get_parent()
+        parent_id = None
+        if parent:
+            parent_id = parent.get_id()
+        child_ids = []
+        for c in self.get_children(recursive=False):
+            child_ids.append(c.get_id())
+        return PublicGameModelV2(
+            id=self.get_id(),
+            name=self.get_name(),
+            steam_id=self.get_steam_id(),
+            sgdb_id=self.get_sgdb_id(),
+            image_url=self.get_image_url(),
+            aliases=self.get_aliases(),
+            release_year=self.get_release_year(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
+            parent_id=parent_id,
+            children_ids=child_ids,
+        )
+
     def user_has_played(self, user: User) -> bool:
         exists = (
             Activity.select()
@@ -571,6 +622,19 @@ class Activity(BaseModel):
             user=self.get_user().get_api_model(),
             game=self.get_game().get_api_model(),
             platform=self.get_platform().get_api_model(),
+            emulated=self.get_emulated(),
+            created=int(self.get_created().timestamp() * 1000),
+            updated=int(self.get_updated().timestamp() * 1000),
+        )
+
+    def get_api_v2_model(self) -> PublicActivityModelV2:
+        return PublicActivityModelV2(
+            id=self.get_id(),
+            timestamp=self.get_timestamp(),
+            seconds=self.get_seconds(),
+            user_id=self.get_user().get_id(),
+            game_id=self.get_game().get_id(),
+            platform_id=self.get_platform().get_id(),
             emulated=self.get_emulated(),
             created=int(self.get_created().timestamp() * 1000),
             updated=int(self.get_updated().timestamp() * 1000),

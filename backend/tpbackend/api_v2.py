@@ -1,22 +1,14 @@
 import datetime
-import json
 from typing import Literal, cast
-from fastapi import APIRouter
-from fastapi.responses import RedirectResponse
 from peewee import fn
-from tpbackend.api_models import (
-    GameWithStats,
-    PaginatedActivities,
-    PaginatedGameWithStats,
-    PaginatedPlatformsWithStats,
-    PaginatedUserWithStats,
-    PlatformWithStats,
-    PublicActivityModel,
-    PublicGameModel,
-    PublicPlatformModel,
-    PublicUserModel,
-    UserWithStats,
-    Totals,
+from tpbackend.api_v2_models import (
+    GameStatsV2,
+    PlatformStatsV2,
+    PublicActivityModelV2,
+    PublicGameModelV2,
+    PublicPlatformModelV2,
+    PublicUserModelV2,
+    UserStatsV2,
 )
 from tpbackend.utils import (
     search_games_for_api,
@@ -24,11 +16,8 @@ from tpbackend.utils import (
 from tpbackend.utils2 import (
     clamp,
     max_int as max,
-    truncateMilliseconds,
     validateTS,
 )
-from tpbackend import bot
-from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
     Game_or_none,
@@ -36,19 +25,18 @@ from tpbackend.storage.storage_v2 import (
     Activity,
     User_or_none,
 )
-from tpbackend.cache import cache_set, cache_get
 from tpbackend.api_responses import bad_request, not_found
+from tpbackend.api import get_totals  # grab FastAPI from API v1
 import logging
 
-logger = logging.getLogger("api_v1")
+from fastapi import APIRouter
 
-# app = FastAPI(title="Timeplayed")
+logger = logging.getLogger("api_v2")
 router = APIRouter()
-router_not_deprecated = APIRouter()
+
 
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
-# This file is a mess because of circular imports hell
 
 ################ HELPERS ##################
 
@@ -81,22 +69,14 @@ def get_total_playtime(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_total_playtime:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     query = query.where(*conditions)
     total = query.select(fn.SUM(Activity.seconds)).scalar() or 0
-    cache_set(key, str(total))
     return total
 
 
@@ -127,21 +107,13 @@ def get_activity_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_activity_count:{userId}:{gameId}:{platformId}:{before_dt}:{after_dt}:{include_game_children}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     r = Activity.select().where(*conditions).count()
-    cache_set(key, str(r))
     return r
 
 
@@ -169,21 +141,13 @@ def get_user_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_user_count:{before_dt}:{after_dt}:{gameId}:{platformId}:{include_game_children}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     r = Activity.select(Activity.user).where(*conditions).distinct().count()
-    cache_set(key, str(r))
     return r
 
 
@@ -204,21 +168,13 @@ def get_game_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_game_count:{userId}:{platformId}:{before_dt}:{after_dt}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     r = Activity.select(Activity.game).where(*conditions).distinct().count()
-    cache_set(key, str(r))
     return r
 
 
@@ -246,21 +202,13 @@ def get_platform_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_platform_count:{userId}:{gameId}:{before_dt}:{after_dt}:{include_game_children}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     r = Activity.select(Activity.platform).where(*conditions).distinct().count()
-    cache_set(key, str(r))
     return r
 
 
@@ -273,25 +221,17 @@ def get_player_count(
     before_valid, after_valid = validateTS(before), validateTS(after)
     before_dt, after_dt = None, None
     if before_valid:
-        before_valid = truncateMilliseconds(before_valid)
         before_dt = datetime.datetime.fromtimestamp(before_valid / 1000)
         conditions.append(Activity.timestamp <= before_dt)  # type: ignore
     if after_valid:
-        after_valid = truncateMilliseconds(after_valid)
         after_dt = datetime.datetime.fromtimestamp(after_valid / 1000)
         conditions.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_player_count:{gameId}:{before_dt}:{after_dt}"
-    cached = cache_get(key)
-    if cached:
-        return int(cached.decode("utf-8"))  # type: ignore
-
     r = Activity.select(Activity.user).where(*conditions).distinct().count()
-    cache_set(key, str(r))
     return r
 
 
-def get_oldest_or_newest_activity(
+def get_oldest_or_newest_activity_id(
     oldest: bool,
     userid: int | None = None,
     gameid: int | None = None,
@@ -299,9 +239,9 @@ def get_oldest_or_newest_activity(
     before: int | None = None,
     after: int | None = None,
     include_game_children: bool = False,
-) -> PublicActivityModel | None:
+) -> int | None:
     order = "asc" if oldest else "desc"
-    activities = get_activities(  # caches internally...
+    activities = get_activities_ids_impl(
         offset=0,
         limit=1,
         order=order,
@@ -312,44 +252,44 @@ def get_oldest_or_newest_activity(
         after=after,
         include_game_children=include_game_children,
     )
-    if len(activities.data) == 0:
+    if len(activities) == 0:
         return None
-    return activities.data[0]
+    return activities[0]
 
 
 def user_has_activities(userId: int) -> bool:
     """
     Returns True if user has any activities
     """
-    return get_activities_impl(user=userId, limit=1).total > 0
+    return len(get_activities_ids_impl(user=userId, limit=1)) > 0
 
 
-def get_public_platform_by_id(platformId: int) -> PublicPlatformModel | None:
+def get_public_platform_by_id(platformId: int) -> PublicPlatformModelV2 | None:
     pf = Platform_or_none(platformId)
     if not pf:
         return None
-    return pf.get_api_model()
+    return pf.get_api_v2_model()
 
 
-def get_public_game_by_id(gameId: int) -> PublicGameModel | None:
+def get_public_game_by_id(gameId: int) -> PublicGameModelV2 | None:
     g = Game_or_none(gameId)
     if not g:
         return None
-    return g.get_api_model()
+    return g.get_api_v2_model()
 
 
-def get_public_user_by_id(userId: int) -> PublicUserModel | None:
+def get_public_user_by_id(userId: int) -> PublicUserModelV2 | None:
     user = User_or_none(userId)
     if not user:
         return None
-    return user.get_api_model()
+    return user.get_api_v2_model()
 
 
-def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
+def get_public_activity_by_id(activityId: int) -> PublicActivityModelV2 | None:
     activity = Activity_or_none(activityId)
     if not activity:
         return None
-    return activity.get_api_model()
+    return activity.get_api_v2_model()
 
 
 ######################## API ENDPOINTS ############################
@@ -359,7 +299,7 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModel | None:
 ####################
 
 
-@router.get("/users", tags=["users"], response_model=PaginatedUserWithStats)
+@router.get("/users", tags=["users"], response_model=list[UserStatsV2])
 def get_users(
     offset=0,
     limit=25,
@@ -367,21 +307,13 @@ def get_users(
     platformId: int | None = None,
     before: int | None = None,
     after: int | None = None,
-) -> PaginatedUserWithStats:
+) -> list[UserStatsV2]:
     """
     Get summarized users. Can also filter by gameId and platformId, and set a before/after timestamp to get a range.
     """
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
-    if before:
-        before = truncateMilliseconds(before)
-    if after:
-        after = truncateMilliseconds(after)
-
-    total = get_user_count(
-        before=before, after=after, gameId=gameId, platformId=platformId
-    )
 
     filters = ACTIVITY_BASE_FILTERS.copy()
     if gameId:
@@ -394,11 +326,6 @@ def get_users(
     if after:
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    key = f"get_users:{offset}:{limit}:{gameId}:{platformId}:{before}:{after}"
-    cached = cache_get(key)
-    if cached:
-        return PaginatedUserWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select().where(*filters)
     query = query.order_by(Activity.user.asc()).distinct(Activity.user)
@@ -420,24 +347,17 @@ def get_users(
         except Exception as e:
             logger.warning("Skipping user %s in get_users: %s", userId, e)
             continue
-    r = PaginatedUserWithStats(
-        data=data,
-        total=total,
-        offset=offset,
-        limit=limit,
-    )
-    cache_set(key, r.model_dump_json())
-    return r
+    return data
 
 
-@router.get("/user/{userId}", tags=["users"], response_model=UserWithStats)
+@router.get("/user/{userId}", tags=["users"], response_model=UserStatsV2)
 def get_user(
     userId: int,
     before: int | None = None,
     after: int | None = None,
     gameId: int | None = None,
     platformId: int | None = None,
-) -> UserWithStats:
+) -> UserStatsV2:
     user = get_public_user_by_id(userId)
     if not user or not user_has_activities(userId):
         return not_found("User not found")
@@ -453,14 +373,24 @@ def get_user(
     # activity must exist if we got this far
     first_activity = get_oldest_activity(userid=userId, gameid=gameId, platformid=platformId, before=before, after=after)  # type: ignore
     latest_activity = get_newest_activity(userid=userId, gameid=gameId, platformid=platformId, before=before, after=after)  # type: ignore
-    first_activity: PublicActivityModel
-    latest_activity: PublicActivityModel
+    assert first_activity and latest_activity
 
-    return UserWithStats(
-        user=user,
-        oldest_activity=first_activity,
-        newest_activity=latest_activity,
-        totals=totals,
+    oldest_id = first_activity.id
+    newest_id = latest_activity.id
+
+    return UserStatsV2(
+        id=user.id,
+        name=user.name,
+        discord_id=user.discord_id,
+        default_platform_id=user.default_platform_id,
+        created=user.created,
+        updated=user.updated,
+        playtime_secs=totals.playtime_secs,
+        activity_count=totals.activity_count,
+        game_count=totals.game_count,
+        platform_count=totals.platform_count,
+        oldest_activity_id=oldest_id,
+        newest_activity_id=newest_id,
     )
 
 
@@ -469,7 +399,9 @@ def get_user(
 #################
 
 
-@router.get("/activities", tags=["activities"], response_model=PaginatedActivities)
+@router.get(
+    "/activities", tags=["activities"], response_model=list[PublicActivityModelV2]
+)
 def get_activities(
     offset=0,
     limit=25,
@@ -480,10 +412,8 @@ def get_activities(
     before: int | None = None,
     after: int | None = None,
     include_game_children: bool = False,
-) -> PaginatedActivities:
-    # through API: use cache
+) -> list[PublicActivityModelV2]:
     return get_activities_impl(
-        use_cache=True,
         offset=offset,
         limit=limit,
         order=order,
@@ -505,20 +435,11 @@ def get_activities_impl(
     platform: int | None = None,
     before: int | None = None,
     after: int | None = None,
-    use_cache=False,
     include_game_children=False,
-) -> PaginatedActivities:
+) -> list[PublicActivityModelV2]:
     limit = clamp(limit, 1, 500)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
-    if before:
-        before = truncateMilliseconds(before)
-    if after:
-        after = truncateMilliseconds(after)
-    key = f"get_activities:{offset}:{limit}:{order}:{user}:{game}:{platform}:{before}:{after}:{include_game_children}"
-    cached = use_cache and cache_get(key)
-    if cached:
-        return PaginatedActivities.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     before_dt, after_dt = None, None
     if before:
@@ -555,32 +476,72 @@ def get_activities_impl(
         .limit(limit)
     )
 
-    total_count = get_activity_count(
-        userId=user,
-        gameId=game,
-        platformId=platform,
-        before=before,
-        after=after,
-        include_game_children=include_game_children,
+    data = []
+    for a in query:
+        data.append(cast(Activity, a).get_api_v2_model())
+
+    return data
+
+
+def get_activities_ids_impl(
+    offset=0,
+    limit=25,
+    order: Literal["desc", "asc"] = "desc",
+    user: int | None = None,
+    game: int | None = None,
+    platform: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+    include_game_children=False,
+) -> list[int]:
+    limit = clamp(limit, 1, 500)
+    offset = max(0, offset)
+    before, after = validateTS(before), validateTS(after)
+
+    before_dt, after_dt = None, None
+    if before:
+        before_dt = datetime.datetime.fromtimestamp(before / 1000)
+    if after:
+        after_dt = datetime.datetime.fromtimestamp(after / 1000)
+
+    # Build filters once
+    filters = ACTIVITY_BASE_FILTERS.copy()
+    if user is not None:
+        filters.append(Activity.user == user)
+    if game is not None:
+        g = Game_or_none(game)
+        if g:
+            game_ids = [g.get_id()]
+            if include_game_children:
+                for child in g.get_children():
+                    game_ids.append(child.get_id())
+            filters.append(Activity.game.in_(game_ids))  # type: ignore
+    if platform is not None:
+        filters.append(Activity.platform == platform)
+
+    if before_dt:
+        filters.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after_dt:
+        filters.append(Activity.timestamp >= after_dt)  # type: ignore
+
+    query = Activity.select().where(*filters)
+    query = (
+        query.order_by(
+            Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc()
+        )
+        .offset(offset)
+        .limit(limit)
     )
 
     data = []
     for a in query:
-        data.append(a.get_api_model())
-
-    r = PaginatedActivities(
-        data=data,
-        total=total_count,
-        offset=offset,
-        limit=limit,
-        order=order,
-    )
-
-    cache_set(key, r.model_dump_json(), ex=60)
-    return r
+        data.append(a.get_id())
+    return data
 
 
-@router.get("/activity/newest", tags=["activities"], response_model=PublicActivityModel)
+@router.get(
+    "/activity/newest", tags=["activities"], response_model=PublicActivityModelV2
+)
 def get_newest_activity(
     userid: int | None = None,
     gameid: int | None = None,
@@ -588,8 +549,8 @@ def get_newest_activity(
     before: int | None = None,
     after: int | None = None,
     include_game_children: bool = False,
-) -> PublicActivityModel | None:
-    return get_oldest_or_newest_activity(
+) -> PublicActivityModelV2 | None:
+    id = get_oldest_or_newest_activity_id(
         oldest=False,
         userid=userid,
         gameid=gameid,
@@ -598,9 +559,14 @@ def get_newest_activity(
         after=after,
         include_game_children=include_game_children,
     )
+    if id:
+        return get_public_activity_by_id(id)
+    return None
 
 
-@router.get("/activity/oldest", tags=["activities"], response_model=PublicActivityModel)
+@router.get(
+    "/activity/oldest", tags=["activities"], response_model=PublicActivityModelV2
+)
 def get_oldest_activity(
     userid: int | None = None,
     gameid: int | None = None,
@@ -608,8 +574,8 @@ def get_oldest_activity(
     before: int | None = None,
     after: int | None = None,
     include_game_children: bool = False,
-) -> PublicActivityModel | None:
-    return get_oldest_or_newest_activity(
+) -> PublicActivityModelV2 | None:
+    id = get_oldest_or_newest_activity_id(
         oldest=True,
         userid=userid,
         gameid=gameid,
@@ -618,18 +584,37 @@ def get_oldest_activity(
         after=after,
         include_game_children=include_game_children,
     )
+    if id:
+        return get_public_activity_by_id(id)
+    return None
 
 
 @router.get(
     "/activity/{activity_id}",
     tags=["activities"],
-    response_model=PublicActivityModel,
+    response_model=PublicActivityModelV2,
+    description="Get a single activity by ID. Returns 404 if not found.",
 )
-def get_activity(activity_id: int) -> PublicActivityModel:
-    activity = get_public_activity_by_id(activity_id)
-    if not activity:
-        return not_found("Activity not found")
-    return activity
+def get_activity(activity_id: int) -> PublicActivityModelV2 | None:
+    a = get_public_activity_by_id(activity_id)
+    if a:
+        return get_public_activity_by_id(activity_id)
+    return not_found("Activity not found")
+
+
+@router.get(
+    "/activities/{activity_ids}",
+    tags=["activities"],
+    response_model=list[PublicActivityModelV2],
+    description="Get multiple activities by ID (comma separated)",
+)
+def get_activities_csv(activity_ids: str) -> list[PublicActivityModelV2]:
+    activities = []
+    for activity_id in activity_ids.split(","):
+        a = get_public_activity_by_id(int(activity_id))
+        if a:
+            activities.append(a)
+    return activities
 
 
 ##############
@@ -637,7 +622,7 @@ def get_activity(activity_id: int) -> PublicActivityModel:
 #############
 
 
-@router.get("/games", tags=["games"], response_model=PaginatedGameWithStats)
+@router.get("/games", tags=["games"], response_model=list[GameStatsV2])
 def get_games(
     offset=0,
     limit=25,
@@ -646,7 +631,7 @@ def get_games(
     before: int | None = None,
     after: int | None = None,
     search: str | None = None,
-) -> PaginatedGameWithStats:
+) -> list[GameStatsV2]:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
@@ -657,25 +642,18 @@ def get_games(
     if platformId:
         filters.append(Activity.platform == platformId)
     if before:
-        before = truncateMilliseconds(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
-        after = truncateMilliseconds(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
-    key = f"get_games:{offset}:{limit}:{userId}:{platformId}:{before}:{after}:{search}"
-    cached = cache_get(key)
-    if cached:
-        return PaginatedGameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
-
-    total = 0
     data = []
 
     if search:
         if len(search) < 2:
             return bad_request("Search query must be at least 2 characters long")
+        # TODO: Get rid of total here, no longer needed
         results, total = search_games_for_api(
             query=search,
             limit=limit,
@@ -700,9 +678,6 @@ def get_games(
         query = Activity.select().where(*filters)
         query = query.order_by(Activity.game.asc()).distinct(Activity.game)
         activities = query[offset : offset + limit]  # type: ignore
-        total = get_game_count(
-            userId=userId, platformId=platformId, before=before, after=after
-        )
         for a in activities:
             gameId = int(a.game.id)
             try:
@@ -717,35 +692,22 @@ def get_games(
                 )
             except Exception as e:
                 logger.warning("Skipping game %s in get_games: %s", gameId, e)
-
-    r = PaginatedGameWithStats(
-        data=data,
-        total=total,
-        offset=offset,
-        limit=limit,
-    )
-    cache_set(key, r.model_dump_json())
-    return r
+    return data
 
 
-@router.get("/game/{gameId}", tags=["games"], response_model=GameWithStats)
+@router.get("/game/{gameId}", tags=["games"], response_model=GameStatsV2)
 def get_game(
     gameId: int,
     userId: int | None = None,
     before: int | None = None,
     after: int | None = None,
     platformId: int | None = None,
-) -> GameWithStats:
+) -> GameStatsV2:
     game = Game_or_none(gameId)
     if not game:
         return not_found("Game not found")
 
-    key = f"game_with_stats:{gameId}:{userId}:{before}:{after}:{platformId}"
-    cached = cache_get(key)
-    if cached:
-        return GameWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
-
-    gameModel = game.get_api_model()
+    gameModel = game.get_api_v2_model()
 
     totals_incl_children = get_totals(
         userId=userId,
@@ -765,30 +727,47 @@ def get_game(
         include_game_children=False,
     )
 
-    r = GameWithStats(
-        game=gameModel,
-        totals=totals_incl_children,
-        totals_excl_children=totals_excl_children,
-        oldest_activity=get_oldest_activity(
-            userid=userId,
-            gameid=game.get_id(),
-            before=before,
-            after=after,
-            platformid=platformId,
-            include_game_children=True,
-        ),
-        newest_activity=get_newest_activity(
-            userid=userId,
-            gameid=game.get_id(),
-            before=before,
-            after=after,
-            platformid=platformId,
-            include_game_children=True,
-        ),
+    oldest_activivity_id = get_oldest_or_newest_activity_id(
+        oldest=True,
+        userid=userId,
+        gameid=game.get_id(),
+        before=before,
+        after=after,
+        platformid=platformId,
+        include_game_children=True,
     )
 
-    cache_set(key, r.model_dump_json())
-    return r
+    newest_activity_id = get_oldest_or_newest_activity_id(
+        oldest=False,
+        userid=userId,
+        gameid=game.get_id(),
+        before=before,
+        after=after,
+        platformid=platformId,
+        include_game_children=True,
+    )
+
+    return GameStatsV2(
+        id=gameModel.id,
+        name=gameModel.name,
+        steam_id=gameModel.steam_id,
+        sgdb_id=gameModel.sgdb_id,
+        image_url=gameModel.image_url,
+        aliases=gameModel.aliases,
+        release_year=gameModel.release_year,
+        created=gameModel.created,
+        updated=gameModel.updated,
+        children_ids=gameModel.children_ids,
+        parent_id=gameModel.parent_id,
+        playtime_secs=totals_incl_children.playtime_secs,
+        activity_count=totals_incl_children.activity_count,
+        user_count=totals_incl_children.user_count,
+        platform_count=totals_incl_children.platform_count,
+        playtime_secs_excl_children=totals_excl_children.playtime_secs,
+        activity_count_excl_children=totals_excl_children.activity_count,
+        oldest_activity_id=oldest_activivity_id,
+        newest_activity_id=newest_activity_id,
+    )
 
 
 ##############
@@ -797,7 +776,9 @@ def get_game(
 
 
 @router.get(
-    "/platforms", tags=["platforms"], response_model=PaginatedPlatformsWithStats
+    "/platforms",
+    tags=["platforms"],
+    response_model=list[PlatformStatsV2],
 )
 def get_platforms(
     offset=0,
@@ -806,7 +787,7 @@ def get_platforms(
     gameId: int | None = None,
     before: int | None = None,
     after: int | None = None,
-) -> PaginatedPlatformsWithStats:
+) -> list[PlatformStatsV2]:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
     before, after = validateTS(before), validateTS(after)
@@ -817,24 +798,15 @@ def get_platforms(
     if gameId:
         filters.append(Activity.game == gameId)
     if before:
-        before = truncateMilliseconds(before)
         before_dt = datetime.datetime.fromtimestamp(before / 1000)
         filters.append(Activity.timestamp <= before_dt)  # type: ignore
     if after:
-        after = truncateMilliseconds(after)
         after_dt = datetime.datetime.fromtimestamp(after / 1000)
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    key = f"get_platforms:{offset}:{limit}:{userId}:{gameId}:{before}:{after}"
-    cached = cache_get(key)
-    if cached:
-        return PaginatedPlatformsWithStats.model_validate_json(cached.decode("utf-8"))  # type: ignore
 
     query = Activity.select().where(*filters)
     query = query.order_by(Activity.platform.asc()).distinct(Activity.platform)
     activities = query[offset : offset + limit]  # type: ignore
-
-    total = get_platform_count(userId=userId, gameId=gameId, before=before, after=after)
 
     data = []
     for a in activities:
@@ -852,18 +824,13 @@ def get_platforms(
         except Exception as e:
             logger.warning("Skipping platform %s in get_platforms: %s", platformId, e)
             continue
-    r = PaginatedPlatformsWithStats(
-        data=data,
-        total=total,
-        offset=offset,
-        limit=limit,
-    )
-    cache_set(key, r.model_dump_json())
-    return r
+    return data
 
 
 @router.get(
-    "/platform/{platformId}", tags=["platforms"], response_model=PlatformWithStats
+    "/platform/{platformId}",
+    tags=["platforms"],
+    response_model=PlatformStatsV2,
 )
 def get_platform(
     platformId: int,
@@ -871,210 +838,45 @@ def get_platform(
     before: int | None = None,
     after: int | None = None,
     gameId: int | None = None,
-) -> PlatformWithStats:
+) -> PlatformStatsV2:
     platformModel = get_public_platform_by_id(platformId)
     if not platformModel:
         return not_found("Platform not found")
 
-    totals = get_totals(
-        userId=userId, gameId=gameId, before=before, after=after, platformId=platformId
+    platform_totals = get_platform(
+        platformId=platformId, userId=userId, before=before, after=after, gameId=gameId
     )
 
-    r = PlatformWithStats(
-        platform=platformModel,
-        totals=totals,
-        oldest_activity=get_oldest_activity(
-            userid=userId,
-            gameid=gameId,
-            before=before,
-            after=after,
-            platformid=platformId,
-        ),
-        newest_activity=get_newest_activity(
-            userid=userId,
-            gameid=gameId,
-            before=before,
-            after=after,
-            platformid=platformId,
-        ),
+    oldest_activity_id = get_oldest_or_newest_activity_id(
+        oldest=True,
+        userid=userId,
+        gameid=gameId,
+        before=before,
+        after=after,
+        platformid=platformId,
+    )
+    newest_activity_id = get_oldest_or_newest_activity_id(
+        oldest=False,
+        userid=userId,
+        gameid=gameId,
+        before=before,
+        after=after,
+        platformid=platformId,
     )
 
-    return r
-
-
-#################
-# Totals
-#################
-
-
-@router_not_deprecated.get("/totals", tags=["totals"], response_model=Totals)
-def get_totals(
-    userId: int | None = None,
-    gameId: int | None = None,
-    platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-    include_game_children: bool = False,
-) -> Totals:
-
-    return Totals(
-        playtime_secs=get_total_playtime(
-            before=before,
-            after=after,
-            userId=userId,
-            gameId=gameId,
-            platformId=platformId,
-            include_game_children=include_game_children,
-        ),
-        activity_count=get_activity_count(
-            before=before,
-            after=after,
-            userId=userId,
-            gameId=gameId,
-            platformId=platformId,
-            include_game_children=include_game_children,
-        ),
-        user_count=get_user_count(
-            before=before,
-            after=after,
-            gameId=gameId,
-            platformId=platformId,
-            include_game_children=include_game_children,
-        ),
-        game_count=get_game_count(
-            before=before, after=after, userId=userId, platformId=platformId
-        ),
-        platform_count=get_platform_count(
-            before=before,
-            after=after,
-            userId=userId,
-            gameId=gameId,
-            include_game_children=include_game_children,
-        ),
+    return PlatformStatsV2(
+        id=platformModel.id,
+        name=platformModel.name,
+        created=platformModel.created,
+        updated=platformModel.updated,
+        icon=platformModel.icon,
+        playtime_secs=platform_totals.playtime_secs,
+        activity_count=platform_totals.activity_count,
+        game_count=platform_totals.game_count,
+        user_count=platform_totals.user_count,
+        abbreviation=platformModel.abbreviation,
+        color_primary=platformModel.color_primary,
+        color_secondary=platformModel.color_secondary,
+        oldest_activity_id=oldest_activity_id,
+        newest_activity_id=newest_activity_id,
     )
-
-
-##############
-# For chart.js
-##############
-
-
-@router_not_deprecated.get("/stats/chart/playtime_by_day", tags=["charts"])
-def get_playtime_by_day(
-    userId: str | None = None, gameId: int | None = None, platformId: int | None = None
-):
-    cache_key = f"playtime_by_day:{userId}:{gameId}:{platformId}"
-    cached = cache_get(cache_key)
-    if cached:
-        return json.loads(cached.decode("utf-8"))  # type: ignore
-
-    query = Activity.select(Activity.timestamp, Activity.seconds)
-    conditions = ACTIVITY_BASE_FILTERS.copy()
-    if userId:
-        conditions.append(Activity.user == userId)
-    if gameId:
-        conditions.append(Activity.game == gameId)
-    if platformId:
-        conditions.append(Activity.platform == platformId)
-    query = query.where(*conditions)
-
-    daily_seconds: dict[datetime.date, int] = {}
-    for activity in query:
-        end_time = activity.timestamp
-        if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=datetime.timezone.utc)
-        start_time = end_time - datetime.timedelta(seconds=activity.seconds)
-
-        start_date = start_time.date()
-        end_date = end_time.date()
-
-        if start_date == end_date:
-            daily_seconds[start_date] = (
-                daily_seconds.get(start_date, 0) + activity.seconds
-            )
-        else:
-            current_date = start_date
-            while current_date <= end_date:
-                if current_date == start_date:
-                    next_midnight = datetime.datetime.combine(
-                        current_date + datetime.timedelta(days=1),
-                        datetime.time.min,
-                        tzinfo=datetime.timezone.utc,
-                    )
-                    day_seconds = round((next_midnight - start_time).total_seconds())
-                elif current_date == end_date:
-                    this_midnight = datetime.datetime.combine(
-                        current_date,
-                        datetime.time.min,
-                        tzinfo=datetime.timezone.utc,
-                    )
-                    day_seconds = round((end_time - this_midnight).total_seconds())
-                else:
-                    day_seconds = 86400
-                daily_seconds[current_date] = (
-                    daily_seconds.get(current_date, 0) + day_seconds
-                )
-                current_date += datetime.timedelta(days=1)
-
-    data = {"labels": [], "datasets": [{"label": "Playtime (seconds)", "data": []}]}
-    for date in sorted(daily_seconds.keys()):
-        data["labels"].append(date.strftime("%Y-%m-%d"))
-        data["datasets"][0]["data"].append(daily_seconds[date])
-    cache_set(cache_key, json.dumps(data))
-    return data
-
-
-###############
-# SteamGridDB
-###############
-
-# SGDB handles caching internally
-
-
-@router_not_deprecated.get(
-    "/sgdb/search",
-    tags=["SteamGridDB"],
-    response_model=list[steamgriddb.SGDB_Game] | None,
-    description="Searches SteamGridDB for games",
-)
-def search_sgdb(query: str) -> list[steamgriddb.SGDB_Game] | None:
-    return steamgriddb.search(query)
-
-
-@router_not_deprecated.get(
-    "/sgdb/grids/{sgdb_game_id}",
-    tags=["SteamGridDB"],
-    response_model=list[steamgriddb.SGDB_Grid] | None,
-    description="Gets grids for a game from SteamGridDB",
-)
-def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
-    return steamgriddb.get_grids(sgdb_game_id)
-
-
-@router_not_deprecated.get(
-    "/sgdb/grids/{sgdb_game_id}/best",
-    tags=["SteamGridDB"],
-    response_model=steamgriddb.SGDB_Grid | None,
-    description="Tries to get the best grid for a game from SteamGridDB",
-)
-def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
-    return steamgriddb.get_best_grid(sgdb_game_id)
-
-
-@router_not_deprecated.get(
-    "/discord/avatar/{discord_user_id}",
-    tags=["Discord"],
-    description="Returns redirect to Discord avatar URL for a given Discord user ID",
-)
-def redirect_discord_avatar(discord_user_id: str | int):
-    def _get_url(discord_user_id: str | int) -> str:
-        discord_user_id = int(discord_user_id)
-        cache_key = f"get_discord_avatar_url:{discord_user_id}"
-        cached = cache_get(cache_key)
-        if cached:
-            return cached.decode("utf-8")  # type: ignore
-        url = bot.avatar_from_discord_user_id(discord_user_id)
-        cache_set(cache_key, url, ex=3600)
-        return url
-
-    return RedirectResponse(_get_url(discord_user_id), status_code=307)

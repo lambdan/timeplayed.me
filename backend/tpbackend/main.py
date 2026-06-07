@@ -4,10 +4,18 @@ import os
 from tpbackend.oblivionis import storage as oblivionisStorage, sync as oblivionisSync
 from tpbackend.bot import bot
 from tpbackend.storage import storage_v2
-from tpbackend.api import app
+from fastapi import FastAPI
+from tpbackend.api import router as api_v1_deprecated
+from tpbackend.api import router_not_deprecated as api_v1_not_deprecated
+from tpbackend.api_v2 import router as api_v2
 
 
 async def start_api():
+    app = FastAPI(title="Timeplayed")
+    app.include_router(api_v1_deprecated, prefix="/api", deprecated=True)
+    app.include_router(api_v1_not_deprecated, prefix="/api")
+    app.include_router(api_v2, prefix="/api/v2")
+
     config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
