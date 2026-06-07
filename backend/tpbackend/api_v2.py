@@ -142,26 +142,6 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModelV2 | None:
 ####################
 
 
-@router.get("/users/stats", tags=["users", "stats"], response_model=list[UserStatsV2])
-def get_all_users_stats(
-    offset=0,
-    limit=25,
-    gameId: int | None = None,
-    platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> list[UserStatsV2]:
-    limit = clamp(limit, 1, 100)
-    offset = max(0, offset)
-    before, after = validateTS(before), validateTS(after)
-
-    all_users = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
-    ids = ",".join(str(u.id) for u in all_users)
-    return get_users_stats(
-        ids, game_id=gameId, platform_id=platformId, before=before, after=after
-    )
-
-
 @router.get(
     "/users/{user_ids}/stats", tags=["users", "stats"], response_model=list[UserStatsV2]
 )
@@ -204,6 +184,54 @@ def get_users_stats(
                 platform_count=totals.platform_count,
             )
         )
+    return res
+
+
+@router.get("/users/stats", tags=["users", "stats"], response_model=list[UserStatsV2])
+def get_all_users_stats(
+    offset=0,
+    limit=25,
+    gameId: int | None = None,
+    platformId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> list[UserStatsV2]:
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
+    before, after = validateTS(before), validateTS(after)
+
+    all_users = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
+    ids = ",".join(str(u.id) for u in all_users)
+    return get_users_stats(
+        ids, game_id=gameId, platform_id=platformId, before=before, after=after
+    )
+
+
+@router.get("/users/{ids}", tags=["users"], response_model=list[PublicUserModelV2])
+def get_users(ids: int | str) -> list[PublicUserModelV2]:
+    gids = parse_csv(ids)
+    if len(gids) > 100:
+        return bad_request("Cannot request more than 100 users at once")
+    res = []
+    for gid in gids:
+        g = get_public_user_by_id(gid)
+        if g:
+            res.append(g)
+    return res
+
+
+@router.get("/users", tags=["users"], response_model=list[PublicUserModelV2])
+def get_all_users(
+    offset=0,
+    limit=25,
+) -> list[PublicUserModelV2]:
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
+
+    res = []
+    raw = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
+    for u in raw:
+        res.append(cast(User, u).get_api_v2_model())
     return res
 
 
@@ -358,7 +386,6 @@ def get_all_games(
     userId: int | None = None,
     platformId: int | None = None,
 ) -> list[PublicGameModelV2]:
-    logger.info("HIT /games")
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
 
@@ -505,32 +532,6 @@ def get_games(ids: int | str) -> list[PublicGameModelV2]:
 
 
 @router.get(
-    "/platforms/stats",
-    tags=["platforms", "stats"],
-    response_model=list[PlatformStatsV2],
-)
-def get_all_platforms_stats(
-    offset=0,
-    limit=25,
-    userId: int | None = None,
-    gameId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-) -> list[PlatformStatsV2]:
-    limit = clamp(limit, 1, 100)
-    offset = max(0, offset)
-    before, after = validateTS(before), validateTS(after)
-
-    all_platforms = (
-        Platform.select().order_by(Platform.id.asc()).offset(offset).limit(limit)
-    )
-    ids = ",".join(str(p.id) for p in all_platforms)
-    return get_platforms_stats(
-        ids, userId=userId, gameId=gameId, before=before, after=after
-    )
-
-
-@router.get(
     "/platforms/{platform_ids}/stats",
     tags=["platforms"],
     response_model=list[PlatformStatsV2],
@@ -576,4 +577,62 @@ def get_platforms_stats(
                 color_secondary=platformModel.color_secondary,
             )
         )
+    return res
+
+
+@router.get(
+    "/platforms/stats",
+    tags=["platforms", "stats"],
+    response_model=list[PlatformStatsV2],
+)
+def get_all_platforms_stats(
+    offset=0,
+    limit=25,
+    userId: int | None = None,
+    gameId: int | None = None,
+    before: int | None = None,
+    after: int | None = None,
+) -> list[PlatformStatsV2]:
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
+    before, after = validateTS(before), validateTS(after)
+
+    all_platforms = (
+        Platform.select().order_by(Platform.id.asc()).offset(offset).limit(limit)
+    )
+    ids = ",".join(str(p.id) for p in all_platforms)
+    return get_platforms_stats(
+        ids, userId=userId, gameId=gameId, before=before, after=after
+    )
+
+
+@router.get(
+    "/platforms/{ids}", tags=["platforms"], response_model=list[PublicPlatformModelV2]
+)
+def get_platforms(ids: int | str) -> list[PublicPlatformModelV2]:
+    pids = parse_csv(ids)
+    if len(pids) > 100:
+        return bad_request("Cannot request more than 100 platforms at once")
+    res = []
+    for pid in pids:
+        p = get_public_platform_by_id(pid)
+        if p:
+            res.append(p)
+    return res
+
+
+@router.get(
+    "/platforms", tags=["platforms"], response_model=list[PublicPlatformModelV2]
+)
+def get_all_platforms(
+    offset=0,
+    limit=25,
+) -> list[PublicPlatformModelV2]:
+    limit = clamp(limit, 1, 100)
+    offset = max(0, offset)
+
+    res = []
+    raw = Platform.select().order_by(Platform.id.asc()).offset(offset).limit(limit)
+    for p in raw:
+        res.append(cast(Platform, p).get_api_v2_model())
     return res
