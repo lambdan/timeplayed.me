@@ -2,12 +2,32 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-class Totals(BaseModel):
+class BaseTotals(BaseModel):
     playtime_secs: int = Field(description="Total playtime in seconds")
     activity_count: int = Field(description="Total number of activities")
+
+
+class Totals(BaseTotals):
     user_count: int = Field(description="Total number of unique users")
     game_count: int = Field(description="Total number of unique games")
     platform_count: int = Field(description="Total number of unique platforms")
+
+
+class UserTotals(BaseTotals):
+    game_count: int = Field(description="Total number of unique games")
+    platform_count: int = Field(description="Total number of unique platforms")
+
+
+class GameTotals(BaseTotals):
+    user_count: int = Field(description="Total number of unique users")
+    platform_count: int = Field(description="Total number of unique platforms")
+    playtime_secs_excl_children: int
+    activity_count_excl_children: int
+
+
+class PlatformTotals(BaseTotals):
+    user_count: int = Field(description="Total number of unique users")
+    game_count: int = Field(description="Total number of unique games")
 
 
 class PaginatedResponse(BaseModel):
