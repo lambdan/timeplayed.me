@@ -32,12 +32,28 @@ from tpbackend.api_responses import bad_request
 from tpbackend.api import get_totals
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query, Path
 
 logger = logging.getLogger("api_v2")
 router = APIRouter()
 
 
+IDS_CSV = Path(
+    description="Specify single ID, or multiple (separated by comma)",
+    openapi_examples={
+        "single": {"value": 1, "description": "Single ID"},
+        "multiple": {"value": "1,2,3", "description": "Multiple IDs"},
+    },
+)
+TS_QUERY_BEFORE = Query(
+    default=None,
+    description="Timestamp (in milliseconds). Only include activities before this timestamp.",
+)
+
+TS_QUERY_AFTER = Query(
+    default=None,
+    description="Timestamp (in milliseconds). Only include activities after this timestamp.",
+)
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
 
@@ -146,9 +162,9 @@ def get_public_activity_by_id(activityId: int) -> PublicActivityModelV2 | None:
     "/users/{user_ids}/stats", tags=["users", "stats"], response_model=list[UserStatsV2]
 )
 def get_users_stats(
-    user_ids: int | str,
-    before: int | None = None,
-    after: int | None = None,
+    user_ids: int | str = IDS_CSV,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
     game_id: int | None = None,
     platform_id: int | None = None,
 ) -> list[UserStatsV2]:
@@ -193,8 +209,8 @@ def get_all_users_stats(
     limit=25,
     gameId: int | None = None,
     platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
 ) -> list[UserStatsV2]:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
@@ -208,7 +224,7 @@ def get_all_users_stats(
 
 
 @router.get("/users/{ids}", tags=["users"], response_model=list[PublicUserModelV2])
-def get_users(ids: int | str) -> list[PublicUserModelV2]:
+def get_users(ids: int | str = IDS_CSV) -> list[PublicUserModelV2]:
     gids = parse_csv(ids)
     if len(gids) > 100:
         return bad_request("Cannot request more than 100 users at once")
@@ -250,8 +266,8 @@ def get_all_activities(
     user: int | None = None,
     game: int | None = None,
     platform: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
     include_game_children: bool = False,
 ) -> list[PublicActivityModelV2]:
     limit = clamp(limit, 1, 500)
@@ -414,8 +430,8 @@ def get_all_games_stats(
     limit=25,
     userId: int | None = None,
     platformId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
     search: str | None = None,
 ) -> list[GameStatsV2]:
     limit = clamp(limit, 1, 100)
@@ -452,10 +468,10 @@ def get_all_games_stats(
     response_model=list[GameStatsV2],
 )
 def get_games_stats(
-    game_ids: int | str,
+    game_ids: int | str = IDS_CSV,
     userId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
     platformId: int | None = None,
 ) -> list[GameStatsV2]:
     gids = parse_csv(game_ids)
@@ -513,8 +529,7 @@ def get_games_stats(
 
 
 @router.get("/games/{ids}", tags=["games"], response_model=list[PublicGameModelV2])
-def get_games(ids: int | str) -> list[PublicGameModelV2]:
-    logger.info("HIT /games/ids")
+def get_games(ids: int | str = IDS_CSV) -> list[PublicGameModelV2]:
     gids = parse_csv(ids)
     if len(gids) > 100:
         return bad_request("Cannot request more than 100 games at once")
@@ -537,10 +552,10 @@ def get_games(ids: int | str) -> list[PublicGameModelV2]:
     response_model=list[PlatformStatsV2],
 )
 def get_platforms_stats(
-    platform_ids: int | str,
+    platform_ids: int | str = IDS_CSV,
     userId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
     gameId: int | None = None,
 ) -> list[PlatformStatsV2]:
     res = []
@@ -590,8 +605,8 @@ def get_all_platforms_stats(
     limit=25,
     userId: int | None = None,
     gameId: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
+    before: int | None = TS_QUERY_BEFORE,
+    after: int | None = TS_QUERY_AFTER,
 ) -> list[PlatformStatsV2]:
     limit = clamp(limit, 1, 100)
     offset = max(0, offset)
@@ -609,7 +624,7 @@ def get_all_platforms_stats(
 @router.get(
     "/platforms/{ids}", tags=["platforms"], response_model=list[PublicPlatformModelV2]
 )
-def get_platforms(ids: int | str) -> list[PublicPlatformModelV2]:
+def get_platforms(ids: int | str = IDS_CSV) -> list[PublicPlatformModelV2]:
     pids = parse_csv(ids)
     if len(pids) > 100:
         return bad_request("Cannot request more than 100 platforms at once")
