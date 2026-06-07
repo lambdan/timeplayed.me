@@ -116,13 +116,6 @@ def get_total_playtime(
     return total
 
 
-def user_has_activities(userId: int) -> bool:
-    """
-    Returns True if user has any activities
-    """
-    return len(get_activities_ids_impl(user=userId, limit=1)) > 0
-
-
 def get_public_platform_by_id(platformId: int) -> PublicPlatformModelV2 | None:
     pf = Platform_or_none(platformId)
     if not pf:
@@ -174,8 +167,14 @@ def get_users_stats(
 
     res = []
     for userId in uids:
+        u = User_or_none(userId)
+        if not u:
+            continue
+        if not u.has_activity():
+            continue
+
         user = get_public_user_by_id(userId)
-        if not user or not user_has_activities(userId):
+        if not user:
             continue
 
         totals = get_totals(
@@ -263,6 +262,7 @@ def get_all_activities(
     offset=0,
     limit=25,
     order: Literal["desc", "asc"] = "desc",
+    sort: Literal["timestamp", "id"] = "timestamp",
     user: int | None = None,
     game: int | None = None,
     platform: int | None = None,
@@ -301,74 +301,17 @@ def get_all_activities(
         filters.append(Activity.timestamp >= after_dt)  # type: ignore
 
     query = Activity.select().where(*filters)
-    query = (
-        query.order_by(
-            Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc()
-        )
-        .offset(offset)
-        .limit(limit)
-    )
+    column = {
+        "timestamp": Activity.timestamp,
+        "id": Activity.id,
+    }[sort]
+    query = query.order_by(column.desc() if order == "desc" else column.asc())
+    query = query.offset(offset).limit(limit)
 
     data = []
     for a in query:
         data.append(cast(Activity, a).get_api_v2_model())
 
-    return data
-
-
-def get_activities_ids_impl(
-    offset=0,
-    limit=25,
-    order: Literal["desc", "asc"] = "desc",
-    user: int | None = None,
-    game: int | None = None,
-    platform: int | None = None,
-    before: int | None = None,
-    after: int | None = None,
-    include_game_children=False,
-) -> list[int]:
-    limit = clamp(limit, 1, 500)
-    offset = max(0, offset)
-    before, after = validateTS(before), validateTS(after)
-
-    before_dt, after_dt = None, None
-    if before:
-        before_dt = datetime.datetime.fromtimestamp(before / 1000)
-    if after:
-        after_dt = datetime.datetime.fromtimestamp(after / 1000)
-
-    # Build filters once
-    filters = ACTIVITY_BASE_FILTERS.copy()
-    if user is not None:
-        filters.append(Activity.user == user)
-    if game is not None:
-        g = Game_or_none(game)
-        if g:
-            game_ids = [g.get_id()]
-            if include_game_children:
-                for child in g.get_children():
-                    game_ids.append(child.get_id())
-            filters.append(Activity.game.in_(game_ids))  # type: ignore
-    if platform is not None:
-        filters.append(Activity.platform == platform)
-
-    if before_dt:
-        filters.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_dt:
-        filters.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    query = Activity.select().where(*filters)
-    query = (
-        query.order_by(
-            Activity.timestamp.desc() if order == "desc" else Activity.timestamp.asc()
-        )
-        .offset(offset)
-        .limit(limit)
-    )
-
-    data = []
-    for a in query:
-        data.append(a.get_id())
     return data
 
 

@@ -272,6 +272,17 @@ class User(BaseModel):
     def get_history(self) -> list[str]:
         return cast(list[str], self.history)
 
+    def has_activity(self) -> bool:
+        # hmm should hidden be filtered here...
+        exists = (
+            Activity.select()
+            .where(
+                (Activity.user == self) & (Activity.hidden == False)  # noqa:    E712
+            )
+            .first()
+        )
+        return exists is not None
+
 
 class Game(BaseModel):
     """
