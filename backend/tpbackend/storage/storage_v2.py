@@ -28,7 +28,7 @@ from tpbackend.api_v2_models import (
     PublicUserModelV2,
     PublicActivityModelV2,
 )
-from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
+from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now, dt_to_ts
 
 logger = logging.getLogger("storage_v2")
 
@@ -249,8 +249,8 @@ class User(BaseModel):
             discord_id=self.get_discord_id(),
             name=self.get_name(),
             default_platform_id=self.get_default_platform().get_id(),
-            created=self.get_created(),
-            updated=self.get_updated(),
+            created=dt_to_ts(self.get_created()),
+            updated=dt_to_ts(self.get_updated()),
         )
 
     def add_history(self, message: str):
@@ -477,8 +477,8 @@ class Game(BaseModel):
             image_url=self.get_image_url(),
             aliases=self.get_aliases(),
             release_year=self.get_release_year(),
-            created=self.get_created(),
-            updated=self.get_updated(),
+            created=dt_to_ts(self.get_created()),
+            updated=dt_to_ts(self.get_updated()),
             parent_id=parent_id,
             children_ids=child_ids,
         )
@@ -622,8 +622,8 @@ class Activity(BaseModel):
             game_id=self.get_game().get_id(),
             platform_id=self.get_platform().get_id(),
             emulated=self.get_emulated(),
-            created=self.get_created(),
-            updated=self.get_updated(),
+            created=dt_to_ts(self.get_created()),
+            updated=dt_to_ts(self.get_updated()),
         )
 
     def add_history(self, message: str):

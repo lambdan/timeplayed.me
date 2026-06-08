@@ -297,6 +297,11 @@ def assertTimezone(dt) -> datetime.datetime:
     return dt
 
 
+def dt_to_ts(dt: datetime.datetime) -> int:
+    dt = assertTimezone(dt)
+    return int(dt.timestamp() * 1000)
+
+
 def parse_csv(input: int | str) -> list[int]:
     def ret(v):
         logger.info("parse_csv: '%s' -> %s", input, v)

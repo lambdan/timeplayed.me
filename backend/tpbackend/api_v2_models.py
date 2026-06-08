@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from tpbackend.api_models import PlatformTotals, UserTotals, GameTotals
+from tpbackend.utils2 import dt_to_ts
 
 
 class PublicPlatformModelV2(BaseModel):
@@ -19,8 +20,8 @@ class PublicUserModelV2(BaseModel):
     discord_id: str | None
     name: str
     default_platform_id: int
-    created: datetime
-    updated: datetime
+    created: int
+    updated: int
 
 
 class PublicGameModelV2(BaseModel):
@@ -31,8 +32,8 @@ class PublicGameModelV2(BaseModel):
     image_url: str | None
     aliases: list[str]
     release_year: int | None
-    created: datetime
-    updated: datetime
+    created: int
+    updated: int
     children_ids: list[int]
     parent_id: int | None
 
@@ -45,8 +46,8 @@ class PublicActivityModelV2(BaseModel):
     game_id: int
     platform_id: int
     emulated: bool
-    created: datetime
-    updated: datetime
+    created: int
+    updated: int
 
 
 class GameStatsV2(PublicGameModelV2, GameTotals):
@@ -67,13 +68,13 @@ class UserStatsV2(PublicUserModelV2):
             discord_id=user.discord_id,
             name=user.name,
             default_platform_id=user.default_platform_id,
-            created=user.created,
-            updated=user.updated,
+            created=dt_to_ts(user.created),
+            updated=dt_to_ts(user.updated),
             stats=UserTotals(
                 seconds=user.total_seconds,
                 activity_count=user.activity_count,
                 game_count=user.game_count,
                 platform_count=user.platform_count,
-                last_activity=user.last_activity,
+                last_activity=dt_to_ts(user.last_activity),
             ),
         )
