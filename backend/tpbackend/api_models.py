@@ -1,24 +1,6 @@
 from typing import Literal
 from pydantic import BaseModel, Field
-
-# from datetime import datetime
-
-
-class BaseTotals(BaseModel):
-    seconds: int = Field(description="Total playtime in seconds")
-    last_activity: int | None
-    activity_count: int = Field(description="Total number of activities")
-
-
-class Totals(BaseTotals):
-    user_count: int = Field(description="Total number of unique users")
-    game_count: int = Field(description="Total number of unique games")
-    platform_count: int = Field(description="Total number of unique platforms")
-
-
-class UserTotals(BaseTotals):
-    game_count: int = Field(description="Total number of unique games")
-    platform_count: int = Field(description="Total number of unique platforms")
+from tpbackend.api_v2.models import BaseTotals
 
 
 class GameTotals(BaseTotals):
@@ -108,56 +90,3 @@ class PublicActivityModel(BaseModel):
     updated: int = Field(
         description="Timestamp (in milliseconds) for the last update of the activity"
     )
-
-
-class GameOrPlatformStats(BaseModel):
-    totals: Totals
-    oldest_activity: PublicActivityModel | None
-    newest_activity: PublicActivityModel | None
-
-
-class UserWithStats(BaseModel):
-    user: PublicUserModel
-    oldest_activity: PublicActivityModel
-    newest_activity: PublicActivityModel
-    totals: Totals
-
-
-####################
-# With stats
-####################
-
-
-class GameWithStats(GameOrPlatformStats):
-    game: PublicGameModel
-    totals_excl_children: Totals
-
-
-class PlatformWithStats(GameOrPlatformStats):
-    platform: PublicPlatformModel
-
-
-################
-# Paginated Responses
-################
-
-
-class PaginatedPlatformsWithStats(PaginatedResponse):
-    data: list[PlatformWithStats]
-
-
-class PaginatedGames(PaginatedResponse):
-    data: list[PublicGameModel]
-
-
-class PaginatedGameWithStats(PaginatedResponse):
-    data: list[GameWithStats]
-
-
-class PaginatedActivities(PaginatedResponse):
-    data: list[PublicActivityModel]
-    order: Literal["desc", "asc"]
-
-
-class PaginatedUserWithStats(PaginatedResponse):
-    data: list[UserWithStats]
