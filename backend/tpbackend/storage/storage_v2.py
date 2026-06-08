@@ -25,7 +25,6 @@ from tpbackend.api_models import (
 from tpbackend.api_v2_models import (
     PublicGameModelV2,
     PublicPlatformModelV2,
-    PublicUserModelV2,
     PublicActivityModelV2,
 )
 from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now, dt_to_ts
@@ -242,16 +241,6 @@ class User(BaseModel):
 
     def get_permissions(self) -> list[str]:
         return cast(list[str], self.permissions)
-
-    def get_api_v2_model(self) -> PublicUserModelV2:
-        return PublicUserModelV2(
-            id=self.get_id(),
-            discord_id=self.get_discord_id(),
-            name=self.get_name(),
-            default_platform_id=self.get_default_platform().get_id(),
-            created=dt_to_ts(self.get_created()),
-            updated=dt_to_ts(self.get_updated()),
-        )
 
     def add_history(self, message: str):
         message = f"[{now_iso()}] {message}"

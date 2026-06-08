@@ -7,8 +7,6 @@ from tpbackend.api_v2_models import (
     PublicActivityModelV2,
     PublicGameModelV2,
     PublicPlatformModelV2,
-    PublicUserModelV2,
-    UserStatsV2,
 )
 from tpbackend.utils import (
     search_games,
@@ -21,7 +19,8 @@ from tpbackend.storage.storage_v2 import (
     User,
 )
 from tpbackend.api_responses import bad_request
-from tpbackend.user_query import UserQuery
+from tpbackend.api_v2.users.query import UserQuery
+from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
 import logging
 from typing import TypeAlias
 
@@ -121,7 +120,7 @@ def get_users(ids: int | str = IDS_CSV) -> list[PublicUserModelV2]:
         return bad_request("Cannot request more than 100 users at once")
 
     query = User.select().where(User.id.in_(gids))  # type: ignore
-    return [cast(User, u).get_api_v2_model() for u in query]
+    return [PublicUserModelV2.from_user(u) for u in query]
 
 
 @router.get("/users", tags=["users"], response_model=list[PublicUserModelV2])
@@ -133,7 +132,7 @@ def get_all_users(
     offset = max(0, offset)
 
     query = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
-    return [cast(User, u).get_api_v2_model() for u in query]
+    return [PublicUserModelV2.from_user(u) for u in query]
 
 
 #################

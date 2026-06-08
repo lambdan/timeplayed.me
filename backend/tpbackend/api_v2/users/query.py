@@ -1,12 +1,12 @@
 import logging
-from typing import cast, Literal
+from typing import Literal
 
 from peewee import (
     JOIN,
     fn,
     Case,
 )
-from tpbackend.storage.storage_v2 import User, Game, Activity, Platform
+from tpbackend.storage.storage_v2 import User, Activity
 
 logger = logging.getLogger("user_query")
 
