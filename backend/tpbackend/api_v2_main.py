@@ -19,7 +19,7 @@ from tpbackend.storage.storage_v2 import (
     User,
 )
 from tpbackend.api_responses import bad_request
-from tpbackend.api_v2.users.query import UserQuery
+from tpbackend.api_v2.users.query import UserStatsQuery
 from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
 import logging
 from typing import TypeAlias
@@ -52,87 +52,6 @@ ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
 
 ################ HELPERS ##################
-
-
-@router.get(
-    "/users/{user_ids}/stats", response_model=list[UserStatsV2], tags=["users", "stats"]
-)
-def get_users_stats(
-    user_ids: int | str = IDS_CSV,
-    before: int | None = TS_QUERY_BEFORE,
-    after: int | None = TS_QUERY_AFTER,
-    game_id: int | None = None,
-    platform_id: int | None = None,
-    sort: UserQuery.SORTS_LITERAL = "playtime",
-    order: AscDescOrder = "desc",
-) -> list[UserStatsV2]:
-    uids = parse_csv(user_ids)
-    bf = parseTS(before)
-    af = parseTS(after)
-
-    if len(uids) > 100:
-        return bad_request("Cannot request more than 100 users at once")
-
-    query = UserQuery.base().where(User.id.in_(uids))  # type: ignore
-    query = UserQuery.apply_filters(
-        query,
-        before=bf,
-        after=af,
-        game_id=game_id,
-        platform_id=platform_id,
-    )
-    query = UserQuery.apply_sort(query, sort, order)
-    return [UserStatsV2.from_user(user) for user in query]
-
-
-@router.get("/users/stats", tags=["users", "stats"], response_model=list[UserStatsV2])
-def get_all_users_stats(
-    offset=0,
-    limit=25,
-    game_id: int | None = None,
-    platform_id: int | None = None,
-    before: int | None = TS_QUERY_BEFORE,
-    after: int | None = TS_QUERY_AFTER,
-    sort: UserQuery.SORTS_LITERAL = "playtime",
-    order: AscDescOrder = "desc",
-) -> list[UserStatsV2]:
-    limit = clamp(limit, 1, 100)
-    offset = max(0, offset)
-    bf, af = parseTS(before), parseTS(after)
-
-    query = UserQuery.base()
-    query = UserQuery.apply_filters(
-        query,
-        before=bf,
-        after=af,
-        game_id=game_id,
-        platform_id=platform_id,
-    )
-    query = UserQuery.apply_sort(query, sort, order)
-    query = query.offset(offset).limit(limit)
-    return [UserStatsV2.from_user(user) for user in query]
-
-
-@router.get("/users/{ids}", tags=["users"], response_model=list[PublicUserModelV2])
-def get_users(ids: int | str = IDS_CSV) -> list[PublicUserModelV2]:
-    gids = parse_csv(ids)
-    if len(gids) > 100:
-        return bad_request("Cannot request more than 100 users at once")
-
-    query = User.select().where(User.id.in_(gids))  # type: ignore
-    return [PublicUserModelV2.from_user(u) for u in query]
-
-
-@router.get("/users", tags=["users"], response_model=list[PublicUserModelV2])
-def get_all_users(
-    offset=0,
-    limit=25,
-) -> list[PublicUserModelV2]:
-    limit = clamp(limit, 1, 100)
-    offset = max(0, offset)
-
-    query = User.select().order_by(User.id.asc()).offset(offset).limit(limit)
-    return [PublicUserModelV2.from_user(u) for u in query]
 
 
 #################

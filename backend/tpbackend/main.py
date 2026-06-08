@@ -9,6 +9,7 @@ from fastapi import FastAPI
 # from tpbackend.api import router as api_v1_deprecated
 from tpbackend.api import router_not_deprecated as api_v1_not_deprecated
 from tpbackend.api_v2_main import router as api_v2
+from tpbackend.api_v2.users.routes import router as api_v2_users
 
 
 async def start_api():
@@ -16,6 +17,7 @@ async def start_api():
     # app.include_router(api_v1_deprecated, prefix="/api", deprecated=True)
     # app.include_router(api_v1_not_deprecated, prefix="/api")
     app.include_router(api_v2, prefix="/api/v2")
+    app.include_router(api_v2_users, prefix="/api/v2/users")
 
     config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info")
     server = uvicorn.Server(config)
