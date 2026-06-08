@@ -212,6 +212,14 @@ def validateTS(ts) -> int | None:
     return None
 
 
+def parseTS(ts) -> datetime.datetime | None:
+    valid = validateTS(ts)
+    if not valid:
+        return None
+    dt = datetime.datetime.fromtimestamp(valid / 1000)
+    return assertTimezone(dt)
+
+
 def truncateMilliseconds(ts: int) -> int:
     return (ts // 1000) * 1000
 
@@ -287,3 +295,20 @@ def assertTimezone(dt) -> datetime.datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
     return dt
+
+
+def parse_csv(input: int | str) -> list[int]:
+    def ret(v):
+        logger.info("parse_csv: '%s' -> %s", input, v)
+        return v
+
+    if isinstance(input, int):
+        return ret([input])
+    res = []
+    input = input.replace("%2C", ",")  # replace url encoded
+    for part in input.split(","):
+        try:
+            res.append(int(part))
+        except Exception:
+            continue
+    return ret(res)
