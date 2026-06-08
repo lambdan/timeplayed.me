@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 # from tpbackend.api import router as api_v1_deprecated
 from tpbackend.api import router_not_deprecated as api_v1_not_deprecated
-from tpbackend.api_v2 import router as api_v2
+from tpbackend.api_v2_main import router as api_v2
 
 
 async def start_api():
