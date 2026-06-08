@@ -1,56 +1,20 @@
 import datetime
 import json
-from typing import Literal, cast
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
-from peewee import fn
-from tpbackend.api_models import (
-    GameWithStats,
-    PaginatedActivities,
-    PaginatedGameWithStats,
-    PaginatedPlatformsWithStats,
-    PaginatedUserWithStats,
-    PlatformWithStats,
-    PublicActivityModel,
-    PublicGameModel,
-    PublicPlatformModel,
-    PublicUserModel,
-    UserWithStats,
-    Totals,
-)
-from tpbackend.utils import (
-    search_games_for_api,
-)
-from tpbackend.utils2 import (
-    clamp,
-    max_int as max,
-    truncateMilliseconds,
-    validateTS,
-)
 from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import (
-    Activity_or_none,
-    Game_or_none,
-    Platform_or_none,
     Activity,
-    User_or_none,
 )
 from tpbackend.cache import cache_set, cache_get
-from tpbackend.api_responses import bad_request, not_found
 import logging
 
 logger = logging.getLogger("api_v1")
 
-# app = FastAPI(title="Timeplayed")
-router = APIRouter()
 router_not_deprecated = APIRouter()
 
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
-
-# This file is a mess because of circular imports hell
-
-################ HELPERS ##################
 
 
 ##############
