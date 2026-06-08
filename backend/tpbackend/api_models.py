@@ -1,11 +1,12 @@
 from typing import Literal
 from pydantic import BaseModel, Field
-from datetime import datetime
+
+# from datetime import datetime
 
 
 class BaseTotals(BaseModel):
     seconds: int = Field(description="Total playtime in seconds")
-    last_activity: datetime | None
+    last_activity: int | None
     activity_count: int = Field(description="Total number of activities")
 
 
