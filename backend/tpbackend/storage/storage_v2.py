@@ -1,7 +1,7 @@
 import asyncio
 import os
 import logging
-from typing import cast
+from typing import cast, Literal
 from datetime import datetime, timedelta
 
 from peewee import (
@@ -13,8 +13,6 @@ from peewee import (
     Model,
     TextField,
     AutoField,
-    fn,
-    Case,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -22,8 +20,6 @@ from tpbackend.storage.reset_sequence import reset_sequences
 from tpbackend.api_models import (
     PublicGameModel,
     PublicPlatformModel,
-    PublicUserModel,
-    PublicActivityModel,
 )
 
 from tpbackend.api_v2_models import (
@@ -247,28 +243,14 @@ class User(BaseModel):
     def get_permissions(self) -> list[str]:
         return cast(list[str], self.permissions)
 
-    def get_api_model(self) -> PublicUserModel:
-        return PublicUserModel(
-            id=self.get_id(),
-            discord_id=self.get_discord_id(),
-            name=self.get_name(),
-            default_platform=self.get_default_platform().get_api_model(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-        )
-
     def get_api_v2_model(self) -> PublicUserModelV2:
         return PublicUserModelV2(
             id=self.get_id(),
             discord_id=self.get_discord_id(),
             name=self.get_name(),
             default_platform_id=self.get_default_platform().get_id(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-            playtime=self.get_playtime(),
-            game_count=self.get_game_count(),
-            platform_count=self.get_platform_count(),
-            activity_count=self.get_activity_count(),
+            created=self.get_created(),
+            updated=self.get_updated(),
         )
 
     def add_history(self, message: str):
@@ -288,76 +270,6 @@ class User(BaseModel):
             .first()
         )
         return exists is not None
-
-    @classmethod
-    def activity_count_expr(cls):
-        return fn.COUNT(Activity.id)
-
-    @classmethod
-    def latest_activity_expr(cls):
-        return fn.MAX(Activity.timestamp)
-
-    @classmethod
-    def oldest_activity_expr(cls):
-        return fn.MIN(Activity.timestamp)
-
-    @classmethod
-    def game_count_expr(cls):
-        return fn.COUNT(fn.DISTINCT(Activity.game))
-
-    @classmethod
-    def platform_count_expr(cls):
-        return fn.COUNT(fn.DISTINCT(Activity.platform))
-
-    @classmethod
-    def playtime_expr(cls):
-        return fn.SUM(
-            Case(
-                None,
-                ((Activity.hidden == False, Activity.seconds),),  # noqa: E712
-                0,
-            )
-        )
-
-    def get_playtime(self) -> int:
-        playtime = (
-            Activity.select(self.playtime_expr())
-            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
-            .scalar()
-        )
-        if playtime is None:
-            return 0
-        return cast(int, playtime)
-
-    def get_activity_count(self) -> int:
-        count = (
-            Activity.select(self.activity_count_expr())
-            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
-            .scalar()
-        )
-        if count is None:
-            return 0
-        return cast(int, count)
-
-    def get_game_count(self) -> int:
-        count = (
-            Activity.select(self.game_count_expr())
-            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
-            .scalar()
-        )
-        if count is None:
-            return 0
-        return cast(int, count)
-
-    def get_platform_count(self) -> int:
-        count = (
-            Activity.select(self.platform_count_expr())
-            .where((Activity.user == self) & (Activity.hidden == False))  # noqa: E712
-            .scalar()
-        )
-        if count is None:
-            return 0
-        return cast(int, count)
 
 
 class Game(BaseModel):
@@ -565,8 +477,8 @@ class Game(BaseModel):
             image_url=self.get_image_url(),
             aliases=self.get_aliases(),
             release_year=self.get_release_year(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
+            created=self.get_created(),
+            updated=self.get_updated(),
             parent_id=parent_id,
             children_ids=child_ids,
         )
@@ -701,19 +613,6 @@ class Activity(BaseModel):
         self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
-    def get_api_model(self) -> PublicActivityModel:
-        return PublicActivityModel(
-            id=self.get_id(),
-            timestamp=self.get_timestamp(),
-            seconds=self.get_seconds(),
-            user=self.get_user().get_api_model(),
-            game=self.get_game().get_api_model(),
-            platform=self.get_platform().get_api_model(),
-            emulated=self.get_emulated(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-        )
-
     def get_api_v2_model(self) -> PublicActivityModelV2:
         return PublicActivityModelV2(
             id=self.get_id(),
@@ -723,8 +622,8 @@ class Activity(BaseModel):
             game_id=self.get_game().get_id(),
             platform_id=self.get_platform().get_id(),
             emulated=self.get_emulated(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
+            created=self.get_created(),
+            updated=self.get_updated(),
         )
 
     def add_history(self, message: str):
