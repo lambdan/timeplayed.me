@@ -1,4 +1,4 @@
-from tpbackend import api
+from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Platform, User
 
@@ -15,8 +15,9 @@ class DeletePlatformCommand(AdminCommand):
         platform = Platform.get_or_none(Platform.id == platform_id)  # type: ignore
         if not platform:
             return f"Error: Platform with id {platform_id} not found."
-        activities = api.get_activities_impl(platform=platform_id)
-        if activities.total > 0:
+        activities = ActivityQuery.base(include_hidden=True)
+        activities = ActivityQuery.platform(activities, platform_id)
+        if ActivityQuery.count(activities) > 0:
             return f"Error: platform ({platform.abbreviation}) has activities"
         platform.delete_instance()
         return f"Platform {platform_id} deleted"

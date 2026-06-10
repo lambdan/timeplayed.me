@@ -3,6 +3,7 @@ import os
 import logging
 from typing import cast, Literal
 from datetime import datetime, timedelta
+from tpbackend.api_v2.activities.models import PublicActivityModelV2
 
 from peewee import (
     BooleanField,
@@ -25,7 +26,6 @@ from tpbackend.api_models import (
 from tpbackend.api_v2_models import (
     PublicGameModelV2,
     PublicPlatformModelV2,
-    PublicActivityModelV2,
 )
 from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now, dt_to_ts
 

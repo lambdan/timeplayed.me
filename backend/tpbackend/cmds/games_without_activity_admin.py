@@ -1,4 +1,4 @@
-from tpbackend import api
+from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.admin_command import AdminCommand
 
@@ -13,8 +13,9 @@ class GamesWithoutActivityAdminCommand(AdminCommand):
         games = Game.select()
         games_without_activity = []
         for game in games:
-            activities = api.get_activities_impl(game=game.id, limit=1)
-            if activities.total == 0:
+            activities = ActivityQuery.base(include_hidden=True)
+            activities = ActivityQuery.game(activities, game.id)
+            if ActivityQuery.count(activities) == 0:
                 games_without_activity.append(game)
 
         if len(games_without_activity) == 0:

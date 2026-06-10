@@ -173,14 +173,11 @@ def clamp(x: int, minimum: int, maximum: int) -> int:
     """
     Clamps x between minimum and maximum
     """
-    return max(int(minimum), min(int(x), int(maximum)))
-
-
-def max_int(x: int, minimum: int) -> int:
-    """
-    Like regular max but ensures both are ints
-    """
-    return max(int(minimum), int(x))
+    if int(x) > int(maximum):
+        return int(maximum)
+    if int(x) < int(minimum):
+        return int(minimum)
+    return int(x)
 
 
 def today() -> str:

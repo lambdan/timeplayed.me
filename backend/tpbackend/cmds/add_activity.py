@@ -1,5 +1,5 @@
 from typing import cast
-from tpbackend import api
+from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import Platform, User
 from tpbackend.cmds.command import Command
@@ -91,8 +91,10 @@ Returns: Confirmation message
     def get_overlapping(self, user_id: int, seconds: int) -> bool:
         after_ts = (now().timestamp() * 1000) - (seconds * 1000)
         after_ts = int(after_ts)
-        activities = api.get_activities_impl(user=user_id, after=after_ts, limit=1)
-        return activities.total > 0
+        query = ActivityQuery.base()
+        query = ActivityQuery.user(query, user_id)
+        query = ActivityQuery.after(query, after_ts)
+        return ActivityQuery.count(query) > 0
 
     def add(self, user: User, game: Game, seconds: int) -> str:
         timestamp = now()

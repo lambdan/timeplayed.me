@@ -1,135 +1,36 @@
-import datetime
-from typing import Literal, cast
-from peewee import JOIN, fn
+from discord.utils import P
 from tpbackend.api_v2_models import (
     GameStatsV2,
     PlatformStatsV2,
-    PublicActivityModelV2,
     PublicGameModelV2,
     PublicPlatformModelV2,
 )
 from tpbackend.utils import (
     search_games,
 )
-from tpbackend.utils2 import clamp, max_int as max, validateTS, parseTS, parse_csv
+from tpbackend.utils2 import clamp, validateTS, parse_csv
+from tpbackend.api_v2.types import PATH_IDS_CSV, QUERY_TS_BEFORE, QUERY_TS_AFTER
 from tpbackend.storage.storage_v2 import (
-    Game_or_none,
     Activity,
     Game,
-    User,
 )
-from tpbackend.api_responses import bad_request
-from tpbackend.api_v2.users.query import UserStatsQuery
-from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
 import logging
-from typing import TypeAlias
+from tpbackend.api_v2.responses import bad_request
 
-from fastapi import APIRouter, Query, Path
+from fastapi import APIRouter
 
 logger = logging.getLogger("api_v2")
 router = APIRouter()
 
-AscDescOrder: TypeAlias = Literal["asc", "desc"]
 
-
-IDS_CSV = Path(
-    description="Specify single ID, or multiple (separated by comma)",
-    openapi_examples={
-        "single": {"value": 1, "description": "Single ID"},
-        "multiple": {"value": "1,2,3", "description": "Multiple IDs"},
-    },
-)
-TS_QUERY_BEFORE = Query(
-    default=None,
-    description="Timestamp (in milliseconds). Only include activities before this timestamp.",
-)
-
-TS_QUERY_AFTER = Query(
-    default=None,
-    description="Timestamp (in milliseconds). Only include activities after this timestamp.",
-)
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
+
+IDS_CSV = PATH_IDS_CSV
+TS_QUERY_BEFORE = QUERY_TS_BEFORE
+TS_QUERY_AFTER = QUERY_TS_AFTER
 
 
 ################ HELPERS ##################
-
-
-#################
-# Activities
-#################
-
-
-@router.get(
-    "/activities", tags=["activities"], response_model=list[PublicActivityModelV2]
-)
-def get_all_activities(
-    offset=0,
-    limit=25,
-    order: AscDescOrder = "desc",
-    sort: Literal["timestamp", "id"] = "timestamp",
-    user: int | None = None,
-    game: int | None = None,
-    platform: int | None = None,
-    before: int | None = TS_QUERY_BEFORE,
-    after: int | None = TS_QUERY_AFTER,
-    include_game_children: bool = False,
-) -> list[PublicActivityModelV2]:
-    limit = clamp(limit, 1, 500)
-    offset = max(0, offset)
-    before, after = validateTS(before), validateTS(after)
-
-    before_dt, after_dt = None, None
-    if before:
-        before_dt = datetime.datetime.fromtimestamp(before / 1000)
-    if after:
-        after_dt = datetime.datetime.fromtimestamp(after / 1000)
-
-    # Build filters once
-    filters = ACTIVITY_BASE_FILTERS.copy()
-    if user is not None:
-        filters.append(Activity.user == user)
-    if game is not None:
-        g = Game_or_none(game)
-        if g:
-            game_ids = [g.get_id()]
-            if include_game_children:
-                for child in g.get_children():
-                    game_ids.append(child.get_id())
-            filters.append(Activity.game.in_(game_ids))  # type: ignore
-    if platform is not None:
-        filters.append(Activity.platform == platform)
-
-    if before_dt:
-        filters.append(Activity.timestamp <= before_dt)  # type: ignore
-    if after_dt:
-        filters.append(Activity.timestamp >= after_dt)  # type: ignore
-
-    query = Activity.select().where(*filters)
-    column = {
-        "timestamp": Activity.timestamp,
-        "id": Activity.id,
-    }[sort]
-    query = query.order_by(column.desc() if order == "desc" else column.asc())
-    query = query.offset(offset).limit(limit)
-
-    data = []
-    for a in query:
-        data.append(cast(Activity, a).get_api_v2_model())
-
-    return data
-
-
-@router.get(
-    "/activities/{activity_ids}",
-    tags=["activities"],
-    response_model=list[PublicActivityModelV2],
-)
-def get_activities(activity_ids: str | int) -> list[PublicActivityModelV2]:
-    aids = parse_csv(activity_ids)  # haha
-    if len(aids) > 100:
-        return bad_request("Cannot request more than 100 activities at once")
-    res = []
-    return res
 
 
 ##############
