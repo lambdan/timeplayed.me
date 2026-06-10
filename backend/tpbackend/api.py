@@ -1,8 +1,6 @@
 import datetime
 import json
 from fastapi import APIRouter
-from fastapi.responses import RedirectResponse
-from tpbackend import bot
 from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import (
     Activity,
@@ -122,22 +120,3 @@ def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
 )
 def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
     return steamgriddb.get_best_grid(sgdb_game_id)
-
-
-@router_not_deprecated.get(
-    "/discord/avatar/{discord_user_id}",
-    tags=["Discord"],
-    description="Returns redirect to Discord avatar URL for a given Discord user ID",
-)
-def redirect_discord_avatar(discord_user_id: str | int):
-    def _get_url(discord_user_id: str | int) -> str:
-        discord_user_id = int(discord_user_id)
-        cache_key = f"get_discord_avatar_url:{discord_user_id}"
-        cached = cache_get(cache_key)
-        if cached:
-            return cached.decode("utf-8")  # type: ignore
-        url = bot.avatar_from_discord_user_id(discord_user_id)
-        cache_set(cache_key, url, ex=3600)
-        return url
-
-    return RedirectResponse(_get_url(discord_user_id), status_code=307)
