@@ -1,12 +1,10 @@
 from fastapi import Query, Path
+from typing import TypeAlias, Literal
 
+AscDescOrder: TypeAlias = Literal["asc", "desc"]
 
 PATH_IDS_CSV = Path(
     description="Specify single ID, or multiple (separated by comma)",
-    openapi_examples={
-        "single": {"value": 1, "description": "Single ID"},
-        "multiple": {"value": "1,2,3", "description": "Multiple IDs"},
-    },
 )
 
 QUERY_TS_BEFORE = Query(

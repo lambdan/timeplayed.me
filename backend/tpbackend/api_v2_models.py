@@ -27,18 +27,6 @@ class PublicGameModelV2(BaseModel):
     parent_id: int | None
 
 
-class PublicActivityModelV2(BaseModel):
-    id: int
-    timestamp: int
-    seconds: int
-    user_id: int
-    game_id: int
-    platform_id: int
-    emulated: bool
-    created: int
-    updated: int
-
-
 class GameStatsV2(PublicGameModelV2, GameTotals):
     pass
 

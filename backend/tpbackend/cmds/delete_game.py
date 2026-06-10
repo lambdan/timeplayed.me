@@ -1,4 +1,4 @@
-from tpbackend import api
+from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.utils import game_name
@@ -19,8 +19,9 @@ class DeleteGameCommand(AdminCommand):
         game = Game_or_none(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
-        activities = api.get_activities_impl(game=game_id)
-        if activities.total > 0:
+        activities = ActivityQuery.base(include_hidden=True)
+        activities = ActivityQuery.game(activities, game_id)
+        if ActivityQuery.count(activities) > 0:
             return f"Error: game ({game.name}) has activities"
 
         name = game_name(game)
