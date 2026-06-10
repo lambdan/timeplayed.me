@@ -1,7 +1,6 @@
 import datetime
 import json
 from fastapi import APIRouter
-from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import (
     Activity,
 )
@@ -83,40 +82,3 @@ def get_playtime_by_day(
         data["datasets"][0]["data"].append(daily_seconds[date])
     cache_set(cache_key, json.dumps(data))
     return data
-
-
-###############
-# SteamGridDB
-###############
-
-# SGDB handles caching internally
-
-
-@router_not_deprecated.get(
-    "/sgdb/search",
-    tags=["SteamGridDB"],
-    response_model=list[steamgriddb.SGDB_Game] | None,
-    description="Searches SteamGridDB for games",
-)
-def search_sgdb(query: str) -> list[steamgriddb.SGDB_Game] | None:
-    return steamgriddb.search(query)
-
-
-@router_not_deprecated.get(
-    "/sgdb/grids/{sgdb_game_id}",
-    tags=["SteamGridDB"],
-    response_model=list[steamgriddb.SGDB_Grid] | None,
-    description="Gets grids for a game from SteamGridDB",
-)
-def sgdb_grids(sgdb_game_id: int) -> list[steamgriddb.SGDB_Grid] | None:
-    return steamgriddb.get_grids(sgdb_game_id)
-
-
-@router_not_deprecated.get(
-    "/sgdb/grids/{sgdb_game_id}/best",
-    tags=["SteamGridDB"],
-    response_model=steamgriddb.SGDB_Grid | None,
-    description="Tries to get the best grid for a game from SteamGridDB",
-)
-def best_grid_sgdb(sgdb_game_id: int) -> steamgriddb.SGDB_Grid | None:
-    return steamgriddb.get_best_grid(sgdb_game_id)

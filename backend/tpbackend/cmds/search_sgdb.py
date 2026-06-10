@@ -1,8 +1,8 @@
 import datetime
-from tpbackend import steamgriddb
 from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import query_normalize
+from tpbackend.api_v2.sgdb.controller import search
 
 
 class SearchSGDBCommand(Command):
@@ -21,7 +21,7 @@ Returns: list of SGDB id's, names and years matching the query
 
     def search(self, query: str) -> str:
         query = query_normalize(query)
-        sgdb_results = steamgriddb.search(query=query)
+        sgdb_results = search(query=query)
         if len(sgdb_results) == 0:
             return "No games found on SGDB"
         out = ""
