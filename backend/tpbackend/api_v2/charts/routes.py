@@ -1,41 +1,40 @@
 import datetime
-import json
 from fastapi import APIRouter
+from tpbackend.api_v2.types import QUERY_TS_BEFORE, QUERY_TS_AFTER
 from tpbackend.storage.storage_v2 import (
     Activity,
 )
-from tpbackend.cache import cache_set, cache_get
 import logging
 
-logger = logging.getLogger("api_v1")
-
-router_not_deprecated = APIRouter()
-
+logger = logging.getLogger("charts")
+router = APIRouter()
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
-
-##############
-# For chart.js
-##############
+# TODO, get rid of this file? move it somewhere else?
 
 
-@router_not_deprecated.get("/stats/chart/playtime_by_day", tags=["charts"])
+@router.get("/playtime/by_day", tags=["charts"])
 def get_playtime_by_day(
-    userId: str | None = None, gameId: int | None = None, platformId: int | None = None
+    user: int | None = None,
+    game: int | None = None,
+    platform: int | None = None,
+    before: int | None = QUERY_TS_BEFORE,
+    after: int | None = QUERY_TS_AFTER,
 ):
-    cache_key = f"playtime_by_day:{userId}:{gameId}:{platformId}"
-    cached = cache_get(cache_key)
-    if cached:
-        return json.loads(cached.decode("utf-8"))  # type: ignore
-
     query = Activity.select(Activity.timestamp, Activity.seconds)
     conditions = ACTIVITY_BASE_FILTERS.copy()
-    if userId:
-        conditions.append(Activity.user == userId)
-    if gameId:
-        conditions.append(Activity.game == gameId)
-    if platformId:
-        conditions.append(Activity.platform == platformId)
+    if user:
+        conditions.append(Activity.user == user)
+    if game:
+        conditions.append(Activity.game == game)
+    if platform:
+        conditions.append(Activity.platform == platform)
+    if before:
+        before_dt = datetime.datetime.fromtimestamp(before / 1000)
+        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+    if after:
+        after_dt = datetime.datetime.fromtimestamp(after / 1000)
+        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
     query = query.where(*conditions)
 
     daily_seconds: dict[datetime.date, int] = {}
@@ -80,5 +79,4 @@ def get_playtime_by_day(
     for date in sorted(daily_seconds.keys()):
         data["labels"].append(date.strftime("%Y-%m-%d"))
         data["datasets"][0]["data"].append(daily_seconds[date])
-    cache_set(cache_key, json.dumps(data))
     return data

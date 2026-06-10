@@ -9,8 +9,8 @@ from tpbackend.api_v2.users.query import UserStatsQuery, UserQuery
 from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
 import logging
 from typing import TypeAlias
-
-from fastapi import APIRouter, Query, Path
+from fastapi import APIRouter
+from tpbackend.api_v2.types import PATH_IDS_CSV, QUERY_TS_BEFORE, QUERY_TS_AFTER
 
 logger = logging.getLogger("api_v2")
 router = APIRouter()
@@ -18,22 +18,6 @@ router = APIRouter()
 AscDescOrder: TypeAlias = Literal["asc", "desc"]
 
 
-IDS_CSV = Path(
-    description="Specify single ID, or multiple (separated by comma)",
-    openapi_examples={
-        "single": {"value": 1, "description": "Single ID"},
-        "multiple": {"value": "1,2,3", "description": "Multiple IDs"},
-    },
-)
-TS_QUERY_BEFORE = Query(
-    default=None,
-    description="Timestamp (in milliseconds). Only include activities before this timestamp.",
-)
-
-TS_QUERY_AFTER = Query(
-    default=None,
-    description="Timestamp (in milliseconds). Only include activities after this timestamp.",
-)
 ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
 
@@ -44,9 +28,9 @@ ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
     "/{user_ids}/stats", response_model=list[UserStatsV2], tags=["users", "stats"]
 )
 def get_users_stats(
-    user_ids: int | str = IDS_CSV,
-    before: int | None = TS_QUERY_BEFORE,
-    after: int | None = TS_QUERY_AFTER,
+    user_ids: int | str = PATH_IDS_CSV,
+    before: int | None = QUERY_TS_BEFORE,
+    after: int | None = QUERY_TS_AFTER,
     game_id: int | None = None,
     platform_id: int | None = None,
     sort: UserStatsQuery.SORTS_LITERAL = "id",
@@ -78,8 +62,8 @@ def get_all_users_stats(
     limit=25,
     game_id: int | None = None,
     platform_id: int | None = None,
-    before: int | None = TS_QUERY_BEFORE,
-    after: int | None = TS_QUERY_AFTER,
+    before: int | None = QUERY_TS_BEFORE,
+    after: int | None = QUERY_TS_AFTER,
     sort: UserStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
 ) -> list[UserStatsV2]:
@@ -102,7 +86,7 @@ def get_all_users_stats(
 
 @router.get("/{ids}", tags=["users"], response_model=list[PublicUserModelV2])
 def get_users(
-    ids: int | str = IDS_CSV,
+    ids: int | str = PATH_IDS_CSV,
     sort: UserQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
 ) -> list[PublicUserModelV2]:
