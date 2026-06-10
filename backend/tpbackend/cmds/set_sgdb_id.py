@@ -1,8 +1,8 @@
-from tpbackend import steamgriddb
 from tpbackend.cmds.admin_command import AdminCommand
 from tpbackend.operations import get_game_by_name_or_alias
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
+from tpbackend.api_v2.sgdb.controller import get_game_by_id
 
 
 class SetSGDBIDCommand(AdminCommand):
@@ -41,7 +41,7 @@ class SetSGDBIDCommand(AdminCommand):
             return f"{game.name} - SGDB ID set to: {game.sgdb_id}"
 
         # get info from sgdb
-        sgdb_game = steamgriddb.get_game_by_id(sgdb_id)
+        sgdb_game = get_game_by_id(sgdb_id)
         if not sgdb_game:
             return f"Error: No game found in SGDB with id {sgdb_id}."
         if not sgdb_game.name:

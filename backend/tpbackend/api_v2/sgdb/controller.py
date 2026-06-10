@@ -1,46 +1,17 @@
-import os
-import logging
-from pydantic import BaseModel
 from steamgrid import Game, SteamGridDB
 from steamgrid import StyleType, MimeType
-from steamgrid.http import HTTPException
 import json
-
+import os
+from tpbackend.api_v2.sgdb.models import SGDB_Game, SGDB_Grid, SGDB_Author
 from tpbackend.cache import cache_get, cache_set
+import logging
 
-ONE_DAY = 24 * 60 * 60  # seconds
+logger = logging.getLogger("sgdb")
 
-logger = logging.getLogger("SteamGridDB")
 sgdb = SteamGridDB(os.environ["SGDB_TOKEN"])
+ONE_DAY = 60 * 60 * 24
 
-
-class SGDB_Game(BaseModel):
-    id: int
-    name: str
-    verified: bool
-    release_date: float
-
-
-class SGDB_Author(BaseModel):
-    name: str | None
-    steam64: str | None
-    avatar: str | None
-
-
-class SGDB_Grid(BaseModel):
-    id: int | None
-    score: int | None
-    width: int | None
-    height: int | None
-    style: str | None
-    mime: str | None
-    language: str | None
-    url: str | None
-    thumb: str | None
-    type: str | None
-    author: SGDB_Author | None
-    upvotes: int | None
-    downvotes: int | None
+__PREFERED_ASPECT = 600 / 900
 
 
 def search(query: str) -> list[SGDB_Game]:
@@ -59,9 +30,9 @@ def search(query: str) -> list[SGDB_Game]:
 
     key = f"sgdb_search:{query}"
 
-    redisCache = cache_get(key)
-    if redisCache:
-        decoded = redisCache.decode("utf-8")  # type: ignore
+    cached = cache_get(key)
+    if cached:
+        decoded = cached.decode("utf-8")  # type: ignore
         return jsonDecode(decoded)
 
     s = sgdb.search_game(query)
@@ -86,7 +57,7 @@ def get_game_by_id(game_id: int) -> Game | None:
         g = sgdb.get_game_by_gameid(game_id)
         if g and g.id == game_id:
             return g
-    except HTTPException as e:
+    except Exception as e:
         logger.error("HTTPException when fetching game for game ID %d", game_id, e)
     return None
 
@@ -120,9 +91,9 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
             mimes=[MimeType.PNG, MimeType.JPEG, MimeType.WEBP],
             is_nsfw=False,
         )
-    except HTTPException as e:
-        logger.error("HTTPException when fetching grids for game ID %d", game_id, e)
-        pass
+    except Exception as e:
+        logger.error("Exception when fetching grids for game ID %d", game_id, e)
+        return []
 
     gs = []
     if fetch:
@@ -160,25 +131,30 @@ def get_best_grid(game_id: int) -> SGDB_Grid | None:
     if not grids:
         return None
 
-    bestScore = 0
-    bestGrid = None
+    best_score = 0
+    best_grid = None
+    best_lang = None
     for grid in grids:
-        thisScore = 0
+        w = grid.width or 1
+        h = grid.height or 1
+        if not w or not h:
+            continue
 
-        if grid.style == StyleType.Alternate:
-            thisScore += 10
+        # prefer correct aspect
+        if abs((w / h) - __PREFERED_ASPECT) > 0.1:
+            continue
 
-        if grid.language == "en":
-            thisScore += 1
+        # prefer english, but if no english available, allow other languages
+        lang = grid.language
+        if best_lang == "en" and lang != "en":
+            continue
 
-        if grid.width == 600 and grid.height == 900:
-            thisScore += 1
+        score = grid.score or 0
+        score += grid.upvotes or 0
+        score -= grid.downvotes or 0
+        if score > best_score or best_grid is None:
+            best_score = score
+            best_grid = grid
+            best_lang = lang
 
-        thisScore += grid.upvotes or 0
-        thisScore -= grid.downvotes or 0
-
-        if thisScore > bestScore:
-            bestScore = thisScore
-            bestGrid = grid
-
-    return bestGrid
+    return best_grid

@@ -1,8 +1,8 @@
-from tpbackend import steamgriddb
 from tpbackend.operations import get_game_by_name_or_alias
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
+from tpbackend.api_v2.sgdb.controller import get_game_by_id
 
 
 class AddGameSGDBCommand(Command):
@@ -36,7 +36,7 @@ Returns: Confirmation message
         if game_by_sgdb_id:
             return f"Error: Game with SteamGridDB ID {sgdb_id} already exists in the database (id: {game_by_sgdb_id.id}, name: {game_by_sgdb_id.name})"  # type: ignore
 
-        sgdb_game = steamgriddb.get_game_by_id(sgdb_id)
+        sgdb_game = get_game_by_id(sgdb_id)
         if not sgdb_game:
             return f"Error: did not find game on SGDB with id {sgdb_id}"
         if not sgdb_game.name:

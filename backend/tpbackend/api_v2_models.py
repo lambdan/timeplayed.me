@@ -1,7 +1,5 @@
-from datetime import datetime
 from pydantic import BaseModel
 from tpbackend.api_models import PlatformTotals, GameTotals
-from tpbackend.utils2 import dt_to_ts
 
 
 class PublicPlatformModelV2(BaseModel):
