@@ -2,7 +2,8 @@ import datetime
 import logging
 from typing import Literal
 
-from tpbackend.storage.storage_v2 import Activity
+from tpbackend.storage.storage_v2 import Activity, User, Game, Platform
+from tpbackend.utils2 import validateTS
 
 logger = logging.getLogger("activities_query")
 
@@ -43,8 +44,8 @@ class ActivityQuery:
         return query.where(Activity.id.in_(activity_ids))  # type: ignore
 
     @staticmethod
-    def user(query, user_id: int):
-        return query.where(Activity.user == user_id)  # type: ignore
+    def user(query, user: int | User):
+        return query.where(Activity.user == user)  # type: ignore
 
     @staticmethod
     def users(
@@ -54,8 +55,8 @@ class ActivityQuery:
         return query.where(Activity.user.in_(user_ids))  # type: ignore
 
     @staticmethod
-    def game(query, game_id: int):
-        return query.where(Activity.game == game_id)  # type: ignore
+    def game(query, game: int | Game):
+        return query.where(Activity.game == game)  # type: ignore
 
     @staticmethod
     def games(
@@ -65,8 +66,8 @@ class ActivityQuery:
         return query.where(Activity.game.in_(game_ids))  # type: ignore
 
     @staticmethod
-    def platform(query, platform_id: int):
-        return query.where(Activity.platform == platform_id)  # type: ignore
+    def platform(query, platform: int | Platform):
+        return query.where(Activity.platform == platform)  # type: ignore
 
     @staticmethod
     def platforms(
@@ -77,20 +78,12 @@ class ActivityQuery:
 
     @staticmethod
     def before(query, before: int | datetime.datetime):
-        if isinstance(before, int):
-            before = datetime.datetime.fromtimestamp(before)
-            if before.year > 10000:  # probably ms instead of s
-                before = datetime.datetime.fromtimestamp(before.timestamp() / 1000)
-        return query.where(Activity.timestamp <= before)  # type: ignore
+        dt = validateTS(before)
+        return query.where(Activity.timestamp <= dt)  # type: ignore
 
     @staticmethod
     def after(query, after: int | datetime.datetime):
-        dt = None
-        if isinstance(after, int):
-            divide = 1000 if after > 10**12 else 1
-            dt = datetime.datetime.fromtimestamp(after / divide)
-        else:
-            dt = after
+        dt = validateTS(after)
         return query.where(Activity.timestamp >= dt)  # type: ignore
 
     @staticmethod
