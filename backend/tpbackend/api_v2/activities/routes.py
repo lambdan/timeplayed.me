@@ -1,11 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from typing import Literal, cast
 from tpbackend.api_v2.activities.models import PublicActivityModelV2
 from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS
 from tpbackend.api_v2.types import AscDescOrder, QUERY_TS_AFTER, QUERY_TS_BEFORE
 from tpbackend.api_v2.responses import bad_request, not_found
-import datetime
 
 router = APIRouter()
 
@@ -31,7 +30,9 @@ def get_activity(id: int) -> PublicActivityModelV2:
     response_model=list[PublicActivityModelV2],
     description="Get many activities by id (comma separated). Max 100 at once.",
 )
-def get_activities(ids: str) -> list[PublicActivityModelV2]:
+def get_activities(
+    ids: str,
+) -> list[PublicActivityModelV2]:
     aids = parse_csv(ids)  # haha
     if len(aids) > 100:
         return bad_request("Cannot request more than 100 activities at once")

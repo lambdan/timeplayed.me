@@ -1,18 +1,11 @@
-from typing import Literal, cast
 from tpbackend.api_v2.activities.query import ActivityQuery
-from tpbackend.utils2 import clamp, validateTS, parseTS, parse_csv
-from tpbackend.storage.storage_v2 import (
-    Activity,
-    User,
-)
+from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api_v2.users.query import UserStatsQuery, UserQuery
 from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
-from typing import TypeAlias
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from tpbackend.api_v2.types import (
-    PATH_IDS_CSV,
     QUERY_TS_BEFORE,
     QUERY_TS_AFTER,
     AscDescOrder,
@@ -91,10 +84,13 @@ def get_user_stats(
 
 
 @router.get(
-    "/users-stats/{user_ids}", response_model=list[UserStatsV2], tags=["users", "stats"]
+    "/users-stats/{user_ids}",
+    response_model=list[UserStatsV2],
+    tags=["users", "stats"],
+    description="Get many users, including stats, by id (comma separated). Max 100 at once.",
 )
 def get_users_stats(
-    user_ids: str = PATH_IDS_CSV,
+    user_ids: str,
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
     game: int | None = None,
@@ -172,7 +168,12 @@ def get_user_by_id(user_id: int) -> PublicUserModelV2:
     return x[0]
 
 
-@router.get("/users/{user_ids}", tags=["users"], response_model=list[PublicUserModelV2])
+@router.get(
+    "/users/{user_ids}",
+    tags=["users"],
+    response_model=list[PublicUserModelV2],
+    description="Get many users by id (comma separated). Max 100 at once.",
+)
 def get_users_by_ids(
     user_ids: str,
     sort: UserQuery.SORTS_LITERAL = "id",
