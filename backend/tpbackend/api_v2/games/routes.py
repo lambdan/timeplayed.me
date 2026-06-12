@@ -52,12 +52,11 @@ def __get_games_stats(
     query = GameStatsQuery.apply_sort(query, sort, order)
 
     if offset:
-        query = query.offset(max(0, offset))
+        query = query.offset(max(0, int(offset)))
 
     if limit:
         query = query.limit(clamp(limit, 1, 100))
 
-    # print("__get_users_stats QUERY", query.sql())
     return [GameStatsV2.from_game(game) for game in query]
 
 
@@ -156,7 +155,7 @@ def __get_games(
     query = GameQuery.apply_sort(query=query, sort=sort, order=order)
 
     if offset:
-        query = query.offset(max(0, offset))
+        query = query.offset(max(0, int(offset)))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
     return [PublicGameModelV2.from_game(g) for g in query]

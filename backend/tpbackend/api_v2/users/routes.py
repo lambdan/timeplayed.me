@@ -154,7 +154,7 @@ def __get_users(
     query = UserQuery.apply_sort(query=query, sort=sort, order=order)
 
     if offset:
-        query = query.offset(max(0, offset))
+        query = query.offset(max(0, int(offset)))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
     return [PublicUserModelV2.from_user(u) for u in query]
