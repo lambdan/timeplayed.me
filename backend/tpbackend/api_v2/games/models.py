@@ -1,0 +1,67 @@
+from pydantic import BaseModel, Field
+from tpbackend.utils2 import dt_to_ts
+from tpbackend.api_v2.models import BaseTotals
+
+
+class GameTotals(BaseTotals):
+    user_count: int
+    platform_count: int
+
+
+class PublicGameModelV2(BaseModel):
+    id: int
+    name: str
+    steam_id: int | None
+    sgdb_id: int | None
+    image_url: str | None
+    aliases: list[str]
+    release_year: int | None
+    created: int
+    updated: int
+    children_ids: list[int]
+    parent_id: int | None
+
+    @classmethod
+    def from_game(cls, game):
+        return cls(
+            id=game.id,
+            name=game.name,
+            steam_id=game.steam_id,
+            sgdb_id=game.sgdb_id,
+            image_url=game.image_url,
+            aliases=game.aliases,
+            release_year=game.release_year,
+            created=dt_to_ts(game.created),
+            updated=dt_to_ts(game.updated),
+            children_ids=[child.id for child in game.children],
+            parent_id=game.parent_id,
+        )
+
+
+class GameStatsV2(PublicGameModelV2):
+    stats: GameTotals
+
+    @classmethod
+    def from_game(cls, game):
+        return cls(
+            id=game.id,
+            name=game.name,
+            steam_id=game.steam_id,
+            sgdb_id=game.sgdb_id,
+            image_url=game.image_url,
+            aliases=game.aliases,
+            release_year=game.release_year,
+            created=dt_to_ts(game.created),
+            updated=dt_to_ts(game.updated),
+            children_ids=[child.id for child in game.children],
+            parent_id=game.parent_id,
+            stats=GameTotals(
+                seconds=game.total_seconds,
+                activity_count=game.activity_count,
+                user_count=game.user_count,
+                platform_count=game.platform_count,
+                last_activity=(
+                    dt_to_ts(game.last_activity) if game.last_activity else None
+                ),
+            ),
+        )
