@@ -8,7 +8,7 @@ class PlatformTotals(BaseTotals):
     game_count: int
 
 
-class PublicPlatformModelV2(BaseModel):
+class API_Platform(BaseModel):
     id: int
     abbreviation: str
     name: str | None
@@ -32,7 +32,7 @@ class PublicPlatformModelV2(BaseModel):
         )
 
 
-class PlatformStatsV2(PublicPlatformModelV2):
+class API_PlatformWithStats(API_Platform):
     stats: PlatformTotals
 
     @classmethod

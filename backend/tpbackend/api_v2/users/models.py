@@ -8,7 +8,7 @@ class UserTotals(BaseTotals):
     platform_count: int = Field(description="Total number of unique platforms")
 
 
-class PublicUserModelV2(BaseModel):
+class API_User(BaseModel):
     id: int
     discord_id: str | None
     name: str
@@ -28,7 +28,7 @@ class PublicUserModelV2(BaseModel):
         )
 
 
-class UserStatsV2(PublicUserModelV2):
+class API_UserWithStats(API_User):
     stats: UserTotals
 
     @classmethod

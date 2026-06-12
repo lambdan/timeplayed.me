@@ -1,9 +1,9 @@
 from tpbackend.api_v2.activities.query import ActivityQuery
-from tpbackend.api_v2.games.models import GameStatsV2
+from tpbackend.api_v2.games.models import API_GameWithStats
 from tpbackend.api_v2.games.query import GameStatsQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api_v2.games.query import GameQuery
-from tpbackend.api_v2.games.models import PublicGameModelV2
+from tpbackend.api_v2.games.models import API_Game
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter
@@ -57,13 +57,13 @@ def __get_games_stats(
     if limit:
         query = query.limit(clamp(limit, 1, 100))
 
-    return [GameStatsV2.from_game(game) for game in query]
+    return [API_GameWithStats.from_game(game) for game in query]
 
 
 @router.get(
     "/game-stats/{game_id}",
     tags=["games", "stats"],
-    response_model=GameStatsV2,
+    response_model=API_GameWithStats,
     description="Get a single game, including stats, by id.",
 )
 def get_game_stats(
@@ -72,7 +72,7 @@ def get_game_stats(
     after: int | None = QUERY_TS_AFTER,
     user: int | None = None,
     platform: int | None = None,
-) -> GameStatsV2:
+) -> API_GameWithStats:
     x = __get_games_stats(
         gids=[int(game_id)],
         before=before,
@@ -87,7 +87,7 @@ def get_game_stats(
 
 @router.get(
     "/games-stats/{game_ids}",
-    response_model=list[GameStatsV2],
+    response_model=list[API_GameWithStats],
     tags=["games", "stats"],
     description="Get many games, including stats, by id (comma separated). Max 100 at once.",
 )
@@ -99,7 +99,7 @@ def get_games_stats(
     platform: int | None = None,
     sort: GameStatsQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[GameStatsV2]:
+) -> list[API_GameWithStats]:
     gids = parse_csv(game_ids)
     return __get_games_stats(
         gids=gids,
@@ -115,7 +115,7 @@ def get_games_stats(
 @router.get(
     "/games-stats",
     tags=["games", "stats"],
-    response_model=list[GameStatsV2],
+    response_model=list[API_GameWithStats],
     description="Get all games, including stats, with optional filters.",
 )
 def get_all_games_stats(
@@ -127,7 +127,8 @@ def get_all_games_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: GameStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
-) -> list[GameStatsV2]:
+    search: str = "",
+) -> list[API_GameWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 
@@ -140,6 +141,7 @@ def get_all_games_stats(
         order=order,
         offset=offset,
         limit=limit,
+        search=search,
     )
 
 
@@ -154,7 +156,7 @@ def __get_games(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[PublicGameModelV2]:
+) -> list[API_Game]:
     query = GameQuery.base()
     if ids and len(ids) > 0:
         query = GameQuery.apply_ids(query=query, game_ids=ids)
@@ -164,16 +166,16 @@ def __get_games(
         query = query.offset(max(0, int(offset)))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
-    return [PublicGameModelV2.from_game(g) for g in query]
+    return [API_Game.from_game(g) for g in query]
 
 
 @router.get(
     "/game/{game_id}",
     tags=["games"],
-    response_model=PublicGameModelV2,
+    response_model=API_Game,
     description="Get a single game by id.",
 )
-def get_game_by_id(game_id: int) -> PublicGameModelV2:
+def get_game_by_id(game_id: int) -> API_Game:
     x = __get_games(ids=[int(game_id)])
     if len(x) == 0:
         return not_found("Game not found")
@@ -183,14 +185,14 @@ def get_game_by_id(game_id: int) -> PublicGameModelV2:
 @router.get(
     "/games/{game_ids}",
     tags=["games"],
-    response_model=list[PublicGameModelV2],
+    response_model=list[API_Game],
     description="Get many games by id (comma separated). Max 100 at once.",
 )
 def get_games_by_ids(
     game_ids: str,
     sort: GameQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicGameModelV2]:
+) -> list[API_Game]:
     gids = parse_csv(game_ids)
     if len(gids) > 100:
         return bad_request("Cannot request more than 100 games at once")
@@ -204,7 +206,7 @@ def get_games_by_ids(
 @router.get(
     "/games",
     tags=["games"],
-    response_model=list[PublicGameModelV2],
+    response_model=list[API_Game],
     description="Get all games",
 )
 def get_all_games(
@@ -212,7 +214,7 @@ def get_all_games(
     limit=25,
     sort: GameQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicGameModelV2]:
+) -> list[API_Game]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 

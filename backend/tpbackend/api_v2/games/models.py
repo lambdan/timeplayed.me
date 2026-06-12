@@ -3,12 +3,12 @@ from tpbackend.utils2 import dt_to_ts
 from tpbackend.api_v2.models import BaseTotals
 
 
-class GameTotals(BaseTotals):
+class GameStats(BaseTotals):
     user_count: int
     platform_count: int
 
 
-class PublicGameModelV2(BaseModel):
+class API_Game(BaseModel):
     id: int
     name: str
     steam_id: int | None
@@ -38,8 +38,8 @@ class PublicGameModelV2(BaseModel):
         )
 
 
-class GameStatsV2(PublicGameModelV2):
-    stats: GameTotals
+class API_GameWithStats(API_Game):
+    stats: GameStats
 
     @classmethod
     def from_game(cls, game):
@@ -55,7 +55,7 @@ class GameStatsV2(PublicGameModelV2):
             updated=dt_to_ts(game.updated),
             children_ids=[child.id for child in game.children],
             parent_id=game.parent_id,
-            stats=GameTotals(
+            stats=GameStats(
                 seconds=game.total_seconds,
                 activity_count=game.activity_count,
                 user_count=game.user_count,
