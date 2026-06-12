@@ -24,7 +24,6 @@ from tpbackend.api_models import (
 )
 
 from tpbackend.api_v2_models import (
-    PublicGameModelV2,
     PublicPlatformModelV2,
 )
 from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now, dt_to_ts
@@ -448,28 +447,6 @@ class Game(BaseModel):
             updated=int(self.get_updated().timestamp() * 1000),
             parent_id=parent_id,
             children=child_ids,
-        )
-
-    def get_api_v2_model(self) -> PublicGameModelV2:
-        parent = self.get_parent()
-        parent_id = None
-        if parent:
-            parent_id = parent.get_id()
-        child_ids = []
-        for c in self.get_children(recursive=False):
-            child_ids.append(c.get_id())
-        return PublicGameModelV2(
-            id=self.get_id(),
-            name=self.get_name(),
-            steam_id=self.get_steam_id(),
-            sgdb_id=self.get_sgdb_id(),
-            image_url=self.get_image_url(),
-            aliases=self.get_aliases(),
-            release_year=self.get_release_year(),
-            created=dt_to_ts(self.get_created()),
-            updated=dt_to_ts(self.get_updated()),
-            parent_id=parent_id,
-            children_ids=child_ids,
         )
 
     def user_has_played(self, user: User) -> bool:
