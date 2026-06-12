@@ -12,6 +12,7 @@ from tpbackend.cmds.get_game import GetGameCommand
 from tpbackend.cmds.last import LastActivityCommand
 from tpbackend.cmds.permission_add import AddPermissionCommand
 from tpbackend.cmds.permission_remove import RemovePermissionCommand
+from tpbackend.cmds.refresh_search import RefreshSearch
 from tpbackend.cmds.search_games import SearchGamesCommand
 from tpbackend.cmds.set_default_platform import SetDefaultPlatformCommand
 from tpbackend.cmds.set_game import SetGameCommand
@@ -107,6 +108,7 @@ ADMIN_COMMANDS = [
     MissingSGDBAdminCommand(),
     MissingGRYAdminCommand(),
     GetCacheStats(),
+    RefreshSearch(),
 ]
 
 used = set()
