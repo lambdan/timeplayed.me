@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.api_v2.models import BaseTotals
 

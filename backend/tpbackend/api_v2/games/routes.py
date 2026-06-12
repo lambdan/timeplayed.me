@@ -6,7 +6,7 @@ from tpbackend.api_v2.games.query import GameQuery
 from tpbackend.api_v2.games.models import PublicGameModelV2
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
-from fastapi import APIRouter, Path
+from fastapi import APIRouter
 from tpbackend.api_v2.types import (
     QUERY_TS_BEFORE,
     QUERY_TS_AFTER,
@@ -64,6 +64,7 @@ def __get_games_stats(
     "/game-stats/{game_id}",
     tags=["games", "stats"],
     response_model=GameStatsV2,
+    description="Get a single game, including stats, by id.",
 )
 def get_game_stats(
     game_id: int,
@@ -111,7 +112,12 @@ def get_games_stats(
     )
 
 
-@router.get("/games-stats", tags=["games", "stats"], response_model=list[GameStatsV2])
+@router.get(
+    "/games-stats",
+    tags=["games", "stats"],
+    response_model=list[GameStatsV2],
+    description="Get all games, including stats, with optional filters.",
+)
 def get_all_games_stats(
     offset=0,
     limit=25,
@@ -161,7 +167,12 @@ def __get_games(
     return [PublicGameModelV2.from_game(g) for g in query]
 
 
-@router.get("/game/{game_id}", tags=["games"], response_model=PublicGameModelV2)
+@router.get(
+    "/game/{game_id}",
+    tags=["games"],
+    response_model=PublicGameModelV2,
+    description="Get a single game by id.",
+)
 def get_game_by_id(game_id: int) -> PublicGameModelV2:
     x = __get_games(ids=[int(game_id)])
     if len(x) == 0:
@@ -190,7 +201,12 @@ def get_games_by_ids(
     )
 
 
-@router.get("/games", tags=["games"], response_model=list[PublicGameModelV2])
+@router.get(
+    "/games",
+    tags=["games"],
+    response_model=list[PublicGameModelV2],
+    description="Get all games",
+)
 def get_all_games(
     offset=0,
     limit=25,

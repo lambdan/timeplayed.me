@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Path
-from typing import Literal, cast
+from fastapi import APIRouter
+from typing import Literal
 from tpbackend.api_v2.activities.models import PublicActivityModelV2
 from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS
@@ -43,7 +43,10 @@ def get_activities(
 
 
 @router.get(
-    "/activities", tags=["activities"], response_model=list[PublicActivityModelV2]
+    "/activities",
+    tags=["activities"],
+    response_model=list[PublicActivityModelV2],
+    description="Get activities with optional filters and pagination.",
 )
 def get_all_activities(
     offset=0,
