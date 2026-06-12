@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from tpbackend.utils2 import dt_to_ts
 
 
-class PublicActivityModelV2(BaseModel):
+class API_Activity(BaseModel):
     id: int
     timestamp: int
     seconds: int

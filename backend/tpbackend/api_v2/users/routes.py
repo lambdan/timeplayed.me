@@ -1,7 +1,7 @@
 from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api_v2.users.query import UserStatsQuery, UserQuery
-from tpbackend.api_v2.users.models import UserStatsV2, PublicUserModelV2
+from tpbackend.api_v2.users.models import API_UserWithStats, API_User
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
@@ -25,7 +25,7 @@ def __get_users_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[UserStatsV2]:
+) -> list[API_UserWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
 
@@ -56,13 +56,13 @@ def __get_users_stats(
         query = query.limit(clamp(limit, 1, 100))
 
     # print("__get_users_stats QUERY", query.sql())
-    return [UserStatsV2.from_user(user) for user in query]
+    return [API_UserWithStats.from_user(user) for user in query]
 
 
 @router.get(
     "/user-stats/{user_id}",
     tags=["users", "stats"],
-    response_model=UserStatsV2,
+    response_model=API_UserWithStats,
     description="Get a single user, including stats, by id.",
 )
 def get_user_stats(
@@ -71,7 +71,7 @@ def get_user_stats(
     after: int | None = QUERY_TS_AFTER,
     game: int | None = None,
     platform: int | None = None,
-) -> UserStatsV2:
+) -> API_UserWithStats:
     x = __get_users_stats(
         uids=[int(user_id)],
         before=before,
@@ -86,7 +86,7 @@ def get_user_stats(
 
 @router.get(
     "/users-stats/{user_ids}",
-    response_model=list[UserStatsV2],
+    response_model=list[API_UserWithStats],
     tags=["users", "stats"],
     description="Get many users, including stats, by id (comma separated). Max 100 at once.",
 )
@@ -98,7 +98,7 @@ def get_users_stats(
     platform: int | None = None,
     sort: UserStatsQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[UserStatsV2]:
+) -> list[API_UserWithStats]:
     uids = parse_csv(user_ids)
     return __get_users_stats(
         uids=uids,
@@ -114,7 +114,7 @@ def get_users_stats(
 @router.get(
     "/users-stats",
     tags=["users", "stats"],
-    response_model=list[UserStatsV2],
+    response_model=list[API_UserWithStats],
     description="Get users, including stats, with optional filters and pagination.",
 )
 def get_all_users_stats(
@@ -126,7 +126,7 @@ def get_all_users_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: UserStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
-) -> list[UserStatsV2]:
+) -> list[API_UserWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 
@@ -153,7 +153,7 @@ def __get_users(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[PublicUserModelV2]:
+) -> list[API_User]:
     query = UserQuery.base()
     if ids and len(ids) > 0:
         query = UserQuery.apply_ids(query=query, user_ids=ids)
@@ -163,16 +163,16 @@ def __get_users(
         query = query.offset(max(0, int(offset)))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
-    return [PublicUserModelV2.from_user(u) for u in query]
+    return [API_User.from_user(u) for u in query]
 
 
 @router.get(
     "/user/{user_id}",
     tags=["users"],
-    response_model=PublicUserModelV2,
+    response_model=API_User,
     description="Get a single user by id.",
 )
-def get_user_by_id(user_id: int) -> PublicUserModelV2:
+def get_user_by_id(user_id: int) -> API_User:
     x = __get_users(ids=[int(user_id)])
     if len(x) == 0:
         return not_found("User not found")
@@ -182,14 +182,14 @@ def get_user_by_id(user_id: int) -> PublicUserModelV2:
 @router.get(
     "/users/{user_ids}",
     tags=["users"],
-    response_model=list[PublicUserModelV2],
+    response_model=list[API_User],
     description="Get many users by id (comma separated). Max 100 at once.",
 )
 def get_users_by_ids(
     user_ids: str,
     sort: UserQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicUserModelV2]:
+) -> list[API_User]:
     gids = parse_csv(user_ids)
     if len(gids) > 100:
         return bad_request("Cannot request more than 100 users at once")
@@ -203,7 +203,7 @@ def get_users_by_ids(
 @router.get(
     "/users",
     tags=["users"],
-    response_model=list[PublicUserModelV2],
+    response_model=list[API_User],
     description="Get users with optional filters and pagination.",
 )
 def get_all_users(
@@ -211,7 +211,7 @@ def get_all_users(
     limit=25,
     sort: UserQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicUserModelV2]:
+) -> list[API_User]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 

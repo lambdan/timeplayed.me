@@ -1,5 +1,5 @@
 from tpbackend.api_v2.activities.query import ActivityQuery
-from tpbackend.api_v2.platforms.models import PlatformStatsV2, PublicPlatformModelV2
+from tpbackend.api_v2.platforms.models import API_PlatformWithStats, API_Platform
 from tpbackend.api_v2.platforms.query import PlatformStatsQuery, PlatformQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api_v2.responses import bad_request, not_found
@@ -25,7 +25,7 @@ def __get_platforms_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[PlatformStatsV2]:
+) -> list[API_PlatformWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
 
@@ -55,13 +55,13 @@ def __get_platforms_stats(
     if limit:
         query = query.limit(clamp(limit, 1, 100))
 
-    return [PlatformStatsV2.from_platform(platform) for platform in query]
+    return [API_PlatformWithStats.from_platform(platform) for platform in query]
 
 
 @router.get(
     "/platform-stats/{platform_id}",
     tags=["platforms", "stats"],
-    response_model=PlatformStatsV2,
+    response_model=API_PlatformWithStats,
     description="Get a platform, including stats, by id",
 )
 def get_platform_stats(
@@ -70,7 +70,7 @@ def get_platform_stats(
     after: int | None = QUERY_TS_AFTER,
     user: int | None = None,
     game: int | None = None,
-) -> PlatformStatsV2:
+) -> API_PlatformWithStats:
     x = __get_platforms_stats(
         pids=[int(platform_id)],
         before=before,
@@ -85,7 +85,7 @@ def get_platform_stats(
 
 @router.get(
     "/platforms-stats/{platform_ids}",
-    response_model=list[PlatformStatsV2],
+    response_model=list[API_PlatformWithStats],
     tags=["platforms", "stats"],
     description="Get many platforms, including stats, by id (comma separated). Max 100 at once.",
 )
@@ -97,7 +97,7 @@ def get_platforms_stats(
     game: int | None = None,
     sort: PlatformStatsQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PlatformStatsV2]:
+) -> list[API_PlatformWithStats]:
     pids = parse_csv(platform_ids)
     return __get_platforms_stats(
         pids=pids,
@@ -113,7 +113,7 @@ def get_platforms_stats(
 @router.get(
     "/platforms-stats",
     tags=["platforms", "stats"],
-    response_model=list[PlatformStatsV2],
+    response_model=list[API_PlatformWithStats],
     description="Get all platforms, including stats",
 )
 def get_all_platforms_stats(
@@ -125,7 +125,7 @@ def get_all_platforms_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: PlatformStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
-) -> list[PlatformStatsV2]:
+) -> list[API_PlatformWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 
@@ -152,7 +152,7 @@ def __get_platforms(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[PublicPlatformModelV2]:
+) -> list[API_Platform]:
     query = PlatformQuery.base()
     if ids and len(ids) > 0:
         query = PlatformQuery.apply_ids(query=query, platform_ids=ids)
@@ -162,16 +162,16 @@ def __get_platforms(
         query = query.offset(max(0, offset))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
-    return [PublicPlatformModelV2.from_platform(g) for g in query]
+    return [API_Platform.from_platform(g) for g in query]
 
 
 @router.get(
     "/platform/{platform_id}",
     tags=["platforms"],
-    response_model=PublicPlatformModelV2,
+    response_model=API_Platform,
     description="Get a platform by id",
 )
-def get_platform_by_id(platform_id: int) -> PublicPlatformModelV2:
+def get_platform_by_id(platform_id: int) -> API_Platform:
     x = __get_platforms(ids=[int(platform_id)])
     if len(x) == 0:
         return not_found("Platform not found")
@@ -181,14 +181,14 @@ def get_platform_by_id(platform_id: int) -> PublicPlatformModelV2:
 @router.get(
     "/platforms/{platform_ids}",
     tags=["platforms"],
-    response_model=list[PublicPlatformModelV2],
+    response_model=list[API_Platform],
     description="Get many platforms by id (comma separated). Max 100 at once.",
 )
 def get_platforms_by_ids(
     platform_ids: str,
     sort: PlatformQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicPlatformModelV2]:
+) -> list[API_Platform]:
     pids = parse_csv(platform_ids)
     if len(pids) > 100:
         return bad_request("Cannot request more than 100 platforms at once")
@@ -202,7 +202,7 @@ def get_platforms_by_ids(
 @router.get(
     "/platforms",
     tags=["platforms"],
-    response_model=list[PublicPlatformModelV2],
+    response_model=list[API_Platform],
     description="Get all platforms",
 )
 def get_all_platforms(
@@ -210,7 +210,7 @@ def get_all_platforms(
     limit=25,
     sort: PlatformQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
-) -> list[PublicPlatformModelV2]:
+) -> list[API_Platform]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import Literal
-from tpbackend.api_v2.activities.models import PublicActivityModelV2
+from tpbackend.api_v2.activities.models import API_Activity
 from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS
 from tpbackend.api_v2.types import AscDescOrder, QUERY_TS_AFTER, QUERY_TS_BEFORE
@@ -12,40 +12,40 @@ router = APIRouter()
 @router.get(
     "/activity/{id}",
     tags=["activities"],
-    response_model=PublicActivityModelV2,
+    response_model=API_Activity,
     description="Get a single activity by id.",
 )
-def get_activity(id: int) -> PublicActivityModelV2:
+def get_activity(id: int) -> API_Activity:
     query = ActivityQuery.base(include_hidden=False)
     query = ActivityQuery.id(query, id)
     activity = query.first()
     if not activity:
         return not_found("Activity not found")
-    return PublicActivityModelV2.from_activity(activity)
+    return API_Activity.from_activity(activity)
 
 
 @router.get(
     "/activities/{ids}",
     tags=["activities"],
-    response_model=list[PublicActivityModelV2],
+    response_model=list[API_Activity],
     description="Get many activities by id (comma separated). Max 100 at once.",
 )
 def get_activities(
     ids: str,
-) -> list[PublicActivityModelV2]:
+) -> list[API_Activity]:
     aids = parse_csv(ids)  # haha
     if len(aids) > 100:
         return bad_request("Cannot request more than 100 activities at once")
 
     activities = ActivityQuery.base()
     activities = ActivityQuery.ids(activities, aids)
-    return [PublicActivityModelV2.from_activity(a) for a in activities]
+    return [API_Activity.from_activity(a) for a in activities]
 
 
 @router.get(
     "/activities",
     tags=["activities"],
-    response_model=list[PublicActivityModelV2],
+    response_model=list[API_Activity],
     description="Get activities with optional filters and pagination.",
 )
 def get_all_activities(
@@ -58,7 +58,7 @@ def get_all_activities(
     platform: int | None = None,
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
-) -> list[PublicActivityModelV2]:
+) -> list[API_Activity]:
     limit = clamp(int(limit), 1, 500)
     offset = max(0, int(offset))
     before, after = validateTS(before), validateTS(after)
@@ -76,4 +76,4 @@ def get_all_activities(
         query = ActivityQuery.after(query, after)
     query = ActivityQuery.apply_sort(query, sort, order)
     query = query.offset(offset).limit(limit)
-    return [PublicActivityModelV2.from_activity(a) for a in query]
+    return [API_Activity.from_activity(a) for a in query]
