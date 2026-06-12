@@ -3,7 +3,6 @@ import os
 import logging
 from typing import cast, Literal
 from datetime import datetime, timedelta
-from tpbackend.api_v2.activities.models import PublicActivityModelV2
 
 from peewee import (
     BooleanField,
@@ -18,15 +17,8 @@ from peewee import (
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage.reset_sequence import reset_sequences
-from tpbackend.api_models import (
-    PublicGameModel,
-    PublicPlatformModel,
-)
 
-from tpbackend.api_v2_models import (
-    PublicPlatformModelV2,
-)
-from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now, dt_to_ts
+from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
 
 logger = logging.getLogger("storage_v2")
 
@@ -114,30 +106,6 @@ class Platform(BaseModel):
         old_icon = self.get_icon()
         self.icon = icon
         self.add_history(f"Icon changed from '{old_icon}' to '{icon}'")
-
-    def get_api_model(self) -> PublicPlatformModel:
-        return PublicPlatformModel(
-            id=self.get_id(),
-            abbreviation=self.get_abbreviation(),
-            name=self.get_name(),
-            color_primary=self.get_color_primary(),
-            color_secondary=self.get_color_secondary(),
-            icon=self.get_icon(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-        )
-
-    def get_api_v2_model(self) -> PublicPlatformModelV2:
-        return PublicPlatformModelV2(
-            id=self.get_id(),
-            abbreviation=self.get_abbreviation(),
-            name=self.get_name(),
-            color_primary=self.get_color_primary(),
-            color_secondary=self.get_color_secondary(),
-            icon=self.get_icon(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-        )
 
     def add_history(self, message: str):
         message = f"[{now_iso()}] {message}"
@@ -427,28 +395,6 @@ class Game(BaseModel):
                     children.append(cc)
         return children
 
-    def get_api_model(self) -> PublicGameModel:
-        parent = self.get_parent()
-        parent_id = None
-        if parent:
-            parent_id = parent.get_id()
-        child_ids = []
-        for c in self.get_children(recursive=False):
-            child_ids.append(c.get_id())
-        return PublicGameModel(
-            id=self.get_id(),
-            name=self.get_name(),
-            steam_id=self.get_steam_id(),
-            sgdb_id=self.get_sgdb_id(),
-            image_url=self.get_image_url(),
-            aliases=self.get_aliases(),
-            release_year=self.get_release_year(),
-            created=int(self.get_created().timestamp() * 1000),
-            updated=int(self.get_updated().timestamp() * 1000),
-            parent_id=parent_id,
-            children=child_ids,
-        )
-
     def user_has_played(self, user: User) -> bool:
         exists = (
             Activity.select()
@@ -578,19 +524,6 @@ class Activity(BaseModel):
         old_hidden = self.get_hidden()
         self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
-
-    def get_api_v2_model(self) -> PublicActivityModelV2:
-        return PublicActivityModelV2(
-            id=self.get_id(),
-            timestamp=self.get_timestamp(),
-            seconds=self.get_seconds(),
-            user_id=self.get_user().get_id(),
-            game_id=self.get_game().get_id(),
-            platform_id=self.get_platform().get_id(),
-            emulated=self.get_emulated(),
-            created=dt_to_ts(self.get_created()),
-            updated=dt_to_ts(self.get_updated()),
-        )
 
     def add_history(self, message: str):
         message = f"[{now_iso()}] {message}"
