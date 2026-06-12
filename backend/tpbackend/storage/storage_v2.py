@@ -654,7 +654,7 @@ async def clean_loop():
         logger.info("Cleaning up... 🧹")
         cleanupDiscordHistory()
         logger.info("Cleanup complete! 🧹")
-        await asyncio.sleep(86400)  # every day
+        await asyncio.sleep(3600)  # every hour
 
 
 def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
