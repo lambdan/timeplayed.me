@@ -1,4 +1,5 @@
 from typing import Literal, cast
+from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.utils2 import clamp, validateTS, parseTS, parse_csv
 from tpbackend.storage.storage_v2 import (
     Activity,
@@ -41,13 +42,17 @@ def __get_users_stats(
             return bad_request("Cannot request more than 100 users at once")
         query = UserStatsQuery.apply_ids(query, uids)
 
-    query = UserStatsQuery.apply_filters(
-        query,
-        before=bf,
-        after=af,
-        game_id=game_id,
-        platform_id=platform_id,
-    )
+    if bf:
+        query = ActivityQuery.before(query, bf)
+
+    if af:
+        query = ActivityQuery.after(query, af)
+
+    if game_id:
+        query = ActivityQuery.game(query, game_id)
+
+    if platform_id:
+        query = ActivityQuery.platform(query, platform_id)
 
     query = UserStatsQuery.apply_sort(query, sort, order)
 

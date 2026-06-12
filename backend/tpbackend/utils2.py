@@ -201,7 +201,12 @@ def validateTS(ts) -> int | None:
     Returns None on failure
     """
     if isinstance(ts, int) and ts > 0:
+        if ts < 10**12:  # if it's in seconds, convert to ms
+            ts *= 1000
         return ts
+    elif isinstance(ts, datetime.datetime):
+        ts = assertTimezone(ts)
+        return int(ts.timestamp() * 1000)
     try:
         return validateTS(int(ts))
     except Exception as _:

@@ -103,29 +103,6 @@ class UserStatsQuery:
         return query.where(User.id.in_(user_ids))  # type: ignore
 
     @staticmethod
-    def apply_filters(
-        query,
-        *,
-        before=None,
-        after=None,
-        game_id=None,
-        platform_id=None,
-    ):
-        if after:
-            query = query.where(Activity.timestamp >= after)
-
-        if before:
-            query = query.where(Activity.timestamp <= before)
-
-        if game_id:
-            query = query.where(Activity.game == game_id)
-
-        if platform_id:
-            query = query.where(Activity.platform == platform_id)
-
-        return query
-
-    @staticmethod
     def apply_sort(
         query,
         sort: SORTS_LITERAL,
