@@ -27,7 +27,8 @@ def __get_games_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-) -> list[GameStatsV2]:
+    search: str = "",
+) -> list[API_GameWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
 
@@ -48,6 +49,9 @@ def __get_games_stats(
 
     if platform_id:
         query = ActivityQuery.platform(query, platform_id)
+
+    if search:
+        query = GameQuery.search(query, search)
 
     query = GameStatsQuery.apply_sort(query, sort, order)
 

@@ -245,10 +245,19 @@ class Game(BaseModel):
     created = DateTimeField(default=lambda: now())
     updated = DateTimeField(default=lambda: now())
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
+    search = CharField(default="")
 
     def save(self, *args, **kwargs):
+        self.build_search()
         self.updated = now()
         return super().save(*args, **kwargs)
+
+    def build_search(self):
+        # name + all aliases
+        parts = [self.get_name()]
+        parts.extend(self.get_aliases())
+        new = " ".join(parts).lower()
+        self.search = new
 
     def get_id(self) -> int:
         return cast(int, self.id)

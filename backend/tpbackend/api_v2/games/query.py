@@ -22,8 +22,11 @@ class GameQuery:
     SORTS_LITERAL = Literal["name", "id", "created", "updated"]
 
     @staticmethod
-    def base():
-        return Game.select()
+    def base(include_hidden=False):
+        if include_hidden:
+            return Game.select()
+        else:
+            return Game.select().where(Game.hidden == False)  # noqa: E712
 
     @staticmethod
     def apply_ids(
@@ -40,6 +43,15 @@ class GameQuery:
     ):
         column = GameQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
+
+    @staticmethod
+    def search(query, search: str, include_hidden=False):
+        if not search or search.strip() == "" or len(search) <= 2:
+            return query
+        if include_hidden:
+            return query.where(Game.search.contains(search.lower()))  # type: ignore
+        else:
+            return query.where(Game.search.contains(search.lower()) & (Game.hidden == False))  # type: ignore
 
 
 class GameStatsQuery:
