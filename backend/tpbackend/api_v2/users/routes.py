@@ -63,6 +63,7 @@ def __get_users_stats(
     "/user-stats/{user_id}",
     tags=["users", "stats"],
     response_model=UserStatsV2,
+    description="Get a single user, including stats, by id.",
 )
 def get_user_stats(
     user_id: int,
@@ -110,7 +111,12 @@ def get_users_stats(
     )
 
 
-@router.get("/users-stats", tags=["users", "stats"], response_model=list[UserStatsV2])
+@router.get(
+    "/users-stats",
+    tags=["users", "stats"],
+    response_model=list[UserStatsV2],
+    description="Get users, including stats, with optional filters and pagination.",
+)
 def get_all_users_stats(
     offset=0,
     limit=25,
@@ -160,7 +166,12 @@ def __get_users(
     return [PublicUserModelV2.from_user(u) for u in query]
 
 
-@router.get("/user/{user_id}", tags=["users"], response_model=PublicUserModelV2)
+@router.get(
+    "/user/{user_id}",
+    tags=["users"],
+    response_model=PublicUserModelV2,
+    description="Get a single user by id.",
+)
 def get_user_by_id(user_id: int) -> PublicUserModelV2:
     x = __get_users(ids=[int(user_id)])
     if len(x) == 0:
@@ -189,7 +200,12 @@ def get_users_by_ids(
     )
 
 
-@router.get("/users", tags=["users"], response_model=list[PublicUserModelV2])
+@router.get(
+    "/users",
+    tags=["users"],
+    response_model=list[PublicUserModelV2],
+    description="Get users with optional filters and pagination.",
+)
 def get_all_users(
     offset=0,
     limit=25,

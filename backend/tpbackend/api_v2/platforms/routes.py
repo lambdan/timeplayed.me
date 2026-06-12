@@ -2,11 +2,9 @@ from tpbackend.api_v2.activities.query import ActivityQuery
 from tpbackend.api_v2.platforms.models import PlatformStatsV2, PublicPlatformModelV2
 from tpbackend.api_v2.platforms.query import PlatformStatsQuery, PlatformQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
-from tpbackend.api_v2.games.query import GameQuery
-from tpbackend.api_v2.games.models import PublicGameModelV2
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
-from fastapi import APIRouter, Path
+from fastapi import APIRouter
 from tpbackend.api_v2.types import (
     QUERY_TS_BEFORE,
     QUERY_TS_AFTER,
@@ -64,6 +62,7 @@ def __get_platforms_stats(
     "/platform-stats/{platform_id}",
     tags=["platforms", "stats"],
     response_model=PlatformStatsV2,
+    description="Get a platform, including stats, by id",
 )
 def get_platform_stats(
     platform_id: int,
@@ -115,6 +114,7 @@ def get_platforms_stats(
     "/platforms-stats",
     tags=["platforms", "stats"],
     response_model=list[PlatformStatsV2],
+    description="Get all platforms, including stats",
 )
 def get_all_platforms_stats(
     offset=0,
@@ -166,7 +166,10 @@ def __get_platforms(
 
 
 @router.get(
-    "/platform/{platform_id}", tags=["platforms"], response_model=PublicPlatformModelV2
+    "/platform/{platform_id}",
+    tags=["platforms"],
+    response_model=PublicPlatformModelV2,
+    description="Get a platform by id",
 )
 def get_platform_by_id(platform_id: int) -> PublicPlatformModelV2:
     x = __get_platforms(ids=[int(platform_id)])
@@ -197,7 +200,10 @@ def get_platforms_by_ids(
 
 
 @router.get(
-    "/platforms", tags=["platforms"], response_model=list[PublicPlatformModelV2]
+    "/platforms",
+    tags=["platforms"],
+    response_model=list[PublicPlatformModelV2],
+    description="Get all platforms",
 )
 def get_all_platforms(
     offset=0,
