@@ -1,4 +1,4 @@
-from tpbackend.operations import get_game_by_name_or_alias
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
@@ -47,7 +47,7 @@ Returns: Confirmation message
         # Check whether a game with the same name already exists.  Two games
         # may share a name (e.g. a 2005 and a 2023 release of the same title),
         # but only when both have a release_year set so they can be told apart.
-        ex_game = get_game_by_name_or_alias(sgdb_game.name)  # type: ignore
+        ex_game = GameSelect.by_name_or_alias(sgdb_game.name)
         if ex_game:
             if not game_year:
                 return (

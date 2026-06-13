@@ -17,63 +17,6 @@ from tpbackend.globals import MINIMUM_SESSION_LENGTH
 logger = logging.getLogger("operations")
 
 
-def get_game_by_alias(alias: str) -> Game | None:
-    """
-    Returns a game by its alias.
-    If no game is found, returns None.
-    """
-    return Game.get_or_none(Game.aliases.contains(alias))  # type: ignore
-
-
-def get_game_by_name_or_alias(s: str) -> Game | None:
-    # any game with this name? when multiple games share the same name (different
-    # release years) prefer the one with the highest release_year, nulls last.
-    game = (
-        Game.select()  # type: ignore
-        .where(Game.name == s)  # type: ignore
-        .order_by(Game.release_year.desc(nulls="LAST"))  # type: ignore
-        .first()
-    )
-    if game:
-        logger.info("Found game by name: '%s' (id: %s)", s, game.id)
-        return game
-    # any game with this alias?
-    game = get_game_by_alias(s)
-    if game:
-        logger.info("Found game by alias '%s': '%s' (id: %s)", s, game.name, game.id)  # type: ignore
-        return game
-    # any game with this name but different capitalization?
-    lowercased = s.lower()
-    for g in Game.select():
-        if g.name.lower() == lowercased:
-            logger.info(
-                "Found game by different capitalization: db: '%s' / s: '%s' (id: %s)",
-                g.name,
-                s,
-                g.id,
-            )
-            return g
-    return None
-
-
-def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
-    game = get_game_by_name_or_alias(s)
-    if game:
-        return game
-    # OK FINE we'll create it!
-    # Use create() rather than get_or_create() because name is no longer unique
-    # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
-    game = Game.create(name=s)  # type: ignore
-    logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
-
-    g = Game_or_none(game.id)
-    if g:
-        g.add_history(creation_message)
-        g.save()
-
-    return game
-
-
 def get_overlapping_activity(
     user: User,
     game: Game,

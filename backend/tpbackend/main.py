@@ -31,7 +31,7 @@ async def async_main():
 
 def main():
     oblivionisStorage.connect_db()
-    storage_v2.connect_db()
+    storage_v2.db.connect()
     asyncio.run(async_main())
 
 

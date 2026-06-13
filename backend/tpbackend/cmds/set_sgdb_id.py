@@ -1,5 +1,5 @@
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.operations import get_game_by_name_or_alias
 from tpbackend.storage.storage_v2 import Game_or_none, User
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.api_v2.sgdb.controller import get_game_by_id
@@ -56,7 +56,7 @@ class SetSGDBIDCommand(AdminCommand):
             # maybe we can add SGDB name as an alias?
             if sgdb_game.name not in game.aliases:
                 # check if any other game has that name or alias
-                aliased_game = get_game_by_name_or_alias(sgdb_game.name)
+                aliased_game = GameSelect.by_name_or_alias(sgdb_game.name)
                 if aliased_game and aliased_game.id != game.id:  # type: ignore
                     out += f"\n OTHER GAME HAS SGDB NAME AS NAME OR ALIAS: '{aliased_game.name}' (id: {aliased_game.id})"  # type: ignore
                     out += "\n - ABORTING!"
