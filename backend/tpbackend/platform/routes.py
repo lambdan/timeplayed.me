@@ -2,7 +2,7 @@ from tpbackend.activity.query import ActivityQuery
 from tpbackend.platform.models import API_PlatformWithStats, API_Platform
 from tpbackend.platform.query import PlatformStatsQuery, PlatformQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
-from tpbackend.http_responses import bad_request, not_found
+from tpbackend.api.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.common.types import (
