@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from typing import Literal
 from tpbackend.api_v2.activities.models import API_Activity
 from tpbackend.api_v2.activities.query import ActivityQuery
@@ -13,9 +13,8 @@ router = APIRouter()
     "/activity/{id}",
     tags=["activities"],
     response_model=API_Activity,
-    description="Get a single activity by id.",
 )
-def get_activity(id: int) -> API_Activity:
+def get_single_activity(id: int) -> API_Activity:
     query = ActivityQuery.base(include_hidden=False)
     query = ActivityQuery.id(query, id)
     activity = query.first()
@@ -28,10 +27,9 @@ def get_activity(id: int) -> API_Activity:
     "/activities/{ids}",
     tags=["activities"],
     response_model=list[API_Activity],
-    description="Get many activities by id (comma separated). Max 100 at once.",
 )
-def get_activities(
-    ids: str,
+def get_many_activities(
+    ids: str = Path(description="Comma-separated list of activity IDs"),
 ) -> list[API_Activity]:
     aids = parse_csv(ids)  # haha
     if len(aids) > 100:
@@ -46,9 +44,8 @@ def get_activities(
     "/activities",
     tags=["activities"],
     response_model=list[API_Activity],
-    description="Get activities with optional filters and pagination.",
 )
-def get_all_activities(
+def get_activities(
     offset=0,
     limit=100,
     order: AscDescOrder = "desc",
