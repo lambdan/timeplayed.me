@@ -1,4 +1,5 @@
 from fastapi import APIRouter, FastAPI
+from pydantic import BaseModel
 import uvicorn
 
 from tpbackend.__version__ import __version__
@@ -9,15 +10,21 @@ from tpbackend.discord.routes import router as discord_router
 from tpbackend.sgdb.routes import router as sgdb_router
 from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
+from .misc import misc_router
 import logging
 
 logger = logging.getLogger("api")
+
+
+class VersionInfo(BaseModel):
+    version: str
 
 
 def create_app():
     app = FastAPI(title="timeplayed", version=__version__)
     api_router = APIRouter(prefix="/api")
 
+    api_router.include_router(misc_router)
     api_router.include_router(user_router)
     api_router.include_router(activity_router)
     api_router.include_router(game_router)
@@ -25,10 +32,6 @@ def create_app():
     api_router.include_router(charts_router, prefix="/charts")
     api_router.include_router(discord_router, prefix="/discord")
     api_router.include_router(sgdb_router, prefix="/sgdb")
-
-    @api_router.get("/ping")
-    def ping():
-        return "pong"
 
     app.include_router(api_router)
     return app
