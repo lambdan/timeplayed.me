@@ -1,5 +1,6 @@
 from typing import cast
 from tpbackend.activity.query import ActivityQuery
+from tpbackend.activity.utils import md_activity_link
 from tpbackend.game.query import GameQuery
 from tpbackend.game.select import GameSelect
 from tpbackend.discord.commands.manual_activity_command import ManualActivityCommand
@@ -9,7 +10,6 @@ from tpbackend.operations import (
     add_session,
 )
 from tpbackend.utils import (
-    activity_name,
     last_platform_for_game,
 )
 from tpbackend.game.utils import md_game_link
@@ -122,7 +122,7 @@ Returns: Confirmation message
         sesh = result[0]
         if sesh:
             formatted_dt = sesh.get_datetime().strftime("%Y-%m-%d %H:%M:%S UTC")
-            msg = f"{activity_name(sesh, as_markdown_link=True)} added ✅\n"
+            msg = f"{md_activity_link(sesh)} added ✅\n"
             msg += f"- Game: {md_game_link(game=sesh.get_game())}\n"
             msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Date: {formatted_dt}\n"

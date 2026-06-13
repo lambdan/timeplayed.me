@@ -35,22 +35,8 @@ def last_platform_for_game(user: User, game: Game) -> Platform | None:
     return None
 
 
-def activity_url(activity_id) -> str:
-    return f"{TIMEPLAYED_URL}/activity/{activity_id}"
-
-
 def platform_url(platform_id) -> str:
     return f"{TIMEPLAYED_URL}/platform/{platform_id}"
-
-
-def activity_name(activity: Activity, as_markdown_link=False) -> str:
-    id = activity.get_id()
-    name = f"Activity {id}".strip()
-    if as_markdown_link:
-        url = activity_url(id)
-        if url:
-            return f"[{name}]({url})"
-    return name
 
 
 def platform_name(platform: Platform, as_markdown_link=False) -> str:
