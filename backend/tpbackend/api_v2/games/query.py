@@ -17,9 +17,10 @@ class GameQuery:
         "id": Game.id,
         "created": Game.created,
         "updated": Game.updated,
+        "release_year": Game.release_year,
     }
 
-    SORTS_LITERAL = Literal["name", "id", "created", "updated"]
+    SORTS_LITERAL = Literal["name", "id", "created", "updated", "release_year"]
 
     @staticmethod
     def base(include_hidden=False):
@@ -42,7 +43,9 @@ class GameQuery:
         order: Literal["asc", "desc"] = "desc",
     ):
         column = GameQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )
 
     @staticmethod
     def search(query, search: str):
