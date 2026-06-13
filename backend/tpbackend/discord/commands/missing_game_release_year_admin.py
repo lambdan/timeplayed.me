@@ -1,6 +1,6 @@
+from typing import cast
 from tpbackend.storage import User, Game
 from .admin_command import AdminCommand
-from tpbackend.utils import game_name
 
 
 class MissingGRYAdminCommand(AdminCommand):
@@ -16,8 +16,9 @@ class MissingGRYAdminCommand(AdminCommand):
         count = 0
         out = ""
         for game in missing:
+            game = cast(Game, game)
             count += 1
-            out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
+            out += f"- **{game.get_id()}** - {game.get_name()}\n"
             if len(out) > 1337:
                 out += f"... and {missing.count() - count} more"
                 break

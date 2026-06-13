@@ -1,6 +1,5 @@
 from tpbackend.storage import User, Game
 from .admin_command import AdminCommand
-from tpbackend.utils import game_name
 from typing import cast
 
 
@@ -22,8 +21,9 @@ class MissingSGDBAdminCommand(AdminCommand):
         count = 0
         out = ""
         for game in missing:
+            game = cast(Game, game)
             count += 1
-            out += f"- **{game.id}** - {game_name(game)}\n"  # type: ignore
+            out += f"- **{game.get_id()}** - {game.get_name()}\n"
             if count > 20 or len(out) > 1337:
                 out += f"... and {len(missing) - count} more\n"
                 break

@@ -3,7 +3,8 @@ from tpbackend.storage import (
     Activity_or_none,
 )
 from .command import Command
-from tpbackend.utils import game_name, activity_name
+from tpbackend.game.utils import md_game_link
+from tpbackend.activity.utils import md_activity_link
 from tpbackend.utils2 import js_iso, secsToHHMMSS
 
 
@@ -30,9 +31,9 @@ class GetActivityCommand(Command):
 
         formatted_duration = secsToHHMMSS(activity.get_seconds())
         msg = ""
-        msg += f"{activity_name(activity, as_markdown_link=True)}\n"
+        msg += f"{md_activity_link(activity)}\n"
         msg += f"- User: {activity.get_user().get_name()}\n"
-        msg += f"- Game: {game_name(activity.get_game(), as_markdown_link=True)}\n"
+        msg += f"- Game: {md_game_link(activity.get_game())}\n"
         msg += f"- Platform: *{activity.get_platform().get_display_name()}*"
         if activity.get_emulated():
             msg += " (Emulated)"

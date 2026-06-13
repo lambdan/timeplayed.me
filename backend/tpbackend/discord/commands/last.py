@@ -1,8 +1,12 @@
+from tpbackend.activity.query import ActivityQuery
+from tpbackend.activity.utils import md_activity_link
+from tpbackend.game.utils import md_game_link
 from tpbackend.storage import User
 from .command import Command
+from typing import cast
+
 from tpbackend.storage import Activity
-from tpbackend.utils import activity_url, game_name
-from tpbackend.utils2 import secsToHHMMSS
+from tpbackend.utils2 import js_iso, secsToHHMMSS
 
 TOO_LONG_ERR = "Output too long for Discord. Try with a smaller number."
 
@@ -29,43 +33,25 @@ Get your last n activities: `!last n`
         return self.new_output(activities)
 
     def get_activities(self, user: User, amount: int) -> str:
-        return (
-            Activity.select()
-            .where(Activity.user == user)
-            .order_by(Activity.timestamp.desc())
-            .limit(amount)
-        )
-
-    def output(self, activities) -> str:
-        lines = []
-        for act in activities:
-            emulated = " (emu)" if act.emulated else ""
-            lines.append(
-                f"#{act}\t{act.timestamp.isoformat().split('.')[0].replace('T',' ')} UTC\t{act.game.name} ({act.platform.abbreviation}){emulated}\t{secsToHHMMSS(act.seconds)}"
-            )
-        out = "```\n"
-        out += "\n".join(lines)
-        out += "```"
-        if len(out) >= 2000:
-            return TOO_LONG_ERR
-        return out
+        q = ActivityQuery.base()
+        q = ActivityQuery.user(q, user)
+        q = ActivityQuery.apply_sort(q, "timestamp", "desc")
+        q = q.limit(amount)
+        return q
 
     def new_output(self, activities) -> str:
         out = ""
         for act in activities:
-            ts = act.timestamp.isoformat().split(".")[0].replace("T", " ")
-            url = activity_url(act.id)
-            if url:
-                out += f"[#{act.id}]({url})\n"
-            else:
-                out += f"{act.id}\n"
-            out += f"- *{game_name(act.game)}*\n"
-            out += f"- {act.platform.name or act.platform.abbreviation}"
+            act = cast(Activity, act)
+            ts = js_iso(act.get_datetime())
+            out += md_activity_link(act) + "\n"
+            out += f"- {md_game_link(act.get_game())}\n"
+            out += f"- {act.get_platform().get_display_name()}"
             if act.emulated:
                 out += " (emu)"
             out += "\n"
             out += f"- {ts} UTC\n"
-            out += f"- {secsToHHMMSS(act.seconds)}\n"
+            out += f"- {secsToHHMMSS(act.get_seconds())}\n"
             out += "\n"
             if len(out) >= 2000:
                 return TOO_LONG_ERR

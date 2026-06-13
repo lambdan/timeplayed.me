@@ -35,15 +35,6 @@ def last_platform_for_game(user: User, game: Game) -> Platform | None:
     return None
 
 
-def game_url(game_id) -> str:
-    """
-    Returns the URL for a game page, or an empty string if TIMEPLAYED_URL is not set.
-    """
-    if not TIMEPLAYED_URL:
-        return ""
-    return f"{TIMEPLAYED_URL}/game/{game_id}"
-
-
 def activity_url(activity_id) -> str:
     return f"{TIMEPLAYED_URL}/activity/{activity_id}"
 
@@ -57,20 +48,6 @@ def activity_name(activity: Activity, as_markdown_link=False) -> str:
     name = f"Activity {id}".strip()
     if as_markdown_link:
         url = activity_url(id)
-        if url:
-            return f"[{name}]({url})"
-    return name
-
-
-def game_name(game: Game, as_markdown_link=False) -> str:
-    id = game.get_id()
-    name = game.get_name().strip()
-    year = game.get_release_year()
-    if year:
-        name += f" ({year})"
-    name = name.strip()
-    if as_markdown_link:
-        url = game_url(id)
         if url:
             return f"[{name}]({url})"
     return name
