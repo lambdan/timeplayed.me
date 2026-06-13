@@ -41,6 +41,13 @@ class UserQuery:
         column = UserQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
 
+    @staticmethod
+    def search(query, search: str):
+        if not search or search.strip() == "":
+            return query
+        q = query.where(User.search.contains(search.lower()))  # type: ignore
+        return q
+
 
 class UserStatsQuery:
     TOTAL_SECONDS = fn.SUM(

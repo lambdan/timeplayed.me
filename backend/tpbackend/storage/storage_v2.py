@@ -122,7 +122,9 @@ class SearchMixin(BaseModel):
         """
         Return string to be used for searching
         """
-        raise NotImplementedError("Must implement build_search method")
+        raise NotImplementedError(
+            f"missing build_search implementation: {self.__class__.__name__}"
+        )
 
 
 class HiddenMixin(BaseModel):
@@ -144,7 +146,7 @@ class HiddenMixin(BaseModel):
 ####################
 
 
-class Platform(IdMixin, HistoryMixin):
+class Platform(IdMixin, HistoryMixin, SearchMixin):
     """
     Platform (V2)
     """
@@ -198,8 +200,11 @@ class Platform(IdMixin, HistoryMixin):
         self.icon = icon
         self.add_history(f"Icon changed from '{old_icon}' to '{icon}'")
 
+    def build_search(self) -> str:
+        return f"{self.get_id()} {self.get_abbreviation()} {self.get_name() or ''}".strip().lower()
 
-class User(IdMixin, HistoryMixin):
+
+class User(IdMixin, HistoryMixin, SearchMixin):
     """
     User (V2)
     """
@@ -286,6 +291,9 @@ class User(IdMixin, HistoryMixin):
             .first()
         )
         return exists is not None
+
+    def build_search(self) -> str:
+        return f"{self.get_id()} {self.get_name()} {self.get_discord_id() or ''}".strip().lower()
 
 
 class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
