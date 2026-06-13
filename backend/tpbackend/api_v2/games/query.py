@@ -45,13 +45,10 @@ class GameQuery:
         return query.order_by(column.desc() if order == "desc" else column.asc())
 
     @staticmethod
-    def search(query, search: str, include_hidden=False):
+    def search(query, search: str):
         if not search or search.strip() == "" or len(search) <= 2:
             return query
-        if include_hidden:
-            return query.where(Game.search.contains(search.lower()))  # type: ignore
-        else:
-            return query.where(Game.search.contains(search.lower()) & (Game.hidden == False))  # type: ignore
+        return query.where(Game.search.contains(search.lower()))  # type: ignore
 
 
 class GameStatsQuery:

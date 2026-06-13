@@ -1,6 +1,8 @@
-from tpbackend.storage.storage_v2 import User
+from tpbackend.api_v2.games.query import GameQuery
+from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.command import Command
-from tpbackend.utils import game_name, search_games
+from tpbackend.utils import game_name
+from typing import cast
 
 
 class SearchGamesCommand(Command):
@@ -22,15 +24,16 @@ Returns: list of game id's and names matching the query
         return self.search(msg, self.is_admin(user))
 
     def search(self, query: str, is_admin: bool) -> str:
-        games = search_games(query=query, limit=0, offset=0, include_hidden=is_admin)
+        games = GameQuery.search(GameQuery.base(include_hidden=is_admin), search=query)
         if len(games) == 0:
             return "No games found"
 
         out = ""
         count = 0
         for game in games:
+            game = cast(Game, game)
             count += 1
-            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)} {"(🙈)" if game.get_hidden() else ""}\n"  # type: ignore
+            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)} {"🙈" if game.get_hidden() else ""}\n"  # type: ignore
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""
