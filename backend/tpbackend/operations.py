@@ -3,7 +3,7 @@ import logging
 from typing import cast
 
 from tpbackend import utils2
-from tpbackend.storage.storage_v2 import (
+from .storage import (
     Activity_or_none,
     Platform_or_none,
     User,
