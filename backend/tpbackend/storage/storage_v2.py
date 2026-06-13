@@ -302,10 +302,19 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
     def build_search(self) -> str:
-        # name + all aliases, lowercased
-        parts = [self.get_name()]
-        parts.extend(self.get_aliases())
-        return " ".join(parts).lower()
+        # id + name + release year + all aliases, lowercased
+        parts = [f"{self.get_id()}", self.get_name().strip().lower()]
+        if self.get_release_year():
+            parts.append(str(self.get_release_year()))
+        for a in self.get_aliases():
+            x = a.strip().lower()
+            current = " ".join(parts)
+            if x in current:
+                continue  # avoid repeating
+            parts.append(x)
+        new = " ".join(parts)
+        logger.info(f"[{self.get_id()} {self.get_name()}] search: '{new}'")
+        return new
 
     def get_name(self) -> str:
         return cast(str, self.name)
