@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Check package.json version matches release tag
+      - name: Check release tag version matches project version
         run: make check-version TAG=${{ github.event.release.tag_name }}
 
   test-backend:
