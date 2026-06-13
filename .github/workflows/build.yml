@@ -51,7 +51,7 @@ jobs:
   build-push-backend:
     runs-on: ubuntu-latest
     needs: [check-version]
-    if: needs.check-version.outputs.build_backend == 'true'
+    if: ${{ fromJSON(needs.check-version.outputs.build_backend) }}
     permissions:
       contents: read
       packages: write
@@ -100,7 +100,7 @@ jobs:
   build-push-frontend:
     runs-on: ubuntu-latest
     needs: [check-version]
-    if: needs.check-version.outputs.build_frontend == 'true'
+    if: ${{ fromJSON(needs.check-version.outputs.build_frontend) }}
     permissions:
       contents: read
       packages: write
