@@ -1,7 +1,7 @@
 import asyncio
 import os
 import logging
-from typing import cast, Literal
+from typing import cast
 from datetime import datetime, timedelta
 
 from peewee import (
@@ -36,33 +36,60 @@ class BaseModel(Model):
         database = db
 
 
-class Platform(BaseModel):
-    """
-    Platform (V2)
-    """
-
+class IdMixin(BaseModel):
     id = AutoField()
-    abbreviation = CharField(unique=True)
-    name = CharField(null=True)
-    color_primary = CharField(null=True, column_name="color_primary")
-    color_secondary = CharField(null=True, column_name="color_secondary")
-    icon = CharField(null=True)
-    history = ArrayField(TextField, default=lambda: [])  # type: ignore
+
+    def get_id(self) -> int:
+        return cast(int, self.id)
+
+
+class HistoryMixin(BaseModel):
     created = DateTimeField(default=lambda: now())
     updated = DateTimeField(default=lambda: now())
+    history = ArrayField(TextField, default=lambda: [])  # type: ignore
 
     def save(self, *args, **kwargs):
         self.updated = now()
         return super().save(*args, **kwargs)
-
-    def get_id(self) -> int:
-        return cast(int, self.id)
 
     def get_created(self) -> datetime:
         return assertTimezone(self.created)
 
     def get_updated(self) -> datetime:
         return assertTimezone(self.updated)
+
+    def get_history(self) -> list[str]:
+        return cast(list[str], self.history)
+
+    def add_history(self, message: str):
+        message = f"[{now_iso()}] {message}"
+        self.history.append(message)  # type: ignore
+
+
+class SearchMixin(BaseModel):
+    search = CharField(default="")
+
+    def save(self, *args, **kwargs):
+        self.search = self.build_search()
+        return super().save(*args, **kwargs)
+
+    def build_search(self) -> str:
+        """
+        Return string to be used for searching
+        """
+        raise NotImplementedError("Must implement build_search method")
+
+
+class Platform(IdMixin, HistoryMixin):
+    """
+    Platform (V2)
+    """
+
+    abbreviation = CharField(unique=True)
+    name = CharField(null=True)
+    color_primary = CharField(null=True, column_name="color_primary")
+    color_secondary = CharField(null=True, column_name="color_secondary")
+    icon = CharField(null=True)
 
     def get_abbreviation(self) -> str:
         return cast(str, self.abbreviation)
@@ -107,20 +134,12 @@ class Platform(BaseModel):
         self.icon = icon
         self.add_history(f"Icon changed from '{old_icon}' to '{icon}'")
 
-    def add_history(self, message: str):
-        message = f"[{now_iso()}] {message}"
-        self.history.append(message)  # type: ignore
 
-    def get_history(self) -> list[str]:
-        return cast(list[str], self.history)
-
-
-class User(BaseModel):
+class User(IdMixin, HistoryMixin):
     """
     User (V2)
     """
 
-    id = AutoField()
     discord_id = CharField(unique=True, null=True)
     name = CharField()
     default_platform = ForeignKeyField(
@@ -128,22 +147,6 @@ class User(BaseModel):
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
-    history = ArrayField(TextField, default=lambda: [])  # type: ignore
-    created = DateTimeField(default=lambda: now())
-    updated = DateTimeField(default=lambda: now())
-
-    def save(self, *args, **kwargs):
-        self.updated = now()
-        return super().save(*args, **kwargs)
-
-    def get_id(self) -> int:
-        return cast(int, self.id)
-
-    def get_created(self) -> datetime:
-        return assertTimezone(self.created)
-
-    def get_updated(self) -> datetime:
-        return assertTimezone(self.updated)
 
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)
@@ -209,13 +212,6 @@ class User(BaseModel):
     def get_permissions(self) -> list[str]:
         return cast(list[str], self.permissions)
 
-    def add_history(self, message: str):
-        message = f"[{now_iso()}] {message}"
-        self.history.append(message)  # type: ignore
-
-    def get_history(self) -> list[str]:
-        return cast(list[str], self.history)
-
     def has_activity(self) -> bool:
         # hmm should hidden be filtered here...
         exists = (
@@ -228,12 +224,11 @@ class User(BaseModel):
         return exists is not None
 
 
-class Game(BaseModel):
+class Game(IdMixin, HistoryMixin, SearchMixin):
     """
     Game (V2)
     """
 
-    id = AutoField()
     name = CharField()
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
@@ -241,32 +236,13 @@ class Game(BaseModel):
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
     hidden = BooleanField(default=False)
-    history = ArrayField(TextField, default=lambda: [])  # type: ignore
-    created = DateTimeField(default=lambda: now())
-    updated = DateTimeField(default=lambda: now())
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
-    search = CharField(default="")
 
-    def save(self, *args, **kwargs):
-        self.build_search()
-        self.updated = now()
-        return super().save(*args, **kwargs)
-
-    def build_search(self):
-        # name + all aliases
+    def build_search(self) -> str:
+        # name + all aliases, lowercased
         parts = [self.get_name()]
         parts.extend(self.get_aliases())
-        new = " ".join(parts).lower()
-        self.search = new
-
-    def get_id(self) -> int:
-        return cast(int, self.id)
-
-    def get_created(self) -> datetime:
-        return assertTimezone(self.created)
-
-    def get_updated(self) -> datetime:
-        return assertTimezone(self.updated)
+        return " ".join(parts).lower()
 
     def get_name(self) -> str:
         return cast(str, self.name)
@@ -428,20 +404,12 @@ class Game(BaseModel):
         )
         return exists is not None
 
-    def add_history(self, message: str):
-        message = f"[{now_iso()}] {message}"
-        self.history.append(message)  # type: ignore
 
-    def get_history(self) -> list[str]:
-        return cast(list[str], self.history)
-
-
-class Activity(BaseModel):
+class Activity(IdMixin, HistoryMixin):
     """
     Activity (V2)
     """
 
-    id = AutoField()
     timestamp = DateTimeField()
     user = ForeignKeyField(User, backref="activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="activities")
@@ -449,19 +417,6 @@ class Activity(BaseModel):
     seconds = IntegerField()
     emulated = BooleanField(default=False)
     hidden = BooleanField(default=False, column_name="hidden")
-    history = ArrayField(TextField, default=lambda: [])  # type: ignore
-    created = DateTimeField(default=lambda: now())
-    updated = DateTimeField(default=lambda: now())
-
-    def save(self, *args, **kwargs):
-        self.updated = now()
-        return super().save(*args, **kwargs)
-
-    def get_created(self) -> datetime:
-        return assertTimezone(self.created)
-
-    def get_updated(self) -> datetime:
-        return assertTimezone(self.updated)
 
     def get_id(self) -> int:
         return cast(int, self.id)
@@ -534,23 +489,12 @@ class Activity(BaseModel):
         self.hidden = cast(BooleanField, hidden)
         self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
-    def add_history(self, message: str):
-        message = f"[{now_iso()}] {message}"
-        self.history.append(message)  # type: ignore
 
-    def get_history(self) -> list[str]:
-        return cast(list[str], self.history)
-
-
-class LiveActivity(BaseModel):
-    id = AutoField()
+class LiveActivity(IdMixin):
     user = ForeignKeyField(User, backref="live_activities", on_delete="CASCADE")
     game = ForeignKeyField(Game, backref="live_activities")
     platform = ForeignKeyField(Platform, backref="live_activities")
     started = DateTimeField()
-
-    def get_id(self) -> int:
-        return cast(int, self.id)
 
     def get_user(self) -> User:
         return cast(User, self.user)
@@ -568,8 +512,7 @@ class LiveActivity(BaseModel):
         return int(self.get_started_datetime().timestamp() * 1000)
 
 
-class DiscordHistory(BaseModel):
-    id = AutoField()
+class DiscordHistory(IdMixin):
     timestamp = DateTimeField(default=lambda: now())
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
