@@ -1,7 +1,7 @@
 import datetime
 from tpbackend.storage import User
+from tpbackend.utils2 import ts_to_dt
 from .command import Command
-from tpbackend.utils import query_normalize
 from tpbackend.sgdb.controller import search
 
 
@@ -20,7 +20,6 @@ Returns: list of SGDB id's, names and years matching the query
         return self.search(msg)
 
     def search(self, query: str) -> str:
-        query = query_normalize(query)
         sgdb_results = search(query=query)
         if len(sgdb_results) == 0:
             return "No games found on SGDB"
@@ -29,11 +28,8 @@ Returns: list of SGDB id's, names and years matching the query
         for result in sgdb_results:
             count += 1
             # convert timestamp to year
-            year = (
-                datetime.datetime.utcfromtimestamp(result.release_date).year
-                if result.release_date
-                else "?"
-            )
+            rd = ts_to_dt(result.release_date) if result.release_date else None
+            year = rd.year if rd else "?"
             out += f"- **{result.id}** - {result.name} ({year}) \n"
             # out += f"- **{result.id}** - [{result.name}](https://www.steamgriddb.com/game/{result.id}) ({year}) \n"
             if len(out) > 1337:

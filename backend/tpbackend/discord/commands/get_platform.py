@@ -1,6 +1,6 @@
+from tpbackend.platform.utils import md_platform_link
 from tpbackend.storage import Platform_or_none, User
 from .command import Command
-from tpbackend.utils import platform_name
 from tpbackend.utils2 import js_iso
 
 
@@ -17,7 +17,7 @@ class GetPlatformCommand(Command):
             return f"Error: platform with id {msg} not found."
 
         msg = ""
-        msg += f"## {platform_name(platform, as_markdown_link=True)}\n"
+        msg += f"{md_platform_link(platform)}\n"
         msg += f"- ID: {platform.id}\n"  # type: ignore
         msg += f"- Abbreviation: {platform.abbreviation}\n"
         msg += f"- Name: {'not set' if platform.name is None else platform.name}\n"

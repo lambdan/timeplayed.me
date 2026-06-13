@@ -303,7 +303,9 @@ def dt_to_ts(dt: datetime.datetime) -> int:
     return int(dt.timestamp() * 1000)
 
 
-def ts_to_dt(ts: int) -> datetime.datetime:
+def ts_to_dt(ts: int | float) -> datetime.datetime:
+    if isinstance(ts, float):
+        return ts_to_dt(int(ts * 1000))
     if ts < 10**12:  # if it's in seconds, convert to ms
         ts *= 1000
     return datetime.datetime.fromtimestamp(ts / 1000)

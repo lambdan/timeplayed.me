@@ -22,7 +22,7 @@ class GetGameCommand(Command):
             aliases_list.append(alias)
 
         msg = ""
-        msg += f"# {md_game_link(game)}\n"
+        msg += f"{md_game_link(game)}\n"
 
         parent = game.get_parent()
         if parent:
