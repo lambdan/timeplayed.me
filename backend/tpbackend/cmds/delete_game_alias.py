@@ -1,5 +1,5 @@
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.operations import get_game_by_alias
 from tpbackend.storage.storage_v2 import User
 
 
@@ -12,7 +12,7 @@ class DeleteGameAliasCommand(AdminCommand):
 
     def execute(self, user: User, msg: str) -> str:
         alias = msg
-        game = get_game_by_alias(alias)
+        game = GameSelect.by_alias(alias)
         if not game:
             return "Error: No game found with that alias"
         if game.remove_alias(alias):

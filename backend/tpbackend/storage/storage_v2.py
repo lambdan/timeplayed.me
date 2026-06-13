@@ -5,6 +5,7 @@ from typing import cast
 from datetime import datetime, timedelta
 
 from peewee import (
+    fn,
     BooleanField,
     CharField,
     DateTimeField,
@@ -16,14 +17,28 @@ from peewee import (
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
-from tpbackend.storage.reset_sequence import reset_sequences
 
 from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
 
 logger = logging.getLogger("storage_v2")
 
 
-db = PostgresqlExtDatabase(
+class CustomDb(PostgresqlExtDatabase):
+    def connect(self, reuse_if_open=True):
+        connected = super().connect(reuse_if_open)
+        if connected:
+            # trigger on_connect for all models to do any initialization (like resetting sequences)
+            Platform.on_connect()
+            User.on_connect()
+            Game.on_connect()
+            Activity.on_connect()
+            LiveActivity.on_connect()
+            DiscordHistory.on_connect()
+
+        return connected
+
+
+db = CustomDb(
     os.environ.get("DB_NAME_TIMEPLAYED"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
@@ -31,9 +46,28 @@ db = PostgresqlExtDatabase(
 )
 
 
+def reset_sequence(model):
+    table = model._meta.table_name
+    pk_field = model._meta.primary_key
+    sequence_name = f"{table}_{pk_field.name}_seq"
+    max_id = model.select(fn.MAX(pk_field)).scalar() or 0
+    new_max_id = int(max_id) + 1
+    model._meta.database.execute_sql(
+        f"SELECT setval('{sequence_name}', {new_max_id}, false);"
+    )
+    logger.info(f"Reset sequence for {table} to {new_max_id}.")
+
+
 class BaseModel(Model):
     class Meta:
         database = db
+
+    @classmethod
+    def on_connect(cls):
+        """
+        Do any initalization you need here
+        """
+        pass
 
 
 #################
@@ -46,6 +80,12 @@ class IdMixin(BaseModel):
 
     def get_id(self) -> int:
         return cast(int, self.id)
+
+    @classmethod
+    def on_connect(cls):
+        logger.info(f"Resetting sequence for {cls.__name__}...")
+        reset_sequence(cls)
+        super().on_connect()
 
 
 class HistoryMixin(BaseModel):
@@ -523,13 +563,6 @@ class DiscordHistory(IdMixin):
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
     message = TextField()
-
-
-def connect_db():
-    if db.connect():
-        logger.info("DB connected")
-        db.create_tables([Platform, User, Game, Activity, LiveActivity, DiscordHistory])
-        reset_sequences([Platform, Game, Activity, LiveActivity, DiscordHistory, User])
 
 
 async def clean_loop():

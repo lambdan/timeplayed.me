@@ -1,4 +1,5 @@
 from tpbackend.api_v2.games.query import GameQuery
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.storage.storage_v2 import User, Game
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_name
@@ -24,6 +25,15 @@ Returns: list of game id's and names matching the query
         return self.search(msg, self.is_admin(user))
 
     def search(self, query: str, is_admin: bool) -> str:
+        # start with _ for select debugging
+        if query.startswith("_"):
+            query = query[1:]
+            g = GameSelect.by_name_or_alias(query)
+            if g:
+                return f"Found {g.get_name()} {g.get_id()}"
+            else:
+                return "Not found"
+
         games = GameQuery.search(GameQuery.base(include_hidden=is_admin), search=query)
         if len(games) == 0:
             return "No games found"
