@@ -1,7 +1,7 @@
 import datetime
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Game_or_none, User
-from tpbackend.storage.storage_v2 import Game
+from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.set_sgdb_id import SetSGDBIDCommand
 from tpbackend.utils import query_normalize
 from tpbackend.api_v2.sgdb.controller import search
@@ -17,8 +17,7 @@ class AutoSGDBAdminCommand(AdminCommand):
         splitted = msg.split(" ")
         game_id = int(splitted[0].strip())
         confirmed = len(splitted) > 1 and splitted[1].strip().lower() == "y"
-
-        game = Game_or_none(game_id)
+        game = GameSelect.by_id(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
 
@@ -38,7 +37,7 @@ class AutoSGDBAdminCommand(AdminCommand):
                 else "?"
             )
             out = ""
-            out += f"Best SGDB match for '{game.name}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
+            out += f"Best SGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."
             return out
 

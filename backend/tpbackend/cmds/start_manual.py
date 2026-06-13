@@ -1,6 +1,6 @@
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import (
-    Game_or_none,
     LiveActivity_or_none,
     User,
     LiveActivity,
@@ -34,7 +34,7 @@ Use the stop command when you are done playing to save the activity.
         try:
             splitted = msg.split(" ")
             game_id = splitted[0].strip()
-            game = Game_or_none(game_id=int(game_id))
+            game = GameSelect.by_id(int(game_id))
             if not game:
                 return f"Error: Game with id {game_id} not found."
             return self.start(user=user, game=game)

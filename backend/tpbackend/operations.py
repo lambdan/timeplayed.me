@@ -3,9 +3,9 @@ import logging
 from typing import cast
 
 from tpbackend import utils2
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
-    Game_or_none,
     Platform_or_none,
     User,
     Game,
@@ -149,10 +149,10 @@ def remove_session(user: User, sessionId: int):
 
 
 def merge_games(user: User, gameId1: int, gameId2: int):
-    game1 = Game_or_none(gameId1)
+    game1 = GameSelect.by_id(gameId1)
     if not game1:
         return f"ERROR: Game with ID {gameId1} not found"
-    game2 = Game_or_none(gameId2)
+    game2 = GameSelect.by_id(gameId2)
     if not game2:
         return f"ERROR: Game with ID {gameId2} not found"
     Activity.update(game=game2).where(

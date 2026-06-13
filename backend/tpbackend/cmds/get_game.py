@@ -1,4 +1,5 @@
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.api_v2.games.select import GameSelect
+from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.utils import game_url
 from tpbackend.utils2 import js_iso
@@ -12,7 +13,7 @@ class GetGameCommand(Command):
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
-        game = Game_or_none(int(msg))
+        game = GameSelect.by_id(msg)
         if not game:
             return f"Error: Game with id {msg} not found."
 

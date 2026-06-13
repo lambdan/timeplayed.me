@@ -1,5 +1,5 @@
 from tpbackend.api_v2.games.select import GameSelect
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.storage.storage_v2 import User
 from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.api_v2.sgdb.controller import get_game_by_id
@@ -78,9 +78,8 @@ Returns: Confirmation message
         out += f"- SGDB ID: {new_game.sgdb_id}\n"
         out += f"- Game ID: {new_game.id}"
 
-        g = Game_or_none(new_game.id)
-        if g:
-            g.add_history("Game added by SGDB ID by user " + user.get_name())
-            g.save()
-
+        g = GameSelect.by_id(new_game.id)
+        assert g
+        g.add_history(f"Game added by SGDB ID by user {user.get_id()}")
+        g.save()
         return out

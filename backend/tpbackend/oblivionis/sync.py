@@ -8,7 +8,7 @@ from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
 from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
-from tpbackend.storage.storage_v2 import User, Platform, Game, Game_or_none
+from tpbackend.storage.storage_v2 import User, Platform, Game
 
 logger = logging.getLogger("oblivionis-sync")
 
@@ -32,12 +32,13 @@ def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
     game = Game.create(name=s)  # type: ignore
     logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
 
-    g = Game_or_none(game.id)
+    g = GameSelect.by_id(game.id)
     if g:
         g.add_history(creation_message)
         g.save()
 
-    return game
+    # this shouldnt be possible...
+    raise Exception("Created game not found?!")
 
 
 def parseActivity(activity: PassedActivity) -> bool:

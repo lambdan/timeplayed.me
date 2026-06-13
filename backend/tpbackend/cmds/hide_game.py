@@ -1,4 +1,5 @@
-from tpbackend.storage.storage_v2 import Game_or_none, User, Game, Activity
+from tpbackend.api_v2.games.select import GameSelect
+from tpbackend.storage.storage_v2 import User, Game, Activity
 from tpbackend.cmds.admin_command import AdminCommand
 from typing import cast
 
@@ -11,7 +12,7 @@ class HideGameCommand(AdminCommand):
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
-        game = Game_or_none(int(msg), include_hidden=True)
+        game = GameSelect.by_id(int(msg))
         if not game:
             return f"Error: Game with id {msg} not found."
         game.set_hidden(not game.get_hidden())

@@ -9,8 +9,8 @@ logger = logging.getLogger("game_select")
 
 class GameSelect:
     @staticmethod
-    def by_id(game_id: int) -> Game | None:
-        return Game.get_or_none(Game.id == game_id)  # type: ignore
+    def by_id(game_id: int | str) -> Game | None:
+        return Game.get_or_none(Game.id == int(game_id))  # type: ignore
 
     @staticmethod
     def by_name(name: str, case_sensitive=False) -> Game | None:
@@ -54,3 +54,16 @@ class GameSelect:
             )
             return game
         return None
+
+    @staticmethod
+    def by_name_and_year(name: str, release_year: int | None) -> Game | None:
+        base = GameQuery.base(include_hidden=True)
+        if release_year is None:
+            query = base.where(
+                (Game.name == name) & (Game.release_year.is_null())  # type: ignore
+            )
+        else:
+            query = base.where(
+                (Game.name == name) & (Game.release_year == release_year)  # type: ignore
+            )
+        return query.first()
