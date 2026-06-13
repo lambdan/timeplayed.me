@@ -4,7 +4,7 @@ from tpbackend.game.query import GameStatsQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
 from tpbackend.game.models import API_Game
-from tpbackend.http_responses import bad_request, not_found
+from tpbackend.api.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.common.types import (

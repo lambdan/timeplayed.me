@@ -4,7 +4,7 @@ from tpbackend.activity.models import API_Activity
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS
 from tpbackend.common.types import AscDescOrder, QUERY_TS_AFTER, QUERY_TS_BEFORE
-from tpbackend.http_responses import bad_request, not_found
+from tpbackend.api.responses import bad_request, not_found
 
 router = APIRouter()
 
