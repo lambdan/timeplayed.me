@@ -13,10 +13,11 @@ check-version:
 				echo "Error: backend version file '$$BACKEND_VERSION_FILE' not found for tag '$$TAG_VALUE'"; \
 				exit 1; \
 			fi; \
-			PACKAGE_VERSION=$$(python3 -c 'import pathlib,re,sys; content = pathlib.Path(sys.argv[1]).read_text(); match = re.search(r"^__version__ = \"([^\"]+)\"$$", content, re.M); print(match.group(1) if match else ""); sys.exit(0 if match else 1)' "$$BACKEND_VERSION_FILE") || { \
+			PACKAGE_VERSION=$$(awk -F'"' '/^__version__ = "/ { print $$2 }' "$$BACKEND_VERSION_FILE"); \
+			if [ -z "$$PACKAGE_VERSION" ]; then \
 				echo "Error: could not parse backend version from $$BACKEND_VERSION_FILE"; \
 				exit 1; \
-			}; \
+			fi; \
 			TAG_VERSION=$${TAG_VALUE#backend@}; \
 			VERSION_SOURCE=$$BACKEND_VERSION_FILE; \
 			;; \
