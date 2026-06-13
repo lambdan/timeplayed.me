@@ -1,5 +1,6 @@
 from tpbackend.game.query import GameQuery
 from tpbackend.game.select import GameSelect
+from tpbackend.game.utils import md_game_link
 from .manual_activity_command import ManualActivityCommand
 from tpbackend.storage import (
     LiveActivity_or_none,
@@ -7,7 +8,7 @@ from tpbackend.storage import (
     LiveActivity,
     Game,
 )
-from tpbackend.utils import game_name, last_platform_for_game
+from tpbackend.utils import last_platform_for_game
 from tpbackend.utils2 import now
 
 
@@ -50,7 +51,7 @@ Use the stop command when you are done playing to save the activity.
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
-                    msg += f"- **{g.id}** - {game_name(g, as_markdown_link=True)}\n"  # type: ignore
+                    msg += f"- {md_game_link(g)} ({g.id})\n"
                 msg += "If so, use the game ID (the number) in the command"
                 return msg
             elif len(search_results) == 0:
@@ -72,4 +73,6 @@ Use the stop command when you are done playing to save the activity.
 
         started = now()
         LiveActivity.create(user=user, game=game, platform=platform, started=started)
-        return f"⏱️ Started playing *{game_name(game, as_markdown_link=True)}*. Send `!stop` when you are done."
+        return (
+            f"⏱️ Started playing *{md_game_link(game)}*. Send `!stop` when you are done."
+        )

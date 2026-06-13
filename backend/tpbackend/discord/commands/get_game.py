@@ -1,7 +1,7 @@
 from tpbackend.game.select import GameSelect
 from tpbackend.storage import User
 from .command import Command
-from tpbackend.utils import game_url
+from tpbackend.game.utils import game_url, md_game_link
 from tpbackend.utils2 import js_iso
 
 
@@ -22,17 +22,11 @@ class GetGameCommand(Command):
             aliases_list.append(alias)
 
         msg = ""
-        msg += f"# {game.get_name()}\n"
+        msg += f"# {md_game_link(game)}\n"
 
         parent = game.get_parent()
         if parent:
             msg += f"### Child of {parent.get_name()} ({parent.get_id()})\n"
-
-        url = game_url(game.get_id())
-        if url:
-            msg += f"- ID: [{game.get_id()}]({url})\n"
-        else:
-            msg += f"- ID: {game.get_id()}\n"
 
         if game.get_sgdb_id():
             msg += f"- SGDB ID: [{game.get_sgdb_id()}](https://www.steamgriddb.com/game/{game.get_sgdb_id()})\n"

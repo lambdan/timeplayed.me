@@ -10,9 +10,9 @@ from tpbackend.operations import (
 )
 from tpbackend.utils import (
     activity_name,
-    game_name,
     last_platform_for_game,
 )
+from tpbackend.game.utils import md_game_link
 
 from tpbackend.utils2 import secsToHHMMSS, now
 
@@ -65,7 +65,7 @@ Returns: Confirmation message
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:
-                    msg += f"- **{g.id}** - {game_name(g, as_markdown_link=True)}\n"  # type: ignore
+                    msg += f"- {md_game_link(g)} (id: {g.get_id()})\n"
                 msg += "If so, use the game ID (the number) in the command"
                 return msg
             elif len(search_results) == 0:
@@ -123,7 +123,7 @@ Returns: Confirmation message
         if sesh:
             formatted_dt = sesh.get_datetime().strftime("%Y-%m-%d %H:%M:%S UTC")
             msg = f"{activity_name(sesh, as_markdown_link=True)} added ✅\n"
-            msg += f"- Game: {game_name(game=sesh.get_game(), as_markdown_link=True)}\n"  # type: ignore
+            msg += f"- Game: {md_game_link(game=sesh.get_game())}\n"
             msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Date: {formatted_dt}\n"
             msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"

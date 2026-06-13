@@ -1,8 +1,8 @@
 from tpbackend.game.query import GameQuery
 from tpbackend.game.select import GameSelect
+from tpbackend.game.utils import md_game_link
 from tpbackend.storage import User, Game
 from .command import Command
-from tpbackend.utils import game_name
 from typing import cast
 
 
@@ -43,7 +43,7 @@ Returns: list of game id's and names matching the query
         for game in games:
             game = cast(Game, game)
             count += 1
-            out += f"- **{game.id}** - {game_name(game, as_markdown_link=True)} {"🙈" if game.get_hidden() else ""}\n"  # type: ignore
+            out += f"- {md_game_link(game)} ({game.get_id()}) {"🙈" if game.get_hidden() else ""}\n"  # type: ignore
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""
