@@ -33,10 +33,12 @@ jobs:
               echo "build_backend=true" >> "$GITHUB_OUTPUT"
               echo "build_frontend=false" >> "$GITHUB_OUTPUT"
               echo "backend_version=${TAG#backend@}" >> "$GITHUB_OUTPUT"
+              echo "frontend_version=" >> "$GITHUB_OUTPUT"
               ;;
             frontend@*)
               echo "build_backend=false" >> "$GITHUB_OUTPUT"
               echo "build_frontend=true" >> "$GITHUB_OUTPUT"
+              echo "backend_version=" >> "$GITHUB_OUTPUT"
               echo "frontend_version=${TAG#frontend@}" >> "$GITHUB_OUTPUT"
               ;;
             *)
