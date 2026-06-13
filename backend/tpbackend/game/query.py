@@ -75,6 +75,10 @@ class GameStatsQuery:
         Case(None, [(Activity.hidden == False, Activity.timestamp)], None)
     ).alias("last_activity")
 
+    FIRST_ACTIVITY = fn.MIN(
+        Case(None, [(Activity.hidden == False, Activity.timestamp)], None)
+    ).alias("first_activity")
+
     USER_COUNT = fn.COUNT(
         fn.DISTINCT(Case(None, [(Activity.hidden == False, Activity.user)], None))
     ).alias("user_count")
@@ -87,6 +91,7 @@ class GameStatsQuery:
         "playtime": TOTAL_SECONDS,
         "activity_count": ACTIVITY_COUNT,
         "last_activity": LAST_ACTIVITY,
+        "first_activity": FIRST_ACTIVITY,
         "user_count": USER_COUNT,
         "platform_count": PLATFORM_COUNT,
     }

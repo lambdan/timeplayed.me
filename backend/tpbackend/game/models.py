@@ -63,5 +63,8 @@ class API_GameWithStats(API_Game):
                 last_activity=(
                     dt_to_ts(game.last_activity) if game.last_activity else None
                 ),
+                first_activity=(
+                    dt_to_ts(game.first_activity) if game.first_activity else None
+                ),
             ),
         )

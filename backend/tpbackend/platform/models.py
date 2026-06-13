@@ -54,5 +54,10 @@ class API_PlatformWithStats(API_Platform):
                 last_activity=(
                     dt_to_ts(platform.last_activity) if platform.last_activity else None
                 ),
+                first_activity=(
+                    dt_to_ts(platform.first_activity)
+                    if platform.first_activity
+                    else None
+                ),
             ),
         )

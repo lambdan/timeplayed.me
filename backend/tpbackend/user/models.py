@@ -48,5 +48,8 @@ class API_UserWithStats(API_User):
                 last_activity=(
                     dt_to_ts(user.last_activity) if user.last_activity else None
                 ),
+                first_activity=(
+                    dt_to_ts(user.first_activity) if user.first_activity else None
+                ),
             ),
         )
