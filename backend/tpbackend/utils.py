@@ -10,7 +10,6 @@ from .storage import (
     Platform,
     Platform_or_none,
     User,
-    User_or_none,
 )
 
 logger = logging.getLogger("utils")
@@ -51,20 +50,6 @@ def activity_url(activity_id) -> str:
 
 def platform_url(platform_id) -> str:
     return f"{TIMEPLAYED_URL}/platform/{platform_id}"
-
-
-def user_url(user_id) -> str:
-    return f"{TIMEPLAYED_URL}/user/{user_id}"
-
-
-def user_name(user: User, as_markdown_link=False) -> str:
-    id = user.get_id()
-    name = user.get_name().strip()
-    if as_markdown_link:
-        url = user_url(id)
-        if url:
-            return f"[{name}]({url})"
-    return name
 
 
 def activity_name(activity: Activity, as_markdown_link=False) -> str:
@@ -127,32 +112,3 @@ def search_platforms(query: str, offset=0, limit=0) -> list[Platform]:
     else:
         platforms = platforms[offset:]
     return platforms
-
-
-def search_users(query: str, offset=0, limit=0) -> list[User]:
-    """
-    Search users by name
-    """
-    query = query_normalize(query)
-    users = []
-    for user in User.select():
-        user = cast(User, user)
-        # search in name
-        if query in query_normalize(user.get_name()):
-            users.append(user)
-            continue
-        if query in query_normalize(str(user.get_discord_id())):
-            users.append(user)
-            continue
-        if query in query_normalize(str(user.get_id())):
-            users.append(user)
-            continue
-    logger.info("search_users :: '%s' --> %s results", query, len(users))
-    # order by name
-    users.sort(key=lambda u: cast(User, u).get_name().lower())
-    # offset and limit
-    if limit > 0:
-        users = users[offset : offset + limit]
-    else:
-        users = users[offset:]
-    return users
