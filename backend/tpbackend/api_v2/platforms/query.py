@@ -41,6 +41,13 @@ class PlatformQuery:
         column = PlatformQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
 
+    @staticmethod
+    def search(query, search: str):
+        if not search or search.strip() == "":
+            return query
+        q = query.where(Platform.search.contains(search.lower()))  # type: ignore
+        return q
+
 
 class PlatformStatsQuery:
     TOTAL_SECONDS = fn.SUM(
