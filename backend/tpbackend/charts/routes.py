@@ -1,14 +1,16 @@
 import datetime
+from typing import cast
 from fastapi import APIRouter
+from tpbackend.activity.query import ActivityQuery
 from tpbackend.common.types import QUERY_TS_BEFORE, QUERY_TS_AFTER
 from tpbackend.storage import (
     Activity,
 )
 import logging
 
+
 logger = logging.getLogger("charts")
 router = APIRouter()
-ACTIVITY_BASE_FILTERS = [Activity.hidden == False]  # noqa: E712
 
 # TODO, get rid of this file? move it somewhere else?
 
@@ -21,34 +23,30 @@ def get_playtime_by_day(
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
 ):
-    query = Activity.select(Activity.timestamp, Activity.seconds)
-    conditions = ACTIVITY_BASE_FILTERS.copy()
+    query = ActivityQuery.base()
+
     if user:
-        conditions.append(Activity.user == user)
+        query = ActivityQuery.user(query, user)
     if game:
-        conditions.append(Activity.game == game)
+        query = ActivityQuery.game(query, game)
     if platform:
-        conditions.append(Activity.platform == platform)
+        query = ActivityQuery.platform(query, platform)
     if before:
-        before_dt = datetime.datetime.fromtimestamp(before / 1000)
-        conditions.append(Activity.timestamp <= before_dt)  # type: ignore
+        query = ActivityQuery.before(query, before)
     if after:
-        after_dt = datetime.datetime.fromtimestamp(after / 1000)
-        conditions.append(Activity.timestamp >= after_dt)  # type: ignore
-    query = query.where(*conditions)
+        query = ActivityQuery.after(query, after)
 
     daily_seconds: dict[datetime.date, int] = {}
     for activity in query:
-        end_time = activity.timestamp
-        if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=datetime.timezone.utc)
-        start_time = end_time - datetime.timedelta(seconds=activity.seconds)
+        activity = cast(Activity, activity)
+        end_time = activity.get_datetime()
+        start_time = end_time - datetime.timedelta(seconds=activity.get_seconds())
 
         start_date = start_time.date()
         end_date = end_time.date()
 
         if start_date == end_date:
-            daily_seconds[start_date] = (
+            daily_seconds[start_date] = (  # type: ignore
                 daily_seconds.get(start_date, 0) + activity.seconds
             )
         else:
