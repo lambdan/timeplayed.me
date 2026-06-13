@@ -3,13 +3,11 @@ import os
 from .oblivionis import storage as oblivionis_storage, sync as oblivionis_sync
 from .discord.bot import bot
 from tpbackend.storage import db, clean_loop
-from tpbackend.api.api import TimeplayedAPI
-
-# from tpbackend.api import router as api_v1_deprecated
+import tpbackend.api.api as api
 
 
 async def start_api():
-    await TimeplayedAPI().run()
+    await api.run()
 
 
 async def start_bot():
