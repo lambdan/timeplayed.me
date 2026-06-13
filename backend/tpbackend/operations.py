@@ -3,7 +3,6 @@ import logging
 from typing import cast
 
 from tpbackend import utils2
-from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.storage.storage_v2 import (
     Activity_or_none,
     Platform_or_none,
@@ -130,62 +129,3 @@ def add_session(
     except Exception as e:
         logger.error("Failed to add session for user %s: %s", user.id, e)
         return None, e
-
-
-def remove_game_images(game: Game) -> str:
-    Game.update(small_image=None, large_image=None).where(Game.id == game.id).execute()  # type: ignore
-    logger.info("Removed images for game %s", game.name)
-    return f"Images for game '{game.name}' removed successfully."
-
-
-def remove_session(user: User, sessionId: int):
-    activity = Activity_or_none(sessionId, include_hidden=True)
-    if not activity:
-        return f"ERROR: Session {sessionId} not found"
-    if activity.user != user:
-        return f"ERROR: Session {sessionId} does not belong to you"
-    activity.delete_instance()
-    return f"Session {sessionId} removed successfully."
-
-
-def merge_games(user: User, gameId1: int, gameId2: int):
-    game1 = GameSelect.by_id(gameId1)
-    if not game1:
-        return f"ERROR: Game with ID {gameId1} not found"
-    game2 = GameSelect.by_id(gameId2)
-    if not game2:
-        return f"ERROR: Game with ID {gameId2} not found"
-    Activity.update(game=game2).where(
-        (Activity.game == game1) & (Activity.user == user)
-    ).execute()
-    return f"Game '{game1.name}' merged into '{game2.name}' successfully for your user"
-
-
-def set_default_platform(user: User, platform: str) -> str:
-    user.default_platform = platform  # type: ignore
-    user.save()
-    return f"Your default platform is now **{user.default_platform}**"
-
-
-def set_platform_for_session(user: User, sessionId: int, platform: Platform) -> bool:
-    activity = Activity_or_none(sessionId)
-    if not activity:
-        return False
-    if activity.user.id != user.id:
-        return False
-    if activity.platform == platform:
-        return False
-    activity.set_platform(platform)
-    activity.save()
-    return True
-
-
-def modify_session_date(user: User, sessionId: int, new_date: datetime.datetime) -> str:
-    activity = Activity_or_none(sessionId)
-    if not activity:
-        return f"ERROR: Session {sessionId} not found"
-    if activity.user != user:
-        return f"ERROR: Session {sessionId} does not belong to you"
-    activity.set_datetime(new_date)
-    activity.save()
-    return f"Session {sessionId} date has been modified to {new_date.strftime('%Y-%m-%d %H:%M:%S')} UTC"
