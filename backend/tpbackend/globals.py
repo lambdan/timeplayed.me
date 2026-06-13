@@ -10,7 +10,7 @@ if DEBUG:
 
 TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
 
-MINIMUM_SESSION_LENGTH = int(os.environ.get("MINIMUM_SESSION_LENGTH", "60"))
+MINIMUM_SESSION_LENGTH = int(os.environ.get("MINIMUM_SESSION_LENGTH", "0"))
 
 # CRITICAL, INFO , DEBUG, WARNING, ERROR
 
