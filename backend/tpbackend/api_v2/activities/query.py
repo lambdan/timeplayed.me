@@ -3,7 +3,7 @@ import logging
 from typing import Literal
 
 from tpbackend.storage.storage_v2 import Activity, User, Game, Platform
-from tpbackend.utils2 import validateTS
+from tpbackend.utils2 import assertTimezone, validateTS, ts_to_dt
 
 logger = logging.getLogger("activities_query")
 
@@ -78,12 +78,16 @@ class ActivityQuery:
 
     @staticmethod
     def before(query, before: int | datetime.datetime):
-        dt = validateTS(before)
+        if isinstance(before, int):
+            before = ts_to_dt(before)
+        dt = assertTimezone(before)
         return query.where(Activity.timestamp <= dt)  # type: ignore
 
     @staticmethod
     def after(query, after: int | datetime.datetime):
-        dt = validateTS(after)
+        if isinstance(after, int):
+            after = ts_to_dt(after)
+        dt = assertTimezone(after)
         return query.where(Activity.timestamp >= dt)  # type: ignore
 
     @staticmethod

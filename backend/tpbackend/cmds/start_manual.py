@@ -1,3 +1,4 @@
+from tpbackend.api_v2.games.query import GameQuery
 from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import (
@@ -6,7 +7,7 @@ from tpbackend.storage.storage_v2 import (
     LiveActivity,
     Game,
 )
-from tpbackend.utils import game_name, last_platform_for_game, search_games
+from tpbackend.utils import game_name, last_platform_for_game
 from tpbackend.utils2 import now
 
 
@@ -40,7 +41,9 @@ Use the stop command when you are done playing to save the activity.
             return self.start(user=user, game=game)
         except Exception as e:
             # user probably did "!start Game Name""
-            search_results = search_games(query=msg, limit=10)
+            search_results = (
+                GameQuery.search(GameQuery.base(), search=msg).limit(10).execute()
+            )
             if len(search_results) == 1:
                 # one game found... could it be the one?
                 return self.start(user=user, game=search_results[0])

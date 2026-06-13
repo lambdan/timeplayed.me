@@ -205,8 +205,7 @@ def validateTS(ts) -> int | None:
             ts *= 1000
         return ts
     elif isinstance(ts, datetime.datetime):
-        ts = assertTimezone(ts)
-        return int(ts.timestamp() * 1000)
+        return dt_to_ts(ts)
     try:
         return validateTS(int(ts))
     except Exception as _:
@@ -302,6 +301,12 @@ def assertTimezone(dt) -> datetime.datetime:
 def dt_to_ts(dt: datetime.datetime) -> int:
     dt = assertTimezone(dt)
     return int(dt.timestamp() * 1000)
+
+
+def ts_to_dt(ts: int) -> datetime.datetime:
+    if ts < 10**12:  # if it's in seconds, convert to ms
+        ts *= 1000
+    return datetime.datetime.fromtimestamp(ts / 1000)
 
 
 def parse_csv(input: int | str) -> list[int]:
