@@ -36,6 +36,11 @@ class BaseModel(Model):
         database = db
 
 
+#################
+#### Mixins #####
+#################
+
+
 class IdMixin(BaseModel):
     id = AutoField()
 
@@ -78,6 +83,25 @@ class SearchMixin(BaseModel):
         Return string to be used for searching
         """
         raise NotImplementedError("Must implement build_search method")
+
+
+class HiddenMixin(BaseModel):
+    hidden = BooleanField(default=False)
+
+    def get_hidden(self) -> bool:
+        return cast(bool, self.hidden)
+
+    def set_hidden(self, hidden: bool):
+        old_hidden = self.get_hidden()
+        self.hidden = cast(BooleanField, hidden)
+        # if we have a history mixin, add to history
+        if isinstance(self, HistoryMixin):
+            self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
+
+
+####################
+###### Models ######
+####################
 
 
 class Platform(IdMixin, HistoryMixin):
@@ -224,7 +248,7 @@ class User(IdMixin, HistoryMixin):
         return exists is not None
 
 
-class Game(IdMixin, HistoryMixin, SearchMixin):
+class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     """
     Game (V2)
     """
@@ -235,7 +259,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin):
     image_url = CharField(null=True, default=None)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
-    hidden = BooleanField(default=False)
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
     def build_search(self) -> str:
@@ -340,12 +363,7 @@ class Game(IdMixin, HistoryMixin, SearchMixin):
         parent = self.get_parent()
         if parent and parent.get_hidden():
             return True
-        return cast(bool, self.hidden)
-
-    def set_hidden(self, hidden: bool):
-        old_hidden = self.get_hidden()
-        self.hidden = cast(BooleanField, hidden)
-        self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
+        return super().get_hidden()
 
     def get_parent(self) -> "Game | None":
         return cast(Game | None, self.parent)
@@ -405,7 +423,7 @@ class Game(IdMixin, HistoryMixin, SearchMixin):
         return exists is not None
 
 
-class Activity(IdMixin, HistoryMixin):
+class Activity(IdMixin, HistoryMixin, HiddenMixin):
     """
     Activity (V2)
     """
@@ -416,10 +434,6 @@ class Activity(IdMixin, HistoryMixin):
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
     emulated = BooleanField(default=False)
-    hidden = BooleanField(default=False, column_name="hidden")
-
-    def get_id(self) -> int:
-        return cast(int, self.id)
 
     def get_game(self) -> Game:
         return cast(Game, self.game)
@@ -480,14 +494,6 @@ class Activity(IdMixin, HistoryMixin):
         old_emulated = self.get_emulated()
         self.emulated = cast(BooleanField, emulated)
         self.add_history(f"Emulated changed from {old_emulated} to {emulated}")
-
-    def get_hidden(self) -> bool:
-        return cast(bool, self.hidden)
-
-    def set_hidden(self, hidden: bool):
-        old_hidden = self.get_hidden()
-        self.hidden = cast(BooleanField, hidden)
-        self.add_history(f"Hidden changed from {old_hidden} to {hidden}")
 
 
 class LiveActivity(IdMixin):
