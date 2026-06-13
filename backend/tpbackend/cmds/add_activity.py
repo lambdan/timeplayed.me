@@ -1,8 +1,9 @@
 from typing import cast
 from tpbackend.api_v2.activities.query import ActivityQuery
+from tpbackend.api_v2.games.query import GameQuery
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.manual_activity_command import ManualActivityCommand
 from tpbackend.storage.storage_v2 import Platform, User
-from tpbackend.cmds.command import Command
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.operations import (
     add_session,
@@ -11,7 +12,6 @@ from tpbackend.utils import (
     activity_name,
     game_name,
     last_platform_for_game,
-    search_games,
 )
 
 from tpbackend.utils2 import secsToHHMMSS, now
@@ -49,14 +49,19 @@ Returns: Confirmation message
         game = None
         try:
             game_id = splitted[0].strip()
-            game = Game.get_or_none(Game.id == int(game_id))  # type: ignore
+            game = GameSelect.by_id(game_id)
         except Exception as e:
             # user probably did "!add_activity Game Name 1:23:45"", show search results
-            # duration will be thrown into search query, but thats fine... probably
-            search_results = search_games(msg, limit=10)
+            search_query = " ".join(splitted[:-1]).strip()
+            search_results = (
+                GameQuery.search(GameQuery.base(), search=search_query)
+                .limit(5)
+                .execute()
+            )
             if len(search_results) == 1:
                 # one game found... could it be the one?
                 game = search_results[0]
+                self.logger.info(f"One result! {game}")
             elif len(search_results) > 0:
                 msg = "Not sure what game you are referring to. Is it one of these?\n"
                 for g in search_results:

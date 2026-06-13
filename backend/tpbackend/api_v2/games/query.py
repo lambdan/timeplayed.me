@@ -49,9 +49,11 @@ class GameQuery:
 
     @staticmethod
     def search(query, search: str):
-        if not search or search.strip() == "" or len(search) <= 2:
+        if not search or search.strip() == "":
             return query
-        return query.where(Game.search.contains(search.lower()))  # type: ignore
+        q = query.where(Game.search.contains(search.lower()))  # type: ignore
+        # logger.debug(f"GameQuery search: {q.sql()}")
+        return q
 
     @staticmethod
     def release_year(query, release_year: int | None):
