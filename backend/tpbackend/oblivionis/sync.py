@@ -4,11 +4,11 @@ import asyncio
 from typing import TypedDict
 
 from tpbackend import operations
-from tpbackend.api_v2.games.select import GameSelect
+from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
 from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
-from tpbackend.storage.storage_v2 import User, Platform, Game
+from tpbackend.storage import User, Platform, Game
 
 logger = logging.getLogger("oblivionis-sync")
 

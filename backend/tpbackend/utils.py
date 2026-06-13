@@ -4,8 +4,7 @@ from typing import cast
 
 from tpbackend.utils2 import query_normalize
 from tpbackend.globals import TIMEPLAYED_URL
-from tpbackend.storage import storage_v2
-from tpbackend.storage.storage_v2 import (
+from .storage import (
     Game,
     Activity,
     Platform,
@@ -17,19 +16,15 @@ from tpbackend.storage.storage_v2 import (
 logger = logging.getLogger("utils")
 
 
-def last_platform_for_game(
-    user: storage_v2.User, game: storage_v2.Game
-) -> storage_v2.Platform | None:
+def last_platform_for_game(user: User, game: Game) -> Platform | None:
     """
     Returns the last platform the user played the game on if available
     """
     try:
         last_activity = (
-            storage_v2.Activity.select()
-            .where(
-                (storage_v2.Activity.user == user) & (storage_v2.Activity.game == game)
-            )
-            .order_by(storage_v2.Activity.timestamp.desc())
+            Activity.select()
+            .where((Activity.user == user) & (Activity.game == game))
+            .order_by(Activity.timestamp.desc())
             .first()
         )
         if not last_activity:
@@ -106,13 +101,13 @@ def platform_name(platform: Platform, as_markdown_link=False) -> str:
     return name
 
 
-def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]:
+def search_platforms(query: str, offset=0, limit=0) -> list[Platform]:
     """
     Search platforms by name or alias
     """
     query = query_normalize(query)
     platforms = []
-    for platform in storage_v2.Platform.select():
+    for platform in Platform.select():
         platform = cast(Platform, platform)
         # search in abbreviation
         if query in query_normalize(platform.get_abbreviation()):
@@ -134,13 +129,13 @@ def search_platforms(query: str, offset=0, limit=0) -> list[storage_v2.Platform]
     return platforms
 
 
-def search_users(query: str, offset=0, limit=0) -> list[storage_v2.User]:
+def search_users(query: str, offset=0, limit=0) -> list[User]:
     """
     Search users by name
     """
     query = query_normalize(query)
     users = []
-    for user in storage_v2.User.select():
+    for user in User.select():
         user = cast(User, user)
         # search in name
         if query in query_normalize(user.get_name()):
