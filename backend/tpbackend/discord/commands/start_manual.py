@@ -8,7 +8,7 @@ from tpbackend.storage import (
     LiveActivity,
     Game,
 )
-from tpbackend.utils import last_platform_for_game
+from tpbackend.platform.utils import last_platform_for_game
 from tpbackend.utils2 import now
 
 

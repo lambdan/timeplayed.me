@@ -1,9 +1,9 @@
 import datetime
 from tpbackend.game.select import GameSelect
+from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
 from tpbackend.storage import User
 from .set_sgdb_id import SetSGDBIDCommand
-from tpbackend.utils import query_normalize
 from tpbackend.sgdb.controller import search
 
 
@@ -21,7 +21,7 @@ class AutoSGDBAdminCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        sgdb_games = search(query=query_normalize(game.get_name()))
+        sgdb_games = search(query=game.get_name())
         if len(sgdb_games) == 0:
             return "Error: no SGDB games found"
 
@@ -31,11 +31,8 @@ class AutoSGDBAdminCommand(AdminCommand):
         #    return "Best matching SGDB ID is already set!"
 
         if not confirmed:
-            year = (
-                datetime.datetime.utcfromtimestamp(best_match.release_date).year
-                if best_match.release_date
-                else "?"
-            )
+            rd = ts_to_dt(best_match.release_date) if best_match.release_date else None
+            year = rd.year if rd else "?"
             out = ""
             out += f"Best SGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."

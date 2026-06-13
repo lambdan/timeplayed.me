@@ -5,7 +5,7 @@ from tpbackend.storage import (
     User,
 )
 from .command import Command
-from tpbackend.utils import search_platforms
+from tpbackend.platform.query import PlatformQuery
 
 
 class SetPlatformCommand(Command):
@@ -45,7 +45,10 @@ Returns: Confirmation message
             platform = Platform_or_none(splitted[1].strip())
         except Exception:
             # hmm maybe user did !set_platform 123 snes, try searching for it!
-            search_results = search_platforms(" ".join(splitted[1:]))
+            search_query = " ".join(splitted[1:]).strip()
+            q = PlatformQuery.base()
+            q = PlatformQuery.search(q, search=search_query)
+            search_results = q.execute()
             if len(search_results) == 1:
                 platform = search_results[0]
             elif len(search_results) > 1:

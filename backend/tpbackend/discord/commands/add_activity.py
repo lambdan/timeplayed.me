@@ -9,7 +9,7 @@ from tpbackend.storage import Game
 from tpbackend.operations import (
     add_session,
 )
-from tpbackend.utils import (
+from tpbackend.platform.utils import (
     last_platform_for_game,
 )
 from tpbackend.game.utils import md_game_link

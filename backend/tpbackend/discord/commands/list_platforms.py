@@ -1,6 +1,7 @@
-from tpbackend.storage import User
+from typing import cast
+from tpbackend.platform.query import PlatformQuery
+from tpbackend.storage import Platform, User
 from .command import Command
-from tpbackend.utils import search_platforms
 
 
 class ListPlatformsCommand(Command):
@@ -11,13 +12,15 @@ class ListPlatformsCommand(Command):
         )
 
     def execute(self, user: User, msg: str) -> str:
-        platforms = search_platforms(query=msg or "", limit=0, offset=0)
+        q = PlatformQuery.base()
+        q = PlatformQuery.search(q, search=msg.strip())
+        q = PlatformQuery.apply_sort(q, sort="name", order="asc")
+        platforms = q.execute()
         if len(platforms) == 0:
             return "No platforms found"
-        out = "```"
+        out = ""
         for p in platforms:
-            padded_id = str(p.id).rjust(3, " ")  # type: ignore
-            padded_abbr = p.abbreviation.ljust(12, " ")  # type: ignore
-            out += f"{padded_id}: {padded_abbr}\t{p.name if p.name else ""}\n"  # type: ignore
-        out += "```"
+            p = cast(Platform, p)
+            out += f"- {p.get_display_name()} ({p.get_id()})\n"
+        out += ""
         return out
