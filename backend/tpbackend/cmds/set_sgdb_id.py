@@ -1,6 +1,6 @@
 from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.storage.storage_v2 import User
 from tpbackend.storage.storage_v2 import Game
 from tpbackend.api_v2.sgdb.controller import get_game_by_id
 
@@ -20,7 +20,7 @@ class SetSGDBIDCommand(AdminCommand):
         sgdb_id = None
         if splitted[1].strip().lower() != "null":
             sgdb_id = int(splitted[1].strip())
-        game = Game_or_none(int(game_id))
+        game = GameSelect.by_id(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
 

@@ -1,6 +1,6 @@
 from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.storage.storage_v2 import User
 
 
 class AddGameAliasCommand(AdminCommand):
@@ -15,7 +15,7 @@ class AddGameAliasCommand(AdminCommand):
         if len(splitted) < 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         game_id = int(splitted[0].strip())
-        game = Game_or_none(game_id)
+        game = GameSelect.by_id(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
         new_alias = " ".join(splitted[1:]).strip()

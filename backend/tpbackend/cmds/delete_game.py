@@ -1,6 +1,7 @@
 from tpbackend.api_v2.activities.query import ActivityQuery
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.storage.storage_v2 import User
 from tpbackend.utils import game_name
 
 
@@ -16,7 +17,7 @@ class DeleteGameCommand(AdminCommand):
         game_id = int(parts[0])
         confirmed = len(parts) > 1 and parts[1].lower() == "y"
 
-        game = Game_or_none(game_id)
+        game = GameSelect.by_id(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
         activities = ActivityQuery.base(include_hidden=True)

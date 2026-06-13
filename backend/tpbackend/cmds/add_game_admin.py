@@ -1,4 +1,5 @@
-from tpbackend.storage.storage_v2 import Game, Game_or_none, User
+from tpbackend.api_v2.games.select import GameSelect
+from tpbackend.storage.storage_v2 import Game, User
 from tpbackend.cmds.admin_command import AdminCommand
 
 
@@ -19,25 +20,18 @@ Returns: Confirmation message with the game ID and name.
         name = msg.strip()
         if name == "":
             return f"No game name provided? Try `!help {self.names[0]}` for help"
-        return self.add(name)
+        return self.add(name, user)
 
-    def add(self, s: str) -> str:
+    def add(self, s: str, user: User) -> str:
         # Block if a game with this exact name and no release year already exists.
-        # (A null release_year means it was manually added and not yet disambiguated.)
-        # Games with the same name but a release year set are allowed — those are
-        # versioned entries (e.g. RE4 2005 vs RE4 2023) managed via !add_sgdb.
-        existing = Game.get_or_none(  # type: ignore
-            (Game.name == s) & (Game.release_year.is_null())  # type: ignore
-        )
+        # (set year on the existing to disambiguate)
+        existing = GameSelect.by_name_and_year(s, None)
         if existing:
-            return f"Error: Game seems to already exist: '{existing.name}' (id: {existing.id})"  # type: ignore
-        # Use Game.create() directly so we always produce a new row and never
-        # silently return an existing game matched by alias or case-insensitive name.
+            return f"Error: Game with that name and no release year already exists {existing.get_name()} (id: {existing.get_id()})"
         game = Game.create(name=s)  # type: ignore
-
-        g = Game_or_none(game.id)
+        g = GameSelect.by_id(game.id)
         if g:
-            g.add_history("Game added by admin")
+            g.add_history(f"Game added by admin {user.get_name()}")
             g.save()
 
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore

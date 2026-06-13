@@ -581,15 +581,6 @@ async def clean_loop():
         await asyncio.sleep(3600)  # every hour
 
 
-def Game_or_none(game_id: int, include_hidden=False) -> Game | None:
-    g = Game.get_or_none(Game.id == game_id)
-    if g:
-        game = cast(Game, g)
-        if include_hidden or not game.get_hidden():
-            return game
-    return None
-
-
 def User_or_none(user_id: str | int | None) -> User | None:
     if user_id is None:
         return None

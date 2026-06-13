@@ -1,5 +1,6 @@
+from tpbackend.api_v2.games.select import GameSelect
 from tpbackend.cmds.admin_command import AdminCommand
-from tpbackend.storage.storage_v2 import Game_or_none, User
+from tpbackend.storage.storage_v2 import User
 
 
 class SetParentCommand(AdminCommand):
@@ -16,7 +17,7 @@ class SetParentCommand(AdminCommand):
         game_id = splitted[0].strip().lower()
         parent_id = splitted[1].strip().lower()
 
-        game = Game_or_none(int(game_id))
+        game = GameSelect.by_id(game_id)
         if not game:
             return f"Error: Game with id {game_id} not found."
 
@@ -28,7 +29,7 @@ class SetParentCommand(AdminCommand):
             except Exception as e:
                 return f"Error clearing parent: {str(e)}"
 
-        parent = Game_or_none(int(parent_id))
+        parent = GameSelect.by_id(parent_id)
         if not parent:
             return f"Error: Parent game with id {parent_id} not found."
 

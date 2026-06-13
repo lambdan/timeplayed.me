@@ -53,6 +53,12 @@ class GameQuery:
             return query
         return query.where(Game.search.contains(search.lower()))  # type: ignore
 
+    @staticmethod
+    def release_year(query, release_year: int | None):
+        if release_year:
+            return query.where(Game.release_year == release_year)  # type: ignore
+        return query.where(Game.release_year.is_null())  # type: ignore
+
 
 class GameStatsQuery:
     TOTAL_SECONDS = fn.SUM(
