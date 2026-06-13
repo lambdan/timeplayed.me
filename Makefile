@@ -27,9 +27,8 @@ check-version:
 			VERSION_SOURCE=frontend/package.json; \
 			;; \
 		*) \
-			PACKAGE_VERSION=$$(node -p "require('./frontend/package.json').version"); \
-			TAG_VERSION=$$(echo "$$TAG_VALUE" | sed 's/^v//'); \
-			VERSION_SOURCE=frontend/package.json; \
+			echo "Error: unsupported release tag '$$TAG_VALUE'. Expected 'backend@x.y.z' or 'frontend@x.y.z'"; \
+			exit 1; \
 			;; \
 	esac; \
 	if [ "$$PACKAGE_VERSION" != "$$TAG_VERSION" ]; then \

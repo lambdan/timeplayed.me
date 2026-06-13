@@ -42,11 +42,8 @@ jobs:
               echo "frontend_version=${TAG#frontend@}" >> "$GITHUB_OUTPUT"
               ;;
             *)
-              VERSION="${TAG#v}"
-              echo "build_backend=true" >> "$GITHUB_OUTPUT"
-              echo "build_frontend=true" >> "$GITHUB_OUTPUT"
-              echo "backend_version=$VERSION" >> "$GITHUB_OUTPUT"
-              echo "frontend_version=$VERSION" >> "$GITHUB_OUTPUT"
+              echo "Unsupported release tag: $TAG" >&2
+              exit 1
               ;;
           esac
 
