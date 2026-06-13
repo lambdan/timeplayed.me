@@ -6,7 +6,7 @@ from tpbackend.api_v2.games.query import GameQuery
 from tpbackend.api_v2.games.models import API_Game
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from tpbackend.api_v2.types import (
     QUERY_TS_BEFORE,
     QUERY_TS_AFTER,
@@ -68,9 +68,8 @@ def __get_games_stats(
     "/game-stats/{game_id}",
     tags=["games", "stats"],
     response_model=API_GameWithStats,
-    description="Get a single game, including stats, by id.",
 )
-def get_game_stats(
+def get_single_game_stats(
     game_id: int,
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
@@ -93,10 +92,9 @@ def get_game_stats(
     "/games-stats/{game_ids}",
     response_model=list[API_GameWithStats],
     tags=["games", "stats"],
-    description="Get many games, including stats, by id (comma separated). Max 100 at once.",
 )
-def get_games_stats(
-    game_ids: str,
+def get_many_games_stats(
+    game_ids: str = Path(description="Comma-separated list of game IDs"),
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
     user: int | None = None,
@@ -120,9 +118,8 @@ def get_games_stats(
     "/games-stats",
     tags=["games", "stats"],
     response_model=list[API_GameWithStats],
-    description="Get all games, including stats, with optional filters.",
 )
-def get_all_games_stats(
+def get_games_stats(
     offset=0,
     limit=25,
     user: int | None = None,
@@ -182,9 +179,8 @@ def __get_games(
     "/game/{game_id}",
     tags=["games"],
     response_model=API_Game,
-    description="Get a single game by id.",
 )
-def get_game_by_id(game_id: int) -> API_Game:
+def get_single_game(game_id: int) -> API_Game:
     x = __get_games(ids=[int(game_id)])
     if len(x) == 0:
         return not_found("Game not found")
@@ -195,10 +191,9 @@ def get_game_by_id(game_id: int) -> API_Game:
     "/games/{game_ids}",
     tags=["games"],
     response_model=list[API_Game],
-    description="Get many games by id (comma separated). Max 100 at once.",
 )
-def get_games_by_ids(
-    game_ids: str,
+def get_many_games(
+    game_ids: str = Path(description="Comma-separated list of game IDs"),
     sort: GameQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
 ) -> list[API_Game]:
@@ -216,9 +211,8 @@ def get_games_by_ids(
     "/games",
     tags=["games"],
     response_model=list[API_Game],
-    description="Get all games",
 )
-def get_all_games(
+def get_games(
     offset=0,
     limit=25,
     sort: GameQuery.SORTS_LITERAL = "id",

@@ -67,9 +67,8 @@ def __get_users_stats(
     "/user-stats/{user_id}",
     tags=["users", "stats"],
     response_model=API_UserWithStats,
-    description="Get a single user, including stats, by id.",
 )
-def get_user_stats(
+def get_single_user_stats(
     user_id: int,
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
@@ -92,10 +91,9 @@ def get_user_stats(
     "/users-stats/{user_ids}",
     response_model=list[API_UserWithStats],
     tags=["users", "stats"],
-    description="Get many users, including stats, by id (comma separated). Max 100 at once.",
 )
-def get_users_stats(
-    user_ids: str,
+def get_many_users_stats(
+    user_ids: str = Path(description="Comma-separated list of user IDs"),
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
     game: int | None = None,
@@ -119,9 +117,8 @@ def get_users_stats(
     "/users-stats",
     tags=["users", "stats"],
     response_model=list[API_UserWithStats],
-    description="Get users, including stats, with optional filters and pagination.",
 )
-def get_all_users_stats(
+def get_users_stats(
     offset=0,
     limit=25,
     game: int | None = None,
@@ -179,9 +176,8 @@ def __get_users(
     "/user/{user_id}",
     tags=["users"],
     response_model=API_User,
-    description="Get a single user by id.",
 )
-def get_user_by_id(user_id: int) -> API_User:
+def get_single_user(user_id: int) -> API_User:
     x = __get_users(ids=[int(user_id)])
     if len(x) == 0:
         return not_found("User not found")
@@ -192,10 +188,9 @@ def get_user_by_id(user_id: int) -> API_User:
     "/users/{user_ids}",
     tags=["users"],
     response_model=list[API_User],
-    description="Get many users by id (comma separated). Max 100 at once.",
 )
-def get_users_by_ids(
-    user_ids: str,
+def get_many_users(
+    user_ids: str = Path(description="Comma-separated list of user IDs"),
     sort: UserQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
 ) -> list[API_User]:
@@ -213,9 +208,8 @@ def get_users_by_ids(
     "/users",
     tags=["users"],
     response_model=list[API_User],
-    description="Get users with optional filters and pagination.",
 )
-def get_all_users(
+def get_users(
     offset=0,
     limit=25,
     sort: UserQuery.SORTS_LITERAL = "id",

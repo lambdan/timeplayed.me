@@ -4,7 +4,7 @@ from tpbackend.api_v2.platforms.query import PlatformStatsQuery, PlatformQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api_v2.responses import bad_request, not_found
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from tpbackend.api_v2.types import (
     QUERY_TS_BEFORE,
     QUERY_TS_AFTER,
@@ -66,9 +66,8 @@ def __get_platforms_stats(
     "/platform-stats/{platform_id}",
     tags=["platforms", "stats"],
     response_model=API_PlatformWithStats,
-    description="Get a platform, including stats, by id",
 )
-def get_platform_stats(
+def get_single_platform_stats(
     platform_id: int,
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
@@ -91,10 +90,9 @@ def get_platform_stats(
     "/platforms-stats/{platform_ids}",
     response_model=list[API_PlatformWithStats],
     tags=["platforms", "stats"],
-    description="Get many platforms, including stats, by id (comma separated). Max 100 at once.",
 )
-def get_platforms_stats(
-    platform_ids: str,
+def get_many_platforms_stats(
+    platform_ids: str = Path(description="Comma-separated list of platform IDs"),
     before: int | None = QUERY_TS_BEFORE,
     after: int | None = QUERY_TS_AFTER,
     user: int | None = None,
@@ -118,9 +116,8 @@ def get_platforms_stats(
     "/platforms-stats",
     tags=["platforms", "stats"],
     response_model=list[API_PlatformWithStats],
-    description="Get all platforms, including stats",
 )
-def get_all_platforms_stats(
+def get_platforms_stats(
     offset=0,
     limit=25,
     user: int | None = None,
@@ -179,9 +176,8 @@ def __get_platforms(
     "/platform/{platform_id}",
     tags=["platforms"],
     response_model=API_Platform,
-    description="Get a platform by id",
 )
-def get_platform_by_id(platform_id: int) -> API_Platform:
+def get_single_platform(platform_id: int) -> API_Platform:
     x = __get_platforms(ids=[int(platform_id)])
     if len(x) == 0:
         return not_found("Platform not found")
@@ -192,10 +188,9 @@ def get_platform_by_id(platform_id: int) -> API_Platform:
     "/platforms/{platform_ids}",
     tags=["platforms"],
     response_model=list[API_Platform],
-    description="Get many platforms by id (comma separated). Max 100 at once.",
 )
-def get_platforms_by_ids(
-    platform_ids: str,
+def get_many_platforms(
+    platform_ids: str = Path(description="Comma-separated list of platform IDs"),
     sort: PlatformQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
 ) -> list[API_Platform]:
@@ -213,9 +208,8 @@ def get_platforms_by_ids(
     "/platforms",
     tags=["platforms"],
     response_model=list[API_Platform],
-    description="Get all platforms",
 )
-def get_all_platforms(
+def get_platforms(
     offset=0,
     limit=25,
     sort: PlatformQuery.SORTS_LITERAL = "id",
