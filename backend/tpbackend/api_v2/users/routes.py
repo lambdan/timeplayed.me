@@ -25,6 +25,7 @@ def __get_users_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
+    search="",
 ) -> list[API_UserWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
@@ -46,6 +47,9 @@ def __get_users_stats(
 
     if platform_id:
         query = ActivityQuery.platform(query, platform_id)
+
+    if search:
+        query = UserQuery.search(query, search=search)
 
     query = UserStatsQuery.apply_sort(query, sort, order)
 
@@ -126,6 +130,7 @@ def get_all_users_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: UserStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
+    search="",
 ) -> list[API_UserWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -139,6 +144,7 @@ def get_all_users_stats(
         order=order,
         offset=offset,
         limit=limit,
+        search=search,
     )
 
 
@@ -153,8 +159,11 @@ def __get_users(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
+    search="",
 ) -> list[API_User]:
     query = UserQuery.base()
+    if search:
+        query = UserQuery.search(query, search=search)
     if ids and len(ids) > 0:
         query = UserQuery.apply_ids(query=query, user_ids=ids)
     query = UserQuery.apply_sort(query=query, sort=sort, order=order)
@@ -211,13 +220,11 @@ def get_all_users(
     limit=25,
     sort: UserQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
+    search="",
 ) -> list[API_User]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 
     return __get_users(
-        sort=sort,
-        order=order,
-        offset=offset,
-        limit=limit,
+        sort=sort, order=order, offset=offset, limit=limit, search=search
     )

@@ -27,7 +27,7 @@ def __get_games_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
-    search: str = "",
+    search="",
 ) -> list[API_GameWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
@@ -131,7 +131,7 @@ def get_all_games_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: GameStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
-    search: str = "",
+    search="",
 ) -> list[API_GameWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -160,10 +160,15 @@ def __get_games(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
+    search="",
 ) -> list[API_Game]:
     query = GameQuery.base()
     if ids and len(ids) > 0:
         query = GameQuery.apply_ids(query=query, game_ids=ids)
+
+    if search:
+        query = GameQuery.search(query=query, search=search)
+
     query = GameQuery.apply_sort(query=query, sort=sort, order=order)
 
     if offset:
@@ -218,6 +223,7 @@ def get_all_games(
     limit=25,
     sort: GameQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
+    search="",
 ) -> list[API_Game]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))

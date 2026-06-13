@@ -25,6 +25,7 @@ def __get_platforms_stats(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
+    search="",
 ) -> list[API_PlatformWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
@@ -46,6 +47,9 @@ def __get_platforms_stats(
 
     if game_id:
         query = ActivityQuery.platform(query, game_id)
+
+    if search:
+        query = PlatformQuery.search(query, search=search)
 
     query = PlatformStatsQuery.apply_sort(query, sort, order)
 
@@ -125,6 +129,7 @@ def get_all_platforms_stats(
     after: int | None = QUERY_TS_AFTER,
     sort: PlatformStatsQuery.SORTS_LITERAL = "playtime",
     order: AscDescOrder = "desc",
+    search="",
 ) -> list[API_PlatformWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -138,6 +143,7 @@ def get_all_platforms_stats(
         order=order,
         offset=offset,
         limit=limit,
+        search=search,
     )
 
 
@@ -152,8 +158,11 @@ def __get_platforms(
     order: AscDescOrder = "asc",
     offset: int | None = None,
     limit: int | None = None,
+    search="",
 ) -> list[API_Platform]:
     query = PlatformQuery.base()
+    if search:
+        query = PlatformQuery.search(query, search=search)
     if ids and len(ids) > 0:
         query = PlatformQuery.apply_ids(query=query, platform_ids=ids)
     query = PlatformQuery.apply_sort(query=query, sort=sort, order=order)
@@ -162,6 +171,7 @@ def __get_platforms(
         query = query.offset(max(0, offset))
     if limit:
         query = query.limit(clamp(limit, 1, 100))
+
     return [API_Platform.from_platform(g) for g in query]
 
 
@@ -210,13 +220,11 @@ def get_all_platforms(
     limit=25,
     sort: PlatformQuery.SORTS_LITERAL = "id",
     order: AscDescOrder = "asc",
+    search="",
 ) -> list[API_Platform]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
 
     return __get_platforms(
-        sort=sort,
-        order=order,
-        offset=offset,
-        limit=limit,
+        sort=sort, order=order, offset=offset, limit=limit, search=search
     )
