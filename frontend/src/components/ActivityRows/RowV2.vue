@@ -15,9 +15,9 @@ import { TimeplayedAPI } from "../../api.client";
 
 const props = defineProps<{
   activity?: Activity;
-  game?: GameWithStats;
-  user?: UserWithStats;
-  platform?: PlatformWithStats;
+  gameWithStats?: GameWithStats;
+  userWithStats?: UserWithStats;
+  platformWithStats?: PlatformWithStats;
   durationSeconds?: number;
   showDate?: boolean;
   date?: Date;
@@ -60,8 +60,8 @@ function setupActivity(activity: Activity) {
 }
 
 async function setupUser() {
-  if (props.user) {
-    _user.value = props.user;
+  if (props.userWithStats) {
+    _user.value = props.userWithStats;
     return;
   }
   if (props.activity) {
@@ -73,8 +73,8 @@ async function setupUser() {
 }
 
 async function setupPlatform() {
-  if (props.platform) {
-    _platform.value = props.platform;
+  if (props.platformWithStats) {
+    _platform.value = props.platformWithStats;
     return;
   }
   if (props.activity) {
@@ -88,9 +88,9 @@ async function setupPlatform() {
 }
 
 async function setupGame() {
-  if (props.game) {
+  if (props.gameWithStats) {
     //_game.value = props.game;
-    _game.value = await TimeplayedAPI.getGameStats(props.game.id);
+    _game.value = await TimeplayedAPI.getGameStats(props.gameWithStats.id);
   } else if (props.activity) {
     _game.value = await TimeplayedAPI.getGameStats(props.activity.game_id);
   }
@@ -118,8 +118,8 @@ function getGameCoverId(): number {
   if (props.context === "userPage" && props.activity) {
     return props.activity.game_id;
   }
-  if (props.context === "gameTable" && props.game) {
-    return props.game.id;
+  if (props.context === "gameTable" && props.gameWithStats) {
+    return props.gameWithStats.id;
   }
   return -1;
 }
@@ -128,7 +128,7 @@ function shouldShowAvatar(): boolean {
   if (!_user.value) {
     return false;
   }
-  if (props.user && props.user.id) {
+  if (props.userWithStats && props.userWithStats.id) {
     return true;
   }
   if (props.context !== "userPage" && props.activity) {
@@ -153,9 +153,13 @@ onMounted(async () => {
     "gameTable",
   ];
 
-  if (props.context && showOnContexts.includes(props.context) && props.user) {
-    _date.value = props.user.stats.last_activity
-      ? new Date(props.user.stats.last_activity)
+  if (
+    props.context &&
+    showOnContexts.includes(props.context) &&
+    props.userWithStats
+  ) {
+    _date.value = props.userWithStats.stats.last_activity
+      ? new Date(props.userWithStats.stats.last_activity)
       : undefined;
     updateDate(_date.value!);
   }
@@ -163,12 +167,12 @@ onMounted(async () => {
   if (props.activity) {
     _id.value = props.activity.id;
     setupActivity(props.activity);
-  } else if (props.user) {
-    _id.value = props.user.id;
-  } else if (props.game) {
-    _id.value = props.game.id;
-  } else if (props.platform) {
-    _id.value = props.platform.id;
+  } else if (props.userWithStats) {
+    _id.value = props.userWithStats.id;
+  } else if (props.gameWithStats) {
+    _id.value = props.gameWithStats.id;
+  } else if (props.platformWithStats) {
+    _id.value = props.platformWithStats.id;
   }
 
   setupDuration();
@@ -189,15 +193,15 @@ onMounted(async () => {
       >
     </td>
 
-    <td v-if="props.platform">
-      <PlatformBadge :platform="props.platform" :showName="false" />
+    <td v-if="props.platformWithStats">
+      <PlatformBadge :platform="props.platformWithStats" :showName="false" />
     </td>
 
-    <td v-if="props.platform">
+    <td v-if="props.platformWithStats">
       <a
-        :href="`/platform/${props.platform.id}`"
+        :href="`/platform/${props.platformWithStats.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.platform.display_name }}</a
+        >{{ props.platformWithStats.display_name }}</a
       >
     </td>
 
@@ -232,11 +236,11 @@ onMounted(async () => {
       >
     </td>
 
-    <td v-if="game">
+    <td v-if="gameWithStats">
       <a
-        :href="`/game/${game.id}`"
+        :href="`/game/${gameWithStats.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ game.name }}</a
+        >{{ gameWithStats.name }}</a
       >
     </td>
 
@@ -248,11 +252,14 @@ onMounted(async () => {
       >
     </td>
 
-    <td v-if="props.activity && platform" class="d-none d-md-table-cell">
+    <td
+      v-if="props.activity && platformWithStats"
+      class="d-none d-md-table-cell"
+    >
       <!-- frontpage: show badge (no name) -->
       <PlatformBadge
         v-if="props.context == 'frontPage'"
-        :platform="platform"
+        :platform="platformWithStats"
         :emulated="props.activity.emulated"
         :showName="false"
         :showAbbreviation="false"
@@ -261,7 +268,7 @@ onMounted(async () => {
       <!-- any other page (big table): show name -->
       <PlatformBadge
         v-else
-        :platform="platform"
+        :platform="platformWithStats"
         :emulated="props.activity.emulated"
         :showName="true"
       />
@@ -291,8 +298,8 @@ onMounted(async () => {
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
 
-    <td v-if="props.showUsers && (platform || game)">
-      <p>{{ (platform || game!).stats.user_count || 0 }}</p>
+    <td v-if="props.showUsers && (platformWithStats || gameWithStats)">
+      <p>{{ (platformWithStats || gameWithStats!).stats.user_count || 0 }}</p>
     </td>
   </tr>
 </template>

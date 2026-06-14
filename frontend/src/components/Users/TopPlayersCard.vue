@@ -24,9 +24,10 @@ async function fetchTheThings() {
   // TODO: Change this to show more system (like game table)
   _loading.value = true;
   _users.value = [];
+  let offset = 0;
   while (true) {
     const data = await TimeplayedAPI.getUsersStats({
-      offset: _users.value.length,
+      offset,
       limit: 100,
       game: props.game ? props.game.id : undefined,
       before: _before.value ? _before.value.getTime() : undefined,
@@ -36,6 +37,7 @@ async function fetchTheThings() {
       sort: "playtime",
     });
     for (const u of data) {
+      offset += 1;
       // only include users with playtime
       if (u.stats.seconds > 0) {
         _users.value.push(u);
@@ -89,7 +91,7 @@ onMounted(() => {});
           <RowV2
             v-for="user in _users"
             :key="user.id"
-            :user="user"
+            :userWithStats="user"
             :duration-seconds="user.stats.seconds"
             :context="props.context"
             :show-users="false"

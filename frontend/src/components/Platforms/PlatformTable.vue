@@ -149,7 +149,7 @@ onMounted(() => {
         <RowV2
           v-for="platform in _platformsData"
           :key="platform.id"
-          :platform="platform"
+          :platformWithStats="platform"
           :context="'platformTable'"
           :durationSeconds="platform.stats.seconds"
           :date="
