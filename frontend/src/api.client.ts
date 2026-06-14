@@ -35,7 +35,7 @@ export class TimeplayedAPI {
     const key = `api_getUser_${user_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached;
+      return cached as paths["/api/user/{user_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
     const { data, error } = await this.getClient().GET("/api/user/{user_id}", {
       params: {
@@ -106,7 +106,7 @@ export class TimeplayedAPI {
     const key = `api_getPlatform_${platform_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached;
+      return cached as paths["/api/platform/{platform_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
     const { data, error } = await this.getClient().GET(
       "/api/platform/{platform_id}",
@@ -180,7 +180,7 @@ export class TimeplayedAPI {
     const key = `api_getGame_${game_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached;
+      return cached as paths["/api/game/{game_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
     const { data, error } = await this.getClient().GET("/api/game/{game_id}", {
       params: {

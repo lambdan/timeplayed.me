@@ -1,3 +1,4 @@
+import { TimeplayedAPI } from "./api.client";
 import type { Activity } from "./api.models";
 import type { RecapGameEntry, RecapPlatformEntry } from "./models/stats.models";
 
@@ -8,7 +9,7 @@ export function totalPlaytime(activities: Activity[]): number {
 export function uniqueGamesCount(activities: Activity[]): number {
   const gameIds = new Set<number>();
   for (const activity of activities) {
-    gameIds.add(activity.game.id);
+    gameIds.add(activity.game_id);
   }
   return gameIds.size;
 }
@@ -20,11 +21,12 @@ export async function buildGamesList(
   const sum_seconds = totalPlaytime(activities);
 
   for (const activity of activities) {
-    const gameId = activity.game.id;
+    const gameId = activity.game_id;
+    const game = await TimeplayedAPI.getGame(gameId);
     if (!gamesMap.has(gameId.toString())) {
       gamesMap.set(gameId.toString(), {
         id: gameId,
-        name: activity.game.name,
+        name: game.name,
         seconds: 0,
         first_played: new Date(activity.timestamp),
         last_played: new Date(activity.timestamp),
@@ -61,11 +63,12 @@ export async function buildPlatformsList(
   const gamePlaytimeByPlatform = new Map<number, Map<number, number>>(); // platformId -> (gameId -> seconds)
 
   for (const activity of activities) {
-    const platformId = activity.platform.id;
+    const platformId = activity.platform_id;
+    const platform = await TimeplayedAPI.getPlatform(platformId);
     if (!platformsMap.has(platformId)) {
       platformsMap.set(platformId, {
         id: platformId,
-        name: activity.platform.name || activity.platform.abbreviation,
+        name: platform.display_name,
         seconds: 0,
         percentage: 0,
         activity_count: 0,
@@ -83,9 +86,9 @@ export async function buildPlatformsList(
       entry.average_session_seconds = entry.seconds / entry.activity_count;
 
       // Track playtime per game for this platform
-      const currentGameSeconds = gamePlaytimeMap.get(activity.game.id) || 0;
+      const currentGameSeconds = gamePlaytimeMap.get(activity.game_id) || 0;
       gamePlaytimeMap.set(
-        activity.game.id,
+        activity.game_id,
         currentGameSeconds + activity.seconds,
       );
     }
@@ -108,9 +111,10 @@ export async function buildPlatformsList(
       }
       if (mostPlayedGameId !== null) {
         const mostPlayedGame = activities.find(
-          (act) => act.game.id === mostPlayedGameId,
-        )?.game;
-        entry.most_played_game = mostPlayedGame ? mostPlayedGame.name : "";
+          (act) => act.game_id === mostPlayedGameId,
+        );
+        const _mostPlayedGame = await TimeplayedAPI.getGame(mostPlayedGameId);
+        entry.most_played_game = _mostPlayedGame.name;
       }
     }
   }
