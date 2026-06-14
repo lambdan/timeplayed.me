@@ -26,14 +26,33 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
 
-const loading = ref(false);
+const loading = ref(true);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
 const _usersWithStats = ref<UserWithStats[]>([]);
 
+const _search = ref("");
+let searchTimeout: ReturnType<typeof setTimeout>;
+function searchChange() {
+  clearTimeout(searchTimeout);
+  const val = _search.value.trim();
+  searchTimeout = setTimeout(() => {
+    if (!val) {
+      _search.value = "";
+      fetchUsers();
+      return;
+    }
+    if (val.length < 2) {
+      return;
+    }
+    _search.value = val;
+    fetchUsers();
+  }, 200);
+}
+
 async function fetchUsers() {
-  loading.value = false;
+  loading.value = true;
   _usersWithStats.value = [];
 
   let offset = 0;
@@ -46,6 +65,7 @@ async function fetchUsers() {
       order: localOrder.value,
       sort: "playtime",
       limit,
+      search: _search.value.trim(),
     });
     for (const u of f) {
       offset += 1;
@@ -101,9 +121,16 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchUsers();
+        searchChange();
       }
     "
+  />
+  <input
+    v-model="_search"
+    @input="searchChange()"
+    type="text"
+    class="form-control mb-2"
+    placeholder="Search users..."
   />
 
   <table
@@ -168,4 +195,9 @@ onMounted(() => {
       />
     </tbody>
   </table>
+  <div class="text-center" v-if="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 </template>

@@ -34,6 +34,25 @@ const loading = ref(true);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
+const _search = ref("");
+let searchTimeout: ReturnType<typeof setTimeout>;
+function searchChange() {
+  clearTimeout(searchTimeout);
+  const val = _search.value.trim();
+  searchTimeout = setTimeout(() => {
+    if (!val) {
+      _search.value = "";
+      fetchPlatforms();
+      return;
+    }
+    if (val.length < 2) {
+      return;
+    }
+    _search.value = val;
+    fetchPlatforms();
+  }, 200);
+}
+
 async function fetchPlatforms() {
   let order = localOrder.value;
   let sort = "playtime";
@@ -58,6 +77,7 @@ async function fetchPlatforms() {
       after: _after.value ? _after.value.getTime() : undefined,
       order,
       sort: sort as any,
+      search: _search.value.trim(),
     });
     _platformsData.value.push(...fetched);
     if (fetched.length === 0 || fetched.length < limit) {
@@ -106,9 +126,18 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchPlatforms();
+        searchChange();
       }
     "
+  />
+  <!-- show search box if not filtering by user or game (ie only on platform list page) -->
+  <input
+    v-if="!props.user && !props.game"
+    v-model="_search"
+    @input="searchChange()"
+    type="text"
+    class="form-control mb-2"
+    placeholder="Search platforms..."
   />
 
   <template v-if="_platformsData.length > 0">
@@ -184,12 +213,9 @@ onMounted(() => {
     </table>
   </template>
 
-  <div v-if="loading" class="text-muted">
-    <span
-      class="spinner-grow spinner-grow-sm"
-      role="status"
-      aria-hidden="true"
-    ></span>
-    Loading...
+  <div class="text-center" v-if="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
   </div>
 </template>
