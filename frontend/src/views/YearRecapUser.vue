@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { getRecapYear, iso8601Date } from "../utils";
+import { clamp, getRecapYear, iso8601Date } from "../utils";
 import { buildGamesList, buildPlatformsList } from "../utils.stats";
 import DiscordAvatar from "../components/DiscordAvatar.vue";
 import GameCover from "../components/Games/GameCover.vue";
@@ -9,7 +9,7 @@ import type {
   RecapGameEntry,
   RecapPlatformEntry,
 } from "../models/stats.models";
-import type { Activity, User } from "../api.models";
+import type { Activity, Game, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import LoadingBar from "../components/LoadingBar.vue";
 
@@ -177,9 +177,9 @@ function longestBreak(activities: Activity[]): number {
 }
 
 /** Most popular game each month */
-function mostPopularGameByMonth(activities: Activity[]): {
+async function mostPopularGameByMonth(activities: Activity[]): Promise<{
   [key: string]: string;
-} {
+}> {
   const monthGameMap: { [key: string]: { [gameId: number]: number } } = {};
 
   for (const activity of activities) {
@@ -188,10 +188,10 @@ function mostPopularGameByMonth(activities: Activity[]): {
     if (!monthGameMap[month]) {
       monthGameMap[month] = {};
     }
-    if (!monthGameMap[month][activity.game.id]) {
-      monthGameMap[month][activity.game.id] = 0;
+    if (!monthGameMap[month][activity.game_id]) {
+      monthGameMap[month][activity.game_id] = 0;
     }
-    monthGameMap[month][activity.game.id] += activity.seconds;
+    monthGameMap[month][activity.game_id] += activity.seconds;
   }
 
   const result: { [key: string]: string } = {};
@@ -205,9 +205,10 @@ function mostPopularGameByMonth(activities: Activity[]): {
       }
     }
     if (topGameId !== null) {
-      const topGame = activities.find((a) => a.game.id === topGameId)?.game;
-      if (topGame) {
-        result[month] = topGame.name;
+      const topGame = activities.find((a) => a.game_id === topGameId);
+      const _topGame = await TimeplayedAPI.getGame(topGameId);
+      if (_topGame) {
+        result[month] = _topGame.name;
       }
     }
   }
@@ -294,16 +295,18 @@ function longestSession(activities: Activity[]): Activity {
 }
 
 /** Most played platform each month */
-function mostPlayedPlatformByMonth(activities: Activity[]): {
+async function mostPlayedPlatformByMonth(activities: Activity[]): Promise<{
   [key: string]: string;
-} {
+}> {
   const monthPlatformMap: { [key: string]: { [platform: string]: number } } =
     {};
 
   for (const activity of activities) {
     const date = new Date(activity.timestamp);
     const month = date.toLocaleString("default", { month: "long" });
-    const platform = activity.platform.name || activity.platform.abbreviation;
+    const platformId = activity.platform_id;
+    const _platform = await TimeplayedAPI.getPlatform(platformId);
+    const platform = _platform.display_name;
     if (!monthPlatformMap[month]) {
       monthPlatformMap[month] = {};
     }
@@ -362,20 +365,17 @@ async function _fetchActivities() {
   loadingProgress.value = 0;
 
   while (true) {
+    const limit = 100;
     const fetchedActivities = await TimeplayedAPI.getActivities({
       after: startDate.getTime(),
       before: endDate.getTime(),
-      limit: 50,
       offset: activities.value.length,
       user: refUserId.value,
+      limit,
     });
-    activities.value.push(...fetchedActivities.data);
-    loadingProgress.value = Math.min(
-      100,
-      (activities.value.length / fetchedActivities.total) * 100,
-    );
-    if (activities.value.length >= fetchedActivities.total) {
-      await new Promise((resolve) => setTimeout(resolve, 500)); // small delay to show 100%
+    activities.value.push(...fetchedActivities);
+    loadingProgress.value = clamp(loadingProgress.value + 1, 0, 100);
+    if (fetchedActivities.length === 0 || fetchedActivities.length < limit) {
       break;
     }
   }
@@ -392,6 +392,10 @@ async function _fetchActivities() {
   platformsList.value = await buildPlatformsList(activities.value);
   refLongestSession.value = longestSession(activities.value);
 }
+
+const mostPlayedGameByMonthResult = ref<{ [key: string]: string }>({});
+const mostPlayedPlatformByMonthResult = ref<{ [key: string]: string }>({});
+const longestActivityGame = ref<Game>();
 
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
@@ -413,10 +417,23 @@ onMounted(async () => {
   }
 
   const data = await TimeplayedAPI.getUser(userId);
-  userInfo.value = data.user;
+  userInfo.value = data;
   refUserId.value = userId;
   refYear.value = year;
   await _fetchActivities();
+
+  mostPlayedGameByMonthResult.value = await mostPopularGameByMonth(
+    activities.value,
+  );
+  mostPlayedPlatformByMonthResult.value = await mostPlayedPlatformByMonth(
+    activities.value,
+  );
+  if (refLongestSession.value) {
+    longestActivityGame.value = await TimeplayedAPI.getGame(
+      refLongestSession.value.game_id,
+    );
+  }
+
   loading.value = false;
 });
 </script>
@@ -653,7 +670,10 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-4 mb-3" v-if="refLongestSession">
+      <div
+        class="col-12 col-md-4 mb-3"
+        v-if="refLongestSession && longestActivityGame"
+      >
         <div class="card h-100 shadow-sm">
           <div class="card-body text-center">
             <h6 class="card-title mb-2 text-success">Longest session</h6>
@@ -662,7 +682,7 @@ onMounted(async () => {
             </div>
             <small class="text-muted">
               <a :href="'/activity/' + refLongestSession.id"
-                ><i>{{ refLongestSession.game.name }}</i> on
+                ><i>{{ longestActivityGame.name }}</i> on
                 {{ iso8601Date(refLongestSession?.timestamp!) }}</a
               >
             </small>
@@ -679,7 +699,7 @@ onMounted(async () => {
             </h6>
             <ul class="list-group list-group-flush">
               <li
-                v-for="(game, month) in mostPopularGameByMonth(activities)"
+                v-for="(game, month) in mostPlayedGameByMonthResult"
                 :key="month"
                 class="list-group-item py-1 px-2"
               >
@@ -699,9 +719,7 @@ onMounted(async () => {
             </h6>
             <ul class="list-group list-group-flush">
               <li
-                v-for="(platform, month) in mostPlayedPlatformByMonth(
-                  activities,
-                )"
+                v-for="(platform, month) in mostPlayedPlatformByMonthResult"
                 :key="month"
                 class="list-group-item py-1 px-2"
               >
