@@ -6,7 +6,9 @@ import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import type {
   Activity,
+  Game,
   GameWithStats,
+  Platform,
   PlatformWithStats,
   User,
   UserWithStats,
@@ -40,8 +42,11 @@ const _dateDisplayed = ref("");
 const _date = ref<Date>();
 
 const _user = ref<User>();
-const _game = ref<GameWithStats>();
-const _platform = ref<PlatformWithStats>();
+const _userWithStats = ref<UserWithStats>();
+const _game = ref<Game>();
+const _gameWithStats = ref<GameWithStats>();
+const _platform = ref<Platform>();
+const _platformWithStats = ref<PlatformWithStats>();
 
 function updateDate(d: Date | undefined) {
   if (d) {
@@ -59,58 +64,17 @@ function setupActivity(activity: Activity) {
   }, 1000); // Update every second
 }
 
-async function setupUser() {
-  if (props.userWithStats) {
-    _user.value = props.userWithStats;
-    return;
-  }
-  if (props.activity) {
-    await TimeplayedAPI.getUserStats(props.activity.user_id).then((u) => {
-      _user.value = u;
-    });
-    return;
-  }
-}
-
-async function setupPlatform() {
-  if (props.platformWithStats) {
-    _platform.value = props.platformWithStats;
-    return;
-  }
-  if (props.activity) {
-    await TimeplayedAPI.getPlatformStats(props.activity.platform_id).then(
-      (p) => {
-        _platform.value = p;
-      },
-    );
-    return;
-  }
-}
-
-async function setupGame() {
-  if (props.gameWithStats) {
-    //_game.value = props.game;
-    _game.value = await TimeplayedAPI.getGameStats(props.gameWithStats.id);
-  } else if (props.activity) {
-    _game.value = await TimeplayedAPI.getGameStats(props.activity.game_id);
-  }
-}
-
 function setupDuration() {
   if (props.durationSeconds) {
     _durationSeconds.value = props.durationSeconds;
   } else if (props.activity) {
     _durationSeconds.value = props.activity.seconds;
-  } else if (_game.value) {
-    _durationSeconds.value = _game.value.stats.seconds;
+  } else if (_gameWithStats.value) {
+    _durationSeconds.value = _gameWithStats.value.stats.seconds;
   } else {
     throw new Error("Either activity or duration prop must be provided");
   }
   _timeDisplayed.value = formatDuration(_durationSeconds.value);
-}
-
-function shouldShowGameCover(): boolean {
-  return getGameCoverId() >= 0;
 }
 
 /** Returns -1 if game cover should not be shown */
@@ -124,23 +88,30 @@ function getGameCoverId(): number {
   return -1;
 }
 
-function shouldShowAvatar(): boolean {
-  if (!_user.value) {
-    return false;
-  }
-  if (props.userWithStats && props.userWithStats.id) {
-    return true;
-  }
-  if (props.context !== "userPage" && props.activity) {
-    return true;
-  }
-  return false;
-}
-
 onMounted(async () => {
-  await setupUser();
-  await setupPlatform();
-  await setupGame();
+  // user
+  if (props.userWithStats) {
+    _userWithStats.value = props.userWithStats;
+    _user.value = props.userWithStats;
+  } else if (props.activity) {
+    _user.value = await TimeplayedAPI.getUser(props.activity.user_id);
+  }
+  // game
+  if (props.gameWithStats) {
+    _gameWithStats.value = props.gameWithStats;
+    _game.value = props.gameWithStats;
+  } else if (props.activity) {
+    _game.value = await TimeplayedAPI.getGame(props.activity.game_id);
+  }
+  // platform
+  if (props.platformWithStats) {
+    _platformWithStats.value = props.platformWithStats;
+    _platform.value = props.platformWithStats;
+  } else if (props.activity) {
+    _platform.value = await TimeplayedAPI.getPlatform(
+      props.activity.platform_id,
+    );
+  }
 
   _date.value = props.date;
 
@@ -181,97 +152,48 @@ onMounted(async () => {
 
 <template>
   <tr class="align-middle" :key="_id">
-    <td v-if="shouldShowAvatar() && _user">
+    <!-- hide avatar on users own page -->
+    <td v-if="_user && props.context !== 'userPage'">
       <DiscordAvatar :user="_user" :maxWidth="50"></DiscordAvatar>
     </td>
 
-    <td v-if="props.activity && _user && props.context === 'gamePage'">
+    <!-- always show user, except on user pages -->
+    <td v-if="_user && props.context !== 'userPage'">
       <a
-        :href="`/user/${props.activity.user_id}`"
+        :href="`/user/${_user.id}`"
         class="link-underline link-underline-opacity-0"
         >{{ _user.name }}</a
       >
     </td>
 
-    <td v-if="props.platformWithStats">
-      <PlatformBadge :platform="props.platformWithStats" :showName="false" />
-    </td>
-
-    <td v-if="props.platformWithStats">
-      <a
-        :href="`/platform/${props.platformWithStats.id}`"
-        class="link-underline link-underline-opacity-0"
-        >{{ props.platformWithStats.display_name }}</a
-      >
-    </td>
-
+    <!-- show game cover everywhere, except frontpage and game page -->
     <td
       v-if="
-        _user &&
-        (props.context === 'frontPage' ||
-          props.context === 'gamePage' ||
-          props.context === 'platformPage')
+        _game && props.context !== 'frontPage' && props.context !== 'gamePage'
       "
     >
+      <GameCover :gameId="_game.id" :thumb="true" :maxHeight="100"></GameCover>
+    </td>
+
+    <!-- always show game, except on game pages -->
+    <td v-if="_game && props.context !== 'gamePage'">
       <a
-        :href="`/user/${_user.id}`"
+        :href="`/game/${_game.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ _user.name }}</a
+        >{{ _game.name }}</a
       >
     </td>
 
-    <td v-if="shouldShowGameCover()">
-      <GameCover
-        :gameId="getGameCoverId()"
-        :thumb="true"
-        :maxHeight="100"
-      ></GameCover>
+    <td v-if="_platform && props.context !== 'platformPage'">
+      <PlatformBadge :platform="_platform" :showName="false" />
     </td>
 
-    <td v-if="props.context !== 'gamePage' && props.activity">
+    <td v-if="_platform && props.context === 'platformTable'">
       <a
-        :href="`/game/${props.activity.game_id}`"
+        :href="`/platform/${_platform.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ _game ? _game.name : "Loading..." }}</a
+        >{{ _platform.display_name }}</a
       >
-    </td>
-
-    <td v-if="gameWithStats">
-      <a
-        :href="`/game/${gameWithStats.id}`"
-        class="link-underline link-underline-opacity-0"
-        >{{ gameWithStats.name }}</a
-      >
-    </td>
-
-    <td v-if="_user && props.context === 'userTable'">
-      <a
-        :href="`/user/${_user.id}`"
-        class="link-underline link-underline-opacity-0"
-        >{{ _user.name }}</a
-      >
-    </td>
-
-    <td
-      v-if="props.activity && platformWithStats"
-      class="d-none d-md-table-cell"
-    >
-      <!-- frontpage: show badge (no name) -->
-      <PlatformBadge
-        v-if="props.context == 'frontPage'"
-        :platform="platformWithStats"
-        :emulated="props.activity.emulated"
-        :showName="false"
-        :showAbbreviation="false"
-      />
-
-      <!-- any other page (big table): show name -->
-      <PlatformBadge
-        v-else
-        :platform="platformWithStats"
-        :emulated="props.activity.emulated"
-        :showName="true"
-      />
     </td>
 
     <!-- Duration (always seen) -->
