@@ -15,7 +15,6 @@ const props = withDefaults(
   }>(),
   {
     showExpand: false,
-    limit: 25,
     user: undefined,
     game: undefined,
   },
@@ -34,7 +33,7 @@ const _after = ref<Date | undefined>();
 const total = ref(0);
 const seen = ref(new Set<number>());
 
-async function fetchActivities(limit: number) {
+async function fetchActivities(limit?: number) {
   loading.value = true;
   fetching.value = true;
   const data = await TimeplayedAPI.getActivities({
@@ -67,7 +66,6 @@ async function autoRefresh() {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     fetching.value = true;
     const data = await TimeplayedAPI.getActivities({
-      limit: 100,
       offset: 0,
       game: props.game ? props.game.id : undefined,
       user: props.user ? props.user.id : undefined,
@@ -96,7 +94,7 @@ function sortByRecent() {
 }
 
 function loadMore() {
-  fetchActivities(10);
+  fetchActivities();
 }
 
 function getContext(): "userPage" | "gamePage" | "frontPage" {
@@ -118,7 +116,7 @@ onMounted(async () => {
 <template>
   <div class="card p-0">
     <h2 class="card-header">
-      Activity
+      Recent activity
 
       <span
         v-if="fetching"

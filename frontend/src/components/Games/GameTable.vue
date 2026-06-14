@@ -19,7 +19,6 @@ const props = withDefaults(
     showExpand: false,
     order: "desc",
     sort: "playtime",
-    limit: 10,
     showDateRange: true,
   },
 );
@@ -38,16 +37,12 @@ const _search = ref("");
 const _showMore = ref(false);
 
 const _gamesData = ref<GameWithStats[]>([]);
-const _displayedGames = ref<GameWithStats[]>([]);
 const loading = ref(false);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
-const _shownAmount = ref(props.limit || 10);
-
-const SHOWN_INCREMENT = props.limit || 10;
 
 /** Returns true if there is more */
-async function fetchGames(limit = 10) {
+async function fetchGames() {
   let order = localOrder.value;
   let sort = "playtime";
   if (localSort.value === "recency") {
@@ -57,6 +52,8 @@ async function fetchGames(limit = 10) {
   } else if (localSort.value === "users") {
     sort = "user_count";
   }
+
+  const limit = props.limit || 10;
 
   loading.value = true;
   const f = await TimeplayedAPI.getGamesStats({
@@ -74,7 +71,6 @@ async function fetchGames(limit = 10) {
   _gamesData.value.push(...f);
   loading.value = false;
 
-  updateDisplayedGames();
   if (f.length === 0 || f.length < limit) {
     _showMore.value = false;
     return false;
@@ -85,16 +81,13 @@ async function fetchGames(limit = 10) {
 }
 
 async function showMore() {
-  _shownAmount.value += SHOWN_INCREMENT;
   fetchGames();
-  updateDisplayedGames();
 }
 
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
   function reset() {
     _gamesData.value = [];
-    _displayedGames.value = [];
   }
   clearTimeout(searchTimeout);
   const val = _search.value.trim();
@@ -114,13 +107,8 @@ function searchChange() {
   }, 200);
 }
 
-function updateDisplayedGames() {
-  _displayedGames.value = _gamesData.value.slice(0, _shownAmount.value);
-}
-
 function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   _showMore.value = false;
-  _displayedGames.value = [];
   _gamesData.value = [];
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
@@ -171,16 +159,13 @@ onMounted(() => {
     placeholder="Search games..."
   />
 
-  <p
-    v-if="!loading && _displayedGames.length === 0"
-    class="text-center text-muted"
-  >
+  <p v-if="!loading && _gamesData.length === 0" class="text-center text-muted">
     Nothing found
   </p>
 
   <table
     class="table table table-hover table-responsive"
-    v-if="_displayedGames.length > 0"
+    v-if="_gamesData.length > 0"
   >
     <thead>
       <tr>
@@ -235,7 +220,7 @@ onMounted(() => {
     </thead>
     <tbody>
       <RowV2
-        v-for="game in _displayedGames"
+        v-for="game in _gamesData"
         :key="game.id"
         :showDate="_showDate"
         :gameWithStats="game"
@@ -257,7 +242,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <div class="text-center" v-if="_displayedGames.length > 0">
+  <div class="text-center" v-if="_gamesData.length > 0">
     <button
       class="btn btn-primary"
       @click="showMore()"
@@ -267,7 +252,7 @@ onMounted(() => {
     </button>
 
     <small class="text-muted mt-2 d-block">
-      {{ _displayedGames.length }} games loaded
+      {{ _gamesData.length }} games loaded
     </small>
   </div>
 </template>

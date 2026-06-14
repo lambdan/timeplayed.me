@@ -126,7 +126,6 @@ onMounted(async () => {
   </div>
 
   <div class="row mb-4">
-    <TopPlayersCard class="col-lg p-0 mt-4" context="frontPage" />
-    <RecentActivityCard :limit="10" class="col-lg p-0 mt-4" />
+    <RecentActivityCard class="col-lg p-0 mt-4" />
   </div>
 </template>

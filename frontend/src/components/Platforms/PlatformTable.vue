@@ -37,7 +37,6 @@ const localOrder = ref(props.order);
 async function fetchPlatforms() {
   loading.value = true;
   const fetched = await TimeplayedAPI.getPlatformsStats({
-    limit: 100,
     offset: _platformsData.value.length,
     user: props.user ? props.user.id : undefined,
     game: props.game ? props.game.id : undefined,

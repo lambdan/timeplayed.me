@@ -10,7 +10,6 @@ const route = useRoute();
   <div class="justify-content-center mx-auto p-0">
     <PlatformListCard
       :showExpand="false"
-      :limit="25"
       :order="'desc'"
       :sort="'playtime'"
       :showSortButtons="false"

@@ -39,7 +39,6 @@ async function fetchUsers() {
   let offset = 0;
   while (true) {
     const f = await TimeplayedAPI.getUsersStats({
-      limit: 100,
       offset,
       before: _before.value?.getTime(),
       after: _after.value?.getTime(),

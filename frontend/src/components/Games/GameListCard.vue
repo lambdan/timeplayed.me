@@ -11,7 +11,7 @@ const props = withDefaults(
     user?: User;
     platform?: Platform;
     showDateRange?: boolean;
-    limit: number;
+    limit?: number;
   }>(),
   {
     showExpand: false,
@@ -19,7 +19,6 @@ const props = withDefaults(
     sort: "recency",
     user: undefined,
     platform: undefined,
-    limit: 10,
   },
 );
 
