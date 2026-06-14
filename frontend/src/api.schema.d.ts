@@ -140,6 +140,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/activity/newest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Newest Activity */
+        get: operations["get_newest_activity_api_activity_newest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/activity/oldest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Oldest Activity */
+        get: operations["get_oldest_activity_api_activity_oldest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/activity/{id}": {
         parameters: {
             query?: never;
@@ -1107,6 +1141,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_User"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_newest_activity_api_activity_newest_get: {
+        parameters: {
+            query?: {
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_oldest_activity_api_activity_oldest_get: {
+        parameters: {
+            query?: {
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"];
                 };
             };
             /** @description Validation Error */

@@ -15,6 +15,51 @@ logger = logging.getLogger("activity_routes")
 router = APIRouter()
 
 
+def __get_newest_or_oldest(
+    which: Literal["newest", "oldest"],
+    user=None,
+    game=None,
+    platform=None,
+) -> API_Activity | None:
+    query = ActivityQuery.base(include_hidden=False)
+    if user:
+        query = ActivityQuery.user(query, user)
+    if game:
+        query = ActivityQuery.game(query, game)
+    if platform:
+        query = ActivityQuery.platform(query, platform)
+    if query.count() == 0:
+        return None
+    query = ActivityQuery.apply_sort(
+        query, "timestamp", "desc" if which == "newest" else "asc"
+    )
+    return API_Activity.from_activity(query.first())
+
+
+@router.get("/activity/newest", tags=["activities"], response_model=API_Activity)
+def get_newest_activity(
+    user=query_id("user"),
+    game=query_id("game"),
+    platform=query_id("platform"),
+) -> API_Activity | None:
+    x = __get_newest_or_oldest(which="newest", user=user, game=game, platform=platform)
+    if not x:
+        raise not_found("No activity found")
+    return x
+
+
+@router.get("/activity/oldest", tags=["activities"], response_model=API_Activity)
+def get_oldest_activity(
+    user=query_id("user"),
+    game=query_id("game"),
+    platform=query_id("platform"),
+) -> API_Activity | None:
+    x = __get_newest_or_oldest(which="oldest", user=user, game=game, platform=platform)
+    if not x:
+        raise not_found("No activity found")
+    return x
+
+
 @router.get(
     "/activity/{id}",
     tags=["activities"],
