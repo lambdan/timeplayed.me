@@ -3,9 +3,8 @@ import logging
 from typing import cast
 
 from tpbackend import utils2
-from tpbackend.storage.storage_v2 import (
+from .storage import (
     Activity_or_none,
-    Game_or_none,
     Platform_or_none,
     User,
     Game,
@@ -15,63 +14,6 @@ from tpbackend.storage.storage_v2 import (
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 
 logger = logging.getLogger("operations")
-
-
-def get_game_by_alias(alias: str) -> Game | None:
-    """
-    Returns a game by its alias.
-    If no game is found, returns None.
-    """
-    return Game.get_or_none(Game.aliases.contains(alias))  # type: ignore
-
-
-def get_game_by_name_or_alias(s: str) -> Game | None:
-    # any game with this name? when multiple games share the same name (different
-    # release years) prefer the one with the highest release_year, nulls last.
-    game = (
-        Game.select()  # type: ignore
-        .where(Game.name == s)  # type: ignore
-        .order_by(Game.release_year.desc(nulls="LAST"))  # type: ignore
-        .first()
-    )
-    if game:
-        logger.info("Found game by name: '%s' (id: %s)", s, game.id)
-        return game
-    # any game with this alias?
-    game = get_game_by_alias(s)
-    if game:
-        logger.info("Found game by alias '%s': '%s' (id: %s)", s, game.name, game.id)  # type: ignore
-        return game
-    # any game with this name but different capitalization?
-    lowercased = s.lower()
-    for g in Game.select():
-        if g.name.lower() == lowercased:
-            logger.info(
-                "Found game by different capitalization: db: '%s' / s: '%s' (id: %s)",
-                g.name,
-                s,
-                g.id,
-            )
-            return g
-    return None
-
-
-def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
-    game = get_game_by_name_or_alias(s)
-    if game:
-        return game
-    # OK FINE we'll create it!
-    # Use create() rather than get_or_create() because name is no longer unique
-    # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
-    game = Game.create(name=s)  # type: ignore
-    logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
-
-    g = Game_or_none(game.id)
-    if g:
-        g.add_history(creation_message)
-        g.save()
-
-    return game
 
 
 def get_overlapping_activity(
@@ -187,62 +129,3 @@ def add_session(
     except Exception as e:
         logger.error("Failed to add session for user %s: %s", user.id, e)
         return None, e
-
-
-def remove_game_images(game: Game) -> str:
-    Game.update(small_image=None, large_image=None).where(Game.id == game.id).execute()  # type: ignore
-    logger.info("Removed images for game %s", game.name)
-    return f"Images for game '{game.name}' removed successfully."
-
-
-def remove_session(user: User, sessionId: int):
-    activity = Activity_or_none(sessionId, include_hidden=True)
-    if not activity:
-        return f"ERROR: Session {sessionId} not found"
-    if activity.user != user:
-        return f"ERROR: Session {sessionId} does not belong to you"
-    activity.delete_instance()
-    return f"Session {sessionId} removed successfully."
-
-
-def merge_games(user: User, gameId1: int, gameId2: int):
-    game1 = Game_or_none(gameId1)
-    if not game1:
-        return f"ERROR: Game with ID {gameId1} not found"
-    game2 = Game_or_none(gameId2)
-    if not game2:
-        return f"ERROR: Game with ID {gameId2} not found"
-    Activity.update(game=game2).where(
-        (Activity.game == game1) & (Activity.user == user)
-    ).execute()
-    return f"Game '{game1.name}' merged into '{game2.name}' successfully for your user"
-
-
-def set_default_platform(user: User, platform: str) -> str:
-    user.default_platform = platform  # type: ignore
-    user.save()
-    return f"Your default platform is now **{user.default_platform}**"
-
-
-def set_platform_for_session(user: User, sessionId: int, platform: Platform) -> bool:
-    activity = Activity_or_none(sessionId)
-    if not activity:
-        return False
-    if activity.user.id != user.id:
-        return False
-    if activity.platform == platform:
-        return False
-    activity.set_platform(platform)
-    activity.save()
-    return True
-
-
-def modify_session_date(user: User, sessionId: int, new_date: datetime.datetime) -> str:
-    activity = Activity_or_none(sessionId)
-    if not activity:
-        return f"ERROR: Session {sessionId} not found"
-    if activity.user != user:
-        return f"ERROR: Session {sessionId} does not belong to you"
-    activity.set_datetime(new_date)
-    activity.save()
-    return f"Session {sessionId} date has been modified to {new_date.strftime('%Y-%m-%d %H:%M:%S')} UTC"
