@@ -3,6 +3,7 @@ from typing import cast
 from fastapi import APIRouter
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.api.params import query_id, query_ts
+from tpbackend.charts.models import PlaytimeChart
 from tpbackend.storage import (
     Activity,
 )
@@ -15,14 +16,14 @@ router = APIRouter()
 # TODO, get rid of this file? move it somewhere else?
 
 
-@router.get("/playtime/by_day", tags=["charts"])
+@router.get("/playtime/by_day", tags=["charts"], response_model=PlaytimeChart)
 def get_playtime_by_day(
     user=query_id("user"),
     game=query_id("game"),
     platform=query_id("platform"),
     before=query_ts("before"),
     after=query_ts("after"),
-):
+) -> PlaytimeChart:
     query = ActivityQuery.base()
 
     if user:
@@ -77,4 +78,4 @@ def get_playtime_by_day(
     for date in sorted(daily_seconds.keys()):
         data["labels"].append(date.strftime("%Y-%m-%d"))
         data["datasets"][0]["data"].append(daily_seconds[date])
-    return data
+    return PlaytimeChart.parse_obj(data)

@@ -194,6 +194,24 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getGameStatsMany(game_ids: number[]) {
+    const { data, error } = await this.getClient().GET(
+      "/api/games-stats/{game_ids}",
+      {
+        params: {
+          path: {
+            game_ids: game_ids.join(","),
+          },
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching game stats:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getGamesStats(
     query: paths["/api/games-stats"]["get"]["parameters"]["query"],
   ) {
@@ -312,6 +330,25 @@ export class TimeplayedAPI {
     });
     if (error) {
       console.error("Error searching SGDB:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  ////////////////// CHART /////////////////////
+  static async getChartsPlaytimeByDay(
+    query: paths["/api/charts/playtime/by_day"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.getClient().GET(
+      "/api/charts/playtime/by_day",
+      {
+        params: {
+          query,
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching chart data:", error);
       throw error;
     }
     return data;

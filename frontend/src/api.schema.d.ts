@@ -693,6 +693,13 @@ export interface components {
             updated: number;
             stats: components["schemas"]["UserTotals"];
         };
+        /** Data */
+        Data: {
+            /** Label */
+            label: string;
+            /** Data */
+            data: number[];
+        };
         /** GameStats */
         GameStats: {
             /**
@@ -758,6 +765,13 @@ export interface components {
             user_count: number;
             /** Game Count */
             game_count: number;
+        };
+        /** PlaytimeChart */
+        PlaytimeChart: {
+            /** Labels */
+            labels: string[];
+            /** Datasets */
+            datasets: components["schemas"]["Data"][];
         };
         /** SGDB_Author */
         SGDB_Author: {
@@ -1873,7 +1887,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PlaytimeChart"];
                 };
             };
             /** @description Validation Error */
