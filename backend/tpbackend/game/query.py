@@ -101,12 +101,20 @@ class GameStatsQuery:
     }
 
     @staticmethod
-    def base():
-        return (
-            Game.select(Game, *GameStatsQuery.AGGREGATES.values())
-            .join(Activity, JOIN.LEFT_OUTER)
-            .group_by(Game.id)
-        )
+    def base(include_hidden=False):
+        if include_hidden:
+            return (
+                Game.select(Game, *GameStatsQuery.AGGREGATES.values())
+                .join(Activity, JOIN.LEFT_OUTER)
+                .group_by(Game.id)
+            )
+        else:
+            return (
+                Game.select(Game, *GameStatsQuery.AGGREGATES.values())
+                .join(Activity, JOIN.LEFT_OUTER)
+                .where(Game.hidden == False)  # noqa: E712
+                .group_by(Game.id)
+            )
 
     @staticmethod
     def apply_ids(
