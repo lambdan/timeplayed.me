@@ -10,6 +10,7 @@ from tpbackend.operations import (
     add_session,
 )
 from tpbackend.platform.utils import (
+    display_name,
     last_platform_for_game,
 )
 from tpbackend.game.utils import md_game_link
@@ -126,7 +127,7 @@ Returns: Confirmation message
             msg += f"- Game: {md_game_link(game=sesh.get_game())}\n"
             msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
             msg += f"- Date: {formatted_dt}\n"
-            msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
+            msg += f"- Platform: {display_name(sesh.get_platform())}\n"
 
             sesh.add_history("Activity source: manual add command")
             sesh.save()

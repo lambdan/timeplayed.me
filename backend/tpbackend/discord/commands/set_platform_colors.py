@@ -1,3 +1,4 @@
+from tpbackend.platform.utils import display_name
 from .admin_command import AdminCommand
 from tpbackend.storage import Platform_or_none, User
 
@@ -46,7 +47,7 @@ Use null to remove a color:
         platform.save()
 
         return f"""```
-{platform.get_display_name()}:\n
+{display_name(platform)}:\n
 primary: {old_primary} --> {platform.get_color_primary()}\n
 secondary: {old_secondary} --> {platform.get_color_secondary()}
         ```"""

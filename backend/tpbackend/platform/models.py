@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from tpbackend.common.models import BaseTotals
+from tpbackend.platform.utils import display_name
 from tpbackend.utils2 import dt_to_ts
 
 
@@ -10,6 +11,7 @@ class PlatformTotals(BaseTotals):
 
 class API_Platform(BaseModel):
     id: int
+    display_name: str
     abbreviation: str
     name: str | None
     color_primary: str | None
@@ -29,6 +31,7 @@ class API_Platform(BaseModel):
             icon=platform.icon,
             created=dt_to_ts(platform.created),
             updated=dt_to_ts(platform.updated),
+            display_name=display_name(platform),
         )
 
 
@@ -39,6 +42,7 @@ class API_PlatformWithStats(API_Platform):
     def from_platform(cls, platform):
         return cls(
             id=platform.id,
+            display_name=display_name(platform),
             abbreviation=platform.abbreviation,
             name=platform.name,
             color_primary=platform.color_primary,

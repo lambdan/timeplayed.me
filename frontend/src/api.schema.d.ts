@@ -623,6 +623,8 @@ export interface components {
         API_Platform: {
             /** Id */
             id: number;
+            /** Display Name */
+            display_name: string;
             /** Abbreviation */
             abbreviation: string;
             /** Name */
@@ -642,6 +644,8 @@ export interface components {
         API_PlatformWithStats: {
             /** Id */
             id: number;
+            /** Display Name */
+            display_name: string;
             /** Abbreviation */
             abbreviation: string;
             /** Name */

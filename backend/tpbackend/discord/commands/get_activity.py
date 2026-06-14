@@ -1,3 +1,4 @@
+from tpbackend.platform.utils import display_name
 from tpbackend.storage import (
     User,
     Activity_or_none,
@@ -34,7 +35,7 @@ class GetActivityCommand(Command):
         msg += f"{md_activity_link(activity)}\n"
         msg += f"- User: {activity.get_user().get_name()}\n"
         msg += f"- Game: {md_game_link(activity.get_game())}\n"
-        msg += f"- Platform: *{activity.get_platform().get_display_name()}*"
+        msg += f"- Platform: *{display_name(activity.get_platform())}*"
         if activity.get_emulated():
             msg += " (Emulated)"
         msg += "\n"

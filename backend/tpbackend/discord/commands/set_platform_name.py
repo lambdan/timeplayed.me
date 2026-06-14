@@ -1,5 +1,6 @@
 from .admin_command import AdminCommand
 from tpbackend.storage import Platform_or_none, User
+from tpbackend.platform.utils import display_name
 
 
 class SetPlatformNameCommand(AdminCommand):
@@ -20,4 +21,4 @@ class SetPlatformNameCommand(AdminCommand):
             return f"Error: Platform with id {platform_id} not found."
         platform.set_name(name)
         platform.save()
-        return f"Platform {platform_id} (`{platform.get_abbreviation()}`) name set to *{platform.get_name()}*. Its display name is now `{platform.get_display_name()}`."
+        return f"Platform {platform_id} (`{platform.get_abbreviation()}`) name set to *{platform.get_name()}*. Its display name is now `{display_name(platform)}`."

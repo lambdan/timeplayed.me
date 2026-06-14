@@ -1,6 +1,7 @@
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.activity.utils import md_activity_link
 from tpbackend.game.utils import md_game_link
+from tpbackend.platform.utils import display_name
 from tpbackend.storage import User
 from .command import Command
 from typing import cast
@@ -46,7 +47,7 @@ Get your last n activities: `!last n`
             ts = js_iso(act.get_datetime())
             out += md_activity_link(act) + "\n"
             out += f"- {md_game_link(act.get_game())}\n"
-            out += f"- {act.get_platform().get_display_name()}"
+            out += f"- {display_name(act.get_platform())}"
             if act.emulated:
                 out += " (emu)"
             out += "\n"

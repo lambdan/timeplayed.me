@@ -173,9 +173,6 @@ class Platform(IdMixin, HistoryMixin, SearchMixin):
         self.name = name
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
-    def get_display_name(self) -> str:
-        return (self.get_name() or self.get_abbreviation()).strip()
-
     def get_color_primary(self) -> str | None:
         return cast(str | None, self.color_primary)
 
@@ -242,7 +239,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         old_platform = self.get_default_platform()
         self.default_platform = cast(ForeignKeyField, platform)
         self.add_history(
-            f"Default platform changed from '{old_platform.get_display_name()}' ({old_platform.get_id()}) to '{platform.get_display_name()}' ({platform.get_id()})"
+            f"Default platform changed from '{old_platform.abbreviation}' ({old_platform.get_id()}) to '{platform.abbreviation}' ({platform.get_id()})"
         )
 
     def get_pc_platform(self) -> str:
@@ -509,7 +506,7 @@ class Activity(IdMixin, HistoryMixin, HiddenMixin):
         old_platform = self.get_platform()
         self.platform = cast(ForeignKeyField, platform)
         self.add_history(
-            f"Platform changed from '{old_platform.get_display_name()}' ({old_platform.get_id()}) to '{platform.get_display_name()}' ({platform.get_id()})"
+            f"Platform changed from '{old_platform.abbreviation}' ({old_platform.get_id()}) to '{platform.abbreviation}' ({platform.get_id()})"
         )
 
     def get_user(self) -> User:

@@ -1,5 +1,6 @@
 from tpbackend.activity.utils import md_activity_link
 from tpbackend.game.utils import md_game_link
+from tpbackend.platform.utils import display_name
 from .manual_activity_command import ManualActivityCommand
 from tpbackend.operations import add_session
 from tpbackend.storage import LiveActivity_or_none, User
@@ -38,7 +39,7 @@ class StopManualCommand(ManualActivityCommand):
             msg = f"{md_activity_link(sesh)} saved ✅\n"
             msg += f"- {md_game_link(sesh.get_game())}\n"
             msg += f"- Duration: {secsToHHMMSS(sesh.get_seconds())}\n"
-            msg += f"- Platform: {sesh.get_platform().get_display_name()}\n"
+            msg += f"- Platform: {display_name(sesh.get_platform())}\n"
 
             sesh.add_history("Activity source: live activity")
             sesh.save()

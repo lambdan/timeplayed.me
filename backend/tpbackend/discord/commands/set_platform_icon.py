@@ -1,3 +1,4 @@
+from tpbackend.platform.utils import display_name
 from .admin_command import AdminCommand
 from tpbackend.storage import Platform_or_none, User
 
@@ -24,7 +25,7 @@ class SetPlatformIconCommand(AdminCommand):
             platform.set_icon(icon)
         platform.save()
         out = f"""```
-{platform.get_display_name()}:\n
+{display_name(platform)}:\n
 icon: {old_icon} --> {platform.get_icon()}\n
         ```"""
         return out.strip()

@@ -1,3 +1,4 @@
+from tpbackend.platform.utils import display_name
 from tpbackend.storage import Platform, Platform_or_none, User
 from .command import Command
 from tpbackend.platform.query import PlatformQuery
@@ -56,7 +57,7 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
                 )
                 for p in sr:
                     p = cast(Platform, p)
-                    msg += f"- {p.get_display_name()} ({p.get_id()})\n"
+                    msg += f"- {display_name(p)} ({p.get_id()})\n"
                 msg += "If so, use the platform ID (the number) in the command"
                 return msg
         if not platform:
@@ -65,9 +66,9 @@ Use `!platforms` to see available platforms. Only admins can add new platforms.
 
     def get_current(self, user: User) -> str:
         platform = user.get_default_platform()
-        return f"Your default platform is: {platform.get_display_name()} ({platform.get_id()}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."
+        return f"Your default platform is: {display_name(platform)} ({platform.get_id()}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."
 
     def update(self, user: User, new_platform: Platform) -> str:
         user.set_default_platform(new_platform)
         user.save()
-        return f"Your default platform is now **{new_platform.get_display_name()}** ({new_platform.get_id()})"
+        return f"Your default platform is now **{display_name(new_platform)}** ({new_platform.get_id()})"

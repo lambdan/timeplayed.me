@@ -1,5 +1,6 @@
 from typing import cast
 from tpbackend.platform.query import PlatformQuery
+from tpbackend.platform.utils import display_name
 from tpbackend.storage import Platform, User
 from .command import Command
 
@@ -21,6 +22,6 @@ class ListPlatformsCommand(Command):
         out = ""
         for p in platforms:
             p = cast(Platform, p)
-            out += f"- {p.get_display_name()} ({p.get_id()})\n"
+            out += f"- {display_name(p)} ({p.get_id()})\n"
         out += ""
         return out
