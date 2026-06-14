@@ -19,8 +19,6 @@ class UserQuery:
         "updated": User.updated,
     }
 
-    SORTS_LITERAL = Literal["name", "id", "created", "updated"]
-
     @staticmethod
     def base():
         return User.select()
@@ -33,11 +31,7 @@ class UserQuery:
         return query.where(User.id.in_(user_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
-    ):
+    def apply_sort(query, sort, order):
         column = UserQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
 
@@ -89,16 +83,6 @@ class UserStatsQuery:
         "id": User.id,
     }
 
-    SORTS_LITERAL = Literal[
-        "playtime",
-        "activity_count",
-        "last_activity",
-        "game_count",
-        "platform_count",
-        "name",
-        "id",
-    ]
-
     @staticmethod
     def base():
         return (
@@ -115,10 +99,6 @@ class UserStatsQuery:
         return query.where(User.id.in_(user_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
-    ):
+    def apply_sort(query, sort, order):
         column = UserStatsQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())

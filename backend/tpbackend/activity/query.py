@@ -14,8 +14,6 @@ class ActivityQuery:
         "timestamp": Activity.timestamp,
     }
 
-    SORTS_LITERAL = Literal["id", "timestamp"]
-
     @staticmethod
     def base(include_hidden=False):
         if include_hidden:
@@ -24,11 +22,7 @@ class ActivityQuery:
             return Activity.select().where(Activity.hidden == False)  # noqa: E712
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
-    ):
+    def apply_sort(query, sort, order):
         column = ActivityQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
 

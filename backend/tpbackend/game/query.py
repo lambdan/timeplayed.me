@@ -20,8 +20,6 @@ class GameQuery:
         "release_year": Game.release_year,
     }
 
-    SORTS_LITERAL = Literal["name", "id", "created", "updated", "release_year"]
-
     @staticmethod
     def base(include_hidden=False):
         if include_hidden:
@@ -39,8 +37,8 @@ class GameQuery:
     @staticmethod
     def apply_sort(
         query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
+        sort,
+        order,
     ):
         column = GameQuery.SORTS[sort]
         return query.order_by(
@@ -102,16 +100,6 @@ class GameStatsQuery:
         "id": Game.id,
     }
 
-    SORTS_LITERAL = Literal[
-        "playtime",
-        "activity_count",
-        "last_activity",
-        "game_count",
-        "platform_count",
-        "name",
-        "id",
-    ]
-
     @staticmethod
     def base():
         return (
@@ -130,8 +118,8 @@ class GameStatsQuery:
     @staticmethod
     def apply_sort(
         query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
+        sort,
+        order,
     ):
         column = GameStatsQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())

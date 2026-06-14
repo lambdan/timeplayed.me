@@ -5,10 +5,17 @@ from tpbackend.user.models import API_UserWithStats, API_User
 from tpbackend.api.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
-from tpbackend.common.types import (
-    QUERY_TS_BEFORE,
-    QUERY_TS_AFTER,
+from tpbackend.api.params import (
+    path_csv,
+    query_ts,
     AscDescOrder,
+    path_id,
+    query_id,
+    query_csv,
+    query_search,
+    sorts,
+    offset,
+    limit,
 )
 
 logger = logging.getLogger("users-routes")
@@ -17,14 +24,14 @@ router = APIRouter()
 
 def __get_users_stats(
     uids: list[int] | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
+    before: int | None = None,
+    after: int | None = None,
     game_id: int | None = None,
     platform_id: int | None = None,
-    sort: UserStatsQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
-    offset: int | None = None,
-    limit: int | None = None,
+    sort="id",
+    order="asc",
+    offset=None,
+    limit=None,
     search="",
 ) -> list[API_UserWithStats]:
     bf = parseTS(before)
@@ -70,8 +77,8 @@ def __get_users_stats(
 )
 def get_single_user_stats(
     user_id: int,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
+    before=query_ts("before"),
+    after=query_ts("after"),
     game: int | None = None,
     platform: int | None = None,
 ) -> API_UserWithStats:
@@ -93,12 +100,12 @@ def get_single_user_stats(
     tags=["users", "stats"],
 )
 def get_many_users_stats(
-    user_ids: str = Path(description="Comma-separated list of user IDs"),
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    game: int | None = None,
-    platform: int | None = None,
-    sort: UserStatsQuery.SORTS_LITERAL = "id",
+    user_ids=path_csv("user ids"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    game=query_id("game"),
+    platform=query_id("platform"),
+    sort=sorts(list(UserStatsQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_UserWithStats]:
     uids = parse_csv(user_ids)
@@ -119,15 +126,15 @@ def get_many_users_stats(
     response_model=list[API_UserWithStats],
 )
 def get_users_stats(
-    offset=0,
-    limit=25,
-    game: int | None = None,
-    platform: int | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    sort: UserStatsQuery.SORTS_LITERAL = "playtime",
+    offset=offset(),
+    limit=limit(),
+    game=query_id("game"),
+    platform=query_id("platform"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    sort=sorts(list(UserStatsQuery.SORTS.keys()), "playtime"),
     order: AscDescOrder = "desc",
-    search="",
+    search=query_search("users"),
 ) -> list[API_UserWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -152,8 +159,8 @@ def get_users_stats(
 
 def __get_users(
     ids: list[int] | None = None,
-    sort: UserQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
+    sort="id",
+    order="asc",
     offset: int | None = None,
     limit: int | None = None,
     search="",
@@ -190,8 +197,8 @@ def get_single_user(user_id: int) -> API_User:
     response_model=list[API_User],
 )
 def get_many_users(
-    user_ids: str = Path(description="Comma-separated list of user IDs"),
-    sort: UserQuery.SORTS_LITERAL = "id",
+    user_ids=path_csv("user ids"),
+    sort=sorts(list(UserQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_User]:
     gids = parse_csv(user_ids)
@@ -210,11 +217,11 @@ def get_many_users(
     response_model=list[API_User],
 )
 def get_users(
-    offset=0,
-    limit=25,
-    sort: UserQuery.SORTS_LITERAL = "id",
+    offset=offset(),
+    limit=offset(),
+    sort=sorts(list(UserQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
-    search="",
+    search=query_search("users"),
 ) -> list[API_User]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))

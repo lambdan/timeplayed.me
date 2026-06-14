@@ -2,7 +2,7 @@ import datetime
 from typing import cast
 from fastapi import APIRouter
 from tpbackend.activity.query import ActivityQuery
-from tpbackend.common.types import QUERY_TS_BEFORE, QUERY_TS_AFTER
+from tpbackend.api.params import query_id, query_ts
 from tpbackend.storage import (
     Activity,
 )
@@ -17,11 +17,11 @@ router = APIRouter()
 
 @router.get("/playtime/by_day", tags=["charts"])
 def get_playtime_by_day(
-    user: int | None = None,
-    game: int | None = None,
-    platform: int | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
+    user=query_id("user"),
+    game=query_id("game"),
+    platform=query_id("platform"),
+    before=query_ts("before"),
+    after=query_ts("after"),
 ):
     query = ActivityQuery.base()
 
