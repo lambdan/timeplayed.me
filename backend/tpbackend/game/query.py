@@ -130,4 +130,6 @@ class GameStatsQuery:
         order,
     ):
         column = GameStatsQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )

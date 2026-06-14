@@ -33,7 +33,9 @@ class UserQuery:
     @staticmethod
     def apply_sort(query, sort, order):
         column = UserQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )
 
     @staticmethod
     def search(query, search: str):
@@ -101,4 +103,6 @@ class UserStatsQuery:
     @staticmethod
     def apply_sort(query, sort, order):
         column = UserStatsQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )

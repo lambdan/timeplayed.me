@@ -33,7 +33,9 @@ class PlatformQuery:
     @staticmethod
     def apply_sort(query, sort, order):
         column = PlatformQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )
 
     @staticmethod
     def search(query, search: str):
@@ -105,4 +107,6 @@ class PlatformStatsQuery:
         order,
     ):
         column = PlatformStatsQuery.SORTS[sort]
-        return query.order_by(column.desc() if order == "desc" else column.asc())
+        return query.order_by(
+            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
+        )
