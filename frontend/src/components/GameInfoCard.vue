@@ -49,17 +49,19 @@ onMounted(async () => {
     ids.push(props.game.parent_id);
   }
 
-  const fetched = await TimeplayedAPI.getGameStatsMany(ids);
+  if (ids.length > 0) {
+    const fetched = await TimeplayedAPI.getGameStatsMany(ids);
 
-  if (!stats.value) {
-    throw new Error("Stats not found for game " + props.game.id);
-  }
-  parent.value = fetched.find((g) => g.id === props.game.parent_id);
+    if (!stats.value) {
+      throw new Error("Stats not found for game " + props.game.id);
+    }
+    parent.value = fetched.find((g) => g.id === props.game.parent_id);
 
-  for (const child_id of stats.value.children_ids) {
-    const childStats = fetched.find((g) => g.id === child_id);
-    if (childStats) {
-      childrenStats.value.push(childStats);
+    for (const child_id of stats.value.children_ids) {
+      const childStats = fetched.find((g) => g.id === child_id);
+      if (childStats) {
+        childrenStats.value.push(childStats);
+      }
     }
   }
 

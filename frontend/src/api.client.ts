@@ -7,6 +7,23 @@ const client = createClient<paths>({
   // baseUrl: "http://localhost:8000",
 });
 
+function getSessionCache(key: string) {
+  const cached = sessionStorage.getItem(key);
+  if (cached) {
+    //console.log("cache hit", key);
+    return JSON.parse(cached);
+  }
+  return null;
+}
+
+function storeSessionCache(key: string, value: any) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error("Error storing session cache:", e);
+  }
+}
+
 export class TimeplayedAPI {
   static getClient() {
     return client;
@@ -15,6 +32,11 @@ export class TimeplayedAPI {
   /////////////// USERS //////////////////
 
   static async getUser(user_id: number) {
+    const key = `api_getUser_${user_id}`;
+    const cached = getSessionCache(key);
+    if (cached) {
+      return cached;
+    }
     const { data, error } = await this.getClient().GET("/api/user/{user_id}", {
       params: {
         path: {
@@ -26,6 +48,7 @@ export class TimeplayedAPI {
       console.error("Error fetching user:", error);
       throw error;
     }
+    storeSessionCache(key, data);
     return data;
   }
 
@@ -80,6 +103,11 @@ export class TimeplayedAPI {
   ///////////////// PLATFORMS ////////////////
 
   static async getPlatform(platform_id: number) {
+    const key = `api_getPlatform_${platform_id}`;
+    const cached = getSessionCache(key);
+    if (cached) {
+      return cached;
+    }
     const { data, error } = await this.getClient().GET(
       "/api/platform/{platform_id}",
       {
@@ -94,8 +122,10 @@ export class TimeplayedAPI {
       console.error("Error fetching platform:", error);
       throw error;
     }
+    storeSessionCache(key, data);
     return data;
   }
+
   static async getPlatforms(
     query: paths["/api/platforms"]["get"]["parameters"]["query"],
   ) {
@@ -147,6 +177,11 @@ export class TimeplayedAPI {
   //////////////// GAMES /////////////
 
   static async getGame(game_id: number) {
+    const key = `api_getGame_${game_id}`;
+    const cached = getSessionCache(key);
+    if (cached) {
+      return cached;
+    }
     const { data, error } = await this.getClient().GET("/api/game/{game_id}", {
       params: {
         path: {
@@ -158,6 +193,7 @@ export class TimeplayedAPI {
       console.error("Error fetching game:", error);
       throw error;
     }
+    storeSessionCache(key, data);
     return data;
   }
 
@@ -195,6 +231,7 @@ export class TimeplayedAPI {
   }
 
   static async getGameStatsMany(game_ids: number[]) {
+    console.log("Executing with", game_ids, game_ids.join(","));
     const { data, error } = await this.getClient().GET(
       "/api/games-stats/{game_ids}",
       {
@@ -205,6 +242,7 @@ export class TimeplayedAPI {
         },
       },
     );
+
     if (error) {
       console.error("Error fetching game stats:", error);
       throw error;
@@ -303,6 +341,11 @@ export class TimeplayedAPI {
   /////////////// SGDB /////////////////
 
   static async getBestSGDBGridForGame(sgdb_game_id: number) {
+    const key = `api_getBestSGDBGridForGame_${sgdb_game_id}`;
+    const cached = getSessionCache(key);
+    if (cached) {
+      return cached;
+    }
     const { data, error } = await this.getClient().GET(
       "/api/sgdb/{sgdb_game_id}/grids/best",
       {
@@ -317,6 +360,7 @@ export class TimeplayedAPI {
       console.error("Error fetching best grid:", error);
       throw error;
     }
+    storeSessionCache(key, data);
     return data;
   }
 

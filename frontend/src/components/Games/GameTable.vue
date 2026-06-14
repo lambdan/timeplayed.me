@@ -22,13 +22,7 @@ const props = withDefaults(
     showDateRange: true,
   },
 );
-const ONE_DAY = 24 * 60 * 60 * 1000;
-// Set default starting millis to 7 days ago (speeds up fetching all games...)
-// Default to all time on user/platform page
-let _defaultStartingMillis = 7 * ONE_DAY;
-if (props.user || props.platform) {
-  _defaultStartingMillis = -1;
-}
+let _defaultStartingMillis = -1; // default to all time
 
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
@@ -37,7 +31,7 @@ const _search = ref("");
 const _showMore = ref(false);
 
 const _gamesData = ref<GameWithStats[]>([]);
-const loading = ref(false);
+const loading = ref(true);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
@@ -84,11 +78,12 @@ async function showMore() {
   fetchGames();
 }
 
+function reset() {
+  _gamesData.value = [];
+}
+
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
-  function reset() {
-    _gamesData.value = [];
-  }
   clearTimeout(searchTimeout);
   const val = _search.value.trim();
   searchTimeout = setTimeout(() => {
@@ -141,6 +136,8 @@ onMounted(() => {
         _before = before;
         _after = after;
         _showDate = allTime;
+        reset();
+        loading = true;
         if (!_showDate) {
           // change sort if recency was used
           if (localSort === 'recency') {
