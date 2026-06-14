@@ -52,7 +52,7 @@ def __get_platforms_stats(
         query = ActivityQuery.user(query, user_id)
 
     if game_id:
-        query = ActivityQuery.platform(query, game_id)
+        query = ActivityQuery.game(query, game_id)
 
     if search:
         query = PlatformQuery.search(query, search=search)
