@@ -4,7 +4,7 @@ import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import LoadingBar from "../../components/LoadingBar.vue";
+
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -18,7 +18,7 @@ const props = withDefaults(
   {
     showExpand: false,
     order: "desc",
-    sort: "recency",
+    sort: "playtime",
     limit: 10,
     showDateRange: true,
   },
@@ -35,8 +35,8 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
 const _search = ref("");
+const _showMore = ref(false);
 
-const _loadingPercent = ref(0);
 const _gamesData = ref<GameWithStats[]>([]);
 const _displayedGames = ref<GameWithStats[]>([]);
 const loading = ref(false);
@@ -46,107 +46,85 @@ const _shownAmount = ref(props.limit || 10);
 
 const SHOWN_INCREMENT = props.limit || 10;
 
-let currentRequest = 0;
-
-async function fetchGames(search?: string) {
-  const requestId = ++currentRequest;
+/** Returns true if there is more */
+async function fetchGames(limit = 10) {
+  let order = localOrder.value;
+  let sort = "playtime";
+  if (localSort.value === "recency") {
+    sort = "last_activity";
+  } else if (localSort.value === "name") {
+    sort = "name";
+  } else if (localSort.value === "users") {
+    sort = "user_count";
+  }
 
   loading.value = true;
-  _displayedGames.value = [];
-  _gamesData.value = [];
-  _loadingPercent.value = 0;
+  const f = await TimeplayedAPI.getGamesStats({
+    limit,
+    offset: _gamesData.value.length,
+    user: props.user ? props.user.id : undefined,
+    platform: props.platform ? props.platform.id : undefined,
+    before: _before.value ? _before.value.getTime() : undefined,
+    after: _after.value ? _after.value.getTime() : undefined,
+    search: _search.value.trim(),
+    sort: sort as any,
+    order: order as any,
+  });
 
-  while (true) {
-    const f = await TimeplayedAPI.getGames({
-      limit: 25,
-      offset: _gamesData.value.length,
-      userId: props.user ? props.user.id : undefined,
-      platformId: props.platform ? props.platform.id : undefined,
-      before: _before.value ? _before.value.getTime() : undefined,
-      after: _after.value ? _after.value.getTime() : undefined,
-      search,
-    });
-
-    if (requestId !== currentRequest) {
-      // stale request -> stop immediately
-      return;
-    }
-
-    _gamesData.value.push(...f.data);
-    if (f.total > 0) {
-      _loadingPercent.value = (_gamesData.value.length / f.total) * 100;
-    } else {
-      _loadingPercent.value = 100;
-    }
-    if (_gamesData.value.length >= f.total) {
-      break;
-    }
-  }
-
-  if (requestId !== currentRequest) {
-    return;
-  }
-  sort();
+  _gamesData.value.push(...f);
   loading.value = false;
+
+  updateDisplayedGames();
+  if (f.length === 0 || f.length < limit) {
+    _showMore.value = false;
+    return false;
+  } else {
+    _showMore.value = true;
+    return true;
+  }
+}
+
+async function showMore() {
+  _shownAmount.value += SHOWN_INCREMENT;
+  fetchGames();
+  updateDisplayedGames();
 }
 
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
+  function reset() {
+    _gamesData.value = [];
+    _displayedGames.value = [];
+  }
   clearTimeout(searchTimeout);
   const val = _search.value.trim();
   searchTimeout = setTimeout(() => {
     if (!val) {
+      _search.value = "";
+      reset();
       fetchGames();
       return;
     }
     if (val.length < 2) {
       return;
     }
-    fetchGames(val);
+    _search.value = val;
+    reset();
+    fetchGames();
   }, 200);
 }
 
-async function updateDisplayedGames() {
+function updateDisplayedGames() {
   _displayedGames.value = _gamesData.value.slice(0, _shownAmount.value);
 }
 
-function sort() {
-  if (localSort.value === "recency") {
-    _gamesData.value.sort((a, b) => {
-      if (!a.newest_activity || !b.newest_activity) return 0;
-      return localOrder.value === "asc"
-        ? a.newest_activity.timestamp - b.newest_activity.timestamp
-        : b.newest_activity.timestamp - a.newest_activity.timestamp;
-    });
-  } else if (localSort.value === "playtime") {
-    _gamesData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.playtime_secs - b.totals.playtime_secs
-        : b.totals.playtime_secs - a.totals.playtime_secs;
-    });
-  } else if (localSort.value === "name") {
-    _gamesData.value.sort((a, b) => {
-      const a_name = a.game.name;
-      const b_name = b.game.name;
-      return localOrder.value === "asc"
-        ? a_name.localeCompare(b_name)
-        : b_name.localeCompare(a_name);
-    });
-  } else if (localSort.value === "users") {
-    _gamesData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.user_count - b.totals.user_count
-        : b.totals.user_count - a.totals.user_count;
-    });
-  }
-  updateDisplayedGames();
-}
-
 function setSort(newSort: "recency" | "playtime" | "name" | "users") {
-  console.log("sort", newSort);
+  _showMore.value = false;
+  _displayedGames.value = [];
+  _gamesData.value = [];
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
-  sort();
+  fetchGames();
 }
 
 onMounted(() => {
@@ -192,8 +170,6 @@ onMounted(() => {
     class="form-control mb-2"
     placeholder="Search games..."
   />
-
-  <LoadingBar v-if="loading" :percent="_loadingPercent" />
 
   <p
     v-if="!loading && _displayedGames.length === 0"
@@ -260,37 +236,38 @@ onMounted(() => {
     <tbody>
       <RowV2
         v-for="game in _displayedGames"
-        :key="game.game.id"
+        :key="game.id"
         :showDate="_showDate"
         :game="game"
         :context="'gameTable'"
-        :durationSeconds="game.totals.playtime_secs"
+        :durationSeconds="game.stats.seconds"
         :date="
-          game.newest_activity
-            ? new Date(game.newest_activity.timestamp)
+          game.stats.last_activity
+            ? new Date(game.stats.last_activity)
             : undefined
         "
         :show-users="props.user ? false : true"
       />
     </tbody>
   </table>
-  <!--
-    <GameRow v-for="game in _displayedGames" :key="game.game.id" :game="game" />-->
+
+  <div class="text-center" v-if="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 
   <div class="text-center" v-if="_displayedGames.length > 0">
     <button
-      v-if="_displayedGames.length < _gamesData.length"
       class="btn btn-primary"
-      @click="
-        _shownAmount += SHOWN_INCREMENT;
-        updateDisplayedGames();
-      "
+      @click="showMore()"
+      v-if="_showMore && !loading"
     >
       Show More
     </button>
 
     <small class="text-muted mt-2 d-block">
-      {{ _displayedGames.length }} / {{ _gamesData.length }}
+      {{ _displayedGames.length }} games loaded
     </small>
   </div>
 </template>

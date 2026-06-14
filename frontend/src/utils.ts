@@ -194,7 +194,7 @@ export async function getGameCoverUrl(
     sessionStorage.setItem(key + "_loading", "true");
 
     try {
-      const gameData = (await TimeplayedAPI.getGame(gameId)).game;
+      const gameData = await TimeplayedAPI.getGame(gameId);
 
       // top priority: explicit image_url
       if (gameData.image_url) {

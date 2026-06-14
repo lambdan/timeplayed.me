@@ -15,7 +15,7 @@ const loading = ref(false);
 async function fetchPlatform() {
   const platformId = parseInt(route.params.id as string);
   loading.value = true;
-  platform.value = await TimeplayedAPI.getPlatform(platformId);
+  platform.value = await TimeplayedAPI.getPlatformStats(platformId);
   loading.value = false;
 }
 
@@ -29,59 +29,45 @@ onMounted(async () => {
 
   <div v-if="!loading && platform" class="card p-0">
     <h1 class="card-header">
-      {{ platform.platform.name || platform.platform.abbreviation }}
+      {{ platform.name || platform.abbreviation }}
     </h1>
     <div class="card-body">
-      <PlatformBadge :platform="platform.platform" class="p-2 mt-4" />
+      <PlatformBadge :platform="platform" class="p-2 mt-4" />
 
       <table class="table table-responsive table-hover p-2 mt-4">
         <tbody>
           <tr>
             <th>Games</th>
-            <td>{{ platform.totals.game_count || "N/A" }}</td>
+            <td>{{ platform.stats.game_count || "N/A" }}</td>
           </tr>
           <tr>
             <th>Users</th>
-            <td>{{ platform.totals.user_count || "N/A" }}</td>
+            <td>{{ platform.stats.user_count || "N/A" }}</td>
           </tr>
           <tr>
             <th>Total playtime</th>
             <td>
-              {{ formatDuration(platform.totals.playtime_secs) }}
+              {{ formatDuration(platform.stats.seconds) }}
             </td>
           </tr>
 
           <tr>
             <th>Activity count</th>
             <td>
-              {{ platform.totals.activity_count || "N/A" }}
+              {{ platform.stats.activity_count || "N/A" }}
             </td>
           </tr>
-          <tr v-if="platform.oldest_activity">
+          <tr v-if="platform.stats.first_activity">
             <th>First Played:</th>
             <td>
-              <a :href="'/activity/' + platform.oldest_activity.id">
-                {{
-                  iso8601Date(
-                    new Date(platform.oldest_activity.timestamp),
-                    true,
-                  )
-                }}</a
-              >
+              {{ iso8601Date(new Date(platform.stats.first_activity), true) }}
             </td>
           </tr>
 
-          <tr v-if="platform.newest_activity">
+          <tr v-if="platform.stats.last_activity">
             <th>Last Played:</th>
             <td>
-              <a :href="'/activity/' + platform.newest_activity.id">
-                {{
-                  iso8601Date(
-                    new Date(platform.newest_activity.timestamp),
-                    true,
-                  )
-                }}</a
-              >
+              {{ iso8601Date(new Date(platform.stats.last_activity), true) }}
             </td>
           </tr>
         </tbody>
@@ -93,13 +79,13 @@ onMounted(async () => {
         :limit="10"
         :order="'desc'"
         :sort="'playtime'"
-        :platform="platform.platform"
+        :platform="platform"
         :showDateRange="true"
       ></GameListCard>
 
       <TopPlayersCard
         v-if="platform"
-        :platform="platform.platform"
+        :platform="platform"
         :context="'platformPage'"
       ></TopPlayersCard>
     </div>

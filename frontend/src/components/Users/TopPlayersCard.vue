@@ -27,22 +27,21 @@ async function fetchTheThings() {
   _loading.value = true;
   _users.value = [];
   while (true) {
-    const data = await TimeplayedAPI.getUsers({
+    const data = await TimeplayedAPI.getUsersStats({
       offset: _users.value.length,
       limit: 100,
-      gameId: props.game ? props.game.id : undefined,
+      game: props.game ? props.game.id : undefined,
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
-      platformId: props.platform ? props.platform.id : undefined,
+      platform: props.platform ? props.platform.id : undefined,
+      order: "desc",
+      sort: "playtime",
     });
-
-    _users.value.push(...data.data);
-
-    if (data.total === _users.value.length) {
+    if (data.length === 0 || data.length < 100) {
       break;
     }
+    _users.value.push(...data);
   }
-  _users.value.sort((a, b) => b.totals.playtime_secs - a.totals.playtime_secs);
   _loading.value = false;
 }
 
@@ -86,15 +85,15 @@ onMounted(() => {});
         <tbody v-if="!_loading">
           <RowV2
             v-for="user in _users"
-            :key="user.user.id"
+            :key="user.id"
             :user="user"
-            :duration-seconds="user.totals.playtime_secs"
+            :duration-seconds="user.stats.seconds"
             :context="props.context"
             :show-users="false"
             :show-date="props.context !== 'frontPage' && _after === undefined"
             :date="
-              user.newest_activity
-                ? new Date(user.newest_activity.timestamp)
+              user.stats.last_activity
+                ? new Date(user.stats.last_activity)
                 : undefined
             "
           />

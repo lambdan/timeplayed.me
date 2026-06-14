@@ -11,6 +11,7 @@ import type {
   User,
   UserWithStats,
 } from "../../api.models";
+import { TimeplayedAPI } from "../../api.client";
 
 const props = defineProps<{
   activity?: Activity;
@@ -38,8 +39,16 @@ const _timeDisplayed = ref("");
 const _dateDisplayed = ref("");
 const _date = ref<Date>();
 
-function updateDate(d: Date) {
-  _dateDisplayed.value = timeAgo(d, true);
+const _user = ref<User>();
+const _game = ref<GameWithStats>();
+const _platform = ref<PlatformWithStats>();
+
+function updateDate(d: Date | undefined) {
+  if (d) {
+    _dateDisplayed.value = timeAgo(d, true);
+  } else {
+    _dateDisplayed.value = "Never";
+  }
 }
 
 function setupActivity(activity: Activity) {
@@ -50,16 +59,57 @@ function setupActivity(activity: Activity) {
   }, 1000); // Update every second
 }
 
+async function setupUser() {
+  if (props.user) {
+    _user.value = props.user;
+    return;
+  }
+  if (props.activity) {
+    await TimeplayedAPI.getUserStats(props.activity.user_id).then((u) => {
+      _user.value = u;
+    });
+    return;
+  }
+}
+
+async function setupPlatform() {
+  if (props.platform) {
+    _platform.value = props.platform;
+    return;
+  }
+  if (props.activity) {
+    await TimeplayedAPI.getPlatformStats(props.activity.platform_id).then(
+      (p) => {
+        _platform.value = p;
+      },
+    );
+    return;
+  }
+}
+
+async function setupGame() {
+  if (props.game) {
+    //_game.value = props.game;
+    _game.value = await TimeplayedAPI.getGameStats(props.game.id);
+  } else if (props.activity) {
+    _game.value = await TimeplayedAPI.getGameStats(props.activity.game_id);
+  }
+}
+
 function setupDuration() {
   if (props.durationSeconds) {
+    console.log("Setting up duration with props:", props);
     _durationSeconds.value = props.durationSeconds;
   } else if (props.activity) {
+    console.log("Setting up duration from activity:", props.activity);
     _durationSeconds.value = props.activity.seconds;
-  } else if (props.game) {
-    _durationSeconds.value = props.game.totals.playtime_secs;
+  } else if (_game.value) {
+    console.log("Setting up duration from game stats:", _game.value.stats);
+    _durationSeconds.value = _game.value.stats.seconds;
   } else {
     throw new Error("Either activity or duration prop must be provided");
   }
+  console.log("Duration seconds:", _durationSeconds.value);
   _timeDisplayed.value = formatDuration(_durationSeconds.value);
 }
 
@@ -70,16 +120,16 @@ function shouldShowGameCover(): boolean {
 /** Returns -1 if game cover should not be shown */
 function getGameCoverId(): number {
   if (props.context === "userPage" && props.activity) {
-    return props.activity.game.id;
+    return props.activity.game_id;
   }
   if (props.context === "gameTable" && props.game) {
-    return props.game.game.id;
+    return props.game.id;
   }
   return -1;
 }
 
 function shouldShowAvatar(): boolean {
-  if (props.user && props.user.user) {
+  if (props.user && props.user.id) {
     return true;
   }
   if (props.context !== "userPage" && props.activity) {
@@ -89,21 +139,20 @@ function shouldShowAvatar(): boolean {
 }
 
 function getUserForDiscordAvatar(): User {
-  if (props.user && props.user.user) {
-    return props.user.user;
+  if (_user.value) {
+    return _user.value;
   }
-  if (props.activity) {
-    return props.activity.user;
-  }
-  throw new Error("No user available for DiscordAvatar");
+  throw new Error("No user available for Discord avatar");
 }
 
-onMounted(() => {
-  if (props.date) {
-    _date.value = props.date;
+onMounted(async () => {
+  await setupUser();
+  await setupPlatform();
+  await setupGame();
 
-    updateDate(props.date);
-  }
+  _date.value = props.date;
+
+  updateDate(props.date);
 
   const showOnContexts = [
     "userPage",
@@ -111,24 +160,23 @@ onMounted(() => {
     "platformTable",
     "gameTable",
   ];
+
   if (props.context && showOnContexts.includes(props.context) && props.user) {
-    _date.value = props.user.newest_activity
-      ? new Date(props.user.newest_activity.timestamp)
+    _date.value = props.user.stats.last_activity
+      ? new Date(props.user.stats.last_activity)
       : undefined;
-    if (_date.value) {
-      updateDate(_date.value!);
-    }
+    updateDate(_date.value!);
   }
 
   if (props.activity) {
     _id.value = props.activity.id;
     setupActivity(props.activity);
   } else if (props.user) {
-    _id.value = props.user.user.id;
+    _id.value = props.user.id;
   } else if (props.game) {
-    _id.value = props.game.game.id;
+    _id.value = props.game.id;
   } else if (props.platform) {
-    _id.value = props.platform.platform.id;
+    _id.value = props.platform.id;
   }
 
   setupDuration();
@@ -154,29 +202,23 @@ onMounted(() => {
       ></DiscordAvatar>
     </td>
 
-    <td
-      v-if="
-        props.activity && props.activity.user && props.context === 'gamePage'
-      "
-    >
+    <td v-if="props.activity && _user && props.context === 'gamePage'">
       <a
-        :href="`/user/${props.activity.user.id}`"
+        :href="`/user/${props.activity.user_id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.activity.user.name }}</a
+        >{{ _user.name }}</a
       >
     </td>
 
     <td v-if="props.platform">
-      <PlatformBadge :platform="props.platform.platform" :showName="false" />
+      <PlatformBadge :platform="props.platform" :showName="false" />
     </td>
 
     <td v-if="props.platform">
       <a
-        :href="`/platform/${props.platform!.platform.id}`"
+        :href="`/platform/${props.platform.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{
-          props.platform!.platform.name || props.platform!.platform.abbreviation
-        }}</a
+        >{{ props.platform.display_name }}</a
       >
     </td>
 
@@ -189,9 +231,9 @@ onMounted(() => {
       "
     >
       <a
-        :href="`/user/${props.user!.user.id}`"
+        :href="`/user/${props.user.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.user!.user.name }}</a
+        >{{ props.user.name }}</a
       >
     </td>
 
@@ -205,33 +247,33 @@ onMounted(() => {
 
     <td v-if="props.context !== 'gamePage' && props.activity">
       <a
-        :href="`/game/${props.activity.game.id}`"
+        :href="`/game/${props.activity.game_id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.activity.game.name }}</a
+        >{{ game ? game.name : "Loading..." }}</a
       >
     </td>
 
-    <td v-if="props.game">
+    <td v-if="game">
       <a
-        :href="`/game/${props.game.game.id}`"
+        :href="`/game/${game.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.game.game.name }}</a
+        >{{ game.name }}</a
       >
     </td>
 
     <td v-if="props.user && props.context === 'userTable'">
       <a
-        :href="`/user/${props.user!.user.id}`"
+        :href="`/user/${props.user.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.user!.user.name }}</a
+        >{{ props.user.name }}</a
       >
     </td>
 
-    <td v-if="props.activity" class="d-none d-md-table-cell">
+    <td v-if="props.activity && platform" class="d-none d-md-table-cell">
       <!-- frontpage: show badge (no name) -->
       <PlatformBadge
         v-if="props.context == 'frontPage'"
-        :platform="props.activity.platform"
+        :platform="platform"
         :emulated="props.activity.emulated"
         :showName="false"
         :showAbbreviation="false"
@@ -240,7 +282,7 @@ onMounted(() => {
       <!-- any other page (big table): show name -->
       <PlatformBadge
         v-else
-        :platform="props.activity.platform"
+        :platform="platform"
         :emulated="props.activity.emulated"
         :showName="true"
       />
@@ -263,15 +305,15 @@ onMounted(() => {
 
     <!-- Date (hidden on mobile) -->
     <td
-      v-if="_date && props.showDate"
-      :title="_date.toString()"
+      v-if="props.showDate"
+      :title="_date?.toString() || 'Never'"
       class="p-2 text-nowrap d-none d-md-table-cell"
     >
       <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
     </td>
 
-    <td v-if="props.showUsers">
-      <p>{{ (props.platform || props.game!).totals.user_count }}</p>
+    <td v-if="props.showUsers && (platform || game)">
+      <p>{{ (platform || game!).stats.user_count || 0 }}</p>
     </td>
   </tr>
 </template>

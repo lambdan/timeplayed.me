@@ -3,22 +3,33 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { formatDuration, iso8601Date } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
-import type { Activity, GameWithStats, UserWithStats } from "../api.models";
+import type {
+  Activity,
+  Game,
+  GameWithStats,
+  Platform,
+  User,
+  UserWithStats,
+} from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 
 const route = useRoute();
 const activity = ref<Activity>();
-const user = ref<UserWithStats>();
-const game = ref<GameWithStats>();
+const user = ref<User>();
+const game = ref<Game>();
+const platform = ref<Platform>();
 const error = ref("");
 
 onMounted(async () => {
   try {
     const activityId = parseInt(route.params.id as string);
     activity.value = await TimeplayedAPI.getActivity(activityId);
-    if (activity.value && activity.value.user && activity.value.game) {
-      user.value = await TimeplayedAPI.getUser(activity.value.user.id);
-      game.value = await TimeplayedAPI.getGame(activity.value.game.id);
+    if (activity.value && activity.value.user_id && activity.value.game_id) {
+      user.value = await TimeplayedAPI.getUser(activity.value.user_id);
+      game.value = await TimeplayedAPI.getGame(activity.value.game_id);
+      platform.value = await TimeplayedAPI.getPlatform(
+        activity.value.platform_id,
+      );
     }
   } catch (e: any) {
     error.value = e.detail || JSON.stringify(e) || "Error";
@@ -27,13 +38,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="activity && user && game">
+  <div v-if="activity">
     <div class="card p-0">
       <h1 class="card-header">#{{ activity.id }}</h1>
       <div class="card-body">
         <div class="row">
           <div class="col-md-2 text-center">
-            <GameCover :gameId="activity.game.id" :size="128" />
+            <GameCover :gameId="activity.game_id" :size="128" />
           </div>
           <div class="col">
             <ul class="mt-4 list-group">
@@ -41,20 +52,22 @@ onMounted(async () => {
                 <i class="bi bi-joystick"></i> 
                 <a
                   class="text-decoration-none"
-                  :href="'/game/' + activity.game.id"
-                  >{{ activity.game.name }}</a
+                  :href="'/game/' + activity.game_id"
+                  v-if="game"
+                  >{{ game.name }}</a
                 >
+                <span v-else>Loading...</span>
               </li>
 
               <li class="list-group-item">
                 <i class="bi bi-controller"></i> 
                 <a
                   class="text-decoration-none"
-                  :href="'/platform/' + activity.platform.id"
-                  >{{
-                    activity.platform.name || activity.platform.abbreviation
-                  }}</a
+                  :href="'/platform/' + activity.platform_id"
+                  v-if="platform"
+                  >{{ platform.display_name }}</a
                 >
+                <span v-else>Loading...</span>
                 {{ activity.emulated ? "(Emulated)" : "" }}
               </li>
 
@@ -62,9 +75,11 @@ onMounted(async () => {
                 <i class="bi bi-person"></i> 
                 <a
                   class="text-decoration-none"
-                  :href="'/user/' + activity.user.id"
-                  >{{ activity.user.name }}</a
+                  :href="'/user/' + user.id"
+                  v-if="user"
+                  >{{ user.name }}</a
                 >
+                <span v-else>Loading...</span>
               </li>
 
               <li
