@@ -204,10 +204,10 @@ onMounted(async () => {
         :href="'/activity/' + props.activity.id"
         class="link-underline link-underline-opacity-0"
       >
-        {{ _timeDisplayed }}</a
+        {{ _timeDisplayed || "-" }}</a
       >
       <span v-else>
-        {{ _timeDisplayed }}
+        {{ _timeDisplayed || "-" }}
       </span>
     </td>
 

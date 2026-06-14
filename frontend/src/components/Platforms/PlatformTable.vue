@@ -35,15 +35,35 @@ const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
 async function fetchPlatforms() {
+  let order = localOrder.value;
+  let sort = "playtime";
+  if (localSort.value === "recency") {
+    sort = "last_activity";
+  } else if (localSort.value === "name") {
+    sort = "name";
+  } else if (localSort.value === "users") {
+    sort = "user_count";
+  }
+
   loading.value = true;
-  const fetched = await TimeplayedAPI.getPlatformsStats({
-    offset: _platformsData.value.length,
-    user: props.user ? props.user.id : undefined,
-    game: props.game ? props.game.id : undefined,
-    before: _before.value ? _before.value.getTime() : undefined,
-    after: _after.value ? _after.value.getTime() : undefined,
-  });
-  _platformsData.value.push(...fetched);
+  _platformsData.value = [];
+  const limit = 100;
+  while (true) {
+    const fetched = await TimeplayedAPI.getPlatformsStats({
+      limit,
+      offset: _platformsData.value.length,
+      user: props.user ? props.user.id : undefined,
+      game: props.game ? props.game.id : undefined,
+      before: _before.value ? _before.value.getTime() : undefined,
+      after: _after.value ? _after.value.getTime() : undefined,
+      order,
+      sort: sort as any,
+    });
+    _platformsData.value.push(...fetched);
+    if (fetched.length === 0 || fetched.length < limit) {
+      break;
+    }
+  }
   loading.value = false;
 }
 
@@ -51,6 +71,7 @@ function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   console.log("sort", newSort);
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
+  fetchPlatforms();
 }
 
 onMounted(() => {

@@ -37,6 +37,7 @@ async function fetchUsers() {
   _usersWithStats.value = [];
 
   let offset = 0;
+  const limit = 100;
   while (true) {
     const f = await TimeplayedAPI.getUsersStats({
       offset,
@@ -44,6 +45,7 @@ async function fetchUsers() {
       after: _after.value?.getTime(),
       order: localOrder.value,
       sort: "playtime",
+      limit,
     });
     for (const u of f) {
       offset += 1;
@@ -53,7 +55,7 @@ async function fetchUsers() {
       }
       _usersWithStats.value.push(u);
     }
-    if (f.length === 0 || f.length < 100) {
+    if (f.length === 0 || f.length < limit) {
       break;
     }
   }
