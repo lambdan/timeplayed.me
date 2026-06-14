@@ -1,31 +1,22 @@
 <script setup lang="ts">
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { onMounted, ref } from "vue";
-import { fetchOrGetCachedGameName } from "../../utils.api";
+import { TimeplayedAPI } from "../../api.client";
+import type { Game } from "../../api.models";
 
 const props = defineProps<{
-  gameId: number;
+  game: Game;
 }>();
 
-const text = ref(props.gameId + "");
-const fetched = ref(false);
+const text = ref(props.game.name);
 
-onMounted(async () => {
-  text.value = await fetchOrGetCachedGameName(props.gameId);
-  fetched.value = true;
-});
+onMounted(async () => {});
 </script>
 
 <template>
   <span class="badge bg-secondary me-1 mb-1">
-    <a :href="'/game/' + gameId" class="text-white text-decoration-none">
+    <a :href="'/game/' + game.id" class="text-white text-decoration-none">
       {{ text }}
     </a>
-    <span
-      v-if="!fetched"
-      class="spinner-border spinner-border-sm ms-2"
-      role="status"
-      aria-hidden="true"
-    ></span>
   </span>
 </template>

@@ -98,18 +98,14 @@ async function setupGame() {
 
 function setupDuration() {
   if (props.durationSeconds) {
-    console.log("Setting up duration with props:", props);
     _durationSeconds.value = props.durationSeconds;
   } else if (props.activity) {
-    console.log("Setting up duration from activity:", props.activity);
     _durationSeconds.value = props.activity.seconds;
   } else if (_game.value) {
-    console.log("Setting up duration from game stats:", _game.value.stats);
     _durationSeconds.value = _game.value.stats.seconds;
   } else {
     throw new Error("Either activity or duration prop must be provided");
   }
-  console.log("Duration seconds:", _durationSeconds.value);
   _timeDisplayed.value = formatDuration(_durationSeconds.value);
 }
 
@@ -129,6 +125,9 @@ function getGameCoverId(): number {
 }
 
 function shouldShowAvatar(): boolean {
+  if (!_user.value) {
+    return false;
+  }
   if (props.user && props.user.id) {
     return true;
   }
@@ -136,13 +135,6 @@ function shouldShowAvatar(): boolean {
     return true;
   }
   return false;
-}
-
-function getUserForDiscordAvatar(): User {
-  if (_user.value) {
-    return _user.value;
-  }
-  throw new Error("No user available for Discord avatar");
 }
 
 onMounted(async () => {
@@ -185,21 +177,8 @@ onMounted(async () => {
 
 <template>
   <tr class="align-middle" :key="_id">
-    <!--<td v-if="props.activity" class="d-none d-md-table-cell">
-      <small title="Activity ID" class="text-secondary">
-        <a
-          :href="'/activity/' + props.activity.id"
-          class="link-secondary link-underline link-underline-opacity-0"
-          >{{ props.activity.id }}</a
-        ></small
-      >
-    </td>-->
-
-    <td v-if="shouldShowAvatar()">
-      <DiscordAvatar
-        :user="getUserForDiscordAvatar()"
-        :maxWidth="50"
-      ></DiscordAvatar>
+    <td v-if="shouldShowAvatar() && _user">
+      <DiscordAvatar :user="_user" :maxWidth="50"></DiscordAvatar>
     </td>
 
     <td v-if="props.activity && _user && props.context === 'gamePage'">
@@ -224,16 +203,16 @@ onMounted(async () => {
 
     <td
       v-if="
-        props.user &&
+        _user &&
         (props.context === 'frontPage' ||
           props.context === 'gamePage' ||
           props.context === 'platformPage')
       "
     >
       <a
-        :href="`/user/${props.user.id}`"
+        :href="`/user/${_user.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.user.name }}</a
+        >{{ _user.name }}</a
       >
     </td>
 
@@ -249,7 +228,7 @@ onMounted(async () => {
       <a
         :href="`/game/${props.activity.game_id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ game ? game.name : "Loading..." }}</a
+        >{{ _game ? _game.name : "Loading..." }}</a
       >
     </td>
 
@@ -261,11 +240,11 @@ onMounted(async () => {
       >
     </td>
 
-    <td v-if="props.user && props.context === 'userTable'">
+    <td v-if="_user && props.context === 'userTable'">
       <a
-        :href="`/user/${props.user.id}`"
+        :href="`/user/${_user.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ props.user.name }}</a
+        >{{ _user.name }}</a
       >
     </td>
 

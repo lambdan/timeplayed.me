@@ -4,7 +4,7 @@ import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import LoadingBar from "../../components/LoadingBar.vue";
+
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -29,71 +29,29 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
 
-const _loadingPercent = ref(0);
 const _platformsData = ref<PlatformWithStats[]>([]);
-const loading = ref(false);
+const loading = ref(true);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
 async function fetchPlatforms() {
-  if (loading.value) return;
   loading.value = true;
-  _platformsData.value = [];
-  _loadingPercent.value = 0;
-  while (true) {
-    const fetchedPlatfomrs = await TimeplayedAPI.getPlatforms({
-      limit: 100,
-      offset: _platformsData.value.length,
-      userId: props.user ? props.user.id : undefined,
-      gameId: props.game ? props.game.id : undefined,
-      before: _before.value ? _before.value.getTime() : undefined,
-      after: _after.value ? _after.value.getTime() : undefined,
-    });
-    _platformsData.value.push(...fetchedPlatfomrs.data);
-    _loadingPercent.value =
-      (_platformsData.value.length / fetchedPlatfomrs.total) * 100;
-    if (_platformsData.value.length >= fetchedPlatfomrs.total) break;
-  }
-  sort();
+  const fetched = await TimeplayedAPI.getPlatformsStats({
+    limit: 100,
+    offset: _platformsData.value.length,
+    user: props.user ? props.user.id : undefined,
+    game: props.game ? props.game.id : undefined,
+    before: _before.value ? _before.value.getTime() : undefined,
+    after: _after.value ? _after.value.getTime() : undefined,
+  });
+  _platformsData.value.push(...fetched);
   loading.value = false;
-}
-
-function sort() {
-  if (localSort.value === "recency") {
-    _platformsData.value.sort((a, b) => {
-      if (!a.newest_activity || !b.newest_activity) return 0;
-      return localOrder.value === "asc"
-        ? a.newest_activity.timestamp - b.newest_activity.timestamp
-        : b.newest_activity.timestamp - a.newest_activity.timestamp;
-    });
-  } else if (localSort.value === "playtime") {
-    _platformsData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.playtime_secs - b.totals.playtime_secs
-        : b.totals.playtime_secs - a.totals.playtime_secs;
-    });
-  } else if (localSort.value === "name") {
-    _platformsData.value.sort((a, b) => {
-      const a_name = a.platform.name || a.platform.abbreviation;
-      const b_name = b.platform.name || b.platform.abbreviation;
-      return localOrder.value === "asc"
-        ? a_name.localeCompare(b_name)
-        : b_name.localeCompare(a_name);
-    });
-  } else if (localSort.value === "users") {
-    _platformsData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.user_count - b.totals.user_count
-        : b.totals.user_count - a.totals.user_count;
-    });
-  }
 }
 
 function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   console.log("sort", newSort);
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
-  sort();
 }
 
 onMounted(() => {
@@ -133,9 +91,7 @@ onMounted(() => {
     "
   />
 
-  <LoadingBar v-if="loading" :percent="_loadingPercent" />
-
-  <template v-else-if="_platformsData.length > 0">
+  <template v-if="_platformsData.length > 0">
     <table class="table table-hover table-responsive">
       <thead>
         <tr>
@@ -192,13 +148,13 @@ onMounted(() => {
       <tbody>
         <RowV2
           v-for="platform in _platformsData"
-          :key="platform.platform.id"
+          :key="platform.id"
           :platform="platform"
           :context="'platformTable'"
-          :durationSeconds="platform.totals.playtime_secs"
+          :durationSeconds="platform.stats.seconds"
           :date="
-            platform.newest_activity
-              ? new Date(platform.newest_activity.timestamp)
+            platform.stats.last_activity
+              ? new Date(platform.stats.last_activity)
               : undefined
           "
           :showDate="_after === undefined"
@@ -206,17 +162,14 @@ onMounted(() => {
         />
       </tbody>
     </table>
+  </template>
 
-    <!--
-  <ColorSpinners v-if="loading" />
-  <template v-else-if="platforms.length > 0">
-    <PlatformRow
-      v-for="platform in platforms"
-      :key="platform.platform.id"
-      :platform="platform"
-      :showLastPlayed="props.showLastPlayed"
-    />
-  </template>
-  <div v-else class="text-center text-muted">No platforms found.</div> -->
-  </template>
+  <div v-if="loading" class="text-muted">
+    <span
+      class="spinner-grow spinner-grow-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>
+    Loading...
+  </div>
 </template>

@@ -353,4 +353,9 @@ export class TimeplayedAPI {
     }
     return data;
   }
+
+  /////////////// DISCORD /////////////////
+  static getDiscordAvatarUrl(discord_id: string) {
+    return `/api/discord/${discord_id}/avatar`;
+  }
 }

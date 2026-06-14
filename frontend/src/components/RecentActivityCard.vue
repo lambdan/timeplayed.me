@@ -46,13 +46,11 @@ async function fetchActivities(limit: number) {
     after: _after.value ? _after.value.getTime() : undefined,
   });
 
-  const newActivities = data.data.map((activity: any) => ({
+  const newActivities = data.map((activity: any) => ({
     ...activity,
     createdAt: new Date(activity.timestamp),
   }));
   activities.value.push(...newActivities);
-  total.value = data.total;
-  hasMore.value = data.total > activities.value.length;
   loading.value = false;
   sortByRecent();
 
@@ -76,7 +74,7 @@ async function autoRefresh() {
       after: lastCheck,
       order: "desc",
     });
-    for (const activity of data.data) {
+    for (const activity of data) {
       if (seen.value.has(activity.id)) {
         continue;
       }
@@ -85,7 +83,7 @@ async function autoRefresh() {
       });
       seen.value.add(activity.id);
     }
-    total.value += data.data.length;
+    total.value += data.length;
     lastCheck = Date.now();
     sortByRecent();
     await new Promise((resolve) => setTimeout(resolve, FAKE_SLEEP));
@@ -178,7 +176,7 @@ onMounted(async () => {
         </button>
         <br />
         <small class="text-muted mt-2">
-          {{ activities.length }} / {{ total }}
+          {{ activities.length }} activities loaded
         </small>
       </div>
     </div>

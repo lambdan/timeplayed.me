@@ -21,9 +21,7 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 
 async function fetchTheThings() {
-  if (_loading.value) {
-    return;
-  }
+  // TODO: Change this to show more system (like game table)
   _loading.value = true;
   _users.value = [];
   while (true) {
@@ -37,10 +35,15 @@ async function fetchTheThings() {
       order: "desc",
       sort: "playtime",
     });
+    for (const u of data) {
+      // only include users with playtime
+      if (u.stats.seconds > 0) {
+        _users.value.push(u);
+      }
+    }
     if (data.length === 0 || data.length < 100) {
       break;
     }
-    _users.value.push(...data);
   }
   _loading.value = false;
 }

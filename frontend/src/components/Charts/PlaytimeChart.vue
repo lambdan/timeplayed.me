@@ -13,6 +13,7 @@ import {
   Filler,
 } from "chart.js";
 import type { Game, Platform, User } from "../../api.models";
+import { TimeplayedAPI } from "../../api.client";
 
 ChartJS.register(
   Title,
@@ -103,22 +104,11 @@ const props = withDefaults(
 );
 
 onMounted(async () => {
-  const params = [];
-  if (props.user) {
-    params.push(`userId=${props.user.id}`);
-  }
-  if (props.game) {
-    params.push(`gameId=${props.game.id}`);
-  }
-  if (props.platform) {
-    params.push(`platform=${props.platform.id}`);
-  }
-
-  const res = await fetch(
-    "/api/stats/chart/playtime_by_day?" + params.join("&"),
-  );
-
-  const data = (await res.json()) as ChartResponse;
+  const data = await TimeplayedAPI.getChartsPlaytimeByDay({
+    user: props.user ? props.user.id : undefined,
+    game: props.game ? props.game.id : undefined,
+    platform: props.platform ? props.platform.id : undefined,
+  });
 
   // Turn seconds into hours
   data.datasets.forEach((dataset) => {

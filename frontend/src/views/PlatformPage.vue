@@ -27,7 +27,7 @@ onMounted(async () => {
 <template>
   <p v-if="loading">Loading...</p>
 
-  <div v-if="!loading && platform" class="card p-0">
+  <div v-if="!loading && platform" class="card">
     <h1 class="card-header">
       {{ platform.name || platform.abbreviation }}
     </h1>
