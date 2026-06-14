@@ -7,10 +7,16 @@ from tpbackend.game.models import API_Game
 from tpbackend.api.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
-from tpbackend.common.types import (
-    QUERY_TS_BEFORE,
-    QUERY_TS_AFTER,
+from tpbackend.api.params import (
     AscDescOrder,
+    offset,
+    limit,
+    path_csv,
+    path_id,
+    query_id,
+    query_ts,
+    sorts,
+    query_search,
 )
 
 logger = logging.getLogger("games-routes")
@@ -19,12 +25,12 @@ router = APIRouter()
 
 def __get_games_stats(
     gids: list[int] | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
+    before: int | None = None,
+    after: int | None = None,
     user_id: int | None = None,
     platform_id: int | None = None,
-    sort: GameStatsQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
+    sort="id",
+    order="asc",
     offset: int | None = None,
     limit: int | None = None,
     search="",
@@ -70,11 +76,11 @@ def __get_games_stats(
     response_model=API_GameWithStats,
 )
 def get_single_game_stats(
-    game_id: int,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    user: int | None = None,
-    platform: int | None = None,
+    game_id=path_id("game"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    user=query_id("user"),
+    platform=query_id("platform"),
 ) -> API_GameWithStats:
     x = __get_games_stats(
         gids=[int(game_id)],
@@ -94,12 +100,12 @@ def get_single_game_stats(
     tags=["games", "stats"],
 )
 def get_many_games_stats(
-    game_ids: str = Path(description="Comma-separated list of game IDs"),
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    user: int | None = None,
-    platform: int | None = None,
-    sort: GameStatsQuery.SORTS_LITERAL = "id",
+    game_ids=path_csv("game ids"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    user=query_id("user"),
+    platform=query_id("platform"),
+    sort=sorts(list(GameStatsQuery.SORTS.keys()), default="id"),
     order: AscDescOrder = "asc",
 ) -> list[API_GameWithStats]:
     gids = parse_csv(game_ids)
@@ -120,15 +126,15 @@ def get_many_games_stats(
     response_model=list[API_GameWithStats],
 )
 def get_games_stats(
-    offset=0,
-    limit=25,
-    user: int | None = None,
-    platform: int | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    sort: GameStatsQuery.SORTS_LITERAL = "playtime",
+    offset=offset(),
+    limit=limit(),
+    user=query_id("user"),
+    platform=query_id("platform"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    sort=sorts(list(GameStatsQuery.SORTS.keys()), default="playtime"),
     order: AscDescOrder = "desc",
-    search="",
+    search=query_search("games"),
 ) -> list[API_GameWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -153,11 +159,11 @@ def get_games_stats(
 
 def __get_games(
     ids: list[int] | None = None,
-    sort: GameQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
+    sort="id",
+    order="asc",
     offset: int | None = None,
     limit: int | None = None,
-    search="",
+    search=None,
 ) -> list[API_Game]:
     query = GameQuery.base()
     if ids and len(ids) > 0:
@@ -180,7 +186,7 @@ def __get_games(
     tags=["games"],
     response_model=API_Game,
 )
-def get_single_game(game_id: int) -> API_Game:
+def get_single_game(game_id=path_id("game")) -> API_Game:
     x = __get_games(ids=[int(game_id)])
     if len(x) == 0:
         return not_found("Game not found")
@@ -193,8 +199,8 @@ def get_single_game(game_id: int) -> API_Game:
     response_model=list[API_Game],
 )
 def get_many_games(
-    game_ids: str = Path(description="Comma-separated list of game IDs"),
-    sort: GameQuery.SORTS_LITERAL = "id",
+    game_ids=path_csv("game ids"),
+    sort=sorts(list(GameQuery.SORTS.keys()), default="id"),
     order: AscDescOrder = "asc",
 ) -> list[API_Game]:
     gids = parse_csv(game_ids)
@@ -213,11 +219,11 @@ def get_many_games(
     response_model=list[API_Game],
 )
 def get_games(
-    offset=0,
-    limit=25,
-    sort: GameQuery.SORTS_LITERAL = "id",
+    offset=offset(),
+    limit=limit(),
+    sort=sorts(list(GameQuery.SORTS.keys()), default="id"),
     order: AscDescOrder = "asc",
-    search="",
+    search=query_search("games"),
 ) -> list[API_Game]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -227,4 +233,5 @@ def get_games(
         order=order,
         offset=offset,
         limit=limit,
+        search=search,
     )

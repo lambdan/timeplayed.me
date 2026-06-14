@@ -5,10 +5,16 @@ from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.api.responses import bad_request, not_found
 import logging
 from fastapi import APIRouter, Path
-from tpbackend.common.types import (
-    QUERY_TS_BEFORE,
-    QUERY_TS_AFTER,
+from tpbackend.api.params import (
     AscDescOrder,
+    path_csv,
+    path_id,
+    query_search,
+    query_ts,
+    query_id,
+    sorts,
+    offset,
+    limit,
 )
 
 logger = logging.getLogger("platforms-routes")
@@ -17,12 +23,12 @@ router = APIRouter()
 
 def __get_platforms_stats(
     pids: list[int] | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
+    before=None,
+    after=None,
     user_id: int | None = None,
     game_id: int | None = None,
-    sort: PlatformStatsQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
+    sort="id",
+    order="asc",
     offset: int | None = None,
     limit: int | None = None,
     search="",
@@ -68,11 +74,11 @@ def __get_platforms_stats(
     response_model=API_PlatformWithStats,
 )
 def get_single_platform_stats(
-    platform_id: int,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    user: int | None = None,
-    game: int | None = None,
+    platform_id=path_id("platform"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    user=query_id("user"),
+    game=query_id("game"),
 ) -> API_PlatformWithStats:
     x = __get_platforms_stats(
         pids=[int(platform_id)],
@@ -92,12 +98,12 @@ def get_single_platform_stats(
     tags=["platforms", "stats"],
 )
 def get_many_platforms_stats(
-    platform_ids: str = Path(description="Comma-separated list of platform IDs"),
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    user: int | None = None,
-    game: int | None = None,
-    sort: PlatformStatsQuery.SORTS_LITERAL = "id",
+    platform_ids=path_csv("platform ids"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    user=query_id("user"),
+    game=query_id("game"),
+    sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_PlatformWithStats]:
     pids = parse_csv(platform_ids)
@@ -118,15 +124,15 @@ def get_many_platforms_stats(
     response_model=list[API_PlatformWithStats],
 )
 def get_platforms_stats(
-    offset=0,
-    limit=25,
-    user: int | None = None,
-    game: int | None = None,
-    before: int | None = QUERY_TS_BEFORE,
-    after: int | None = QUERY_TS_AFTER,
-    sort: PlatformStatsQuery.SORTS_LITERAL = "playtime",
+    offset=offset(),
+    limit=limit(),
+    user=query_id("user"),
+    game=query_id("game"),
+    before=query_ts("before"),
+    after=query_ts("after"),
+    sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "playtime"),
     order: AscDescOrder = "desc",
-    search="",
+    search=query_search("platforms"),
 ) -> list[API_PlatformWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -151,8 +157,8 @@ def get_platforms_stats(
 
 def __get_platforms(
     ids: list[int] | None = None,
-    sort: PlatformQuery.SORTS_LITERAL = "id",
-    order: AscDescOrder = "asc",
+    sort="id",
+    order="asc",
     offset: int | None = None,
     limit: int | None = None,
     search="",
@@ -190,8 +196,8 @@ def get_single_platform(platform_id: int) -> API_Platform:
     response_model=list[API_Platform],
 )
 def get_many_platforms(
-    platform_ids: str = Path(description="Comma-separated list of platform IDs"),
-    sort: PlatformQuery.SORTS_LITERAL = "id",
+    platform_ids=path_csv("platform ids"),
+    sort=sorts(list(PlatformQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_Platform]:
     pids = parse_csv(platform_ids)
@@ -210,11 +216,11 @@ def get_many_platforms(
     response_model=list[API_Platform],
 )
 def get_platforms(
-    offset=0,
-    limit=25,
-    sort: PlatformQuery.SORTS_LITERAL = "id",
+    offset=offset(),
+    limit=limit(),
+    sort=sorts(list(PlatformQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
-    search="",
+    search=query_search("platforms"),
 ) -> list[API_Platform]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))

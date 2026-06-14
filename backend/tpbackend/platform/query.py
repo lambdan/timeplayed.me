@@ -19,8 +19,6 @@ class PlatformQuery:
         "updated": Platform.updated,
     }
 
-    SORTS_LITERAL = Literal["name", "id", "created", "updated"]
-
     @staticmethod
     def base():
         return Platform.select()
@@ -33,11 +31,7 @@ class PlatformQuery:
         return query.where(Platform.id.in_(platform_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
-    ):
+    def apply_sort(query, sort, order):
         column = PlatformQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
 
@@ -89,16 +83,6 @@ class PlatformStatsQuery:
         "id": Platform.id,
     }
 
-    SORTS_LITERAL = Literal[
-        "playtime",
-        "activity_count",
-        "last_activity",
-        "game_count",
-        "user_count",
-        "name",
-        "id",
-    ]
-
     @staticmethod
     def base():
         return (
@@ -117,8 +101,8 @@ class PlatformStatsQuery:
     @staticmethod
     def apply_sort(
         query,
-        sort: SORTS_LITERAL,
-        order: Literal["asc", "desc"] = "desc",
+        sort,
+        order,
     ):
         column = PlatformStatsQuery.SORTS[sort]
         return query.order_by(column.desc() if order == "desc" else column.asc())
