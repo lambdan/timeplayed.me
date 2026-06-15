@@ -49,18 +49,22 @@ if [ "$answer" != "y" ]; then
   exit 0
 fi
 
+COMMIT_MESSAGE="Release"
+
 if [ $NEW_BACKEND -eq 1 ]; then
   echo "New backend version: $new_backend_version"
   git add $BACKEND_VERSION_PATH
+  COMMIT_MESSAGE="$COMMIT_MESSAGE backend@$new_backend_version"
 fi
 
 if [ $NEW_FRONTEND -eq 1 ]; then
   echo "New frontend version: $new_frontend_version"
   git add $PACKAGE_JSON_PATH
+  COMMIT_MESSAGE="$COMMIT_MESSAGE frontend@$new_frontend_version"
 fi
 
 echo "Commiting..."
-git commit -m "Release"
+git commit -m "$COMMIT_MESSAGE"
 
 # create git tag
 if [ $NEW_FRONTEND -eq 1 ]; then
