@@ -1,3 +1,5 @@
+-- backend 6.1.0
+
 -- add history array to all tables
 ALTER TABLE "activity" ADD COLUMN "history" text[] DEFAULT '{}';
 ALTER TABLE "platform" ADD COLUMN "history" text[] DEFAULT '{}';
