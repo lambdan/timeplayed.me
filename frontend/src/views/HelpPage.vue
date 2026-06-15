@@ -14,7 +14,6 @@
           game running, and you can't see it under your name in the server's
           user list, the bot can't see it either.
         </li>
-        <li>Sessions shorter than 1 minute are not saved</li>
         <li>
           If it works for other games, it is possible your game is doing
           something weird with it's activity duration. For example, Mass Effect
