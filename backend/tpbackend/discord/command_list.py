@@ -25,6 +25,7 @@ from .commands.start_manual import StartManualCommand
 from .commands.stop_manual import StopManualCommand
 from .commands.list_platforms import ListPlatformsCommand
 from .commands.set_steam_id import SetSteamIDCommand
+from .commands.set_sgdb_grid_id import SetSGDBGridIDCommand
 from .commands.add_game_alias import AddGameAliasCommand
 from .commands.delete_game_alias import DeleteGameAliasCommand
 from .commands.set_game_release_year import SetGameReleaseYearCommand
@@ -79,6 +80,7 @@ ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
     SetSGDBIDCommand(),
+    SetSGDBGridIDCommand(),
     AutoSGDBAdminCommand(),
     SetSteamIDCommand(),
     SetGameImageCommand(),
