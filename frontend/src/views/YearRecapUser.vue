@@ -13,6 +13,8 @@ import type { Activity, Game, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import LoadingBar from "../components/LoadingBar.vue";
 
+// TODO: This page is a hastily vibecoded piece of shit...
+
 const available = ref(false);
 const route = useRoute();
 const loading = ref<boolean>(true);

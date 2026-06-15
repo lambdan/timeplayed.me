@@ -265,17 +265,17 @@ export function clamp(num: number, min: number, max: number): number {
   return Math.min(Math.max(num, min), max);
 }
 
-/** Returns current year if its December 15-31. Returns previous year if its January 1-15. Returns null otherwise. */
+/** Returns a year if recap should be shown */
 export function getRecapYear(): number | null {
   const now = new Date();
-  // if december 15-31, return current year
-  if (now.getMonth() === 11 && now.getDate() >= 20) {
+  // december 15 or later, return current year
+  if (now.getMonth() === 11 && now.getDate() >= 15) {
     return now.getFullYear();
   }
-  // if january 1-15, return previous year
-  if (now.getMonth() === 0 && now.getDate() <= 10) {
+  // january 15 or earlier, return previous year
+  if (now.getMonth() === 0 && now.getDate() <= 15) {
     return now.getFullYear() - 1;
   }
-  // else: recap not available
+  // rest of the year, no recap
   return null;
 }
