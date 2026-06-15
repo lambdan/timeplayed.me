@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { getGameCoverUrl } from "../../utils";
+import { getGameCoverData } from "../../utils";
+import type { GameCoverData } from "../../api.models";
 
 const props = withDefaults(
   defineProps<{
@@ -21,9 +22,17 @@ const props = withDefaults(
 const LOADING_COVER = `https://placehold.co/600x900?text=Loading...`;
 const clickable = ref(props.clickable);
 const imageUrl = ref<string>(LOADING_COVER);
+const coverData = ref<GameCoverData>();
+const creditsText = ref("...");
 
 onMounted(async () => {
-  imageUrl.value = await getGameCoverUrl(props.gameId, props.thumb);
+  coverData.value = await getGameCoverData(props.gameId, props.thumb);
+  imageUrl.value = coverData.value.url;
+
+  creditsText.value = `Source: ${coverData.value.source}.`;
+  if (coverData.value.credits) {
+    creditsText.value += " " + coverData.value.credits;
+  }
 });
 </script>
 
@@ -33,6 +42,7 @@ onMounted(async () => {
       <a :href="`/game/${props.gameId}`">
         <img
           v-show="imageUrl"
+          :title="creditsText"
           :src="`${imageUrl}`"
           class="img-fluid"
           :style="{
@@ -47,6 +57,7 @@ onMounted(async () => {
         <img
           v-show="imageUrl"
           :src="`${imageUrl}`"
+          :title="creditsText"
           class="img-fluid"
           :style="{
             maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,

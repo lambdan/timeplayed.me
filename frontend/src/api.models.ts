@@ -17,3 +17,9 @@ export type GameWithStats = components["schemas"]["API_GameWithStats"];
 
 export type SGDBGrid = components["schemas"]["SGDB_Grid"];
 export type SGDBGame = components["schemas"]["SGDB_Game"];
+
+export interface GameCoverData {
+  url: string;
+  source: "SteamGridDB" | "Steam" | "Custom" | "None";
+  credits?: string;
+}
