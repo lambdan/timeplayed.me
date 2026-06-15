@@ -64,9 +64,6 @@ class BaseModel(Model):
 
     @classmethod
     def on_connect(cls):
-        """
-        Do any initalization you need here
-        """
         pass
 
 
@@ -78,13 +75,17 @@ class BaseModel(Model):
 class IdMixin(BaseModel):
     id = AutoField()
 
+    __has_reset_sequence = False
+
     def get_id(self) -> int:
         return cast(int, self.id)
 
     @classmethod
     def on_connect(cls):
-        logger.info(f"Resetting sequence for {cls.__name__}...")
-        reset_sequence(cls)
+        # logger.info(f"{cls.__name__}: on_connect {cls.__has_reset_sequence}")
+        if not cls.__has_reset_sequence:
+            reset_sequence(cls)
+            cls.__has_reset_sequence = True
         super().on_connect()
 
 
