@@ -222,6 +222,11 @@ export async function getGameCoverUrl(
         return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
       }
 
+      // parent?
+      if (gameData.parent_id) {
+        return getGameCoverUrl(gameData.parent_id, thumbnail);
+      }
+
       // give up and search
       const search = await TimeplayedAPI.searchSGDB(gameData.name);
 
