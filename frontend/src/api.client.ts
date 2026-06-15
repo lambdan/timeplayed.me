@@ -402,4 +402,23 @@ export class TimeplayedAPI {
   static getDiscordAvatarUrl(discord_id: string) {
     return `/api/discord/${discord_id}/avatar`;
   }
+
+  ////////////// MISC ///////////////
+  static async ping() {
+    const { data, error } = await this.getClient().GET("/api/ping");
+    if (error) {
+      console.error("Error pinging API:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async info() {
+    const { data, error } = await this.getClient().GET("/api/info");
+    if (error) {
+      console.error("Error fetching API info:", error);
+      throw error;
+    }
+    return data;
+  }
 }
