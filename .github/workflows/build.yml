@@ -11,18 +11,46 @@ env:
 jobs:
   check-version:
     runs-on: ubuntu-latest
+    outputs:
+      build_backend: ${{ steps.release.outputs.build_backend }}
+      build_frontend: ${{ steps.release.outputs.build_frontend }}
+      backend_version: ${{ steps.release.outputs.backend_version }}
+      frontend_version: ${{ steps.release.outputs.frontend_version }}
     permissions:
       contents: read
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Check package.json version matches release tag
-        run: make check-version TAG=${{ github.event.release.tag_name }}
+      - name: Check release tag version matches project version
+        id: release
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          make check-version TAG="$TAG"
+
+          case "$TAG" in
+            backend@*)
+              echo "build_backend=true" >> "$GITHUB_OUTPUT"
+              echo "build_frontend=false" >> "$GITHUB_OUTPUT"
+              echo "backend_version=${TAG#backend@}" >> "$GITHUB_OUTPUT"
+              echo "frontend_version=" >> "$GITHUB_OUTPUT"
+              ;;
+            frontend@*)
+              echo "build_backend=false" >> "$GITHUB_OUTPUT"
+              echo "build_frontend=true" >> "$GITHUB_OUTPUT"
+              echo "backend_version=" >> "$GITHUB_OUTPUT"
+              echo "frontend_version=${TAG#frontend@}" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Unsupported release tag: $TAG" >&2
+              exit 1
+              ;;
+          esac
 
   build-push-backend:
     runs-on: ubuntu-latest
     needs: [check-version]
+    if: needs.check-version.outputs.build_backend == 'true'
     permissions:
       contents: read
       packages: write
@@ -53,7 +81,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
           tags: |
-            type=semver,pattern={{version}}
+            type=raw,value=${{ needs.check-version.outputs.backend_version }}
             type=raw,value=latest
 
       - name: Build and push backend image
@@ -71,6 +99,7 @@ jobs:
   build-push-frontend:
     runs-on: ubuntu-latest
     needs: [check-version]
+    if: needs.check-version.outputs.build_frontend == 'true'
     permissions:
       contents: read
       packages: write
@@ -101,7 +130,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
           tags: |
-            type=semver,pattern={{version}}
+            type=raw,value=${{ needs.check-version.outputs.frontend_version }}
             type=raw,value=latest
 
       - name: Build and push frontend image
