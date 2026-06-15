@@ -13,6 +13,7 @@ class API_Game(BaseModel):
     name: str
     steam_id: int | None
     sgdb_id: int | None
+    sgdb_grid_id: int | None
     image_url: str | None
     aliases: list[str]
     release_year: int | None
@@ -28,6 +29,7 @@ class API_Game(BaseModel):
             name=game.name,
             steam_id=game.steam_id,
             sgdb_id=game.sgdb_id,
+            sgdb_grid_id=game.sgdb_grid_id,
             image_url=game.image_url,
             aliases=game.aliases,
             release_year=game.release_year,
@@ -48,6 +50,7 @@ class API_GameWithStats(API_Game):
             name=game.name,
             steam_id=game.steam_id,
             sgdb_id=game.sgdb_id,
+            sgdb_grid_id=game.sgdb_grid_id,
             image_url=game.image_url,
             aliases=game.aliases,
             release_year=game.release_year,

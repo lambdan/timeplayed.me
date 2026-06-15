@@ -578,6 +578,8 @@ export interface components {
             steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
+            /** Sgdb Grid Id */
+            sgdb_grid_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -603,6 +605,8 @@ export interface components {
             steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
+            /** Sgdb Grid Id */
+            sgdb_grid_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
