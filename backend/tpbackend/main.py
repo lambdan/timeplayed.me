@@ -1,16 +1,13 @@
-import uvicorn
 import asyncio
 import os
-from tpbackend.oblivionis import storage as oblivionisStorage, sync as oblivionisSync
-from tpbackend.bot import bot
-from tpbackend.storage import storage_v2
-from tpbackend.api import app
+from .oblivionis import storage as oblivionis_storage, sync as oblivionis_sync
+from .discord.bot import bot
+from tpbackend.storage import db, clean_loop
+import tpbackend.api.api as api
 
 
 async def start_api():
-    config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info")
-    server = uvicorn.Server(config)
-    await server.serve()
+    await api.run()
 
 
 async def start_bot():
@@ -19,13 +16,13 @@ async def start_bot():
 
 async def async_main():
     await asyncio.gather(
-        start_api(), start_bot(), oblivionisSync.sync_loop(), storage_v2.clean_loop()
+        start_api(), start_bot(), oblivionis_sync.sync_loop(), clean_loop()
     )
 
 
 def main():
-    oblivionisStorage.connect_db()
-    storage_v2.connect_db()
+    oblivionis_storage.connect_db()
+    db.connect()
     asyncio.run(async_main())
 
 

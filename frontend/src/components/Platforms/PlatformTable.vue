@@ -4,7 +4,7 @@ import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
-import LoadingBar from "../../components/LoadingBar.vue";
+
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -29,71 +29,69 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
 
-const _loadingPercent = ref(0);
 const _platformsData = ref<PlatformWithStats[]>([]);
-const loading = ref(false);
+const loading = ref(true);
 const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
-async function fetchPlatforms() {
-  if (loading.value) return;
-  loading.value = true;
-  _platformsData.value = [];
-  _loadingPercent.value = 0;
-  while (true) {
-    const fetchedPlatfomrs = await TimeplayedAPI.getPlatforms({
-      limit: 100,
-      offset: _platformsData.value.length,
-      userId: props.user ? props.user.id : undefined,
-      gameId: props.game ? props.game.id : undefined,
-      before: _before.value ? _before.value.getTime() : undefined,
-      after: _after.value ? _after.value.getTime() : undefined,
-    });
-    _platformsData.value.push(...fetchedPlatfomrs.data);
-    _loadingPercent.value =
-      (_platformsData.value.length / fetchedPlatfomrs.total) * 100;
-    if (_platformsData.value.length >= fetchedPlatfomrs.total) break;
-  }
-  sort();
-  loading.value = false;
+const _search = ref("");
+let searchTimeout: ReturnType<typeof setTimeout>;
+function searchChange() {
+  clearTimeout(searchTimeout);
+  const val = _search.value.trim();
+  searchTimeout = setTimeout(() => {
+    if (!val) {
+      _search.value = "";
+      fetchPlatforms();
+      return;
+    }
+    if (val.length < 2) {
+      return;
+    }
+    _search.value = val;
+    fetchPlatforms();
+  }, 200);
 }
 
-function sort() {
+async function fetchPlatforms() {
+  let order = localOrder.value;
+  let sort = "playtime";
   if (localSort.value === "recency") {
-    _platformsData.value.sort((a, b) => {
-      if (!a.newest_activity || !b.newest_activity) return 0;
-      return localOrder.value === "asc"
-        ? a.newest_activity.timestamp - b.newest_activity.timestamp
-        : b.newest_activity.timestamp - a.newest_activity.timestamp;
-    });
-  } else if (localSort.value === "playtime") {
-    _platformsData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.playtime_secs - b.totals.playtime_secs
-        : b.totals.playtime_secs - a.totals.playtime_secs;
-    });
+    sort = "last_activity";
   } else if (localSort.value === "name") {
-    _platformsData.value.sort((a, b) => {
-      const a_name = a.platform.name || a.platform.abbreviation;
-      const b_name = b.platform.name || b.platform.abbreviation;
-      return localOrder.value === "asc"
-        ? a_name.localeCompare(b_name)
-        : b_name.localeCompare(a_name);
-    });
+    sort = "name";
   } else if (localSort.value === "users") {
-    _platformsData.value.sort((a, b) => {
-      return localOrder.value === "asc"
-        ? a.totals.user_count - b.totals.user_count
-        : b.totals.user_count - a.totals.user_count;
-    });
+    sort = "user_count";
   }
+
+  loading.value = true;
+  _platformsData.value = [];
+  const limit = 100;
+  while (true) {
+    const fetched = await TimeplayedAPI.getPlatformsStats({
+      limit,
+      offset: _platformsData.value.length,
+      user: props.user ? props.user.id : undefined,
+      game: props.game ? props.game.id : undefined,
+      before: _before.value ? _before.value.getTime() : undefined,
+      after: _after.value ? _after.value.getTime() : undefined,
+      order,
+      sort: sort as any,
+      search: _search.value.trim(),
+    });
+    _platformsData.value.push(...fetched);
+    if (fetched.length === 0 || fetched.length < limit) {
+      break;
+    }
+  }
+  loading.value = false;
 }
 
 function setSort(newSort: "recency" | "playtime" | "name" | "users") {
   console.log("sort", newSort);
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
-  sort();
+  fetchPlatforms();
 }
 
 onMounted(() => {
@@ -128,14 +126,21 @@ onMounted(() => {
             localSort = 'playtime';
           }
         }
-        fetchPlatforms();
+        searchChange();
       }
     "
   />
+  <!-- show search box if not filtering by user or game (ie only on platform list page) -->
+  <input
+    v-if="!props.user && !props.game"
+    v-model="_search"
+    @input="searchChange()"
+    type="text"
+    class="form-control mb-2"
+    placeholder="Search platforms..."
+  />
 
-  <LoadingBar v-if="loading" :percent="_loadingPercent" />
-
-  <template v-else-if="_platformsData.length > 0">
+  <template v-if="_platformsData.length > 0">
     <table class="table table-hover table-responsive">
       <thead>
         <tr>
@@ -192,13 +197,13 @@ onMounted(() => {
       <tbody>
         <RowV2
           v-for="platform in _platformsData"
-          :key="platform.platform.id"
-          :platform="platform"
+          :key="platform.id"
+          :platformWithStats="platform"
           :context="'platformTable'"
-          :durationSeconds="platform.totals.playtime_secs"
+          :durationSeconds="platform.stats.seconds"
           :date="
-            platform.newest_activity
-              ? new Date(platform.newest_activity.timestamp)
+            platform.stats.last_activity
+              ? new Date(platform.stats.last_activity)
               : undefined
           "
           :showDate="_after === undefined"
@@ -206,17 +211,11 @@ onMounted(() => {
         />
       </tbody>
     </table>
+  </template>
 
-    <!--
-  <ColorSpinners v-if="loading" />
-  <template v-else-if="platforms.length > 0">
-    <PlatformRow
-      v-for="platform in platforms"
-      :key="platform.platform.id"
-      :platform="platform"
-      :showLastPlayed="props.showLastPlayed"
-    />
-  </template>
-  <div v-else class="text-center text-muted">No platforms found.</div> -->
-  </template>
+  <div class="text-center" v-if="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 </template>

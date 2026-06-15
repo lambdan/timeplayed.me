@@ -30,12 +30,12 @@ function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
 
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
-  apiUser.value = await TimeplayedAPI.getUser(userId);
+  apiUser.value = await TimeplayedAPI.getUserStats(+userId);
 });
 </script>
 
 <template>
-  <UserInfoCard class="mb-4" v-if="apiUser" :user="apiUser.user" />
+  <UserInfoCard class="mb-4" v-if="apiUser" :user="apiUser" />
   <div class="mb-3 d-flex justify-content-center gap-2" v-if="apiUser">
     <button
       class="btn btn-outline-primary"
@@ -72,13 +72,13 @@ onMounted(async () => {
   </div>
   <RecentActivityCard
     v-if="apiUser && showActivity"
-    :user="apiUser.user"
+    :user="apiUser"
     :showExpand="true"
     class="mb-4"
   />
   <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlaytime">
     <h1 class="card-header">Playtime</h1>
-    <PlaytimeChart :user="apiUser.user" />
+    <PlaytimeChart :user="apiUser" />
   </div>
   <GameListCard
     v-if="apiUser && showGames"
@@ -87,14 +87,14 @@ onMounted(async () => {
     :limit="10"
     :order="'desc'"
     :sort="'playtime'"
-    :user="apiUser.user"
+    :user="apiUser"
     :showDateRange="true"
   ></GameListCard>
   <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlatforms">
     <h1 class="card-header">Platforms</h1>
     <div class="card-body">
       <PlatformTable
-        :user="apiUser.user"
+        :user="apiUser"
         :sort="'playtime'"
         :order="'desc'"
         :showLastPlayed="false"

@@ -21,28 +21,32 @@ const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 
 async function fetchTheThings() {
-  if (_loading.value) {
-    return;
-  }
+  // TODO: Change this to show more system (like game table)
   _loading.value = true;
   _users.value = [];
+  let offset = 0;
   while (true) {
-    const data = await TimeplayedAPI.getUsers({
-      offset: _users.value.length,
+    const data = await TimeplayedAPI.getUsersStats({
+      offset,
       limit: 100,
-      gameId: props.game ? props.game.id : undefined,
+      game: props.game ? props.game.id : undefined,
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
-      platformId: props.platform ? props.platform.id : undefined,
+      platform: props.platform ? props.platform.id : undefined,
+      order: "desc",
+      sort: "playtime",
     });
-
-    _users.value.push(...data.data);
-
-    if (data.total === _users.value.length) {
+    for (const u of data) {
+      offset += 1;
+      // only include users with playtime
+      if (u.stats.seconds > 0) {
+        _users.value.push(u);
+      }
+    }
+    if (data.length === 0 || data.length < 100) {
       break;
     }
   }
-  _users.value.sort((a, b) => b.totals.playtime_secs - a.totals.playtime_secs);
   _loading.value = false;
 }
 
@@ -86,15 +90,15 @@ onMounted(() => {});
         <tbody v-if="!_loading">
           <RowV2
             v-for="user in _users"
-            :key="user.user.id"
-            :user="user"
-            :duration-seconds="user.totals.playtime_secs"
+            :key="user.id"
+            :userWithStats="user"
+            :duration-seconds="user.stats.seconds"
             :context="props.context"
             :show-users="false"
             :show-date="props.context !== 'frontPage' && _after === undefined"
             :date="
-              user.newest_activity
-                ? new Date(user.newest_activity.timestamp)
+              user.stats.last_activity
+                ? new Date(user.stats.last_activity)
                 : undefined
             "
           />

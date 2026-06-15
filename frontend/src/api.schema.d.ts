@@ -4,6 +4,125 @@
  */
 
 export interface paths {
+    "/api/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ping */
+        get: operations["ping_api_ping_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Info */
+        get: operations["info_api_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-stats/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Single User Stats */
+        get: operations["get_single_user_stats_api_user_stats__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users-stats/{user_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Users Stats */
+        get: operations["get_many_users_stats_api_users_stats__user_ids__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Users Stats */
+        get: operations["get_users_stats_api_users_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Single User */
+        get: operations["get_single_user_api_user__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{user_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Users */
+        get: operations["get_many_users_api_users__user_ids__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users": {
         parameters: {
             query?: never;
@@ -11,45 +130,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Users
-         * @description Get summarized users. Can also filter by gameId and platformId, and set a before/after timestamp to get a range.
-         */
+        /** Get Users */
         get: operations["get_users_api_users_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get User */
-        get: operations["get_user_api_user__userId__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/activities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Activities */
-        get: operations["get_activities_api_activities_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -92,15 +174,151 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/activity/{activity_id}": {
+    "/api/activity/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Activity */
-        get: operations["get_activity_api_activity__activity_id__get"];
+        /** Get Single Activity */
+        get: operations["get_single_activity_api_activity__id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/activities/{ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Activities */
+        get: operations["get_many_activities_api_activities__ids__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Activities */
+        get: operations["get_activities_api_activities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/total": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Total */
+        get: operations["get_total_api_total_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/game-stats/{game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Single Game Stats */
+        get: operations["get_single_game_stats_api_game_stats__game_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/games-stats/{game_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Games Stats */
+        get: operations["get_many_games_stats_api_games_stats__game_ids__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/games-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Games Stats */
+        get: operations["get_games_stats_api_games_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/game/{game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Single Game */
+        get: operations["get_single_game_api_game__game_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/games/{game_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Games */
+        get: operations["get_many_games_api_games__game_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -126,15 +344,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/game/{gameId}": {
+    "/api/platform-stats/{platform_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Game */
-        get: operations["get_game_api_game__gameId__get"];
+        /** Get Single Platform Stats */
+        get: operations["get_single_platform_stats_api_platform_stats__platform_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platforms-stats/{platform_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Platforms Stats */
+        get: operations["get_many_platforms_stats_api_platforms_stats__platform_ids__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platforms-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Platforms Stats */
+        get: operations["get_platforms_stats_api_platforms_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/{platform_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Single Platform */
+        get: operations["get_single_platform_api_platform__platform_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platforms/{platform_ids}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Many Platforms */
+        get: operations["get_many_platforms_api_platforms__platform_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -160,41 +446,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/{platformId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Platform */
-        get: operations["get_platform_api_platform__platformId__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/totals": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Totals */
-        get: operations["get_totals_api_totals_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/stats/chart/playtime_by_day": {
+    "/api/charts/playtime/by_day": {
         parameters: {
             query?: never;
             header?: never;
@@ -202,7 +454,27 @@ export interface paths {
             cookie?: never;
         };
         /** Get Playtime By Day */
-        get: operations["get_playtime_by_day_api_stats_chart_playtime_by_day_get"];
+        get: operations["get_playtime_by_day_api_charts_playtime_by_day_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discord/{discord_user_id}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Redirect Discord Avatar
+         * @description Redirects to URL for Discord avatar
+         */
+        get: operations["redirect_discord_avatar_api_discord__discord_user_id__avatar_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -231,27 +503,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/grids/{sgdb_game_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Sgdb Grids
-         * @description Gets grids for a game from SteamGridDB
-         */
-        get: operations["sgdb_grids_api_sgdb_grids__sgdb_game_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sgdb/grids/{sgdb_game_id}/best": {
+    "/api/sgdb/{sgdb_game_id}/grids/best": {
         parameters: {
             query?: never;
             header?: never;
@@ -262,7 +514,7 @@ export interface paths {
          * Best Grid Sgdb
          * @description Tries to get the best grid for a game from SteamGridDB
          */
-        get: operations["best_grid_sgdb_api_sgdb_grids__sgdb_game_id__best_get"];
+        get: operations["best_grid_sgdb_api_sgdb__sgdb_game_id__grids_best_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -271,7 +523,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/discord/avatar/{discord_user_id}": {
+    "/api/sgdb/{sgdb_game_id}/grids": {
         parameters: {
             query?: never;
             header?: never;
@@ -279,10 +531,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Redirect Discord Avatar
-         * @description Returns redirect to Discord avatar URL for a given Discord user ID
+         * Sgdb Grids
+         * @description Gets grids for a game from SteamGridDB
          */
-        get: operations["redirect_discord_avatar_api_discord_avatar__discord_user_id__get"];
+        get: operations["sgdb_grids_api_sgdb__sgdb_game_id__grids_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -295,280 +547,231 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** GameWithStats */
-        GameWithStats: {
-            totals: components["schemas"]["Totals"];
-            oldest_activity: components["schemas"]["PublicActivityModel"] | null;
-            newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            game: components["schemas"]["PublicGameModel"];
-            totals_excl_children: components["schemas"]["Totals"];
+        /** API_Activity */
+        API_Activity: {
+            /** Id */
+            id: number;
+            /** Timestamp */
+            timestamp: number;
+            /** Seconds */
+            seconds: number;
+            /** User Id */
+            user_id: number;
+            /** Game Id */
+            game_id: number;
+            /** Platform Id */
+            platform_id: number;
+            /** Emulated */
+            emulated: boolean;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+        };
+        /** API_Game */
+        API_Game: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Steam Id */
+            steam_id: number | null;
+            /** Sgdb Id */
+            sgdb_id: number | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Aliases */
+            aliases: string[];
+            /** Release Year */
+            release_year: number | null;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            /** Children Ids */
+            children_ids: number[];
+            /** Parent Id */
+            parent_id: number | null;
+        };
+        /** API_GameWithStats */
+        API_GameWithStats: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Steam Id */
+            steam_id: number | null;
+            /** Sgdb Id */
+            sgdb_id: number | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Aliases */
+            aliases: string[];
+            /** Release Year */
+            release_year: number | null;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            /** Children Ids */
+            children_ids: number[];
+            /** Parent Id */
+            parent_id: number | null;
+            stats: components["schemas"]["GameStats"];
+        };
+        /** API_Platform */
+        API_Platform: {
+            /** Id */
+            id: number;
+            /** Display Name */
+            display_name: string;
+            /** Abbreviation */
+            abbreviation: string;
+            /** Name */
+            name: string | null;
+            /** Color Primary */
+            color_primary: string | null;
+            /** Color Secondary */
+            color_secondary: string | null;
+            /** Icon */
+            icon: string | null;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+        };
+        /** API_PlatformWithStats */
+        API_PlatformWithStats: {
+            /** Id */
+            id: number;
+            /** Display Name */
+            display_name: string;
+            /** Abbreviation */
+            abbreviation: string;
+            /** Name */
+            name: string | null;
+            /** Color Primary */
+            color_primary: string | null;
+            /** Color Secondary */
+            color_secondary: string | null;
+            /** Icon */
+            icon: string | null;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            stats: components["schemas"]["PlatformTotals"];
+        };
+        /** API_User */
+        API_User: {
+            /** Id */
+            id: number;
+            /** Discord Id */
+            discord_id: string | null;
+            /** Name */
+            name: string;
+            /** Default Platform Id */
+            default_platform_id: number;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+        };
+        /** API_UserWithStats */
+        API_UserWithStats: {
+            /** Id */
+            id: number;
+            /** Discord Id */
+            discord_id: string | null;
+            /** Name */
+            name: string;
+            /** Default Platform Id */
+            default_platform_id: number;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            stats: components["schemas"]["UserTotals"];
+        };
+        /** Data */
+        Data: {
+            /** Label */
+            label: string;
+            /** Data */
+            data: number[];
+        };
+        /** GameStats */
+        GameStats: {
+            /**
+             * Seconds
+             * @description Total playtime in seconds
+             */
+            seconds: number;
+            /**
+             * Activity Count
+             * @description Total number of activities
+             */
+            activity_count: number;
+            /**
+             * First Activity
+             * @description Timestamp of the first activity
+             */
+            first_activity: number | null;
+            /**
+             * Last Activity
+             * @description Timestamp of the last activity
+             */
+            last_activity: number | null;
+            /** User Count */
+            user_count: number;
+            /** Platform Count */
+            platform_count: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** PaginatedActivities */
-        PaginatedActivities: {
-            /**
-             * Total
-             * @description Total number of items
-             */
-            total: number;
-            /**
-             * Offset
-             * @description Offset for pagination
-             */
-            offset: number;
-            /**
-             * Limit
-             * @description Limit for pagination
-             */
-            limit: number;
-            /** Data */
-            data: components["schemas"]["PublicActivityModel"][];
-            /**
-             * Order
-             * @enum {string}
-             */
-            order: "desc" | "asc";
+        /** Info */
+        Info: {
+            /** Version */
+            version: string;
+            /** Uptime */
+            uptime: number;
         };
-        /** PaginatedGameWithStats */
-        PaginatedGameWithStats: {
-            /**
-             * Total
-             * @description Total number of items
-             */
-            total: number;
-            /**
-             * Offset
-             * @description Offset for pagination
-             */
-            offset: number;
-            /**
-             * Limit
-             * @description Limit for pagination
-             */
-            limit: number;
-            /** Data */
-            data: components["schemas"]["GameWithStats"][];
-        };
-        /** PaginatedPlatformsWithStats */
-        PaginatedPlatformsWithStats: {
-            /**
-             * Total
-             * @description Total number of items
-             */
-            total: number;
-            /**
-             * Offset
-             * @description Offset for pagination
-             */
-            offset: number;
-            /**
-             * Limit
-             * @description Limit for pagination
-             */
-            limit: number;
-            /** Data */
-            data: components["schemas"]["PlatformWithStats"][];
-        };
-        /** PaginatedUserWithStats */
-        PaginatedUserWithStats: {
-            /**
-             * Total
-             * @description Total number of items
-             */
-            total: number;
-            /**
-             * Offset
-             * @description Offset for pagination
-             */
-            offset: number;
-            /**
-             * Limit
-             * @description Limit for pagination
-             */
-            limit: number;
-            /** Data */
-            data: components["schemas"]["UserWithStats"][];
-        };
-        /** PlatformWithStats */
-        PlatformWithStats: {
-            totals: components["schemas"]["Totals"];
-            oldest_activity: components["schemas"]["PublicActivityModel"] | null;
-            newest_activity: components["schemas"]["PublicActivityModel"] | null;
-            platform: components["schemas"]["PublicPlatformModel"];
-        };
-        /** PublicActivityModel */
-        PublicActivityModel: {
-            /**
-             * Id
-             * @description ID for the activity
-             */
-            id: number;
-            /**
-             * Timestamp
-             * @description Timestamp (in milliseconds) for the activity
-             */
-            timestamp: number;
+        /** PlatformTotals */
+        PlatformTotals: {
             /**
              * Seconds
-             * @description Duration of the activity in seconds
+             * @description Total playtime in seconds
              */
             seconds: number;
-            /** @description User associated with the activity */
-            user: components["schemas"]["PublicUserModel"];
-            /** @description Game associated with the activity */
-            game: components["schemas"]["PublicGameModel"];
-            /** @description Platform associated with the activity */
-            platform: components["schemas"]["PublicPlatformModel"];
             /**
-             * Emulated
-             * @description True if the activity was played in an emulator
+             * Activity Count
+             * @description Total number of activities
              */
-            emulated: boolean;
+            activity_count: number;
             /**
-             * Created
-             * @description Timestamp (in milliseconds) for the creation of the activity
+             * First Activity
+             * @description Timestamp of the first activity
              */
-            created: number;
+            first_activity: number | null;
             /**
-             * Updated
-             * @description Timestamp (in milliseconds) for the last update of the activity
+             * Last Activity
+             * @description Timestamp of the last activity
              */
-            updated: number;
+            last_activity: number | null;
+            /** User Count */
+            user_count: number;
+            /** Game Count */
+            game_count: number;
         };
-        /** PublicGameModel */
-        PublicGameModel: {
-            /**
-             * Id
-             * @description ID for the game
-             */
-            id: number;
-            /**
-             * Name
-             * @description Name of the game
-             */
-            name: string;
-            /**
-             * Steam Id
-             * @description Steam ID for the game
-             */
-            steam_id: number | null;
-            /**
-             * Sgdb Id
-             * @description SGDB ID for the game. Null if not set. 0 if game is not in SGDB.
-             */
-            sgdb_id: number | null;
-            /**
-             * Image Url
-             * @description Image URL for the game
-             */
-            image_url: string | null;
-            /**
-             * Aliases
-             * @description List of aliases for the game
-             */
-            aliases: string[];
-            /**
-             * Release Year
-             * @description Release year of the game
-             */
-            release_year: number | null;
-            /**
-             * Created
-             * @description Timestamp (in milliseconds) for the creation of the game
-             */
-            created: number;
-            /**
-             * Updated
-             * @description Timestamp (in milliseconds) for the last update of the game
-             */
-            updated: number;
-            /**
-             * Children
-             * @description List of child game IDs
-             */
-            children: number[];
-            /**
-             * Parent Id
-             * @description Parent game ID. Null if no parent.
-             */
-            parent_id: number | null;
-        };
-        /** PublicPlatformModel */
-        PublicPlatformModel: {
-            /**
-             * Id
-             * @description ID for the platform
-             */
-            id: number;
-            /**
-             * Abbreviation
-             * @description Abbreviation for the platform
-             */
-            abbreviation: string;
-            /**
-             * Name
-             * @description Name of the platform
-             */
-            name: string | null;
-            /**
-             * Color Primary
-             * @description Primary color for the platform
-             */
-            color_primary: string | null;
-            /**
-             * Color Secondary
-             * @description Secondary color for the platform
-             */
-            color_secondary: string | null;
-            /**
-             * Icon
-             * @description Icon name
-             */
-            icon: string | null;
-            /**
-             * Created
-             * @description Timestamp (in milliseconds) for the creation of the platform
-             */
-            created: number;
-            /**
-             * Updated
-             * @description Timestamp (in milliseconds) for the last update of the platform
-             */
-            updated: number;
-        };
-        /** PublicUserModel */
-        PublicUserModel: {
-            /**
-             * Id
-             * @description ID of the user
-             */
-            id: number;
-            /**
-             * Discord Id
-             * @description Discord ID of the user
-             */
-            discord_id: string | null;
-            /**
-             * Name
-             * @description Name of the user
-             */
-            name: string;
-            /** @description User's default platform */
-            default_platform: components["schemas"]["PublicPlatformModel"];
-            /**
-             * Created
-             * @description Timestamp (in milliseconds) for the creation of the user
-             */
-            created: number;
-            /**
-             * Updated
-             * @description Timestamp (in milliseconds) for the last update of the user
-             */
-            updated: number;
+        /** PlaytimeChart */
+        PlaytimeChart: {
+            /** Labels */
+            labels: string[];
+            /** Datasets */
+            datasets: components["schemas"]["Data"][];
         };
         /** SGDB_Author */
         SGDB_Author: {
@@ -618,23 +821,57 @@ export interface components {
             /** Downvotes */
             downvotes: number | null;
         };
-        /** Totals */
-        Totals: {
+        /** Total */
+        Total: {
             /**
-             * Playtime Secs
+             * Seconds
              * @description Total playtime in seconds
              */
-            playtime_secs: number;
+            seconds: number;
             /**
              * Activity Count
              * @description Total number of activities
              */
             activity_count: number;
             /**
-             * User Count
-             * @description Total number of unique users
+             * First Activity
+             * @description Timestamp of the first activity
              */
+            first_activity: number | null;
+            /**
+             * Last Activity
+             * @description Timestamp of the last activity
+             */
+            last_activity: number | null;
+            /** User Count */
             user_count: number;
+            /** Platform Count */
+            platform_count: number;
+            /** Game Count */
+            game_count: number;
+        };
+        /** UserTotals */
+        UserTotals: {
+            /**
+             * Seconds
+             * @description Total playtime in seconds
+             */
+            seconds: number;
+            /**
+             * Activity Count
+             * @description Total number of activities
+             */
+            activity_count: number;
+            /**
+             * First Activity
+             * @description Timestamp of the first activity
+             */
+            first_activity: number | null;
+            /**
+             * Last Activity
+             * @description Timestamp of the last activity
+             */
+            last_activity: number | null;
             /**
              * Game Count
              * @description Total number of unique games
@@ -645,13 +882,6 @@ export interface components {
              * @description Total number of unique platforms
              */
             platform_count: number;
-        };
-        /** UserWithStats */
-        UserWithStats: {
-            user: components["schemas"]["PublicUserModel"];
-            oldest_activity: components["schemas"]["PublicActivityModel"];
-            newest_activity: components["schemas"]["PublicActivityModel"];
-            totals: components["schemas"]["Totals"];
         };
         /** ValidationError */
         ValidationError: {
@@ -671,16 +901,9 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_users_api_users_get: {
+    ping_api_ping_get: {
         parameters: {
-            query?: {
-                offset?: unknown;
-                limit?: unknown;
-                gameId?: number | null;
-                platformId?: number | null;
-                before?: number | null;
-                after?: number | null;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -693,31 +916,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedUserWithStats"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": unknown;
                 };
             };
         };
     };
-    get_user_api_user__userId__get: {
+    info_api_info_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Info"];
+                };
+            };
+        };
+    };
+    get_single_user_stats_api_user_stats__user_id__get: {
         parameters: {
             query?: {
-                before?: number | null;
-                after?: number | null;
-                gameId?: number | null;
-                platformId?: number | null;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                game?: number | null;
+                platform?: number | null;
             };
             header?: never;
             path: {
-                userId: number;
+                user_id: number;
             };
             cookie?: never;
         };
@@ -729,7 +965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserWithStats"];
+                    "application/json": components["schemas"]["API_UserWithStats"];
                 };
             };
             /** @description Validation Error */
@@ -743,18 +979,68 @@ export interface operations {
             };
         };
     };
-    get_activities_api_activities_get: {
+    get_many_users_stats_api_users_stats__user_ids__get: {
         parameters: {
             query?: {
-                offset?: unknown;
-                limit?: unknown;
-                order?: "desc" | "asc";
-                user?: number | null;
-                game?: number | null;
-                platform?: number | null;
-                before?: number | null;
-                after?: number | null;
-                include_game_children?: boolean;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "game_count" | "platform_count" | "name" | "id";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of user ids to filter by */
+                user_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_UserWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_users_stats_api_users_stats_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "game_count" | "platform_count" | "name" | "id";
+                order?: "asc" | "desc";
+                /** @description Search term to filter users by */
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -768,7 +1054,111 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedActivities"];
+                    "application/json": components["schemas"]["API_UserWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_user_api_user__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_User"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_users_api_users__user_ids__get: {
+        parameters: {
+            query?: {
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of user ids to filter by */
+                user_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_User"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_users_api_users_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated";
+                order?: "asc" | "desc";
+                /** @description Search term to filter users by */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_User"][];
                 };
             };
             /** @description Validation Error */
@@ -785,12 +1175,12 @@ export interface operations {
     get_newest_activity_api_activity_newest_get: {
         parameters: {
             query?: {
-                userid?: number | null;
-                gameid?: number | null;
-                platformid?: number | null;
-                before?: number | null;
-                after?: number | null;
-                include_game_children?: boolean;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
             };
             header?: never;
             path?: never;
@@ -804,7 +1194,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PublicActivityModel"];
+                    "application/json": components["schemas"]["API_Activity"];
                 };
             };
             /** @description Validation Error */
@@ -821,12 +1211,12 @@ export interface operations {
     get_oldest_activity_api_activity_oldest_get: {
         parameters: {
             query?: {
-                userid?: number | null;
-                gameid?: number | null;
-                platformid?: number | null;
-                before?: number | null;
-                after?: number | null;
-                include_game_children?: boolean;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
             };
             header?: never;
             path?: never;
@@ -840,7 +1230,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PublicActivityModel"];
+                    "application/json": components["schemas"]["API_Activity"];
                 };
             };
             /** @description Validation Error */
@@ -854,12 +1244,12 @@ export interface operations {
             };
         };
     };
-    get_activity_api_activity__activity_id__get: {
+    get_single_activity_api_activity__id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                activity_id: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -871,7 +1261,322 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PublicActivityModel"];
+                    "application/json": components["schemas"]["API_Activity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_activities_api_activities__ids__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Comma-separated list of activity ids to filter by */
+                ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_activities_api_activities_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                order?: "asc" | "desc";
+                /** @description Sort by */
+                sort?: "id" | "timestamp";
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_total_api_total_get: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated list of users to filter by */
+                users?: string;
+                /** @description Comma-separated list of games to filter by */
+                games?: string;
+                /** @description Comma-separated list of platforms to filter by */
+                platforms?: string;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Total"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_game_stats_api_game_stats__game_id__get: {
+        parameters: {
+            query?: {
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+            };
+            header?: never;
+            path: {
+                /** @description ID of the game to filter by */
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_GameWithStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_games_stats_api_games_stats__game_ids__get: {
+        parameters: {
+            query?: {
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "platform_count" | "name" | "id";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of game ids to filter by */
+                game_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_GameWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_games_stats_api_games_stats_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "platform_count" | "name" | "id";
+                order?: "asc" | "desc";
+                /** @description Search term to filter games by */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_GameWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_game_api_game__game_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the game to filter by */
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Game"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_games_api_games__game_ids__get: {
+        parameters: {
+            query?: {
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated" | "release_year";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of game ids to filter by */
+                game_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Game"][];
                 };
             };
             /** @description Validation Error */
@@ -888,13 +1593,13 @@ export interface operations {
     get_games_api_games_get: {
         parameters: {
             query?: {
-                offset?: unknown;
-                limit?: unknown;
-                userId?: number | null;
-                platformId?: number | null;
-                before?: number | null;
-                after?: number | null;
-                search?: string | null;
+                offset?: number;
+                limit?: number;
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated" | "release_year";
+                order?: "asc" | "desc";
+                /** @description Search term to filter games by */
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -908,7 +1613,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedGameWithStats"];
+                    "application/json": components["schemas"]["API_Game"][];
                 };
             };
             /** @description Validation Error */
@@ -922,17 +1627,22 @@ export interface operations {
             };
         };
     };
-    get_game_api_game__gameId__get: {
+    get_single_platform_stats_api_platform_stats__platform_id__get: {
         parameters: {
             query?: {
-                userId?: number | null;
-                before?: number | null;
-                after?: number | null;
-                platformId?: number | null;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
             };
             header?: never;
             path: {
-                gameId: number;
+                /** @description ID of the platform to filter by */
+                platform_id: number;
             };
             cookie?: never;
         };
@@ -944,7 +1654,163 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GameWithStats"];
+                    "application/json": components["schemas"]["API_PlatformWithStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_platforms_stats_api_platforms_stats__platform_ids__get: {
+        parameters: {
+            query?: {
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "game_count" | "name" | "id";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of platform ids to filter by */
+                platform_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_PlatformWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_platforms_stats_api_platforms_stats_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
+                /** @description Sort by */
+                sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "game_count" | "name" | "id";
+                order?: "asc" | "desc";
+                /** @description Search term to filter platforms by */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_PlatformWithStats"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_platform_api_platform__platform_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platform_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Platform"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_many_platforms_api_platforms__platform_ids__get: {
+        parameters: {
+            query?: {
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                /** @description Comma-separated list of platform ids to filter by */
+                platform_ids: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Platform"][];
                 };
             };
             /** @description Validation Error */
@@ -961,12 +1827,13 @@ export interface operations {
     get_platforms_api_platforms_get: {
         parameters: {
             query?: {
-                offset?: unknown;
-                limit?: unknown;
-                userId?: number | null;
-                gameId?: number | null;
-                before?: number | null;
-                after?: number | null;
+                offset?: number;
+                limit?: number;
+                /** @description Sort by */
+                sort?: "name" | "id" | "created" | "updated";
+                order?: "asc" | "desc";
+                /** @description Search term to filter platforms by */
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -980,7 +1847,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedPlatformsWithStats"];
+                    "application/json": components["schemas"]["API_Platform"][];
                 };
             };
             /** @description Validation Error */
@@ -994,87 +1861,53 @@ export interface operations {
             };
         };
     };
-    get_platform_api_platform__platformId__get: {
+    get_playtime_by_day_api_charts_playtime_by_day_get: {
         parameters: {
             query?: {
-                userId?: number | null;
-                before?: number | null;
-                after?: number | null;
-                gameId?: number | null;
+                /** @description ID of the user to filter by */
+                user?: number;
+                /** @description ID of the game to filter by */
+                game?: number;
+                /** @description ID of the platform to filter by */
+                platform?: number;
+                /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
+                before?: number;
+                /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
+                after?: number;
             };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaytimeChart"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    redirect_discord_avatar_api_discord__discord_user_id__avatar_get: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
-                platformId: number;
+                discord_user_id: string | number;
             };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlatformWithStats"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_totals_api_totals_get: {
-        parameters: {
-            query?: {
-                userId?: number | null;
-                gameId?: number | null;
-                platformId?: number | null;
-                before?: number | null;
-                after?: number | null;
-                include_game_children?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Totals"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_playtime_by_day_api_stats_chart_playtime_by_day_get: {
-        parameters: {
-            query?: {
-                userId?: string | null;
-                gameId?: number | null;
-                platformId?: number | null;
-            };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1130,38 +1963,7 @@ export interface operations {
             };
         };
     };
-    sgdb_grids_api_sgdb_grids__sgdb_game_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                sgdb_game_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SGDB_Grid"][] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    best_grid_sgdb_api_sgdb_grids__sgdb_game_id__best_get: {
+    best_grid_sgdb_api_sgdb__sgdb_game_id__grids_best_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,12 +1994,12 @@ export interface operations {
             };
         };
     };
-    redirect_discord_avatar_api_discord_avatar__discord_user_id__get: {
+    sgdb_grids_api_sgdb__sgdb_game_id__grids_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                discord_user_id: string | number;
+                sgdb_game_id: number;
             };
             cookie?: never;
         };
@@ -1209,7 +2011,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SGDB_Grid"][] | null;
                 };
             };
             /** @description Validation Error */

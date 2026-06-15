@@ -15,7 +15,6 @@ const props = withDefaults(
   }>(),
   {
     showExpand: false,
-    limit: 25,
     user: undefined,
     game: undefined,
   },
@@ -34,7 +33,7 @@ const _after = ref<Date | undefined>();
 const total = ref(0);
 const seen = ref(new Set<number>());
 
-async function fetchActivities(limit: number) {
+async function fetchActivities(limit?: number) {
   loading.value = true;
   fetching.value = true;
   const data = await TimeplayedAPI.getActivities({
@@ -46,13 +45,11 @@ async function fetchActivities(limit: number) {
     after: _after.value ? _after.value.getTime() : undefined,
   });
 
-  const newActivities = data.data.map((activity: any) => ({
+  const newActivities = data.map((activity: any) => ({
     ...activity,
     createdAt: new Date(activity.timestamp),
   }));
   activities.value.push(...newActivities);
-  total.value = data.total;
-  hasMore.value = data.total > activities.value.length;
   loading.value = false;
   sortByRecent();
 
@@ -69,14 +66,13 @@ async function autoRefresh() {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     fetching.value = true;
     const data = await TimeplayedAPI.getActivities({
-      limit: 100,
       offset: 0,
       game: props.game ? props.game.id : undefined,
       user: props.user ? props.user.id : undefined,
       after: lastCheck,
       order: "desc",
     });
-    for (const activity of data.data) {
+    for (const activity of data) {
       if (seen.value.has(activity.id)) {
         continue;
       }
@@ -85,7 +81,7 @@ async function autoRefresh() {
       });
       seen.value.add(activity.id);
     }
-    total.value += data.data.length;
+    total.value += data.length;
     lastCheck = Date.now();
     sortByRecent();
     await new Promise((resolve) => setTimeout(resolve, FAKE_SLEEP));
@@ -98,7 +94,7 @@ function sortByRecent() {
 }
 
 function loadMore() {
-  fetchActivities(10);
+  fetchActivities();
 }
 
 function getContext(): "userPage" | "gamePage" | "frontPage" {
@@ -120,7 +116,7 @@ onMounted(async () => {
 <template>
   <div class="card p-0">
     <h2 class="card-header">
-      Activity
+      Recent activity
 
       <span
         v-if="fetching"
@@ -178,7 +174,7 @@ onMounted(async () => {
         </button>
         <br />
         <small class="text-muted mt-2">
-          {{ activities.length }} / {{ total }}
+          {{ activities.length }} activities loaded
         </small>
       </div>
     </div>

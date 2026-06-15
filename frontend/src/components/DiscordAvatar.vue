@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { TimeplayedAPI } from "../api.client";
 import type { User } from "../api.models";
 import { onMounted, ref } from "vue";
 
@@ -12,11 +13,10 @@ const props = withDefaults(
   },
 );
 
-onMounted(() => {
+onMounted(async () => {
+  avatarUrl.value = "https://placehold.co/512x512?text=" + props.user.name;
   if (props.user.discord_id) {
-    avatarUrl.value = `/api/discord/avatar/${props.user.discord_id}`;
-  } else {
-    avatarUrl.value = "https://placehold.co/512x512?text=" + props.user.name;
+    avatarUrl.value = TimeplayedAPI.getDiscordAvatarUrl(props.user.discord_id);
   }
 });
 </script>

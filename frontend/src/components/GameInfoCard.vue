@@ -5,14 +5,16 @@ import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
 import ChildGameBadge from "./Badges/ChildGameBadge.vue";
-import { fetchOrGetCachedGameName } from "../utils.api";
+import { TimeplayedAPI } from "../api.client";
+import CalendarBasic from "./CalendarBasic.vue";
 
-const props = defineProps<{ game: Game }>();
+const props = defineProps<{ game: GameWithStats }>();
 
-const stats = ref<GameWithStats>();
+const gameWithStats = ref<GameWithStats>(props.game);
+const parent = ref<GameWithStats>();
+const childrenStats = ref<GameWithStats[]>([]);
+
 const loadingStats = ref(true);
-
-const parentGameName = ref("...");
 
 // Collapse state for each column
 const showStats = ref(true);
@@ -25,15 +27,46 @@ function toggleColumn(column: "stats" | "metadata" | "platforms") {
   showPlatforms.value = column === "platforms";
 }
 
-onMounted(async () => {
-  const res = await fetch(`/api/game/${props.game.id}`);
-  const data = (await res.json()) as GameWithStats;
-  stats.value = data;
-  loadingStats.value = false;
-
-  if (props.game.parent_id) {
-    parentGameName.value = await fetchOrGetCachedGameName(props.game.parent_id);
+function secondsInclChildren() {
+  let total = gameWithStats.value.stats.seconds;
+  for (const child of childrenStats.value) {
+    total += child.stats.seconds;
   }
+  return total;
+}
+
+function activityCountInclChildren() {
+  let total = gameWithStats.value.stats.activity_count;
+  for (const child of childrenStats.value) {
+    total += child.stats.activity_count;
+  }
+  return total;
+}
+
+onMounted(async () => {
+  // fetch children and parent
+  const ids = [...props.game.children_ids];
+  if (props.game.parent_id) {
+    ids.push(props.game.parent_id);
+  }
+
+  if (ids.length > 0) {
+    const fetched = await TimeplayedAPI.getGameStatsMany(ids);
+
+    if (!gameWithStats.value) {
+      throw new Error("Stats not found for game " + props.game.id);
+    }
+    parent.value = fetched.find((g) => g.id === props.game.parent_id);
+
+    for (const child_id of gameWithStats.value.children_ids) {
+      const childStats = fetched.find((g) => g.id === child_id);
+      if (childStats) {
+        childrenStats.value.push(childStats);
+      }
+    }
+  }
+
+  loadingStats.value = false;
 });
 </script>
 
@@ -44,13 +77,9 @@ onMounted(async () => {
       <span class="text-muted" v-if="game.release_year">
         ({{ game.release_year }})
       </span>
-      <span
-        class="text-muted d-block"
-        style="font-size: 0.5em"
-        v-if="game.parent_id"
-      >
+      <span class="text-muted d-block" style="font-size: 0.5em" v-if="parent">
         Child of
-        <a :href="'/game/' + game.parent_id">{{ parentGameName }}</a>
+        <a :href="'/game/' + parent.id">{{ parent.name }}</a>
       </span>
     </h1>
     <div class="card-body">
@@ -106,116 +135,76 @@ onMounted(async () => {
           <div v-if="showStats">
             <div class="card p-0 h-100">
               <h2 class="card-header">Stats</h2>
-              <div class="card-body" v-if="stats">
+              <div class="card-body" v-if="gameWithStats">
                 <table class="table table-responsive table-hover">
                   <tbody>
-                    <tr v-if="game.children.length > 0">
+                    <tr v-if="game.children_ids.length > 0">
                       <td><b>Children:</b></td>
                       <td>
                         <ChildGameBadge
-                          v-for="child in game.children"
-                          :key="child"
-                          :gameId="child"
+                          v-for="child in childrenStats"
+                          :key="child.id"
+                          :game="child"
                         ></ChildGameBadge>
                       </td>
                     </tr>
                     <tr>
                       <td><b>Playtime:</b></td>
                       <td>
-                        {{ formatDuration(stats.totals.playtime_secs) }}
+                        {{ formatDuration(gameWithStats.stats.seconds) }}
                         <span
-                          v-if="game.children.length > 0"
+                          v-if="game.children_ids.length > 0"
                           class="text-muted"
-                          title="(excluding children)"
+                          title="(incl children)"
                         >
-                          ({{
-                            formatDuration(
-                              stats.totals_excl_children.playtime_secs,
-                            )
-                          }})
+                          ({{ formatDuration(secondsInclChildren()) }})
                         </span>
                       </td>
                     </tr>
                     <tr>
                       <td><b>Activity count:</b></td>
                       <td>
-                        {{ stats.totals.activity_count }}
+                        {{ gameWithStats.stats.activity_count }}
 
                         <span
-                          v-if="game.children.length > 0"
+                          v-if="game.children_ids.length > 0"
                           class="text-muted"
-                          title="(excluding children)"
+                          title="(incl children)"
                         >
-                          ({{ stats.totals_excl_children.activity_count }})
+                          ({{ activityCountInclChildren() }})
                         </span>
                       </td>
                     </tr>
                     <tr>
                       <td><b>User count:</b></td>
                       <td>
-                        {{ stats.totals.user_count }}
-
-                        <span
-                          v-if="game.children.length > 0"
-                          class="text-muted"
-                          title="(excluding children)"
-                        >
-                          ({{ stats.totals_excl_children.user_count }})
-                        </span>
+                        {{ gameWithStats.stats.user_count }}
                       </td>
                     </tr>
                     <tr>
                       <td><b>Platform count:</b></td>
                       <td>
-                        {{ stats.totals.platform_count }}
-
-                        <span
-                          v-if="game.children.length > 0"
-                          class="text-muted"
-                          title="(excluding children)"
-                        >
-                          ({{ stats.totals_excl_children.platform_count }})
-                        </span>
+                        {{ gameWithStats.stats.platform_count }}
                       </td>
                     </tr>
-                    <tr v-if="stats.oldest_activity">
+                    <tr v-if="gameWithStats.stats.first_activity">
                       <td><b>First played:</b></td>
                       <td>
-                        <a :href="'/activity/' + stats.oldest_activity.id">
-                          {{
-                            stats.oldest_activity
-                              ? formatDate(stats.oldest_activity.timestamp)
-                              : "-"
-                          }}</a
-                        >
-                        <br />
-                        <small class="text-muted">
-                          {{
-                            stats.oldest_activity
-                              ? timeAgo(stats.oldest_activity.timestamp)
-                              : "-"
-                          }}
-                        </small>
+                        <CalendarBasic
+                          :date="gameWithStats.stats.first_activity"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
-                    <tr v-if="stats.newest_activity">
+                    <tr v-if="gameWithStats.stats.last_activity">
                       <td><b>Last played:</b></td>
                       <td>
-                        <a :href="'/activity/' + stats.newest_activity.id">
-                          {{
-                            stats.newest_activity
-                              ? formatDate(stats.newest_activity.timestamp)
-                              : "-"
-                          }}</a
-                        >
-                        <br />
-                        <small class="text-muted">
-                          {{
-                            stats.newest_activity
-                              ? timeAgo(stats.newest_activity.timestamp)
-                              : "-"
-                          }}
-                        </small>
+                        <CalendarBasic
+                          :date="gameWithStats.stats.last_activity"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                   </tbody>
@@ -273,13 +262,21 @@ onMounted(async () => {
                     <tr>
                       <td><b>Created:</b></td>
                       <td>
-                        <code>{{ formatDate(game.created) }}</code>
+                        <CalendarBasic
+                          :date="game.created"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                     <tr>
                       <td><b>Updated:</b></td>
                       <td>
-                        <code>{{ formatDate(game.updated) }}</code>
+                        <CalendarBasic
+                          :date="game.updated"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                   </tbody>

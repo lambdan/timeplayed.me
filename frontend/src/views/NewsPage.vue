@@ -3,6 +3,20 @@
     <h1 class="card-header">News</h1>
 
     <div class="card-body text-start">
+      <strong>2026-06-15: Version 8.0.0</strong>
+      <p>
+        What the heck happened between 4.0.0 and 8.0.0? Well, frankly not a lot.
+        But as I said in the 4.0.0 news, I am a believer in semver, and I am
+        constantly breaking the API :)
+      </p>
+      <p>
+        Speaking of, the API has been completely rewritten again. Everything
+        should be much faster now... or atleast it is when I am developing
+        locally.
+      </p>
+      <p>You can search all over the place now too.</p>
+      <hr />
+
       <strong>2026-01-19: Version 4.0.0</strong>
       <p>
         Sorry for the version spam, but I've completely rewritten the commands

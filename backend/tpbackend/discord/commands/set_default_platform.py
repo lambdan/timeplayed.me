@@ -1,0 +1,74 @@
+from tpbackend.platform.utils import display_name
+from tpbackend.storage import Platform, Platform_or_none, User
+from .command import Command
+from tpbackend.platform.query import PlatformQuery
+from typing import cast
+
+
+class SetDefaultPlatformCommand(Command):
+    def __init__(self):
+        names = [
+            "set_default_platform",
+            "set_dp",
+            "sdp",
+            "platform",
+            "dp",
+            "default_platform",
+        ]
+        d = "Set default platform"
+        h = """
+Set your default platform. This will be used when adding activities manually.
+
+Use without argument to see your current default platform.
+
+Example: check your current default platform```
+!platform
+```
+
+Example: set your default platform to platform 2```
+!platform 2
+```
+
+If you are lazy, you can also *try* to use the name/abbreviation directly:
+```!platform snes
+```
+But it will not work if there are multiple matches.
+
+Use `!platforms` to see available platforms. Only admins can add new platforms.
+        """
+        super().__init__(names=names, description=d, help=h)
+
+    def execute(self, user: User, msg: str) -> str:
+        if msg == "":
+            return self.get_current(user)
+
+        platform = None
+        try:
+            platform = Platform_or_none(msg.strip())
+        except Exception:
+            # hmm maybe user did !platform snes, try searching for it!
+            sr = PlatformQuery.base()
+            sr = PlatformQuery.search(sr, search=msg.strip()).execute()
+            if len(sr) == 1:
+                platform = sr[0]
+            elif len(sr) > 1:
+                msg = (
+                    "Not sure what platform you are referring to. Is it one of these?\n"
+                )
+                for p in sr:
+                    p = cast(Platform, p)
+                    msg += f"- {display_name(p)} ({p.get_id()})\n"
+                msg += "If so, use the platform ID (the number) in the command"
+                return msg
+        if not platform:
+            return "Error: Platform not found"
+        return self.update(user, platform)
+
+    def get_current(self, user: User) -> str:
+        platform = user.get_default_platform()
+        return f"Your default platform is: {display_name(platform)} ({platform.get_id()}).\nSee `!platforms` for available platforms, and use `!set_default_platform n` to change your default."
+
+    def update(self, user: User, new_platform: Platform) -> str:
+        user.set_default_platform(new_platform)
+        user.save()
+        return f"Your default platform is now **{display_name(new_platform)}** ({new_platform.get_id()})"

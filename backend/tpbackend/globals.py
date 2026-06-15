@@ -8,9 +8,9 @@ if DEBUG:
     print("⚠️⚠️⚠️ Running in DEBUG mode ⚠️⚠️⚠️")
 
 
-TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
+TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "http://localhost").rstrip("/")
 
-MINIMUM_SESSION_LENGTH = int(os.environ.get("MINIMUM_SESSION_LENGTH", "60"))
+MINIMUM_SESSION_LENGTH = int(os.environ.get("MINIMUM_SESSION_LENGTH", "0"))
 
 # CRITICAL, INFO , DEBUG, WARNING, ERROR
 

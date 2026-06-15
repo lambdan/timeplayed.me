@@ -2,18 +2,13 @@
 import { onMounted, ref } from "vue";
 import { formatDate, timeAgo, formatDuration } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
-import type { User, UserWithStats } from "../api.models";
-import { TimeplayedAPI } from "../api.client";
+import type { UserWithStats } from "../api.models";
+import CalendarBasic from "./CalendarBasic.vue";
 
-const props = defineProps<{ user: User }>();
+const props = defineProps<{ user: UserWithStats }>();
+const _userWithStats = ref<UserWithStats>(props.user);
 
-const stats = ref<UserWithStats>();
-const loadingStats = ref(true);
-
-onMounted(async () => {
-  stats.value = await TimeplayedAPI.getUser(props.user.id);
-  loadingStats.value = false;
-});
+onMounted(async () => {});
 </script>
 
 <template>
@@ -29,31 +24,23 @@ onMounted(async () => {
           <table class="table table-responsive table-hover">
             <tbody>
               <tr>
-                <td><b>First session:</b></td>
-                <td v-if="stats">
-                  <a :href="'/activity/' + stats.oldest_activity.id">
-                    {{
-                      formatDate(new Date(stats.oldest_activity.timestamp))
-                    }}</a
-                  >
-                  <br />
-                  <small class="text-muted">
-                    {{ timeAgo(new Date(stats.oldest_activity.timestamp)) }}
-                  </small>
+                <td><b>First played:</b></td>
+                <td>
+                  <CalendarBasic
+                    :date="_userWithStats.stats.first_activity"
+                    :absolute="true"
+                    :showIcon="false"
+                  />
                 </td>
               </tr>
               <tr>
-                <td><b>Last session:</b></td>
-                <td v-if="stats">
-                  <a :href="'/activity/' + stats.newest_activity.id">
-                    {{
-                      formatDate(new Date(stats.newest_activity.timestamp))
-                    }}</a
-                  >
-                  <br />
-                  <small class="text-muted">
-                    {{ timeAgo(new Date(stats.newest_activity.timestamp)) }}
-                  </small>
+                <td><b>Last played:</b></td>
+                <td>
+                  <CalendarBasic
+                    :date="_userWithStats.stats.last_activity"
+                    :absolute="true"
+                    :showIcon="false"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -65,19 +52,19 @@ onMounted(async () => {
             <tbody>
               <tr>
                 <td><b>Games played:</b></td>
-                <td>{{ stats?.totals.game_count }}</td>
+                <td>{{ _userWithStats.stats.game_count }}</td>
               </tr>
               <tr>
                 <td><b>Platforms played on:</b></td>
-                <td>{{ stats?.totals.platform_count }}</td>
+                <td>{{ _userWithStats.stats.platform_count }}</td>
               </tr>
               <tr>
                 <td><b>Total playtime:</b></td>
-                <td>{{ formatDuration(stats?.totals.playtime_secs) }}</td>
+                <td>{{ formatDuration(_userWithStats.stats.seconds) }}</td>
               </tr>
               <tr>
-                <td><b>Total sessions:</b></td>
-                <td>{{ stats?.totals.activity_count }}</td>
+                <td><b>Activity count:</b></td>
+                <td>{{ _userWithStats.stats.activity_count }}</td>
               </tr>
               <!--
               <tr>

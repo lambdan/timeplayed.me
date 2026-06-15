@@ -7,10 +7,9 @@ const route = useRoute();
 </script>
 
 <template>
-  <div class="col-lg-6 justify-content-center mx-auto p-0">
+  <div class="justify-content-center mx-auto p-0">
     <PlatformListCard
       :showExpand="false"
-      :limit="25"
       :order="'desc'"
       :sort="'playtime'"
       :showSortButtons="false"

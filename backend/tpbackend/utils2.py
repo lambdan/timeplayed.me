@@ -173,14 +173,11 @@ def clamp(x: int, minimum: int, maximum: int) -> int:
     """
     Clamps x between minimum and maximum
     """
-    return max(int(minimum), min(int(x), int(maximum)))
-
-
-def max_int(x: int, minimum: int) -> int:
-    """
-    Like regular max but ensures both are ints
-    """
-    return max(int(minimum), int(x))
+    if int(x) > int(maximum):
+        return int(maximum)
+    if int(x) < int(minimum):
+        return int(minimum)
+    return int(x)
 
 
 def today() -> str:
@@ -204,12 +201,24 @@ def validateTS(ts) -> int | None:
     Returns None on failure
     """
     if isinstance(ts, int) and ts > 0:
+        if ts < 10**12:  # if it's in seconds, convert to ms
+            ts *= 1000
         return ts
+    elif isinstance(ts, datetime.datetime):
+        return dt_to_ts(ts)
     try:
         return validateTS(int(ts))
     except Exception as _:
         pass
     return None
+
+
+def parseTS(ts) -> datetime.datetime | None:
+    valid = validateTS(ts)
+    if not valid:
+        return None
+    dt = datetime.datetime.fromtimestamp(valid / 1000)
+    return assertTimezone(dt)
 
 
 def truncateMilliseconds(ts: int) -> int:
@@ -287,3 +296,33 @@ def assertTimezone(dt) -> datetime.datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
     return dt
+
+
+def dt_to_ts(dt: datetime.datetime) -> int:
+    dt = assertTimezone(dt)
+    return int(dt.timestamp() * 1000)
+
+
+def ts_to_dt(ts: int | float) -> datetime.datetime:
+    if isinstance(ts, float):
+        return ts_to_dt(int(ts * 1000))
+    if ts < 10**12:  # if it's in seconds, convert to ms
+        ts *= 1000
+    return datetime.datetime.fromtimestamp(ts / 1000)
+
+
+def parse_csv(input: int | str) -> list[int]:
+    def ret(v):
+        logger.info("parse_csv: '%s' -> %s", input, v)
+        return v
+
+    if isinstance(input, int):
+        return ret([input])
+    res = []
+    input = input.replace("%2C", ",")  # replace url encoded
+    for part in input.split(","):
+        try:
+            res.append(int(part))
+        except Exception:
+            continue
+    return ret(res)

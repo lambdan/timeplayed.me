@@ -17,3 +17,6 @@ COPY tpbackend /app/tpbackend
 ENV PATH="/app/.venv/bin:$PATH"
 
 CMD ["python", "-m", "tpbackend.main"]
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -fs http://localhost:8000/api/ping || exit 1
