@@ -55,6 +55,14 @@ async function fetchUsers() {
   loading.value = true;
   _usersWithStats.value = [];
 
+  const order = localOrder.value;
+  let sort = "playtime";
+  if (localSort.value === "recency") {
+    sort = "last_activity";
+  } else if (localSort.value === "name") {
+    sort = "name";
+  }
+
   let offset = 0;
   const limit = 100;
   while (true) {
@@ -62,8 +70,8 @@ async function fetchUsers() {
       offset,
       before: _before.value?.getTime(),
       after: _after.value?.getTime(),
-      order: localOrder.value,
-      sort: "playtime",
+      order,
+      sort: sort as any,
       limit,
       search: _search.value.trim(),
     });
@@ -84,9 +92,9 @@ async function fetchUsers() {
 }
 
 function setSort(newSort: "recency" | "playtime" | "name") {
-  console.log("sort", newSort);
   localSort.value = newSort;
   localOrder.value = localOrder.value == "asc" ? "desc" : "asc"; // flip
+  fetchUsers();
 }
 
 onMounted(() => {
