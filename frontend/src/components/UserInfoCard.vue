@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { formatDate, timeAgo, formatDuration } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { UserWithStats } from "../api.models";
+import CalendarBasic from "./CalendarBasic.vue";
 
 const props = defineProps<{ user: UserWithStats }>();
 const _userWithStats = ref<UserWithStats>(props.user);
@@ -24,18 +25,22 @@ onMounted(async () => {});
             <tbody>
               <tr>
                 <td><b>First played:</b></td>
-                <td
-                  v-if="_userWithStats && _userWithStats.stats.first_activity"
-                >
-                  {{
-                    formatDate(new Date(_userWithStats.stats.first_activity))
-                  }}
+                <td>
+                  <CalendarBasic
+                    :date="_userWithStats.stats.first_activity"
+                    :absolute="true"
+                    :showIcon="false"
+                  />
                 </td>
               </tr>
               <tr>
                 <td><b>Last played:</b></td>
-                <td v-if="_userWithStats && _userWithStats.stats.last_activity">
-                  {{ formatDate(new Date(_userWithStats.stats.last_activity)) }}
+                <td>
+                  <CalendarBasic
+                    :date="_userWithStats.stats.last_activity"
+                    :absolute="true"
+                    :showIcon="false"
+                  />
                 </td>
               </tr>
             </tbody>

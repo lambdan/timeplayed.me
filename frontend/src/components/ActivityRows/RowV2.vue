@@ -4,6 +4,7 @@ import { formatDuration, timeAgo } from "../../utils";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import GameCover from "../Games/GameCover.vue";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
+import CalendarBasic from "../CalendarBasic.vue";
 import type {
   Activity,
   Game,
@@ -212,12 +213,8 @@ onMounted(async () => {
     </td>
 
     <!-- Date (hidden on mobile) -->
-    <td
-      v-if="props.showDate"
-      :title="_date?.toString() || 'Never'"
-      class="p-2 text-nowrap d-none d-md-table-cell"
-    >
-      <i class="bi bi-calendar"></i> {{ _dateDisplayed }}
+    <td v-if="props.showDate" class="p-2 text-nowrap d-none d-md-table-cell">
+      <CalendarBasic :date="_date" :absolute="false" />
     </td>
 
     <td v-if="props.showUsers && (platformWithStats || gameWithStats)">

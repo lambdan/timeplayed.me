@@ -6,10 +6,11 @@ import PlatformTable from "./Platforms/PlatformTable.vue";
 import type { Game, GameWithStats } from "../api.models";
 import ChildGameBadge from "./Badges/ChildGameBadge.vue";
 import { TimeplayedAPI } from "../api.client";
+import CalendarBasic from "./CalendarBasic.vue";
 
 const props = defineProps<{ game: GameWithStats }>();
 
-const stats = ref<GameWithStats>(props.game);
+const gameWithStats = ref<GameWithStats>(props.game);
 const parent = ref<GameWithStats>();
 const childrenStats = ref<GameWithStats[]>([]);
 
@@ -27,7 +28,7 @@ function toggleColumn(column: "stats" | "metadata" | "platforms") {
 }
 
 function secondsInclChildren() {
-  let total = stats.value.stats.seconds;
+  let total = gameWithStats.value.stats.seconds;
   for (const child of childrenStats.value) {
     total += child.stats.seconds;
   }
@@ -35,7 +36,7 @@ function secondsInclChildren() {
 }
 
 function activityCountInclChildren() {
-  let total = stats.value.stats.activity_count;
+  let total = gameWithStats.value.stats.activity_count;
   for (const child of childrenStats.value) {
     total += child.stats.activity_count;
   }
@@ -52,12 +53,12 @@ onMounted(async () => {
   if (ids.length > 0) {
     const fetched = await TimeplayedAPI.getGameStatsMany(ids);
 
-    if (!stats.value) {
+    if (!gameWithStats.value) {
       throw new Error("Stats not found for game " + props.game.id);
     }
     parent.value = fetched.find((g) => g.id === props.game.parent_id);
 
-    for (const child_id of stats.value.children_ids) {
+    for (const child_id of gameWithStats.value.children_ids) {
       const childStats = fetched.find((g) => g.id === child_id);
       if (childStats) {
         childrenStats.value.push(childStats);
@@ -134,7 +135,7 @@ onMounted(async () => {
           <div v-if="showStats">
             <div class="card p-0 h-100">
               <h2 class="card-header">Stats</h2>
-              <div class="card-body" v-if="stats">
+              <div class="card-body" v-if="gameWithStats">
                 <table class="table table-responsive table-hover">
                   <tbody>
                     <tr v-if="game.children_ids.length > 0">
@@ -150,7 +151,7 @@ onMounted(async () => {
                     <tr>
                       <td><b>Playtime:</b></td>
                       <td>
-                        {{ formatDuration(stats.stats.seconds) }}
+                        {{ formatDuration(gameWithStats.stats.seconds) }}
                         <span
                           v-if="game.children_ids.length > 0"
                           class="text-muted"
@@ -163,7 +164,7 @@ onMounted(async () => {
                     <tr>
                       <td><b>Activity count:</b></td>
                       <td>
-                        {{ stats.stats.activity_count }}
+                        {{ gameWithStats.stats.activity_count }}
 
                         <span
                           v-if="game.children_ids.length > 0"
@@ -177,25 +178,33 @@ onMounted(async () => {
                     <tr>
                       <td><b>User count:</b></td>
                       <td>
-                        {{ stats.stats.user_count }}
+                        {{ gameWithStats.stats.user_count }}
                       </td>
                     </tr>
                     <tr>
                       <td><b>Platform count:</b></td>
                       <td>
-                        {{ stats.stats.platform_count }}
+                        {{ gameWithStats.stats.platform_count }}
                       </td>
                     </tr>
-                    <tr v-if="stats.stats.first_activity">
+                    <tr v-if="gameWithStats.stats.first_activity">
                       <td><b>First played:</b></td>
                       <td>
-                        {{ formatDate(stats.stats.first_activity) }}
+                        <CalendarBasic
+                          :date="gameWithStats.stats.first_activity"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
-                    <tr v-if="stats.stats.last_activity">
+                    <tr v-if="gameWithStats.stats.last_activity">
                       <td><b>Last played:</b></td>
                       <td>
-                        {{ formatDate(stats.stats.last_activity) }}
+                        <CalendarBasic
+                          :date="gameWithStats.stats.last_activity"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                   </tbody>
@@ -253,13 +262,21 @@ onMounted(async () => {
                     <tr>
                       <td><b>Created:</b></td>
                       <td>
-                        <code>{{ formatDate(game.created) }}</code>
+                        <CalendarBasic
+                          :date="game.created"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                     <tr>
                       <td><b>Updated:</b></td>
                       <td>
-                        <code>{{ formatDate(game.updated) }}</code>
+                        <CalendarBasic
+                          :date="game.updated"
+                          :showIcon="false"
+                          :absolute="true"
+                        />
                       </td>
                     </tr>
                   </tbody>

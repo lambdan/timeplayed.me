@@ -7,6 +7,7 @@ import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import { formatDuration, iso8601Date } from "../utils";
+import CalendarBasic from "../components/CalendarBasic.vue";
 
 const route = useRoute();
 const platform = ref<PlatformWithStats>();
@@ -29,7 +30,7 @@ onMounted(async () => {
 
   <div v-if="!loading && platform" class="card">
     <h1 class="card-header">
-      {{ platform.name || platform.abbreviation }}
+      {{ platform.display_name }}
     </h1>
     <div class="card-body">
       <PlatformBadge :platform="platform" class="p-2 mt-4" />
@@ -60,14 +61,22 @@ onMounted(async () => {
           <tr v-if="platform.stats.first_activity">
             <th>First Played:</th>
             <td>
-              {{ iso8601Date(new Date(platform.stats.first_activity), true) }}
+              <CalendarBasic
+                :date="platform.stats.first_activity"
+                :showIcon="false"
+                :absolute="true"
+              />
             </td>
           </tr>
 
           <tr v-if="platform.stats.last_activity">
             <th>Last Played:</th>
             <td>
-              {{ iso8601Date(new Date(platform.stats.last_activity), true) }}
+              <CalendarBasic
+                :date="platform.stats.last_activity"
+                :showIcon="false"
+                :absolute="true"
+              />
             </td>
           </tr>
         </tbody>

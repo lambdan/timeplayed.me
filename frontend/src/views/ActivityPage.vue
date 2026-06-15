@@ -12,6 +12,7 @@ import type {
   UserWithStats,
 } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import CalendarBasic from "../components/CalendarBasic.vue";
 
 const route = useRoute();
 const activity = ref<Activity>();
@@ -82,12 +83,8 @@ onMounted(async () => {
                 <span v-else>Loading...</span>
               </li>
 
-              <li
-                class="list-group-item"
-                :title="new Date(activity.timestamp).toString()"
-              >
-                <i class="bi bi-calendar"></i>
-                {{ iso8601Date(new Date(activity.timestamp), true) }}
+              <li class="list-group-item">
+                <CalendarBasic :date="activity.timestamp" :absolute="true" />
               </li>
               <li
                 class="list-group-item"
