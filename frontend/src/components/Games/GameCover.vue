@@ -24,11 +24,13 @@ const clickable = ref(props.clickable);
 const imageUrl = ref<string>(LOADING_COVER);
 const coverData = ref<GameCoverData>();
 const creditsText = ref("...");
+const sourceUrl = ref<string>();
 
 onMounted(async () => {
   coverData.value = await getGameCoverData(props.gameId, props.thumb);
-  imageUrl.value = coverData.value.url;
+  imageUrl.value = coverData.value.imageUrl;
 
+  sourceUrl.value = coverData.value.sourceUrl;
   creditsText.value = `Source: ${coverData.value.source}.`;
   if (coverData.value.credits) {
     creditsText.value += " " + coverData.value.credits;
@@ -52,8 +54,8 @@ onMounted(async () => {
         />
       </a>
     </template>
-    <template v-else>
-      <div>
+    <template v-else-if="sourceUrl">
+      <a :href="sourceUrl">
         <img
           v-show="imageUrl"
           :src="`${imageUrl}`"
@@ -64,7 +66,19 @@ onMounted(async () => {
             maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
           }"
         />
-      </div>
+      </a>
+    </template>
+    <template v-else>
+      <img
+        v-show="imageUrl"
+        :src="`${imageUrl}`"
+        :title="creditsText"
+        class="img-fluid"
+        :style="{
+          maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
+          maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
+        }"
+      />
     </template>
   </div>
 </template>

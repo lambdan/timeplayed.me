@@ -145,7 +145,7 @@ export async function getGameCoverData(
   gameId: number,
   thumbnail = false,
 ): Promise<GameCoverData> {
-  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData2`;
+  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData4`;
 
   async function test(
     gameId: number,
@@ -162,7 +162,8 @@ export async function getGameCoverData(
     function fromGrid(grid: SGDBGrid): GameCoverData {
       function ret(url: string): GameCoverData {
         return {
-          url,
+          imageUrl: url,
+          sourceUrl: `https://www.steamgriddb.com/grid/${grid.id}`,
           source: "SteamGridDB",
           credits: `Grid: ${grid.id}, Author: ${grid.author?.name}`,
         };
@@ -209,7 +210,7 @@ export async function getGameCoverData(
       // top priority: explicit image_url
       if (gameData.image_url) {
         return {
-          url: gameData.image_url,
+          imageUrl: gameData.image_url,
           source: "Custom",
         };
       }
@@ -228,7 +229,7 @@ export async function getGameCoverData(
       // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
       if (gameData.sgdb_id === 0) {
         return {
-          url: `https://placehold.co/600x900?text=Unknown+game`,
+          imageUrl: `https://placehold.co/600x900?text=Unknown+game`,
           source: "None",
         };
       }
@@ -247,8 +248,9 @@ export async function getGameCoverData(
       // third: steam
       if (gameData.steam_id) {
         return {
-          url: `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`,
+          imageUrl: `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`,
           source: "Steam",
+          sourceUrl: `https://store.steampowered.com/app/${gameData.steam_id}`,
         };
       }
 
@@ -282,7 +284,7 @@ export async function getGameCoverData(
   // fallback to placeholder
   const size = thumbnail ? "267x400" : "600x900";
   return {
-    url: `https://placehold.co/${size}?text=No+Cover+Found`,
+    imageUrl: `https://placehold.co/${size}?text=No+Cover+Found`,
     source: "None",
   };
 }
