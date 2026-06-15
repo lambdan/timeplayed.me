@@ -87,8 +87,8 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
     try:
         fetch = sgdb.get_grids_by_gameid(
             game_ids=[game_id],
-            styles=[StyleType.Alternate],
-            mimes=[MimeType.PNG, MimeType.JPEG, MimeType.WEBP],
+            # styles=[StyleType.Alternate],
+            # mimes=[MimeType.PNG, MimeType.JPEG, MimeType.WEBP],
             is_nsfw=False,
         )
     except Exception as e:
@@ -158,3 +158,15 @@ def get_best_grid(game_id: int) -> SGDB_Grid | None:
             best_lang = lang
 
     return best_grid
+
+
+def get_grid(game_id: int, grid_id: int) -> SGDB_Grid | None:
+    grids = get_grids(game_id)
+    if not grids:
+        return None
+
+    for grid in grids:
+        if grid.id == grid_id:
+            return grid
+
+    return None

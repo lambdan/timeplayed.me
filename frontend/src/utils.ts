@@ -158,15 +158,19 @@ export async function getGameCoverUrl(
       return null;
     }
 
+    async function fromGrid(grid: any) {
+      if (grid.thumb && thumbnail) {
+        return grid.thumb;
+      }
+      if (grid.url) {
+        return grid.url;
+      }
+    }
+
     async function getBest(id: number) {
       const best = await TimeplayedAPI.getBestSGDBGridForGame(id);
       if (best) {
-        if (best.thumb && thumbnail) {
-          return best.thumb;
-        }
-        if (best.url) {
-          return best.url;
-        }
+        return fromGrid(best);
       }
       return null;
     }
@@ -199,6 +203,17 @@ export async function getGameCoverUrl(
       // top priority: explicit image_url
       if (gameData.image_url) {
         return gameData.image_url;
+      }
+
+      // explicit sgdb grid id?
+      if (gameData.sgdb_id && gameData.sgdb_grid_id) {
+        const grid = await TimeplayedAPI.getGrid(
+          gameData.sgdb_id,
+          gameData.sgdb_grid_id,
+        );
+        if (grid) {
+          return fromGrid(grid);
+        }
       }
 
       // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
