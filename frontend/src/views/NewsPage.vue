@@ -15,6 +15,7 @@
         locally.
       </p>
       <p>You can search all over the place now too.</p>
+      <i>-djs</i>
       <hr />
 
       <strong>2026-01-19: Version 4.0.0</strong>
