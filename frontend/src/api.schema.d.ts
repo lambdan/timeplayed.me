@@ -543,6 +543,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sgdb/{sgdb_game_id}/grids/{grid_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sgdb Grid By Id
+         * @description Gets a grid by ID for a game from SteamGridDB
+         */
+        get: operations["sgdb_grid_by_id_api_sgdb__sgdb_game_id__grids__grid_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -578,6 +598,8 @@ export interface components {
             steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
+            /** Sgdb Grid Id */
+            sgdb_grid_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -603,6 +625,8 @@ export interface components {
             steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
+            /** Sgdb Grid Id */
+            sgdb_grid_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -1949,7 +1973,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SGDB_Game"][] | null;
+                    "application/json": components["schemas"]["SGDB_Game"][];
                 };
             };
             /** @description Validation Error */
@@ -1980,7 +2004,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SGDB_Grid"] | null;
+                    "application/json": components["schemas"]["SGDB_Grid"];
                 };
             };
             /** @description Validation Error */
@@ -2011,7 +2035,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SGDB_Grid"][] | null;
+                    "application/json": components["schemas"]["SGDB_Grid"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sgdb_grid_by_id_api_sgdb__sgdb_game_id__grids__grid_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sgdb_game_id: number;
+                grid_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SGDB_Grid"];
                 };
             };
             /** @description Validation Error */

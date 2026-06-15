@@ -231,7 +231,7 @@ export class TimeplayedAPI {
   }
 
   static async getGameStatsMany(game_ids: number[]) {
-    console.log("Executing with", game_ids, game_ids.join(","));
+    //console.log("Executing with", game_ids, game_ids.join(","));
     const { data, error } = await this.getClient().GET(
       "/api/games-stats/{game_ids}",
       {
@@ -340,7 +340,11 @@ export class TimeplayedAPI {
 
   /////////////// SGDB /////////////////
 
-  static async getBestSGDBGridForGame(sgdb_game_id: number) {
+  static async getBestSGDBGridForGame(
+    sgdb_game_id: number,
+  ): Promise<
+    paths["/api/sgdb/{sgdb_game_id}/grids/best"]["get"]["responses"]["200"]["content"]["application/json"]
+  > {
     const key = `api_getBestSGDBGridForGame_${sgdb_game_id}`;
     const cached = getSessionCache(key);
     if (cached) {
@@ -376,6 +380,36 @@ export class TimeplayedAPI {
       console.error("Error searching SGDB:", error);
       throw error;
     }
+    return data;
+  }
+
+  static async getGrid(
+    sgdb_game_id: number,
+    grid_id: number,
+  ): Promise<
+    paths["/api/sgdb/{sgdb_game_id}/grids/{grid_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+  > {
+    const key = `api_getGrid_${sgdb_game_id}_${grid_id}`;
+    const cached = getSessionCache(key);
+    if (cached) {
+      return cached;
+    }
+    const { data, error } = await this.getClient().GET(
+      "/api/sgdb/{sgdb_game_id}/grids/{grid_id}",
+      {
+        params: {
+          path: {
+            sgdb_game_id,
+            grid_id,
+          },
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching grid:", error);
+      throw error;
+    }
+    storeSessionCache(key, data);
     return data;
   }
 

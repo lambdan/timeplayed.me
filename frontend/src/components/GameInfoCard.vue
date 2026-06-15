@@ -226,30 +226,55 @@ onMounted(async () => {
                 <table class="table table-responsive table-hover">
                   <tbody>
                     <tr>
-                      <td><b>Internal ID:</b></td>
+                      <td><b>ID:</b></td>
                       <td>
-                        <code>{{ game.id }}</code>
+                        {{ game.id }}
                       </td>
                     </tr>
-                    <!-- <tr>
-                      <td><b>Year:</b></td>
-                      <td>
-                        <code>{{ game.release_year || "-" }}</code>
-                      </td>
-                    </tr> -->
-                    <tr>
+                    <tr v-if="game.steam_id">
                       <td><b>Steam ID:</b></td>
                       <td>
-                        <code>{{ game.steam_id }}</code>
+                        <a
+                          :href="
+                            'https://store.steampowered.com/app/' +
+                            game.steam_id
+                          "
+                        >
+                          {{ game.steam_id }}</a
+                        >
                       </td>
                     </tr>
-                    <tr>
-                      <td><b>SteamGridDB ID:</b></td>
+                    <tr v-if="game.sgdb_id && game.sgdb_grid_id">
+                      <td><b>SteamGridDB Game ID/Grid ID:</b></td>
                       <td>
-                        <code>{{ game.sgdb_id }}</code>
+                        <a
+                          :href="
+                            'https://www.steamgriddb.com/game/' + game.sgdb_id
+                          "
+                          >{{ game.sgdb_id }}</a
+                        >
+                        /
+                        <a
+                          :href="
+                            'https://www.steamgriddb.com/grid/' +
+                            game.sgdb_grid_id
+                          "
+                          >{{ game.sgdb_grid_id }}</a
+                        >
                       </td>
                     </tr>
-                    <tr>
+                    <tr v-else-if="game.sgdb_id">
+                      <td><b>SteamGridDB Game ID:</b></td>
+                      <td>
+                        <a
+                          :href="
+                            'https://www.steamgriddb.com/game/' + game.sgdb_id
+                          "
+                          >{{ game.sgdb_id }}</a
+                        >
+                      </td>
+                    </tr>
+                    <tr v-if="game.aliases.length > 0">
                       <td><b>Aliases:</b></td>
                       <td>
                         <ul>

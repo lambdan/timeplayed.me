@@ -1,4 +1,5 @@
 import { TimeplayedAPI } from "./api.client";
+import type { GameCoverData, SGDBGrid } from "./api.models";
 
 export function formatDate(date?: Date | number): string {
   if (!date) return "";
@@ -140,33 +141,43 @@ export async function cacheFetch(
   return res;
 }
 
-export async function getGameCoverUrl(
+export async function getGameCoverData(
   gameId: number,
   thumbnail = false,
-): Promise<string> {
-  const key = `gameCover_${gameId}_${thumbnail}`;
+): Promise<GameCoverData> {
+  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData4`;
 
   async function test(
     gameId: number,
     thumbnail: boolean,
-  ): Promise<string | undefined> {
+  ): Promise<GameCoverData | undefined> {
     function getFromSessionStorage() {
       const stored = sessionStorage.getItem(key);
       if (stored) {
-        return stored;
+        return JSON.parse(stored) as GameCoverData;
       }
       return null;
+    }
+
+    function fromGrid(grid: SGDBGrid): GameCoverData {
+      function ret(url: string): GameCoverData {
+        return {
+          imageUrl: url,
+          sourceUrl: `https://www.steamgriddb.com/grid/${grid.id}`,
+          source: "SteamGridDB",
+          credits: `Grid: ${grid.id}, Author: ${grid.author?.name}`,
+        };
+      }
+      if (grid.thumb && thumbnail) {
+        return ret(grid.thumb);
+      }
+      return ret(grid.url!);
     }
 
     async function getBest(id: number) {
       const best = await TimeplayedAPI.getBestSGDBGridForGame(id);
       if (best) {
-        if (best.thumb && thumbnail) {
-          return best.thumb;
-        }
-        if (best.url) {
-          return best.url;
-        }
+        return fromGrid(best);
       }
       return null;
     }
@@ -198,12 +209,29 @@ export async function getGameCoverUrl(
 
       // top priority: explicit image_url
       if (gameData.image_url) {
-        return gameData.image_url;
+        return {
+          imageUrl: gameData.image_url,
+          source: "Custom",
+        };
+      }
+
+      // explicit sgdb grid id?
+      if (gameData.sgdb_id && gameData.sgdb_grid_id) {
+        const grid = await TimeplayedAPI.getGrid(
+          gameData.sgdb_id,
+          gameData.sgdb_grid_id,
+        );
+        if (grid) {
+          return fromGrid(grid);
+        }
       }
 
       // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
       if (gameData.sgdb_id === 0) {
-        return `https://placehold.co/600x900?text=Unknown+game`;
+        return {
+          imageUrl: `https://placehold.co/600x900?text=Unknown+game`,
+          source: "None",
+        };
       }
 
       // 2nd priority: SteamGridDB
@@ -219,12 +247,16 @@ export async function getGameCoverUrl(
 
       // third: steam
       if (gameData.steam_id) {
-        return `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`;
+        return {
+          imageUrl: `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`,
+          source: "Steam",
+          sourceUrl: `https://store.steampowered.com/app/${gameData.steam_id}`,
+        };
       }
 
       // parent?
       if (gameData.parent_id) {
-        return getGameCoverUrl(gameData.parent_id, thumbnail);
+        return getGameCoverData(gameData.parent_id, thumbnail);
       }
 
       // give up and search
@@ -244,14 +276,17 @@ export async function getGameCoverUrl(
       sessionStorage.setItem(key + "_loading", "false");
     }
   }
-  const coverUrl = await test(gameId, thumbnail);
-  if (coverUrl) {
-    sessionStorage.setItem(key, coverUrl);
-    return coverUrl;
+  const coverData = await test(gameId, thumbnail);
+  if (coverData) {
+    sessionStorage.setItem(key, JSON.stringify(coverData));
+    return coverData;
   }
   // fallback to placeholder
   const size = thumbnail ? "267x400" : "600x900";
-  return `https://placehold.co/${size}?text=No+Cover+Found`;
+  return {
+    imageUrl: `https://placehold.co/${size}?text=No+Cover+Found`,
+    source: "None",
+  };
 }
 
 export function iso8601Date(date: Date | number, includeTime = false): string {
