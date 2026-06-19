@@ -33,10 +33,11 @@ const localOrder = ref(props.order);
 const _usersWithStats = ref<UserWithStats[]>([]);
 
 const _search = ref("");
+const _searchInput = ref("");
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
   clearTimeout(searchTimeout);
-  const val = _search.value.trim();
+  const val = _searchInput.value.trim();
   searchTimeout = setTimeout(() => {
     if (!val) {
       _search.value = "";
@@ -134,7 +135,7 @@ onMounted(() => {
     "
   />
   <input
-    v-model="_search"
+    v-model="_searchInput"
     @input="searchChange()"
     type="text"
     class="form-control mb-2"

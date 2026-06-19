@@ -27,6 +27,7 @@ let _defaultStartingMillis = -1; // default to all time
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
+const _searchInput = ref("");
 const _search = ref("");
 const _showMore = ref(false);
 
@@ -85,7 +86,7 @@ function reset() {
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
   clearTimeout(searchTimeout);
-  const val = _search.value.trim();
+  const val = _searchInput.value.trim();
   searchTimeout = setTimeout(() => {
     if (!val) {
       _search.value = "";
@@ -149,7 +150,7 @@ onMounted(() => {
     "
   />
   <input
-    v-model="_search"
+    v-model="_searchInput"
     @input="searchChange()"
     type="text"
     class="form-control mb-2"

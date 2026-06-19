@@ -35,10 +35,11 @@ const localSort = ref(props.sort);
 const localOrder = ref(props.order);
 
 const _search = ref("");
+const _searchInput = ref("");
 let searchTimeout: ReturnType<typeof setTimeout>;
 function searchChange() {
   clearTimeout(searchTimeout);
-  const val = _search.value.trim();
+  const val = _searchInput.value.trim();
   searchTimeout = setTimeout(() => {
     if (!val) {
       _search.value = "";
@@ -133,7 +134,7 @@ onMounted(() => {
   <!-- show search box if not filtering by user or game (ie only on platform list page) -->
   <input
     v-if="!props.user && !props.game"
-    v-model="_search"
+    v-model="_searchInput"
     @input="searchChange()"
     type="text"
     class="form-control mb-2"
