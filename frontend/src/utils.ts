@@ -260,7 +260,7 @@ export async function getGameCoverData(
       }
 
       // give up and search
-      const search = await TimeplayedAPI.searchSGDB(gameData.name);
+      /*const search = await TimeplayedAPI.searchSGDB(gameData.name);
 
       if (search && search.length > 0) {
         const gameId = search[0]?.id;
@@ -270,7 +270,7 @@ export async function getGameCoverData(
             return best;
           }
         }
-      }
+      }*/
     } catch (err) {
     } finally {
       sessionStorage.setItem(key + "_loading", "false");

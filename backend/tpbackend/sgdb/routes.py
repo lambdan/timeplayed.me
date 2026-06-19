@@ -1,20 +1,11 @@
 from fastapi import APIRouter
-from .models import SGDB_Game, SGDB_Grid
-from .controller import search, get_grids, get_best_grid, get_grid
+from .models import  SGDB_Grid
+from .controller import  get_grids, get_best_grid, get_grid
 from tpbackend.api.responses import not_found
 
 
 router = APIRouter()
 
-
-@router.get(
-    "/search",
-    tags=["SteamGridDB"],
-    response_model=list[SGDB_Game],
-    description="Searches SteamGridDB for games",
-)
-def search_sgdb(query: str) -> list[SGDB_Game]:
-    return search(query)
 
 
 @router.get(
