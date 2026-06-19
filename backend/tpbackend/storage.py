@@ -116,7 +116,7 @@ class SearchMixin(BaseModel):
     search = CharField(default="")
 
     def save(self, *args, **kwargs):
-        self.search = self.build_search()
+        self.search = self.build_search()[:255]  # varchar(255)
         return super().save(*args, **kwargs)
 
     def build_search(self) -> str:
