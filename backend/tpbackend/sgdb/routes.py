@@ -1,11 +1,10 @@
 from fastapi import APIRouter
-from .models import  SGDB_Grid
-from .controller import  get_grids, get_best_grid, get_grid
+from .models import SGDB_Grid
+from .controller import get_grids, get_best_grid, get_grid
 from tpbackend.api.responses import not_found
 
 
 router = APIRouter()
-
 
 
 @router.get(
