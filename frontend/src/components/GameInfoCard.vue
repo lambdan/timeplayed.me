@@ -64,6 +64,8 @@ onMounted(async () => {
         childrenStats.value.push(childStats);
       }
     }
+    // sort children by name
+    childrenStats.value.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   loadingStats.value = false;
