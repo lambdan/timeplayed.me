@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 import discord
 from tpbackend.permissions import PERMISSION_COMMANDS, PERMISSION_DEVELOPER
 from tpbackend.storage import User, DiscordHistory
@@ -29,11 +30,16 @@ def avatar_from_discord_user_id(id: int) -> str:
     return f"https://cdn.discordapp.com/embed/avatars/{id % 5}.png"
 
 
+def user_info_from_discord_user_id(id: int) -> discord.User | None:
+    return bot.get_user(id)
+
+
 def user_from_message(message: discord.Message) -> User | None:
     if message.author is None:
         return None
     user, created = User.get_or_create(
-        discord_id=message.author.id, name=message.author.name
+        discord_id=message.author.id,
+        name=message.author.name,
     )
     if created:
         logger.info(
@@ -41,6 +47,8 @@ def user_from_message(message: discord.Message) -> User | None:
         )
         user.add_history("Created from DM message")
         user.save()
+    user = cast(User, user)
+    user.sync_display_name(message.author.display_name)
     return user
 
 

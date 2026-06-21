@@ -1,9 +1,10 @@
 import datetime
 import logging
 import asyncio
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from tpbackend import operations
+from tpbackend.discord import bot
 from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
@@ -48,8 +49,10 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Skipping too short session...")
             return True
 
+        user_name = activity["discord_user_name"]
         user, created = User.get_or_create(
-            discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
+            discord_id=activity["discord_user_id"],
+            name=user_name,
         )
         if created:
             logger.info(
@@ -60,6 +63,11 @@ def parseActivity(activity: PassedActivity) -> bool:
             )
             user.add_history("Created during Oblivionis sync")
             user.save()
+
+        user = cast(User, user)
+        user_info = bot.user_info_from_discord_user_id(user.get_id())
+        if user_info:
+            user.sync_display_name(user_info.display_name)
 
         if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
             logger.warning(
