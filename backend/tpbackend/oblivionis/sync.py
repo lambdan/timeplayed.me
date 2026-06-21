@@ -50,7 +50,7 @@ def parseActivity(activity: PassedActivity) -> bool:
             return True
 
         user, created = User.get_or_create(
-            discord_id=activity["discord_user_id"], name=activity["discord_user_name"],
+            discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
         )
         if created:
             logger.info(
