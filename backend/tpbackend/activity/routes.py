@@ -147,7 +147,7 @@ def get_total(
         query = ActivityQuery.after(query, after)
     first = None
     last = None
-    logger.info(f"Total Query: {query.sql()}")
+    # logger.info(f"Total Query: {query.sql()}")
     count = query.count()
     if count > 0:
         firstq = query.select(fn.min(Activity.timestamp)).scalar()
