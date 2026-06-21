@@ -16,7 +16,7 @@ export type Game = components["schemas"]["API_Game"];
 export type GameWithStats = components["schemas"]["API_GameWithStats"];
 
 export type SGDBGrid = components["schemas"]["SGDB_Grid"];
-export type SGDBGame = components["schemas"]["SGDB_Game"];
+//export type SGDBGame = components["schemas"]["SGDB_Game"];
 
 export interface GameCoverData {
   imageUrl: string;

@@ -368,7 +368,7 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async searchSGDB(query: string) {
+  /*  static async searchSGDB(query: string) {
     const { data, error } = await this.getClient().GET("/api/sgdb/search", {
       params: {
         query: {
@@ -381,7 +381,7 @@ export class TimeplayedAPI {
       throw error;
     }
     return data;
-  }
+  } */
 
   static async getGrid(
     sgdb_game_id: number,
