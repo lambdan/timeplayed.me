@@ -209,6 +209,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
 
     discord_id = CharField(unique=True, null=True)
     name = CharField()
+    display_name = CharField()
     default_platform = ForeignKeyField(
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
@@ -232,6 +233,16 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         old_name = self.get_name()
         self.name = cast(CharField, name)
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
+
+    def get_display_name(self) -> str:
+        return cast(str, self.display_name)
+
+    def set_display_name(self, display_name: str):
+        old_display_name = self.get_display_name()
+        self.display_name = cast(CharField, display_name)
+        self.add_history(
+            f"Display name changed from '{old_display_name}' to '{display_name}'"
+        )
 
     def get_default_platform(self) -> Platform:
         return cast(Platform, self.default_platform)
