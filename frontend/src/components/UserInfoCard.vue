@@ -13,7 +13,12 @@ onMounted(async () => {});
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">{{ user.name }}</h1>
+    <h1 class="card-header">
+      {{ user.display_name }}
+      <!-- <span class="text-muted d-block" style="font-size: 0.5em">
+        {{ user.name }}
+      </span> -->
+    </h1>
     <div class="card-body">
       <div class="row">
         <div class="col mb-4">
@@ -23,6 +28,14 @@ onMounted(async () => {});
         <div class="col mb-4">
           <table class="table table-responsive table-hover">
             <tbody>
+              <tr>
+                <td>
+                  <b>Username:</b>
+                </td>
+                <td>
+                  {{ user.name }}
+                </td>
+              </tr>
               <tr>
                 <td><b>First played:</b></td>
                 <td>

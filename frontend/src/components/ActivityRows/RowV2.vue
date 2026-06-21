@@ -163,7 +163,7 @@ onMounted(async () => {
       <a
         :href="`/user/${_user.id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ _user.name }}</a
+        >{{ _user.display_name }}</a
       >
     </td>
 

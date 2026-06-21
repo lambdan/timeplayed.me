@@ -14,7 +14,8 @@ const props = withDefaults(
 );
 
 onMounted(async () => {
-  avatarUrl.value = "https://placehold.co/512x512?text=" + props.user.name;
+  avatarUrl.value =
+    "https://placehold.co/512x512?text=" + props.user.display_name;
   if (props.user.discord_id) {
     avatarUrl.value = TimeplayedAPI.getDiscordAvatarUrl(props.user.discord_id);
   }
@@ -27,7 +28,7 @@ onMounted(async () => {
       :src="avatarUrl"
       :class="[...props.classes]"
       :style="{ maxWidth: props.maxWidth + 'px' }"
-      :title="props.user.name"
+      :title="props.user.display_name"
     />
   </a>
 </template>

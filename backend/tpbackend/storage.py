@@ -209,6 +209,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
 
     discord_id = CharField(unique=True, null=True)
     name = CharField()
+    display_name = CharField(null=True)
     default_platform = ForeignKeyField(
         Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
     )
@@ -232,6 +233,39 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         old_name = self.get_name()
         self.name = cast(CharField, name)
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
+
+    def get_display_name(self) -> str:
+        if self.display_name:
+            return cast(str, self.display_name)
+        return self.get_name()
+
+    def set_display_name(self, display_name: str):
+        old_display_name = self.get_display_name()
+        self.display_name = cast(CharField, display_name)
+        self.add_history(
+            f"Display name changed from '{old_display_name}' to '{display_name}'"
+        )
+
+    def sync_display_name(self, new_display_name: str):
+        new_display_name = new_display_name.strip()
+        if not new_display_name:
+            return
+        if new_display_name != self.get_display_name():
+            self.set_display_name(new_display_name)
+            self.save()
+            logger.info(
+                "Synced new display name for user %s %s: '%s'",
+                self.get_id(),
+                self.get_name(),
+                new_display_name,
+            )
+        else:
+            logger.info(
+                "Display name for user %s %s is already up to date: '%s'",
+                self.get_id(),
+                self.get_name(),
+                new_display_name,
+            )
 
     def get_default_platform(self) -> Platform:
         return cast(Platform, self.default_platform)
@@ -291,7 +325,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         return exists is not None
 
     def build_search(self) -> str:
-        return f"{self.get_id()} {self.get_name()} {self.get_discord_id() or ''}".strip().lower()
+        return f"{self.get_id()} {self.get_name()} {self.get_display_name()} {self.get_discord_id() or ''}".strip().lower()
 
 
 class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):

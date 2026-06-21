@@ -483,26 +483,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search Sgdb
-         * @description Searches SteamGridDB for games
-         */
-        get: operations["search_sgdb_api_sgdb_search_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/sgdb/{sgdb_game_id}/grids/best": {
         parameters: {
             query?: never;
@@ -692,8 +672,16 @@ export interface components {
             id: number;
             /** Discord Id */
             discord_id: string | null;
-            /** Name */
+            /**
+             * Name
+             * @default Discord username typically
+             */
             name: string;
+            /**
+             * Display Name
+             * @default Discord display name
+             */
+            display_name: string;
             /** Default Platform Id */
             default_platform_id: number;
             /** Created */
@@ -707,8 +695,16 @@ export interface components {
             id: number;
             /** Discord Id */
             discord_id: string | null;
-            /** Name */
+            /**
+             * Name
+             * @default Discord username typically
+             */
             name: string;
+            /**
+             * Display Name
+             * @default Discord display name
+             */
+            display_name: string;
             /** Default Platform Id */
             default_platform_id: number;
             /** Created */
@@ -805,17 +801,6 @@ export interface components {
             steam64: string | null;
             /** Avatar */
             avatar: string | null;
-        };
-        /** SGDB_Game */
-        SGDB_Game: {
-            /** Id */
-            id: number;
-            /** Name */
-            name: string;
-            /** Verified */
-            verified: boolean;
-            /** Release Date */
-            release_date: number;
         };
         /** SGDB_Grid */
         SGDB_Grid: {
@@ -1943,37 +1928,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    search_sgdb_api_sgdb_search_get: {
-        parameters: {
-            query: {
-                query: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SGDB_Game"][];
                 };
             };
             /** @description Validation Error */

@@ -78,7 +78,7 @@ onMounted(async () => {
                   class="text-decoration-none"
                   :href="'/user/' + user.id"
                   v-if="user"
-                  >{{ user.name }}</a
+                  >{{ user.display_name }}</a
                 >
                 <span v-else>Loading...</span>
               </li>
