@@ -49,10 +49,8 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Skipping too short session...")
             return True
 
-        user_name = activity["discord_user_name"]
         user, created = User.get_or_create(
-            discord_id=activity["discord_user_id"],
-            name=user_name,
+            discord_id=activity["discord_user_id"], name=activity["discord_user_name"],
         )
         if created:
             logger.info(
@@ -64,6 +62,7 @@ def parseActivity(activity: PassedActivity) -> bool:
             user.add_history("Created during Oblivionis sync")
             user.save()
 
+        # maybe sync display name
         try:
             user = cast(User, user)
             user_discord_id = user.get_discord_id()
