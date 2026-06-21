@@ -29,7 +29,7 @@ def avatar_from_discord_user_id(id: int) -> str:
         return str(user.display_avatar.url)
     if user and user.default_avatar:
         return str(user.default_avatar.url)
-    return f"https://cdn.discordapp.com/embed/avatars/{id % 5}.png" # same as default avatar url...
+    return f"https://cdn.discordapp.com/embed/avatars/{id % 5}.png"  # same as default avatar url...
 
 
 def user_info_from_discord_user_id(id: int) -> discord.User | None:
