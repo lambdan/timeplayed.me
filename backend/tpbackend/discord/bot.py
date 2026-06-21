@@ -43,13 +43,13 @@ def user_from_message(message: discord.Message) -> User | None:
         discord_id=message.author.id,
         name=message.author.name,
     )
+    user = cast(User, user)
     if created:
         logger.info(
             "Added new user %s %s to database", message.author.id, message.author.name
         )
         user.add_history("Created from DM message")
         user.save()
-    user = cast(User, user)
     user.sync_display_name(message.author.display_name)
     return user
 

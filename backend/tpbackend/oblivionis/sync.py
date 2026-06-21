@@ -52,6 +52,7 @@ def parseActivity(activity: PassedActivity) -> bool:
         user, created = User.get_or_create(
             discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
         )
+        user = cast(User, user)
         if created:
             logger.info(
                 "Added new user '%s' (id: %s, discord id: %s) to database",
@@ -64,7 +65,6 @@ def parseActivity(activity: PassedActivity) -> bool:
 
         # maybe sync display name
         try:
-            user = cast(User, user)
             user_discord_id = user.get_discord_id()
             if user_discord_id:
                 user_info = bot.get_discord_user(user_discord_id)

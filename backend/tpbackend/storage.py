@@ -231,17 +231,20 @@ class User(IdMixin, HistoryMixin, SearchMixin):
 
     def set_name(self, name: str):
         old_name = self.get_name()
-        self.name = cast(CharField, name)
+        self.name = name
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
     def get_display_name(self) -> str:
+        """
+        Returns display name if set, otherwise regular name
+        """
         if self.display_name:
             return cast(str, self.display_name)
         return self.get_name()
 
-    def set_display_name(self, display_name: str):
+    def set_display_name(self, display_name: str | None):
         old_display_name = self.get_display_name()
-        self.display_name = cast(CharField, display_name)
+        self.display_name = display_name
         self.add_history(
             f"Display name changed from '{old_display_name}' to '{display_name}'"
         )
