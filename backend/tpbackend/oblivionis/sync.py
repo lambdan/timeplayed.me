@@ -64,12 +64,20 @@ def parseActivity(activity: PassedActivity) -> bool:
             user.add_history("Created during Oblivionis sync")
             user.save()
 
-        user = cast(User, user)
-        user_discord_id = user.get_discord_id()
-        if user_discord_id:
-            user_info = bot.get_discord_user(user_discord_id)
-            if user_info:
-                user.sync_display_name(user_info.display_name)
+        try:
+            user = cast(User, user)
+            user_discord_id = user.get_discord_id()
+            if user_discord_id:
+                user_info = bot.get_discord_user(user_discord_id)
+                if user_info:
+                    user.sync_display_name(user_info.display_name)
+        except Exception as e:
+            logger.warning(
+                "Failed to sync display name for user '%s' (id: %s) during sync: %s",
+                user.name,
+                user.id,
+                e,
+            )
 
         if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
             logger.warning(
