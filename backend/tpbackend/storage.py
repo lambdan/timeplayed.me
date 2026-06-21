@@ -302,7 +302,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         return exists is not None
 
     def build_search(self) -> str:
-        return f"{self.get_id()} {self.get_name()} {self.get_discord_id() or ''}".strip().lower()
+        return f"{self.get_id()} {self.get_name()} {self.get_display_name()} {self.get_discord_id() or ''}".strip().lower()
 
 
 class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):

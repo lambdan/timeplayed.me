@@ -11,7 +11,8 @@ class UserTotals(BaseTotals):
 class API_User(BaseModel):
     id: int
     discord_id: str | None
-    name: str
+    name: str = Field("Discord username typically")
+    display_name: str = Field("Discord display name")
     default_platform_id: int
     created: int
     updated: int
@@ -22,6 +23,7 @@ class API_User(BaseModel):
             id=user.id,
             discord_id=user.discord_id,
             name=user.name,
+            display_name=user.display_name,
             default_platform_id=user.default_platform_id,
             created=dt_to_ts(user.created),
             updated=dt_to_ts(user.updated),
@@ -37,6 +39,7 @@ class API_UserWithStats(API_User):
             id=user.id,
             discord_id=user.discord_id,
             name=user.name,
+            display_name=user.display_name,
             default_platform_id=user.default_platform_id,
             created=dt_to_ts(user.created),
             updated=dt_to_ts(user.updated),

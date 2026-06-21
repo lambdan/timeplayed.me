@@ -13,7 +13,7 @@ logger = logging.getLogger("user_query")
 
 class UserQuery:
     SORTS = {
-        "name": User.name,
+        "name": User.display_name,  # User.name,
         "id": User.id,
         "created": User.created,
         "updated": User.updated,
@@ -81,7 +81,7 @@ class UserStatsQuery:
 
     SORTS = {
         **AGGREGATES,
-        "name": User.name,
+        "name": User.display_name,  # User.name,
         "id": User.id,
     }
 
