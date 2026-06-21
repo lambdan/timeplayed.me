@@ -65,9 +65,11 @@ def parseActivity(activity: PassedActivity) -> bool:
             user.save()
 
         user = cast(User, user)
-        user_info = bot.user_info_from_discord_user_id(user.get_id())
-        if user_info:
-            user.sync_display_name(user_info.display_name)
+        user_discord_id = user.get_discord_id()
+        if user_discord_id:
+            user_info = bot.get_discord_user(user_discord_id)
+            if user_info:
+                user.sync_display_name(user_info.display_name)
 
         if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
             logger.warning(

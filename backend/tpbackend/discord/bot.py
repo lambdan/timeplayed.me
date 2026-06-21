@@ -23,17 +23,17 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 __CMD = 0
 
 
-def avatar_from_discord_user_id(id: int) -> str:
-    user = bot.get_user(id)
+def get_discord_user(id: int | str) -> discord.User | None:
+    return bot.get_user(int(id))
+
+
+def avatar_from_discord_user_id(id: int | str) -> str:
+    user = get_discord_user(id)
     if user and user.display_avatar:
         return str(user.display_avatar.url)
     if user and user.default_avatar:
         return str(user.default_avatar.url)
     return f"https://cdn.discordapp.com/embed/avatars/{id % 5}.png"  # same as default avatar url...
-
-
-def user_info_from_discord_user_id(id: int) -> discord.User | None:
-    return bot.get_user(id)
 
 
 def user_from_message(message: discord.Message) -> User | None:
