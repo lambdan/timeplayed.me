@@ -117,6 +117,7 @@ class SearchMixin(BaseModel):
 
     def save(self, *args, **kwargs):
         self.search = self.build_search()[:255]  # varchar(255)
+        logger.info(f"Updated search: '{self.search}'")
         return super().save(*args, **kwargs)
 
     def build_search(self) -> str:
@@ -357,7 +358,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
                 continue  # avoid repeating
             parts.append(x)
         new = " ".join(parts)
-        logger.info(f"[{self.get_id()} {self.get_name()}] search: '{new}'")
         return new
 
     def get_name(self) -> str:
