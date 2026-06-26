@@ -1,6 +1,7 @@
 from tpbackend.game.select import GameSelect
 from tpbackend.storage import Game, User
 from .admin_command import AdminCommand
+from typing import cast
 
 
 class AddGameAdminCommand(AdminCommand):
@@ -29,9 +30,8 @@ Returns: Confirmation message with the game ID and name.
         if existing:
             return f"Error: Game with that name and no release year already exists {existing.get_name()} (id: {existing.get_id()})"
         game = Game.create(name=s)  # type: ignore
-        g = GameSelect.by_id(game.id)
-        if g:
-            g.add_history(f"Game added by admin {user.get_name()}")
-            g.save()
+        game = cast(Game, game)
+        game.add_history(f"Game added by admin {user.get_name()}")
+        game.save()
 
         return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
