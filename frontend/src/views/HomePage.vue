@@ -45,11 +45,13 @@ onMounted(async () => {
           <a href="https://discord.gg/YyhX6KHE27"
             >https://discord.gg/YyhX6KHE27</a
           >
-          <br />
+        </p>
+        <p>
           <i
             >Please note that you need to be online and have activity sharing
-            enabled, otherwise the bot can't see it.</i
-          >
+            enabled</i
+          >, otherwise the bot can't see it -
+          <a href="/help#what-is-tracked">see the help page for more info</a>.
         </p>
         <p>
           You can also use the bot to track your playtime manually. DM the bot
