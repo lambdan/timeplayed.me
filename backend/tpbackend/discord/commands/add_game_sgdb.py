@@ -1,3 +1,4 @@
+from typing import cast
 from tpbackend.game.select import GameSelect
 from tpbackend.storage import User
 from .command import Command
@@ -72,14 +73,14 @@ Returns: Confirmation message
                 )
 
         new_game = Game.create(name=sgdb_game.name, sgdb_id=sgdb_id, release_year=game_year)  # type: ignore
+        new_game = cast(Game, new_game)
+        new_game.add_history(f"Game added by SGDB ID by user {user.get_id()}")
+        new_game.save()
+
         out = "✅ Added game by SGDB id!\n"
         out += f"- *{new_game.name}*\n"
         out += f"- Year: {game_year}\n"
         out += f"- SGDB ID: {new_game.sgdb_id}\n"
         out += f"- Game ID: {new_game.id}"
 
-        g = GameSelect.by_id(new_game.id)
-        assert g
-        g.add_history(f"Game added by SGDB ID by user {user.get_id()}")
-        g.save()
         return out

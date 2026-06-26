@@ -23,23 +23,18 @@ class PassedActivity(TypedDict):
     platform: str
 
 
-def get_game_by_name_or_alias_or_create(s: str, creation_message: str) -> Game:
+def get_game_by_name_or_alias_or_create(s: str) -> Game:
     game = GameSelect.by_name_or_alias(s)
-    if game:
-        return game
-    # OK FINE we'll create it!
-    # Use create() rather than get_or_create() because name is no longer unique
-    # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
-    game = Game.create(name=s)  # type: ignore
-    logger.info("Added new game '%s' to database (id: %s)", game.name, game.id)
+    if not game:
+        # we'll create it!
+        # Use create() rather than get_or_create() because name is no longer unique
+        # and get_or_create() would raise MultipleObjectsReturned if duplicates exist.
+        game = cast(Game, Game.create(name=s))
+        logger.info("Added new game '%s' to database (id: %s)", game.get_name(), game.get_id())
+        game.add_history("Created during Oblivionis sync")
+        game.save()
+    return game
 
-    g = GameSelect.by_id(game.id)
-    if g:
-        g.add_history(creation_message)
-        g.save()
-
-    # this shouldnt be possible...
-    raise Exception("Created game not found?!")
 
 
 def parseActivity(activity: PassedActivity) -> bool:
@@ -90,7 +85,7 @@ def parseActivity(activity: PassedActivity) -> bool:
         game_name = game_name.removesuffix(" with Medal").strip()
 
         game = get_game_by_name_or_alias_or_create(
-            game_name, "Created during Oblivionis sync"
+            game_name
         )
 
         platform_abbr = activity["platform"]
