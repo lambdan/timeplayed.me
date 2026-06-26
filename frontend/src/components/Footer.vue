@@ -6,8 +6,16 @@ const FRONTEND_VERSION = pkg.version;
 const BACKEND_VERSION = ref("...");
 
 onMounted(async () => {
+  const minute = new Date().toISOString().slice(0, 16);
+  const versionKey = `timeplayed_version_${minute}`;
+  const sessionStorageVersion = sessionStorage.getItem(versionKey);
+  if (sessionStorageVersion) {
+    BACKEND_VERSION.value = sessionStorageVersion;
+    return;
+  }
   const info = await TimeplayedAPI.info();
   BACKEND_VERSION.value = info.version;
+  sessionStorage.setItem(versionKey, info.version);
 });
 </script>
 
