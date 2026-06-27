@@ -153,13 +153,13 @@ onMounted(async () => {
 
 <template>
   <tr class="align-middle" :key="_id">
-    <!-- hide avatar on users own page -->
+    <!-- always show user avatar, except on users own page  -->
     <td v-if="_user && props.context !== 'userPage'">
       <DiscordAvatar :user="_user" :maxWidth="50"></DiscordAvatar>
     </td>
 
-    <!-- always show user, except on user pages -->
-    <td v-if="_user && props.context !== 'userPage'">
+    <!-- always show user, except if its an activity row -->
+    <td v-if="_user && !activity">
       <a
         :href="`/user/${_user.id}`"
         class="link-underline link-underline-opacity-0"
@@ -168,12 +168,18 @@ onMounted(async () => {
     </td>
 
     <!-- show game cover everywhere, except frontpage and game page -->
+    <!-- and hidden on mobile -->
     <td
       v-if="
         _game && props.context !== 'frontPage' && props.context !== 'gamePage'
       "
     >
-      <GameCover :gameId="_game.id" :thumb="true" :maxHeight="100"></GameCover>
+      <GameCover
+        :gameId="_game.id"
+        :thumb="true"
+        :maxHeight="100"
+        class="d-none d-md-table-cell"
+      ></GameCover>
     </td>
 
     <!-- always show game, except on game pages -->
