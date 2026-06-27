@@ -212,7 +212,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     name = CharField()
     display_name = CharField(null=True)
     default_platform = ForeignKeyField(
-        Platform, default=lambda: Platform.get_or_create(abbreviation="win")[0]
+        Platform, default=lambda: Platform.get_or_create(abbreviation="unknown")[0]
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore

@@ -89,7 +89,8 @@ def parseActivity(activity: PassedActivity) -> bool:
 
         platform_abbr = activity["platform"]
         if platform_abbr == "pc":
-            platform_abbr = user.pc_platform
+            # apply users set pc platform (linux/mac/win)
+            platform_abbr = user.pc_platform or "win"
         platform, created = Platform.get_or_create(abbreviation=platform_abbr)
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)

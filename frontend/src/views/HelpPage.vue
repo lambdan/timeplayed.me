@@ -47,7 +47,7 @@
       <ul>
         <li>
           First off, you probably want to set your default platform (otherwise
-          PC/Windows will be assumed).
+          it will show up as unknown)
           <ul>
             <li>
               For example, to make your default <i>mobile</i> you would send:
@@ -56,7 +56,8 @@
             </li>
             <li>
               Send <code>!platforms</code> to see the full list of available
-              platforms.
+              platforms. Only admins can create new platforms, so if yours is
+              missing, just ask an admin to add it for you.
             </li>
           </ul>
         </li>
