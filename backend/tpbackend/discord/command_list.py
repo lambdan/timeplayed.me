@@ -20,6 +20,7 @@ from .commands.set_game_image import SetGameImageCommand
 from .commands.igdb_missing_admin import MissingIGDBAdminCommand
 from .commands.igdb_set_id import SetIGDBIDCommand
 from .commands.igdb_add_game import AddGameIGDBCommand
+from .commands.igdb_auto import AutoIGDBAdminCommand
 from .commands.set_pc_platform import SetPCPlatformCommand
 from .commands.set_platform import SetPlatformCommand
 from .commands.set_platform_name import SetPlatformNameCommand
@@ -94,6 +95,7 @@ ADMIN_COMMANDS = [
     # igdb
     SetIGDBIDCommand(),
     MissingIGDBAdminCommand(),
+    AutoIGDBAdminCommand(),
     # manual game
     SetGameImageCommand(),
     SetGameReleaseYearCommand(),

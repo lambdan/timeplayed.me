@@ -66,8 +66,9 @@ class SetIGDBIDCommand(AdminCommand):
 
         if igdb_game.first_release_date:
             dt = ts_to_dt(igdb_game.first_release_date)
-            game.set_release_year(dt.year)
-            out += f"- Release year set to {dt.year}\n"
+            if dt.year != game.get_release_year():
+                game.set_release_year(dt.year)
+                out += f"- Release year set to {dt.year}\n"
 
         game.set_igdb_id(igdb_id)
         game.save()

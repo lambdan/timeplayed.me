@@ -1,16 +1,16 @@
 import datetime
+from tpbackend.discord.commands.igdb_set_id import SetIGDBIDCommand
 from tpbackend.game.select import GameSelect
+from tpbackend.igdb.controller import search_game
 from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
 from tpbackend.storage import User
-from .set_sgdb_id import SetSGDBIDCommand
-from tpbackend.sgdb.controller import search
 
 
-class AutoSGDBAdminCommand(AdminCommand):
+class AutoIGDBAdminCommand(AdminCommand):
     def __init__(self):
-        names = ["auto_sgdb", "asgdb"]
-        d = "Automatically set SGDB for a game"
+        names = ["auto_igdb", "aigdb"]
+        d = "Automatically set IGDB for a game"
         super().__init__(names=names, description=d)
 
     def execute(self, user: User, msg: str) -> str:
@@ -21,23 +21,20 @@ class AutoSGDBAdminCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        sgdb_games = search(query=game.get_name())
-        if len(sgdb_games) == 0:
+        igdb_games = search_game(query=game.get_name())
+        if len(igdb_games) == 0:
             return "Error: no SGDB games found"
 
-        best_match = sgdb_games[0]
-
-        # if game.sgdb_id == best_match.id:
-        #    return "Best matching SGDB ID is already set!"
+        best_match = igdb_games[0]
 
         if not confirmed:
-            rd = ts_to_dt(best_match.release_date) if best_match.release_date else None
+            rd = None
+            if best_match.first_release_date:
+                rd = ts_to_dt(best_match.first_release_date)
             year = rd.year if rd else "?"
             out = ""
             out += f"Best SGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."
             return out
 
-        return SetSGDBIDCommand().execute(
-            user, f"{game_id} {best_match.id}"
-        )  # HAAAAAAAX
+        return SetIGDBIDCommand().execute(user, f"{game_id} {best_match.id}")  # haaax
