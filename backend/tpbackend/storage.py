@@ -347,6 +347,15 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     release_year = IntegerField(null=True, default=None)
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
+    def has_cover_art(self) -> bool:
+        if self.get_image_url():
+            return True
+        if self.get_sgdb_id():
+            return True
+        if self.get_igdb_id():
+            return True
+        return False
+
     def build_search(self) -> str:
         # id + name + release year + all aliases, lowercased
         parts = [f"{self.get_id()}", self.get_name().strip().lower()]

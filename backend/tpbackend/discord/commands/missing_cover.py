@@ -13,11 +13,7 @@ class MissingCoverAdminCommand(AdminCommand):
         missing = []
         for game in Game.select():
             game = cast(Game, game)
-            if game.get_image_url() is not None:
-                continue
-            if game.get_sgdb_id():
-                continue
-            if game.get_igdb_id():
+            if game.has_cover_art():
                 continue
             missing.append(game)
 

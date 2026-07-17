@@ -171,7 +171,7 @@ async function getGameCoverData(
   // fallback to placeholder
   const size = thumbnail ? "267x400" : "600x900";
   return {
-    imageUrl: `https://placehold.co/${size}?text=No+cover+found`,
+    imageUrl: `https://placehold.co/${size}?text=No+cover+art\\n...yet`,
     source: "None",
   };
 }
