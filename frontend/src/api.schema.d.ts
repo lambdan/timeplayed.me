@@ -580,6 +580,8 @@ export interface components {
             sgdb_id: number | null;
             /** Sgdb Grid Id */
             sgdb_grid_id: number | null;
+            /** Igdb Id */
+            igdb_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -607,6 +609,8 @@ export interface components {
             sgdb_id: number | null;
             /** Sgdb Grid Id */
             sgdb_grid_id: number | null;
+            /** Igdb Id */
+            igdb_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */

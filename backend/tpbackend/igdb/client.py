@@ -33,7 +33,9 @@ class IGDBClient:
                 return True
 
             logger.info(
-                "Authenticating using %s %s", self.client_id, self.client_secret
+                "Authenticating using %s... %s...",
+                self.client_id[0:5],
+                self.client_secret[0:5],
             )
 
             logger.info("Authenticating with IGDB")
