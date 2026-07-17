@@ -32,6 +32,12 @@ class GetGameCommand(Command):
             msg += f"- SGDB ID: [{game.get_sgdb_id()}](https://www.steamgriddb.com/game/{game.get_sgdb_id()})\n"
         else:
             msg += "- SGDB ID: None\n"
+
+        if game.get_igdb_id():
+            msg += f"- IGDB ID: [{game.get_igdb_id()}](https://www.igdb.com/games/{game.get_igdb_id()})\n"
+        else:
+            msg += "- IGDB ID: None\n"
+
         msg += f"- Year: {game.get_release_year()}\n"
         msg += f"- Created: {js_iso(game.get_created())}\n"
         msg += f"- Updated: {js_iso(game.get_updated())}\n"
