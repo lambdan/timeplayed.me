@@ -2,6 +2,7 @@ import logging
 import json
 from tpbackend.igdb.client import IGDBClient
 from tpbackend.igdb.models import IGDB_SearchResult
+from typing import cast
 
 logger = logging.getLogger("IGDBController")
 igdb = IGDBClient()
@@ -25,3 +26,22 @@ def search_game(query: str) -> list[IGDB_SearchResult]:
                 )
             )
     return ret
+
+
+def get_cover_for_game(
+    igdb_game_id: int, size="t_cover_big", format="png"
+) -> str | None:
+    data = f"fields cover.image_id; where id = {igdb_game_id};"
+    res = igdb.request(data, cache_expiry=86400)
+    logger.info("Got res: %s", res)
+    try:
+        parsed = json.loads(cast(str, res))
+        cover = parsed[0].get("cover", None)
+        image_id = cover.get("image_id", None)
+        if image_id:
+            return (
+                f"https://images.igdb.com/igdb/image/upload/{size}/{image_id}.{format}"
+            )
+    except Exception as e:
+        logger.error("Error parsing IGDB cover response: %s", e)
+    return None

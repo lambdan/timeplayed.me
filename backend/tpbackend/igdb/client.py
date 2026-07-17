@@ -57,7 +57,7 @@ class IGDBClient:
             logger.error("Error during IGDB auth: %s", e)
             return False
 
-    def request(self, query: str) -> str | None:
+    def request(self, query: str, cache_expiry=3600) -> str | None:
         cache_key = f"igdb_request:{query}"
         cached = cache_get(cache_key)
         if cached:
@@ -75,7 +75,7 @@ class IGDBClient:
             )
             r.raise_for_status()
             json_str = json.dumps(r.json(), ensure_ascii=False)
-            cache_set(cache_key, json_str, ex=3600)
+            cache_set(cache_key, json_str, ex=cache_expiry)
             return json_str
         except Exception as e:
             logger.error("Error during IGDB request: %s", e)
