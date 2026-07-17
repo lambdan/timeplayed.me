@@ -1,7 +1,7 @@
 import logging
 import json
 from tpbackend.igdb.client import IGDBClient
-from tpbackend.igdb.models import IGDB_SearchResult
+from tpbackend.igdb.models import IGDB_Cover, IGDB_GameInfo, IGDB_SearchResult
 from typing import cast
 
 logger = logging.getLogger("IGDBController")
@@ -17,31 +17,32 @@ def search_game(query: str) -> list[IGDB_SearchResult]:
     ret = []
     if res:
         for r in json.loads(res):
-            ret.append(
-                IGDB_SearchResult(
-                    id=r.get("id"),
-                    first_release_date=r.get("first_release_date", None),
-                    name=r.get("name"),
-                    url=r.get("url"),
-                )
-            )
+            ret.append(IGDB_SearchResult.model_validate(r))
     return ret
 
 
-def get_cover_for_game(
-    igdb_game_id: int, size="t_cover_big", format="png"
-) -> str | None:
-    data = f"fields cover.image_id; where id = {igdb_game_id};"
-    res = igdb.request(data, cache_expiry=86400)
+def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
+    # bleh, this is kind of a mess...
+    data = f"""
+    fields id,
+        involved_companies,
+        platforms,
+        name,
+        first_release_date,url,
+        summary,
+        cover.image_id,
+        cover.id
+        ; 
+    where id = {igdb_game_id};
+    """
+    # to get everything:
+    # data = f"fields *; where id = {igdb_game_id};"
+    res = igdb.request(data)
     logger.info("Got res: %s", res)
     try:
         parsed = json.loads(cast(str, res))
-        cover = parsed[0].get("cover", None)
-        image_id = cover.get("image_id", None)
-        if image_id:
-            return (
-                f"https://images.igdb.com/igdb/image/upload/{size}/{image_id}.{format}"
-            )
+        if parsed:
+            return IGDB_GameInfo.model_validate(parsed[0])
     except Exception as e:
-        logger.error("Error parsing IGDB cover response: %s", e)
+        logger.error("Error parsing IGDB game info response: %s", e)
     return None

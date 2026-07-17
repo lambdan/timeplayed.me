@@ -543,7 +543,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/igdb/{igdb_game_id}/cover": {
+    "/api/igdb/game/{igdb_game_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -551,10 +551,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Redirect Igdb Cover
-         * @description Redirects to cover image for a game from IGDB
+         * Get Igdb Game Info
+         * @description Get game info from IGDB by their ID
          */
-        get: operations["redirect_igdb_cover_api_igdb__igdb_game_id__cover_get"];
+        get: operations["get_igdb_game_info_api_igdb_game__igdb_game_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -775,6 +775,31 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IGDB_Cover */
+        IGDB_Cover: {
+            /** Id */
+            id: number;
+            /** Image Id */
+            image_id: string;
+        };
+        /** IGDB_GameInfo */
+        IGDB_GameInfo: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** First Release Date */
+            first_release_date?: number | null;
+            /** Url */
+            url: string;
+            /** Summary */
+            summary?: string | null;
+            cover?: components["schemas"]["IGDB_Cover"] | null;
+            /** Platforms */
+            platforms?: number[] | null;
+            /** Involved Companies */
+            involved_companies?: number[] | null;
         };
         /** Info */
         Info: {
@@ -2059,7 +2084,7 @@ export interface operations {
             };
         };
     };
-    redirect_igdb_cover_api_igdb__igdb_game_id__cover_get: {
+    get_igdb_game_info_api_igdb_game__igdb_game_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2076,7 +2101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["IGDB_GameInfo"] | null;
                 };
             };
             /** @description Validation Error */
