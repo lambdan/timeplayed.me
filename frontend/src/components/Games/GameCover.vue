@@ -101,6 +101,14 @@ async function getGameCoverData(
         };
       }
 
+      // image_url explicitly set to 0 means this game should not have a cover
+      if (gameData.image_url === "0") {
+        return {
+          imageUrl: `https://placehold.co/600x900?text=No+cover`,
+          source: "None",
+        };
+      }
+
       // direct sgdb grid id?
       if (gameData.sgdb_id && gameData.sgdb_grid_id) {
         const grid = await TimeplayedAPI.getGrid(

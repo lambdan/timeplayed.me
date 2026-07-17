@@ -7,7 +7,7 @@ class SetGameImageCommand(AdminCommand):
     def __init__(self):
         names = ["set_game_image_url", "sgiu"]
         d = "Set game image by url (link to an image)"
-        h = f"Usage: `!{names[0]} <game_id> <url>`. Use null as url to unset."
+        h = f"Usage: `!{names[0]} <game_id> <url>`. Use null as url to unset. 0 to disable cover."
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
