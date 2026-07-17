@@ -47,11 +47,13 @@ from .commands.get_platform import GetPlatformCommand
 from .commands.set_platform_icon import SetPlatformIconCommand
 from .commands.hide_game import HideGameCommand
 from .commands.set_parent import SetParentCommand
+from .commands.igdb_search import SearchIGDBCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchGamesCommand(),
     SearchSGDBCommand(),
+    SearchIGDBCommand(),
     AddGameSGDBCommand(),
     # manual
     StartManualCommand(),
@@ -79,10 +81,14 @@ REGULAR_COMMANDS = [
 ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
+    # sgdb
     SetSGDBIDCommand(),
     SetSGDBGridIDCommand(),
     AutoSGDBAdminCommand(),
+    # steam
     SetSteamIDCommand(),
+    # igdb
+    # manual game
     SetGameImageCommand(),
     SetGameReleaseYearCommand(),
     # platform mgmt
@@ -91,7 +97,7 @@ ADMIN_COMMANDS = [
     SetPlatformColorsCommand(),
     SetPlatformIconCommand(),
     DeletePlatformCommand(),
-    # gmae mgmt
+    # game mgmt
     AddGameAliasCommand(),
     DeleteGameAliasCommand(),
     DeleteGameCommand(),
