@@ -57,6 +57,9 @@ class IGDBClient:
             logger.error("Error during IGDB auth: %s", e)
             return False
 
+    def available(self) -> bool:
+        return self._authenticate()
+
     def request(self, query: str, cache_expiry=3600) -> str | None:
         cache_key = f"igdb_request:{query}"
         cached = cache_get(cache_key)
@@ -65,6 +68,7 @@ class IGDBClient:
             return cached.decode("utf-8")  # type: ignore
         try:
             self._authenticate()
+            logger.info("Making IGDB request: %s", query)
             r = requests.post(
                 "https://api.igdb.com/v4/games",
                 headers={

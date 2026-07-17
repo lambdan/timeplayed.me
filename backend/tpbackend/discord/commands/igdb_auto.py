@@ -21,9 +21,12 @@ class AutoIGDBAdminCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
+        q = game.get_name()
+        if game.get_release_year():
+            q += f" {game.get_release_year()}"
         igdb_games = search_game(query=game.get_name())
         if len(igdb_games) == 0:
-            return "Error: no SGDB games found"
+            return "Error: no IGDB games found"
 
         best_match = igdb_games[0]
 
@@ -33,8 +36,9 @@ class AutoIGDBAdminCommand(AdminCommand):
                 rd = ts_to_dt(best_match.first_release_date)
             year = rd.year if rd else "?"
             out = ""
-            out += f"Best SGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
-            out += "\nIf this is correct, run the command again with `y` at the end to confirm."
+            out += f"Best IGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
+            out += f"{best_match.url}\n"
+            out += "If this is correct, run the command again with `y` at the end to confirm."
             return out
 
         return SetIGDBIDCommand().execute(user, f"{game_id} {best_match.id}")  # haaax

@@ -10,6 +10,10 @@ igdb = IGDBClient()
 # theres a toooon of stuff: https://api-docs.igdb.com/#game
 
 
+def available() -> bool:
+    return igdb.available()
+
+
 def search_game(query: str) -> list[IGDB_SearchResult]:
     data = f'search "{query}"; fields id,name,first_release_date,url; limit 10;'
     res = igdb.request(data)

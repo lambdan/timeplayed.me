@@ -25,17 +25,15 @@ class SetIGDBIDCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        # any game that already has this igdb_id?
-        # (special case for 0, multiple games can have that)
-        if igdb_id != 0 and igdb_id is not None:
-            existing_game = Game.get_or_none(Game.igdb_id == igdb_id)
-            if existing_game and existing_game.id != game.id:
-                return f"Error: IGDB ID {igdb_id} is already assigned to '{existing_game.name}' (id: {existing_game.id})"  # type: ignore
-
         if igdb_id == 0 or igdb_id is None:
             game.set_igdb_id(igdb_id)
             game.save()
             return f"{game.name} - IGDB ID set to: {game.igdb_id}"
+
+        # any game that already has this igdb_id?
+        existing_game = Game.get_or_none(Game.igdb_id == igdb_id)
+        if existing_game and existing_game.id != game.id:
+            return f"Error: IGDB ID {igdb_id} is already assigned to '{existing_game.name}' (id: {existing_game.id})"  # type: ignore
 
         # get info from igdb
         igdb_game = get_game_info(igdb_id)
@@ -56,12 +54,14 @@ class SetIGDBIDCommand(AdminCommand):
                 aliased_game = GameSelect.by_name_or_alias(igdb_game.name)
                 if aliased_game and aliased_game.id != game.id:  # type: ignore
                     out += f"\n OTHER GAME HAS IGDB NAME AS NAME OR ALIAS: '{aliased_game.name}' (id: {aliased_game.id})"  # type: ignore
-                    out += "\n - ABORTING!"
-                    return out
-                old_name = game.get_name()
-                game.set_name(igdb_game.name)
-                game.add_alias(old_name)
-                out += "\n- Replaced name with IGDB name and added old name as alias"
+                    out += "\n - NOT UPDATING NAME!"
+                else:
+                    old_name = game.get_name()
+                    game.set_name(igdb_game.name)
+                    game.add_alias(old_name)
+                    out += (
+                        "\n- Replaced name with IGDB name and added old name as alias"
+                    )
             out += "\n"
 
         if igdb_game.first_release_date:
