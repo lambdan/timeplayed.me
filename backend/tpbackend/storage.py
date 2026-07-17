@@ -341,10 +341,20 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
     sgdb_grid_id = IntegerField(null=True, default=None)
+    igdb_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
+
+    def has_cover_art(self) -> bool:
+        if self.get_image_url():
+            return True
+        if self.get_sgdb_id():
+            return True
+        if self.get_igdb_id():
+            return True
+        return False
 
     def build_search(self) -> str:
         # id + name + release year + all aliases, lowercased
@@ -388,10 +398,7 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         """
         Get SGDB ID (or parents)
         """
-        if self.sgdb_id == 0:
-            # 0 means not on SGDB
-            return 0
-        if self.sgdb_id:
+        if self.sgdb_id is not None:
             return cast(int, self.sgdb_id)
         # try parent
         parent = self.get_parent()
@@ -421,6 +428,22 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         self.add_history(
             f"SGDB grid ID changed from '{old_sgdb_grid_id}' to '{sgdb_grid_id}'"
         )
+
+    def get_igdb_id(self) -> int | None:
+        """
+        Get IGDB ID (or parents)
+        """
+        if self.igdb_id is not None:
+            return cast(int, self.igdb_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_igdb_id()
+        return None
+
+    def set_igdb_id(self, igdb_id: int | None):
+        old_igdb_id = self.get_igdb_id()
+        self.igdb_id = cast(IntegerField, igdb_id)
+        self.add_history(f"IGDB ID changed from '{old_igdb_id}' to '{igdb_id}'")
 
     def get_image_url(self) -> str | None:
         """

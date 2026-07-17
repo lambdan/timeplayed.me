@@ -338,6 +338,30 @@ export class TimeplayedAPI {
     return data;
   }
 
+  /////////////// IGDB /////////////////
+  /** Returns URL to cover from IGDB */
+  static async getIGDBGameInfo(
+    igdb_id: number,
+  ): Promise<
+    paths["/api/igdb/game/{igdb_game_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+  > {
+    const { data, error } = await this.getClient().GET(
+      "/api/igdb/game/{igdb_game_id}",
+      {
+        params: {
+          path: {
+            igdb_game_id: igdb_id,
+          },
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching IGDB game info:", error);
+      throw error;
+    }
+    return data;
+  }
+
   /////////////// SGDB /////////////////
 
   static async getBestSGDBGridForGame(

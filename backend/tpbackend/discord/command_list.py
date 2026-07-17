@@ -17,6 +17,10 @@ from .commands.search_games import SearchGamesCommand
 from .commands.set_default_platform import SetDefaultPlatformCommand
 from .commands.set_game import SetGameCommand
 from .commands.set_game_image import SetGameImageCommand
+from .commands.igdb_missing_admin import MissingIGDBAdminCommand
+from .commands.igdb_set_id import SetIGDBIDCommand
+from .commands.igdb_add_game import AddGameIGDBCommand
+from .commands.igdb_auto import AutoIGDBAdminCommand
 from .commands.set_pc_platform import SetPCPlatformCommand
 from .commands.set_platform import SetPlatformCommand
 from .commands.set_platform_name import SetPlatformNameCommand
@@ -42,17 +46,21 @@ from .commands.games_without_activity_admin import GamesWithoutActivityAdminComm
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
+from .commands.missing_cover import MissingCoverAdminCommand
 from .commands.set_platform_colors import SetPlatformColorsCommand
 from .commands.get_platform import GetPlatformCommand
 from .commands.set_platform_icon import SetPlatformIconCommand
 from .commands.hide_game import HideGameCommand
 from .commands.set_parent import SetParentCommand
+from .commands.igdb_search import SearchIGDBCommand
 
 REGULAR_COMMANDS = [
     # HelpCommand(), # circular import
     SearchGamesCommand(),
     SearchSGDBCommand(),
+    SearchIGDBCommand(),
     AddGameSGDBCommand(),
+    AddGameIGDBCommand(),
     # manual
     StartManualCommand(),
     StopManualCommand(),
@@ -79,10 +87,18 @@ REGULAR_COMMANDS = [
 ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
+    # sgdb
     SetSGDBIDCommand(),
     SetSGDBGridIDCommand(),
     AutoSGDBAdminCommand(),
+    MissingSGDBAdminCommand(),
+    # steam
     SetSteamIDCommand(),
+    # igdb
+    SetIGDBIDCommand(),
+    MissingIGDBAdminCommand(),
+    AutoIGDBAdminCommand(),
+    # manual game
     SetGameImageCommand(),
     SetGameReleaseYearCommand(),
     # platform mgmt
@@ -91,7 +107,7 @@ ADMIN_COMMANDS = [
     SetPlatformColorsCommand(),
     SetPlatformIconCommand(),
     DeletePlatformCommand(),
-    # gmae mgmt
+    # game mgmt
     AddGameAliasCommand(),
     DeleteGameAliasCommand(),
     DeleteGameCommand(),
@@ -107,7 +123,7 @@ ADMIN_COMMANDS = [
     DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
-    MissingSGDBAdminCommand(),
+    MissingCoverAdminCommand(),
     MissingGRYAdminCommand(),
     GetCacheStats(),
     RefreshSearch(),

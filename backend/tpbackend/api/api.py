@@ -8,6 +8,7 @@ from tpbackend.game.routes import router as game_router
 from tpbackend.platform.routes import router as platform_router
 from tpbackend.discord.routes import router as discord_router
 from tpbackend.sgdb.routes import router as sgdb_router
+from tpbackend.igdb.routes import router as igdb_router
 from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
 from .misc import misc_router
@@ -32,6 +33,7 @@ def create_app():
     api_router.include_router(charts_router, prefix="/charts")
     api_router.include_router(discord_router, prefix="/discord")
     api_router.include_router(sgdb_router, prefix="/sgdb")
+    api_router.include_router(igdb_router, prefix="/igdb")
 
     app.include_router(api_router)
     return app

@@ -38,4 +38,6 @@ class AutoSGDBAdminCommand(AdminCommand):
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."
             return out
 
-        return SetSGDBIDCommand().execute(user, f"{game_id} {best_match.id}")
+        return SetSGDBIDCommand().execute(
+            user, f"{game_id} {best_match.id}"
+        )  # HAAAAAAAX

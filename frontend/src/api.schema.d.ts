@@ -543,6 +543,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/igdb/game/{igdb_game_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Igdb Game Info
+         * @description Get game info from IGDB by their ID
+         */
+        get: operations["get_igdb_game_info_api_igdb_game__igdb_game_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -580,6 +600,8 @@ export interface components {
             sgdb_id: number | null;
             /** Sgdb Grid Id */
             sgdb_grid_id: number | null;
+            /** Igdb Id */
+            igdb_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -607,6 +629,8 @@ export interface components {
             sgdb_id: number | null;
             /** Sgdb Grid Id */
             sgdb_grid_id: number | null;
+            /** Igdb Id */
+            igdb_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -751,6 +775,31 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IGDB_Cover */
+        IGDB_Cover: {
+            /** Id */
+            id: number;
+            /** Image Id */
+            image_id: string;
+        };
+        /** IGDB_GameInfo */
+        IGDB_GameInfo: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** First Release Date */
+            first_release_date?: number | null;
+            /** Url */
+            url: string;
+            /** Summary */
+            summary?: string | null;
+            cover?: components["schemas"]["IGDB_Cover"] | null;
+            /** Platforms */
+            platforms?: number[] | null;
+            /** Involved Companies */
+            involved_companies?: number[] | null;
         };
         /** Info */
         Info: {
@@ -2022,6 +2071,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SGDB_Grid"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_igdb_game_info_api_igdb_game__igdb_game_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                igdb_game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IGDB_GameInfo"] | null;
                 };
             };
             /** @description Validation Error */
