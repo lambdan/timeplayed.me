@@ -46,6 +46,7 @@ from .commands.games_without_activity_admin import GamesWithoutActivityAdminComm
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
+from .commands.missing_cover import MissingCoverAdminCommand
 from .commands.set_platform_colors import SetPlatformColorsCommand
 from .commands.get_platform import GetPlatformCommand
 from .commands.set_platform_icon import SetPlatformIconCommand
@@ -90,6 +91,7 @@ ADMIN_COMMANDS = [
     SetSGDBIDCommand(),
     SetSGDBGridIDCommand(),
     AutoSGDBAdminCommand(),
+    MissingSGDBAdminCommand(),
     # steam
     SetSteamIDCommand(),
     # igdb
@@ -121,7 +123,7 @@ ADMIN_COMMANDS = [
     DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
-    MissingSGDBAdminCommand(),
+    MissingCoverAdminCommand(),
     MissingGRYAdminCommand(),
     GetCacheStats(),
     RefreshSearch(),

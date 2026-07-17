@@ -5,13 +5,16 @@ from tpbackend.storage import User
 
 class SetGameImageCommand(AdminCommand):
     def __init__(self):
-        names = ["set_game_image_url", "sgiu"]
+        names = ["set_game_image_url", "sgiu", "dc"]
         d = "Set game image by url (link to an image)"
-        h = f"Usage: `!{names[0]} <game_id> <url>`. Use null as url to unset. 0 to disable cover."
+        h = f"Usage: `!{names[0]} <game_id> <url>`. Use null as url to unset. 0 to disable cover (or pass in only game id)"
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
+        if len(splitted) == 1:
+            # .dc to disable cover
+            splitted.append("0")
         if len(splitted) != 2:
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
         game_id = splitted[0].strip()
