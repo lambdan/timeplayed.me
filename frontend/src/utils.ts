@@ -226,6 +226,21 @@ export async function getGameCoverData(
         }
       }
 
+      // igdb?
+      if (gameData.igdb_id) {
+        const igdbInfo = await TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id);
+        if (igdbInfo && igdbInfo.cover) {
+          const size = thumbnail ? "t_thumb" : "t_cover_big";
+          const imageUrl = `https://images.igdb.com/igdb/image/upload/${size}/${igdbInfo.cover.image_id}.jpg`;
+          return {
+            imageUrl,
+            source: "IGDB",
+            sourceUrl: igdbInfo.url,
+            credits: `IGDB cover image ID: ${igdbInfo.cover.image_id}`,
+          };
+        }
+      }
+
       // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
       if (gameData.sgdb_id === 0) {
         return {

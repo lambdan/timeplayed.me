@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { formatDate, formatDuration, sleep, timeAgo } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import PlatformTable from "./Platforms/PlatformTable.vue";
-import type { Game, GameWithStats } from "../api.models";
+import type { Game, GameWithStats, IGDBGameInfo } from "../api.models";
 import ChildGameBadge from "./Badges/ChildGameBadge.vue";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "./CalendarBasic.vue";
@@ -13,6 +13,7 @@ const props = defineProps<{ game: GameWithStats }>();
 const gameWithStats = ref<GameWithStats>(props.game);
 const parent = ref<GameWithStats>();
 const childrenStats = ref<GameWithStats[]>([]);
+const igdbInfo = ref<IGDBGameInfo>();
 
 const loadingStats = ref(true);
 
@@ -69,6 +70,15 @@ onMounted(async () => {
   }
 
   loadingStats.value = false;
+
+  if (props.game.igdb_id) {
+    // have to do this stupid thing because IGDB uses slugs, instead of ID for their URLs...
+    // extra stupid because game cover will do the same API call also
+    const _igdbInfo = await TimeplayedAPI.getIGDBGameInfo(props.game.igdb_id);
+    if (_igdbInfo) {
+      igdbInfo.value = _igdbInfo;
+    }
+  }
 });
 </script>
 
@@ -231,6 +241,16 @@ onMounted(async () => {
                       <td><b>ID:</b></td>
                       <td>
                         {{ game.id }}
+                      </td>
+                    </tr>
+                    <tr v-if="game.igdb_id">
+                      <td><b>IGDB ID:</b></td>
+                      <td v-if="!igdbInfo">
+                        {{ game.igdb_id }}
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                      </td>
+                      <td v-else>
+                        <a :href="igdbInfo.url">{{ game.igdb_id }}</a>
                       </td>
                     </tr>
                     <tr v-if="game.steam_id">
