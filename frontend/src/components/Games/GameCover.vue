@@ -93,19 +93,19 @@ async function getGameCoverData(
     try {
       const gameData = await TimeplayedAPI.getGame(gameId);
 
+      // image_url explicitly set to "-" means this game should not have a cover
+      if (gameData.image_url === "-") {
+        return {
+          imageUrl: `https://placehold.co/600x900?text=Cover+art+disabled\\nfor+this+game`,
+          source: "None",
+        };
+      }
+
       // direct image_url?
       if (gameData.image_url) {
         return {
           imageUrl: gameData.image_url,
           source: "Custom",
-        };
-      }
-
-      // image_url explicitly set to 0 means this game should not have a cover
-      if (gameData.image_url === "0") {
-        return {
-          imageUrl: `https://placehold.co/600x900?text=No+cover`,
-          source: "None",
         };
       }
 
