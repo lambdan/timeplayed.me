@@ -17,6 +17,7 @@ from .commands.search_games import SearchGamesCommand
 from .commands.set_default_platform import SetDefaultPlatformCommand
 from .commands.set_game import SetGameCommand
 from .commands.set_game_image import SetGameImageCommand
+from .commands.igdb_missing_admin import MissingIGDBAdminCommand
 from .commands.set_pc_platform import SetPCPlatformCommand
 from .commands.set_platform import SetPlatformCommand
 from .commands.set_platform_name import SetPlatformNameCommand
@@ -114,6 +115,7 @@ ADMIN_COMMANDS = [
     # misc
     UptimeCommand(),
     MissingSGDBAdminCommand(),
+    MissingIGDBAdminCommand(),
     MissingGRYAdminCommand(),
     GetCacheStats(),
     RefreshSearch(),
