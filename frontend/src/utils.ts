@@ -226,6 +226,14 @@ export async function getGameCoverData(
         }
       }
 
+      // sgdb auto
+      if (gameData.sgdb_id) {
+        const best = await getBest(gameData.sgdb_id);
+        if (best) {
+          return best;
+        }
+      }
+
       // igdb?
       if (gameData.igdb_id) {
         const igdbInfo = await TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id);
@@ -238,25 +246,6 @@ export async function getGameCoverData(
             sourceUrl: igdbInfo.url,
             credits: `IGDB cover image ID: ${igdbInfo.cover.image_id}`,
           };
-        }
-      }
-
-      // if sgdb_id is explicitly 0, it means "no cover" (either not found or not wanted)
-      if (gameData.sgdb_id === 0) {
-        return {
-          imageUrl: `https://placehold.co/600x900?text=Unknown+game`,
-          source: "None",
-        };
-      }
-
-      // 2nd priority: SteamGridDB
-      // sgdb_id is null when not set,
-      // or 0 when SGDB doesnt have it (or it shouldnt be used)...
-      // this check should catch both cases
-      if (gameData.sgdb_id) {
-        const best = await getBest(gameData.sgdb_id);
-        if (best) {
-          return best;
         }
       }
 
@@ -274,18 +263,7 @@ export async function getGameCoverData(
         return getGameCoverData(gameData.parent_id, thumbnail);
       }
 
-      // give up and search
-      /*const search = await TimeplayedAPI.searchSGDB(gameData.name);
-
-      if (search && search.length > 0) {
-        const gameId = search[0]?.id;
-        if (gameId !== undefined) {
-          const best = await getBest(gameId);
-          if (best) {
-            return best;
-          }
-        }
-      }*/
+      return undefined;
     } catch (err) {
     } finally {
       sessionStorage.setItem(key + "_loading", "false");
