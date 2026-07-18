@@ -15,3 +15,7 @@ def not_found(msg="Not found"):
 
 def service_unavailable(msg="Service unavailable"):
     raise HTTPException(status_code=503, detail=msg)
+
+
+def internal_server_error(msg="Internal server error"):
+    raise HTTPException(status_code=500, detail=msg)
