@@ -253,19 +253,6 @@ onMounted(async () => {
                         <a :href="igdbInfo.url">{{ game.igdb_id }}</a>
                       </td>
                     </tr>
-                    <tr v-if="game.steam_id">
-                      <td><b>Steam ID:</b></td>
-                      <td>
-                        <a
-                          :href="
-                            'https://store.steampowered.com/app/' +
-                            game.steam_id
-                          "
-                        >
-                          {{ game.steam_id }}</a
-                        >
-                      </td>
-                    </tr>
                     <tr v-if="game.sgdb_id && game.sgdb_grid_id">
                       <td><b>SteamGridDB Game ID/Grid ID:</b></td>
                       <td>

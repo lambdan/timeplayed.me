@@ -338,7 +338,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     """
 
     name = CharField()
-    steam_id = IntegerField(null=True, default=None)
     sgdb_id = IntegerField(null=True, default=None)
     sgdb_grid_id = IntegerField(null=True, default=None)
     igdb_id = IntegerField(null=True, default=None)
@@ -377,22 +376,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         old_name = self.get_name()
         self.name = cast(CharField, name)
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
-
-    def get_steam_id(self) -> int | None:
-        """
-        Get Steam ID (or parents)
-        """
-        if self.steam_id:
-            return cast(int, self.steam_id)
-        parent = self.get_parent()
-        if parent:
-            return parent.get_steam_id()
-        return None
-
-    def set_steam_id(self, steam_id: int | None):
-        old_steam_id = self.get_steam_id()
-        self.steam_id = cast(IntegerField, steam_id)
-        self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_sgdb_id(self) -> int | None:
         """

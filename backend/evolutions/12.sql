@@ -1,0 +1,1 @@
+ALTER TABLE game DELETE COLUMN steam_id;

@@ -143,15 +143,6 @@ async function getGameCoverData(
         }
       }
 
-      // steam?
-      if (gameData.steam_id) {
-        return {
-          imageUrl: `https://shared.steamstatic.com/store_item_assets/steam/apps/${gameData.steam_id}/library_600x900.jpg`,
-          source: "Steam",
-          sourceUrl: `https://store.steampowered.com/app/${gameData.steam_id}`,
-        };
-      }
-
       // parent?
       if (gameData.parent_id) {
         return getGameCoverData(gameData.parent_id, thumbnail);

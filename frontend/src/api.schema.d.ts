@@ -594,8 +594,6 @@ export interface components {
             id: number;
             /** Name */
             name: string;
-            /** Steam Id */
-            steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
             /** Sgdb Grid Id */
@@ -623,8 +621,6 @@ export interface components {
             id: number;
             /** Name */
             name: string;
-            /** Steam Id */
-            steam_id: number | null;
             /** Sgdb Id */
             sgdb_id: number | null;
             /** Sgdb Grid Id */
