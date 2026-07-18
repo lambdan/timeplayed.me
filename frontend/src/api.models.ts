@@ -22,6 +22,6 @@ export type IGDBGameInfo = components["schemas"]["IGDB_GameInfo"];
 export interface GameCoverData {
   imageUrl: string;
   sourceUrl?: string;
-  source: "SteamGridDB" | "IGDB" | "Steam" | "Custom" | "None";
+  source: "SteamGridDB" | "IGDB" | "Custom" | "None";
   credits?: string;
 }
