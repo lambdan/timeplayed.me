@@ -96,8 +96,27 @@ class HistoryMixin(BaseModel):
     # history = ArrayField(TextField, default=lambda: [])  # type: ignore
     # history is now in a separate table, with foreign key to the model
 
+    pending_history = []
+
     def save(self, *args, **kwargs):
         self.updated = now()
+
+        # write all pending history
+        activity = self.get_id() if isinstance(self, Activity) else None
+        game = self.get_id() if isinstance(self, Game) else None
+        user = self.get_id() if isinstance(self, User) else None
+        platform = self.get_id() if isinstance(self, Platform) else None
+        for h in self.pending_history:
+            History.create(
+                activity=activity,
+                game=game,
+                user=user,
+                platform=platform,
+                message=h["message"],
+                timestamp=h["timestamp"]
+            )
+        self.pending_history.clear()
+
         return super().save(*args, **kwargs)
 
     def get_created(self) -> datetime:
@@ -113,13 +132,7 @@ class HistoryMixin(BaseModel):
         return [f"[{js_iso(entry.timestamp)}] {entry.message}" for entry in entries]
 
     def add_history(self, message: str):
-        activity = self.get_id() if isinstance(self, Activity) else None
-        game = self.get_id() if isinstance(self, Game) else None
-        user = self.get_id() if isinstance(self, User) else None
-        platform = self.get_id() if isinstance(self, Platform) else None
-        History.create(
-            activity=activity, game=game, user=user, platform=platform, message=message
-        )
+        self.pending_history.append({"message": message, "timestamp": now()})
 
 
 class SearchMixin(BaseModel):
