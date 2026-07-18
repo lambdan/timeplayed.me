@@ -108,24 +108,8 @@ class HistoryMixin(BaseModel):
         return assertTimezone(self.updated)
 
     def get_history(self) -> list[str]:
-        entries = []
-
-        def select_history(model, model_field):
-            return (
-                History.select()
-                .where(model_field == model)
-                .order_by(History.timestamp.desc())
-            )
-
-        if isinstance(self, Activity):
-            entries = select_history(self, History.activity)
-        elif isinstance(self, Game):
-            entries = select_history(self, History.game)
-        elif isinstance(self, User):
-            entries = select_history(self, History.user)
-        elif isinstance(self, Platform):
-            entries = select_history(self, History.platform)
-
+        # backref
+        entries = self.history  # type: ignore
         return [f"[{js_iso(entry.timestamp)}] {entry.message}" for entry in entries]
 
     def add_history(self, message: str):
