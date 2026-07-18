@@ -34,6 +34,7 @@ class CustomDb(PostgresqlExtDatabase):
             Activity.on_connect()
             LiveActivity.on_connect()
             DiscordHistory.on_connect()
+            History.on_connect()
 
         return connected
 
@@ -92,7 +93,8 @@ class IdMixin(BaseModel):
 class HistoryMixin(BaseModel):
     created = DateTimeField(default=lambda: now())
     updated = DateTimeField(default=lambda: now())
-    history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    # history = ArrayField(TextField, default=lambda: [])  # type: ignore
+    # history is now in a separate table, with foreign key to the model
 
     def save(self, *args, **kwargs):
         self.updated = now()
@@ -102,14 +104,22 @@ class HistoryMixin(BaseModel):
         return assertTimezone(self.created)
 
     def get_updated(self) -> datetime:
+        # hmm, could just return latest history...
         return assertTimezone(self.updated)
 
     def get_history(self) -> list[str]:
-        return cast(list[str], self.history)
+        # backref
+        entries = self.history  # type: ignore
+        return [f"[{js_iso(entry.timestamp)}] {entry.message}" for entry in entries]
 
     def add_history(self, message: str):
-        message = f"[{now_iso()}] {message}"
-        self.history.append(message)  # type: ignore
+        activity = self.get_id() if isinstance(self, Activity) else None
+        game = self.get_id() if isinstance(self, Game) else None
+        user = self.get_id() if isinstance(self, User) else None
+        platform = self.get_id() if isinstance(self, Platform) else None
+        History.create(
+            activity=activity, game=game, user=user, platform=platform, message=message
+        )
 
 
 class SearchMixin(BaseModel):
@@ -639,6 +649,15 @@ class DiscordHistory(IdMixin):
     timestamp = DateTimeField(default=lambda: now())
     event = TextField()
     user = CharField(null=True)  # Discord user ID if applicable
+    message = TextField()
+
+
+class History(IdMixin):
+    timestamp = DateTimeField(default=lambda: now())
+    game = ForeignKeyField(Game, backref="history", null=True)
+    user = ForeignKeyField(User, backref="history", null=True)
+    platform = ForeignKeyField(Platform, backref="history", null=True)
+    activity = ForeignKeyField(Activity, backref="history", null=True)
     message = TextField()
 
 

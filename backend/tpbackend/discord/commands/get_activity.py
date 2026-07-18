@@ -47,14 +47,9 @@ class GetActivityCommand(Command):
         if activity.get_hidden():
             msg += "- **This activity is hidden**\n"
 
-        if self.is_admin(user):
+        if self.is_admin(user) and len(activity.get_history()) > 0:
             msg += "# History\n"
-            if len(activity.get_history()) == 0:
-                msg += "No history\n"
-            else:
-                msg += "```"
-                for h in activity.get_history():
-                    msg += h + "\n"
-                msg += "```"
+            for h in activity.get_history():
+                msg += f"- {h}\n"
 
         return msg.strip()

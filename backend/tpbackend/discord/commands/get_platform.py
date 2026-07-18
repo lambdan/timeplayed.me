@@ -31,13 +31,9 @@ class GetPlatformCommand(Command):
             msg += f"Icon: {platform.icon}\n"
             msg += "```\n"
 
-            msg += "# History\n"
-            if len(platform.get_history()) == 0:
-                msg += "No history\n"
-            else:
-                msg += "```"
+            if len(platform.get_history()) > 0:
+                msg += "# History\n"
                 for h in platform.get_history():
-                    msg += h + "\n"
-                msg += "```"
+                    msg += f"- {h}\n"
 
         return msg.strip()

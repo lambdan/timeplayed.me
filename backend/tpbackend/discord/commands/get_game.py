@@ -43,19 +43,13 @@ class GetGameCommand(Command):
         msg += f"- Updated: {js_iso(game.get_updated())}\n"
 
         if len(aliases_list) > 0:
-            msg += "Aliases:\n```"
+            msg += "# Aliases\n"
             for alias in aliases_list:
-                msg += f"{alias}\n"
-            msg += "```\n"
+                msg += f"- {alias}\n"
 
-        if self.is_admin(user):
+        if self.is_admin(user) and len(game.get_history()) > 0:
             msg += "# History\n"
-            if len(game.get_history()) == 0:
-                msg += "No history\n"
-            else:
-                msg += "```"
-                for h in game.get_history():
-                    msg += h + "\n"
-                msg += "```"
+            for h in game.get_history():
+                msg += f"- {h}\n"
 
         return msg.strip()
