@@ -675,14 +675,11 @@ class History(IdMixin):
     message = TextField()
 
 
-class Token(BaseModel):
-    id = CharField(primary_key=True, default=lambda: str(uuid.uuid4()))
+class Token(IdMixin):
     created = DateTimeField(default=lambda: now())
     expires = DateTimeField(default=lambda: now() + timedelta(days=30))
     user = ForeignKeyField(User, backref="tokens", on_delete="CASCADE")
-
-    def get_id(self) -> str:
-        return cast(str, self.id)
+    sha256 = CharField(unique=True)
 
     def get_user(self) -> User:
         return cast(User, self.user)
@@ -692,6 +689,9 @@ class Token(BaseModel):
 
     def get_expires(self) -> datetime:
         return assertTimezone(self.expires)
+
+    def get_sha256(self) -> str:
+        return cast(str, self.sha256)
 
     def is_expired(self) -> bool:
         now_ts = now().timestamp()
