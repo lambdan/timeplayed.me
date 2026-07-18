@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Path, Query
 from typing import Literal
+from tpbackend.activity.controller import add_through_api
+
+from tpbackend.api.auth import AuthenticatedUser
 from tpbackend.api.params import query_id, query_ts, sorts
 from tpbackend.storage import Activity
-from tpbackend.activity.models import API_Activity, Total
+from tpbackend.activity.models import API_Activity, API_PostActivity, Total
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS, dt_to_ts
 from tpbackend.api.params import AscDescOrder, path_csv, query_csv, offset, limit
@@ -34,6 +37,16 @@ def __get_newest_or_oldest(
         query, "timestamp", "desc" if which == "newest" else "asc"
     )
     return API_Activity.from_activity(query.first())
+
+
+@router.post(
+    "/activity/add",
+    tags=["activities", "authenticated"],
+    response_model=API_Activity,
+    description="Add an activity for the authenticated user. Returns the created activity.",
+)
+def add_activity(user: AuthenticatedUser, data: API_PostActivity) -> API_Activity:
+    return add_through_api(user=user, data=data)
 
 
 @router.get("/activity/newest", tags=["activities"], response_model=API_Activity)
