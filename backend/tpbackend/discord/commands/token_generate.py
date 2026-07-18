@@ -12,7 +12,4 @@ class TokenGenerateCommand(Command):
 
     def execute(self, user: User, msg: str) -> str:
         new_token = generate_token(user)
-        encoded = base64.b64encode(new_token.get_sha256().encode("utf-8")).decode(
-            "utf-8"
-        )
-        return f"Generated new token for you: ```{encoded}```"
+        return f"Generated new token for you: ```{new_token}```"
