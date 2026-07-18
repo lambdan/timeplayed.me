@@ -28,7 +28,6 @@ from .commands.set_sgdb_id import SetSGDBIDCommand
 from .commands.start_manual import StartManualCommand
 from .commands.stop_manual import StopManualCommand
 from .commands.list_platforms import ListPlatformsCommand
-from .commands.set_steam_id import SetSteamIDCommand
 from .commands.set_sgdb_grid_id import SetSGDBGridIDCommand
 from .commands.add_game_alias import AddGameAliasCommand
 from .commands.delete_game_alias import DeleteGameAliasCommand
@@ -92,8 +91,6 @@ ADMIN_COMMANDS = [
     SetSGDBGridIDCommand(),
     AutoSGDBAdminCommand(),
     MissingSGDBAdminCommand(),
-    # steam
-    SetSteamIDCommand(),
     # igdb
     SetIGDBIDCommand(),
     MissingIGDBAdminCommand(),

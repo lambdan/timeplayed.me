@@ -11,7 +11,6 @@ class GameStats(BaseTotals):
 class API_Game(BaseModel):
     id: int
     name: str
-    steam_id: int | None
     sgdb_id: int | None
     sgdb_grid_id: int | None
     igdb_id: int | None
@@ -28,7 +27,6 @@ class API_Game(BaseModel):
         return cls(
             id=game.id,
             name=game.name,
-            steam_id=game.steam_id,
             sgdb_id=game.sgdb_id,
             sgdb_grid_id=game.sgdb_grid_id,
             igdb_id=game.igdb_id,
@@ -50,7 +48,6 @@ class API_GameWithStats(API_Game):
         return cls(
             id=game.id,
             name=game.name,
-            steam_id=game.steam_id,
             sgdb_id=game.sgdb_id,
             sgdb_grid_id=game.sgdb_grid_id,
             igdb_id=game.igdb_id,
