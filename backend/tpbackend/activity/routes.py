@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Path, Query
 from typing import Literal
-from tpbackend.activity.controller import add_through_api
+from tpbackend.activity.controller import add_through_api, delete_through_api
 
 from tpbackend.api.auth import AuthenticatedUser
 from tpbackend.api.params import query_id, query_ts, sorts
@@ -85,6 +85,11 @@ def get_single_activity(id: int) -> API_Activity:
     if not activity:
         return not_found("Activity not found")
     return API_Activity.from_activity(activity)
+
+
+@router.delete("/activity/{id}", tags=["activities", "authenticated"])
+def delete_activity(id: int, user: AuthenticatedUser):
+    return delete_through_api(user=user, activity_id=id)
 
 
 @router.get(
