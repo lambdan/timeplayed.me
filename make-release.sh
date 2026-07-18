@@ -17,6 +17,11 @@ CURRENT_BACKEND_VERSION=$(grep '__version__' $BACKEND_VERSION_PATH | sed -E 's/.
 echo "Current backend version: $CURRENT_BACKEND_VERSION"
 echo "Current frontend version: $CURRENT_FRONTEND_VERSION"
 
+echo
+echo "Commits since last tags:"
+echo "$(git log --format=%s $(git describe --tags --abbrev=0)..HEAD)"
+echo
+
 read -p "Enter new backend version (eg 1.2.3), or leave empty to skip backend release: " new_backend_version
 read -p "Enter new frontend version (eg 1.2.3), or leave empty to skip frontend release: " new_frontend_version
 
