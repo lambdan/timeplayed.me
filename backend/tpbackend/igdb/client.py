@@ -5,6 +5,7 @@ import os
 import json
 
 from tpbackend.cache import cache_get, cache_set
+from tpbackend.utils2 import ts_to_dt
 
 logger = logging.getLogger("IGDBClient")
 IGDB_CLIENT_ID = os.environ.get("IGDB_CLIENT_ID", "")
@@ -12,10 +13,11 @@ IGDB_CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET", "")
 
 
 class IGDBClient:
+    req_no = 0
     client_id = ""
     client_secret = ""
     token = ""
-    expires = 0
+    expires = 0.0
 
     def __init__(self, client_id=IGDB_CLIENT_ID, client_secret=IGDB_CLIENT_SECRET):
         self.client_id = client_id
@@ -29,7 +31,7 @@ class IGDBClient:
                 raise ValueError("IGDB client ID or secret not set")
 
             if self.token and time.time() < self.expires:
-                logger.info("Auth still valid")
+                # logger.info("Auth still valid")
                 return True
 
             logger.info(
@@ -38,7 +40,6 @@ class IGDBClient:
                 self.client_secret[0:5],
             )
 
-            logger.info("Authenticating with IGDB")
             r = requests.post(
                 "https://id.twitch.tv/oauth2/token",
                 data={
@@ -50,8 +51,9 @@ class IGDBClient:
             r.raise_for_status()
             data = r.json()
             self.token = data["access_token"]
-            self.expires = time.time() + data["expires_in"]
-            logger.info("Authenticated! %s %s", self.token, self.expires)
+            self.expires = float(time.time() + data["expires_in"])
+            dt = ts_to_dt(self.expires)
+            logger.info("Authenticated! Expires: %s", dt)
             return True
         except Exception as e:
             logger.error("Error during IGDB auth: %s", e)
@@ -61,14 +63,22 @@ class IGDBClient:
         return self._authenticate()
 
     def request(self, query: str, cache_expiry=3600) -> str | None:
+        self.req_no += 1
+
+        def log(*args):
+            logger.info(f"IGDB request #{self.req_no}: " + args[0], *args[1:])
+
+        def error(*args):
+            logger.error(f"IGDB request #{self.req_no}: " + args[0], *args[1:])
+
         cache_key = f"igdb_request:{query}"
         cached = cache_get(cache_key)
         if cached:
-            logger.info("Cache hit for query: %s", query)
+            log("Cache hit for query: %s", query)
             return cached.decode("utf-8")  # type: ignore
         try:
             self._authenticate()
-            logger.info("Making IGDB request: %s", query)
+            log("Making query: %s", query)
             r = requests.post(
                 "https://api.igdb.com/v4/games",
                 headers={
@@ -78,9 +88,10 @@ class IGDBClient:
                 data=query,
             )
             r.raise_for_status()
-            json_str = json.dumps(r.json(), ensure_ascii=False)
+            json_str = r.text
+            log("Response: %s %s", r.status_code, json_str)
             cache_set(cache_key, json_str, ex=cache_expiry)
             return json_str
         except Exception as e:
-            logger.error("Error during IGDB request: %s", e)
+            error("Error during IGDB request: %s", e)
             return None
