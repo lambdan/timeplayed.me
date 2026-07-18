@@ -113,7 +113,7 @@ class HistoryMixin(BaseModel):
                 user=user,
                 platform=platform,
                 message=h["message"],
-                timestamp=h["timestamp"]
+                timestamp=h["timestamp"],
             )
         self.pending_history.clear()
 
