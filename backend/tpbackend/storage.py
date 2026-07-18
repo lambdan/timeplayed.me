@@ -1,6 +1,7 @@
 import asyncio
 import os
 import logging
+import uuid
 from typing import cast
 from datetime import datetime, timedelta
 
@@ -672,6 +673,30 @@ class History(IdMixin):
     platform = ForeignKeyField(Platform, backref="history", null=True)
     activity = ForeignKeyField(Activity, backref="history", null=True)
     message = TextField()
+
+
+class Token(BaseModel):
+    id = CharField(primary_key=True, default=lambda: str(uuid.uuid4()))
+    created = DateTimeField(default=lambda: now())
+    expires = DateTimeField(default=lambda: now() + timedelta(days=30))
+    user = ForeignKeyField(User, backref="tokens", on_delete="CASCADE")
+
+    def get_id(self) -> str:
+        return cast(str, self.id)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_expires(self) -> datetime:
+        return assertTimezone(self.expires)
+
+    def is_expired(self) -> bool:
+        now_ts = now().timestamp()
+        expires_ts = assertTimezone(self.expires).timestamp()
+        return now_ts > expires_ts
 
 
 async def clean_loop():
