@@ -22,3 +22,10 @@ def lookup_token(token: str) -> Token | None:
         if not maybe.is_expired():
             return maybe
     return None
+
+
+def lookup_user(token: str) -> User | None:
+    token_obj = lookup_token(token)
+    if token_obj:
+        return token_obj.get_user()
+    return None

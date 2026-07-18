@@ -3,6 +3,7 @@ from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.user.query import UserStatsQuery, UserQuery
 from tpbackend.user.models import API_UserWithStats, API_User
 from tpbackend.api.responses import bad_request, not_found
+from tpbackend.api.auth import AuthenticatedUser, authenticate
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.api.params import (
@@ -229,3 +230,13 @@ def get_users(
     return __get_users(
         sort=sort, order=order, offset=offset, limit=limit, search=search
     )
+
+
+@router.get(
+    "/whoami",
+    tags=["users", "authenticated"],
+    response_model=API_User,
+    description="Get the currently authenticated user",
+)
+def who_am_i(user: AuthenticatedUser) -> API_User:
+    return API_User.from_user(user)
