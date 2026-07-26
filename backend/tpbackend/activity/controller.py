@@ -51,9 +51,10 @@ def add_through_api(user: User, data: API_PostActivity) -> API_Activity:
     )
     if added[0]:
         activity = added[0]
+        activity.add_history("Activity source: API")
         if data.emulated:
             activity.set_emulated(True)
-            activity.save()
+        activity.save()
         return API_Activity.from_activity(activity)
     logger.error("Failed to add activity for user %s, game %s", user.id, game.id)
     return internal_server_error("Something went wrong...")
