@@ -197,6 +197,24 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getGameByIGDB(igdb_id: number) {
+    const { data, error } = await this.getClient().GET(
+      "/api/game_igdb/{igdb_id}",
+      {
+        params: {
+          path: {
+            igdb_id,
+          },
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching game by IGDB:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getGames(
     query: paths["/api/games"]["get"]["parameters"]["query"],
   ) {

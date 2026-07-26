@@ -310,6 +310,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/game_igdb/{igdb_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Single Game By Igdb Id
+         * @description Get a game by its IGDB ID. If the game is not in the database, it will be created from IGDB data.
+         */
+        get: operations["get_single_game_by_igdb_id_api_game_igdb__igdb_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/games/{game_ids}": {
         parameters: {
             query?: never;
@@ -1583,6 +1603,38 @@ export interface operations {
             path: {
                 /** @description ID of the game to filter by */
                 game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Game"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_game_by_igdb_id_api_game_igdb__igdb_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the IGDB game to filter by */
+                igdb_id: number;
             };
             cookie?: never;
         };
