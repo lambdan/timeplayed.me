@@ -71,7 +71,3 @@ class GameSelect:
                 (Game.name == name) & (Game.release_year == release_year)  # type: ignore
             )
         return query.first()
-
-    @staticmethod
-    def by_igdb_id(igdb_id: int) -> Game | None:
-        return Game.get_or_none(Game.igdb_id == igdb_id)  # type: ignore

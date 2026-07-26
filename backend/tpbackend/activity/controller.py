@@ -8,6 +8,7 @@ from tpbackend.api.responses import (
 )
 from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
+from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.operations import add_session
 from tpbackend.storage import Activity, Platform_or_none, User
 from tpbackend.utils2 import ts_to_dt
@@ -26,15 +27,15 @@ def add_through_api(user: User, data: API_PostActivity) -> API_Activity:
     game = None
     if data.game_id:
         game = GameSelect.by_id(data.game_id)
-        if not game:
-            return not_found("Game not found")
     elif data.igdb_id:
-        game = GameSelect.by_igdb_id(data.igdb_id)
-        if not game:
-            # TODO create the game!
-            return bad_request("not implemented")
+        game = get_or_create_game(
+            data.igdb_id, history_create_msg="Created during API activity add"
+        )
     else:
-        return bad_request("Game id or igdb id must be provided")
+        return bad_request("game_id or igdb_id must be provided")
+
+    if not game:
+        return not_found("Game not found")
 
     platform = None
     if data.platform_id:

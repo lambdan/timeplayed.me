@@ -233,7 +233,7 @@ def get_users(
 
 
 @router.get(
-    "/whoami",
+    "/who_am_i",
     tags=["users", "authenticated"],
     response_model=API_User,
     description="Get the currently authenticated user",
