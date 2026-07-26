@@ -240,9 +240,11 @@ onMounted(async () => {
                         <div>
                           {{ game.igdb_id }}
                         </div>
+                        <!--
                         <div>
                           <IGDBInfoCard :igdbId="game.igdb_id" />
                         </div>
+                        -->
                       </td>
                     </tr>
 
