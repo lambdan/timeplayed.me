@@ -35,12 +35,10 @@ Returns: Confirmation message
         if game_by_igdb_id:
             return f"Error: Game already exists in the database (id: {game_by_igdb_id.id}, name: {game_by_igdb_id.name})"
 
-        new_game = get_or_create_game(igdb_id)
+        history_msg = f"Game added by IGDB ID by user {user.get_id()}"
+        new_game = get_or_create_game(igdb_id, history_msg)
         if not new_game:
             return "Error: game not added, probably invalid id?"
-
-        new_game.add_history(f"Game added by IGDB ID by user {user.get_id()}")
-        new_game.save()
 
         out = "✅ Added game by IGDB id!\n"
         out += f"- *{new_game.name}*\n"

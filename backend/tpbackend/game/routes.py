@@ -1,6 +1,9 @@
+from fastapi.responses import RedirectResponse
 from tpbackend.activity.query import ActivityQuery
+from tpbackend.discord.routes import redirect_discord_avatar
 from tpbackend.game.models import API_GameWithStats
 from tpbackend.game.query import GameStatsQuery
+from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
 from tpbackend.game.models import API_Game
@@ -191,6 +194,19 @@ def get_single_game(game_id=path_id("game")) -> API_Game:
     if len(x) == 0:
         return not_found("Game not found")
     return x[0]
+
+
+@router.get(
+    "/game_igdb/{igdb_id}",
+    tags=["games", "IGDB"],
+    response_model=API_Game,
+    description="Get a game by its IGDB ID. If the game is not in the database, it will be created from IGDB data.",
+)
+def get_single_game_by_igdb_id(igdb_id=path_id("IGDB game")) -> API_Game:
+    x = get_or_create_game(igdb_id, "Created by IGDB ID redirect")
+    if x:
+        return API_Game.from_game(x)
+    return not_found("Game not found (probably not in IGDB)")
 
 
 @router.get(

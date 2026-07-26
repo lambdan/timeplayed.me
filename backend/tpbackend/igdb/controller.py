@@ -56,7 +56,7 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     return None
 
 
-def get_or_create_game(igdb_game_id: int) -> Game | None:
+def get_or_create_game(igdb_game_id: int, history_create_msg: str) -> Game | None:
     if not igdb_game_id:
         return None
 
@@ -77,5 +77,6 @@ def get_or_create_game(igdb_game_id: int) -> Game | None:
         name=igdb_game.name, igdb_id=igdb_game_id, release_year=game_year
     )
     new_game = cast(Game, new_game)
+    new_game.add_history(history_create_msg)
     new_game.save()
     return new_game
