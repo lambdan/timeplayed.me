@@ -1,8 +1,12 @@
 import logging
 import json
+from tpbackend.game.query import GameQuery
 from tpbackend.igdb.client import IGDBClient
 from tpbackend.igdb.models import IGDB_Cover, IGDB_GameInfo, IGDB_SearchResult
 from typing import cast
+
+from tpbackend.storage import Game
+from tpbackend.utils2 import ts_to_dt
 
 logger = logging.getLogger("IGDBController")
 igdb = IGDBClient()
@@ -50,3 +54,28 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     except Exception as e:
         logger.error("Error parsing IGDB game info response: %s", e)
     return None
+
+
+def get_or_create_game(igdb_game_id: int) -> Game | None:
+    if not igdb_game_id:
+        return None
+
+    game = Game.get_or_none(Game.igdb_id == igdb_game_id)
+    if game:
+        return game
+
+    igdb_game = get_game_info(igdb_game_id)
+    if not igdb_game:
+        return None
+
+    game_year = None
+    if igdb_game.first_release_date:
+        dt = ts_to_dt(igdb_game.first_release_date)
+        game_year = dt.year
+
+    new_game = Game.create(
+        name=igdb_game.name, igdb_id=igdb_game_id, release_year=game_year
+    )
+    new_game = cast(Game, new_game)
+    new_game.save()
+    return new_game
