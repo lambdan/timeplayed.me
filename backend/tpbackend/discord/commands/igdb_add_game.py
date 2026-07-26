@@ -42,8 +42,8 @@ Returns: Confirmation message
             return "Error: game not added, probably invalid id?"
 
         out = "✅ Added game by IGDB id!\n"
-        out += f"- *{new_game.name}*\n"
+        out += f"- *{new_game.get_name()}*\n"
         out += f"- Year: {new_game.get_release_year()}\n"
-        out += f"- Game ID: {new_game.id}"
+        out += f"- Game ID: {new_game.get_id()}"
 
         return out
