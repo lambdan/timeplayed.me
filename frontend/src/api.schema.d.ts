@@ -833,6 +833,26 @@ export interface components {
             expansions: number[];
             /** Parent Game */
             parent_game?: number | null;
+            /**
+             * Ports
+             * @default []
+             */
+            ports: number[];
+            /**
+             * Remakes
+             * @default []
+             */
+            remakes: number[];
+            /**
+             * Remasters
+             * @default []
+             */
+            remasters: number[];
+            /**
+             * Standalone Expansions
+             * @default []
+             */
+            standalone_expansions: number[];
         };
         /** Info */
         Info: {

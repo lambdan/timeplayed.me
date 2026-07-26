@@ -28,3 +28,7 @@ class IGDB_GameInfo(BaseModel):
     expanded_games: list[int] = []
     expansions: list[int] = []
     parent_game: int | None = None
+    ports: list[int] = []
+    remakes: list[int] = []
+    remasters: list[int] = []
+    standalone_expansions: list[int] = []

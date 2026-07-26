@@ -41,7 +41,7 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
         cover.image_id,
         cover.id,
         similar_games,
-        expanded_games, expansions, parent_game
+        expanded_games, expansions, parent_game, ports, remakes, remasters, standalone_expansions
         ; 
     where id = {igdb_game_id};
     """
