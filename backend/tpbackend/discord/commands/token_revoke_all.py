@@ -14,6 +14,6 @@ class TokenRevokeAllCommand(Command):
         for token in tokens:
             token.delete_instance()
             count += 1
-        user.add_history("Revoked all tokens")
+        user.add_history(f"Revoked {count} tokens")
         user.save()
         return f"OK! Revoked {count} tokens."
