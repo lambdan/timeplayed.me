@@ -236,7 +236,6 @@ def get_users(
     "/who_am_i",
     tags=["users", "authenticated"],
     response_model=API_User,
-    description="Get the currently authenticated user",
 )
 def who_am_i(user: AuthenticatedUser) -> API_User:
     return API_User.from_user(user)
