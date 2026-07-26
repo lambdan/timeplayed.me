@@ -19,7 +19,7 @@ def lookup_token(token: str) -> Token | None:
     maybe = Token.get_or_none(sha256=token_hash)
     if maybe:
         maybe = cast(Token, maybe)
-        if not maybe.is_expired():
+        if maybe.is_valid():
             return maybe
     return None
 

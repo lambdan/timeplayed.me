@@ -677,7 +677,6 @@ class History(IdMixin):
 
 class Token(IdMixin):
     created = DateTimeField(default=lambda: now())
-    expires = DateTimeField(default=lambda: now() + timedelta(days=30))
     user = ForeignKeyField(User, backref="tokens", on_delete="CASCADE")
     sha256 = CharField(unique=True)
 
@@ -687,16 +686,11 @@ class Token(IdMixin):
     def get_created(self) -> datetime:
         return assertTimezone(self.created)
 
-    def get_expires(self) -> datetime:
-        return assertTimezone(self.expires)
-
     def get_sha256(self) -> str:
         return cast(str, self.sha256)
 
-    def is_expired(self) -> bool:
-        now_ts = now().timestamp()
-        expires_ts = assertTimezone(self.expires).timestamp()
-        return now_ts > expires_ts
+    def is_valid(self) -> bool:
+        return True  # for now...
 
 
 async def clean_loop():
