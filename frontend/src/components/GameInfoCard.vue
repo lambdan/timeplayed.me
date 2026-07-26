@@ -7,13 +7,13 @@ import type { Game, GameWithStats, IGDBGameInfo } from "../api.models";
 import ChildGameBadge from "./Badges/ChildGameBadge.vue";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "./CalendarBasic.vue";
+import IGDBInfoCard from "./IGDBInfoCard.vue";
 
 const props = defineProps<{ game: GameWithStats }>();
 
 const gameWithStats = ref<GameWithStats>(props.game);
 const parent = ref<GameWithStats>();
 const childrenStats = ref<GameWithStats[]>([]);
-const igdbInfo = ref<IGDBGameInfo>();
 
 const loadingStats = ref(true);
 
@@ -70,15 +70,6 @@ onMounted(async () => {
   }
 
   loadingStats.value = false;
-
-  if (props.game.igdb_id) {
-    // have to do this stupid thing because IGDB uses slugs, instead of ID for their URLs...
-    // extra stupid because game cover will do the same API call also
-    const _igdbInfo = await TimeplayedAPI.getIGDBGameInfo(props.game.igdb_id);
-    if (_igdbInfo) {
-      igdbInfo.value = _igdbInfo;
-    }
-  }
 });
 </script>
 
@@ -244,15 +235,19 @@ onMounted(async () => {
                       </td>
                     </tr>
                     <tr v-if="game.igdb_id">
-                      <td><b>IGDB ID:</b></td>
-                      <td v-if="!igdbInfo">
-                        {{ game.igdb_id }}
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-                      </td>
-                      <td v-else>
-                        <a :href="igdbInfo.url">{{ game.igdb_id }}</a>
+                      <td><b>IGDB:</b></td>
+                      <td>
+                        <div>
+                          {{ game.igdb_id }}
+                        </div>
+                        <!--
+                        <div>
+                          <IGDBInfoCard :igdbId="game.igdb_id" />
+                        </div>
+                        -->
                       </td>
                     </tr>
+
                     <tr v-if="game.sgdb_id && game.sgdb_grid_id">
                       <td><b>SteamGridDB Game ID/Grid ID:</b></td>
                       <td>
@@ -283,6 +278,7 @@ onMounted(async () => {
                         >
                       </td>
                     </tr>
+
                     <tr v-if="game.aliases.length > 0">
                       <td><b>Aliases:</b></td>
                       <td>
@@ -293,6 +289,7 @@ onMounted(async () => {
                         </ul>
                       </td>
                     </tr>
+
                     <tr>
                       <td><b>Created:</b></td>
                       <td>

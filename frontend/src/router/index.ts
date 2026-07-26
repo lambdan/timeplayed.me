@@ -10,6 +10,7 @@ import PlatformPage from "../views/PlatformPage.vue";
 import YearRecapUser from "../views/YearRecapUser.vue";
 import HelpPage from "../views/HelpPage.vue";
 import ActivityPage from "../views/ActivityPage.vue";
+import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -32,6 +33,11 @@ const routes = [
     path: "/game/:id",
     name: "GamePage",
     component: GamePage,
+  },
+  {
+    path: "/game_igdb/:id",
+    name: "GamePageByIGDB",
+    component: GamePageByIGDB,
   },
   { path: "/news", component: NewsPage },
   { path: "/help", component: HelpPage },

@@ -24,3 +24,11 @@ class IGDB_GameInfo(BaseModel):
     platforms: list[int] | None = None
     # IGDB Company IDs
     involved_companies: list[int] | None = None
+    similar_games: list[int] = []
+    expanded_games: list[int] = []
+    expansions: list[int] = []
+    parent_game: int | None = None
+    ports: list[int] = []
+    remakes: list[int] = []
+    remasters: list[int] = []
+    standalone_expansions: list[int] = []
