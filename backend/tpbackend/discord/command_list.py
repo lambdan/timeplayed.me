@@ -1,4 +1,5 @@
 from tpbackend.discord.commands.token_generate import TokenGenerateCommand
+from tpbackend.discord.commands.token_revoke_all import TokenRevokeAllCommand
 from .commands.add_activity import AddActivityCommand
 from .commands.add_game_sgdb import AddGameSGDBCommand
 from .commands.add_game_admin import AddGameAdminCommand
@@ -84,6 +85,7 @@ REGULAR_COMMANDS = [
     GetGameCommand(),
     # token
     TokenGenerateCommand(),
+    TokenRevokeAllCommand(),
 ]
 
 ADMIN_COMMANDS = [
