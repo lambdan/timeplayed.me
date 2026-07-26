@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from tpbackend.common.models import BaseTotals
 from tpbackend.utils2 import dt_to_ts
@@ -35,3 +35,22 @@ class Total(BaseTotals):
     user_count: int
     platform_count: int
     game_count: int
+
+
+class API_PostActivity(BaseModel):
+    seconds: int = Field(description="Length of the activity in seconds", gt=0)
+    game_id: int | None = Field(
+        description="ID of the game being played, can be null if igdb_id is provided",
+        default=None,
+    )
+    igdb_id: int | None = Field(
+        description="IGDB ID of the game being played, can be null if game_id is provided",
+        default=None,
+    )
+    platform_id: int | None = Field(
+        description="ID of platform that was played on. Will default to user's default platform if not provided",
+        default=None,
+    )
+    emulated: bool = Field(
+        description="Was activity played in an emulator?", default=False
+    )

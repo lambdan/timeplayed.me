@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Path, Query
 from typing import Literal
+from tpbackend.activity.controller import add_through_api, delete_through_api
+
+from tpbackend.api.auth import AuthenticatedUser
 from tpbackend.api.params import query_id, query_ts, sorts
 from tpbackend.storage import Activity
-from tpbackend.activity.models import API_Activity, Total
+from tpbackend.activity.models import API_Activity, API_PostActivity, Total
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS, dt_to_ts
 from tpbackend.api.params import AscDescOrder, path_csv, query_csv, offset, limit
@@ -34,6 +37,15 @@ def __get_newest_or_oldest(
         query, "timestamp", "desc" if which == "newest" else "asc"
     )
     return API_Activity.from_activity(query.first())
+
+
+@router.post(
+    "/activity",
+    tags=["activities", "authenticated"],
+    response_model=API_Activity,
+)
+def add_activity(user: AuthenticatedUser, data: API_PostActivity) -> API_Activity:
+    return add_through_api(user=user, data=data)
 
 
 @router.get("/activity/newest", tags=["activities"], response_model=API_Activity)
@@ -72,6 +84,11 @@ def get_single_activity(id: int) -> API_Activity:
     if not activity:
         return not_found("Activity not found")
     return API_Activity.from_activity(activity)
+
+
+@router.delete("/activity/{id}", tags=["activities", "authenticated"])
+def delete_activity(id: int, user: AuthenticatedUser):
+    return delete_through_api(user=user, activity_id=id)
 
 
 @router.get(

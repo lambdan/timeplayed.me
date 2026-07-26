@@ -674,6 +674,24 @@ class History(IdMixin):
     message = TextField()
 
 
+class Token(IdMixin):
+    created = DateTimeField(default=lambda: now())
+    user = ForeignKeyField(User, backref="tokens", on_delete="CASCADE")
+    sha256 = CharField(unique=True)
+
+    def get_user(self) -> User:
+        return cast(User, self.user)
+
+    def get_created(self) -> datetime:
+        return assertTimezone(self.created)
+
+    def get_sha256(self) -> str:
+        return cast(str, self.sha256)
+
+    def is_valid(self) -> bool:
+        return True  # for now...
+
+
 async def clean_loop():
     def cleanupDiscordHistory():
         cutoff = now() - timedelta(days=30)
