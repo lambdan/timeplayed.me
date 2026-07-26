@@ -1,7 +1,6 @@
 import asyncio
 import os
 import logging
-import uuid
 from typing import cast
 from datetime import datetime, timedelta
 
