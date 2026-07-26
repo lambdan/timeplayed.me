@@ -71,13 +71,17 @@
             </li>
             <li>
               If it's a game that does not exist in the database, you will need
-              to add it by supplying a SteamGridDB id. You can use
-              <code>!ssgdb game name</code> to search SteamGridDB for games, and
-              then <code>!add_sgdb 1234</code> to add the game.
+              to add it by supplying a
+              <a href="https://www.steamgriddb.com/">SteamGridDB</a> or
+              <a href="https://www.igdb.com/">IGDB</a> ID. You can use
+              <code>!ssgdb query</code> to search SteamGridDB for games, or
+              <code>!sigdb query</code> to search IGDB, and then
+              <code>!add_sgdb 1234</code> or <code>!add_igdb 1234</code> to add
+              the game.
               <ul>
                 <li>
-                  If the game does not exist on SteamGridDB, an admin will need
-                  to add it manually.
+                  If the game does not exist on SteamGridDB or IGDB, an admin
+                  will need to add it manually.
                 </li>
               </ul>
             </li>
@@ -171,6 +175,30 @@
         command to change what your PC platform is, eg <code>!pcp mac</code>
       </p>
       <p>You can also retroactively update using <code>!set_platform</code>.</p>
+
+      <hr />
+
+      <a name="api"></a>
+      <h2>
+        I don't trust Discord activity tracking and want to make my own tracker,
+        do you have an API?
+      </h2>
+      <p>
+        Yes, a very basic one, the endpoint you are interested in is likely
+        <code>POST /api/activity</code>, see the
+        <a href="/docs#/activities/add_activity_api_activity_post"
+          >Swagger documentation</a
+        >
+      </p>
+      <p>
+        (psst, you should send in IGDB ID, that way the game gets automatically
+        created if it doesn't exist...)
+      </p>
+      <p>
+        For now you still need Discord to generate an API token (using
+        <code>!token</code>), but at some point I want to make a new user/auth
+        system that is not Discord based.
+      </p>
     </div>
   </div>
 </template>
