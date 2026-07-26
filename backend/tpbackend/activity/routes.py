@@ -40,10 +40,9 @@ def __get_newest_or_oldest(
 
 
 @router.post(
-    "/activity/add",
+    "/activity",
     tags=["activities", "authenticated"],
     response_model=API_Activity,
-    description="Add an activity for the authenticated user. Returns the created activity.",
 )
 def add_activity(user: AuthenticatedUser, data: API_PostActivity) -> API_Activity:
     return add_through_api(user=user, data=data)
