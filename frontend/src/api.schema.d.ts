@@ -816,6 +816,23 @@ export interface components {
             platforms?: number[] | null;
             /** Involved Companies */
             involved_companies?: number[] | null;
+            /**
+             * Similar Games
+             * @default []
+             */
+            similar_games: number[];
+            /**
+             * Expanded Games
+             * @default []
+             */
+            expanded_games: number[];
+            /**
+             * Expansions
+             * @default []
+             */
+            expansions: number[];
+            /** Parent Game */
+            parent_game?: number | null;
         };
         /** Info */
         Info: {

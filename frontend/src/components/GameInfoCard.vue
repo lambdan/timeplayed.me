@@ -44,6 +44,11 @@ function activityCountInclChildren() {
   return total;
 }
 
+const similarGames = ref<Game[]>([]);
+const expansions = ref<Game[]>([]);
+const expandedGames = ref<Game[]>([]);
+const igdbParent = ref<Game>();
+
 onMounted(async () => {
   // fetch children and parent
   const ids = [...props.game.children_ids];
@@ -77,6 +82,33 @@ onMounted(async () => {
     const _igdbInfo = await TimeplayedAPI.getIGDBGameInfo(props.game.igdb_id);
     if (_igdbInfo) {
       igdbInfo.value = _igdbInfo;
+
+      if (_igdbInfo.parent_game) {
+        igdbParent.value = await TimeplayedAPI.getGameByIGDB(
+          _igdbInfo.parent_game,
+        );
+      }
+
+      for (const similar_id of _igdbInfo.similar_games) {
+        const similarGame = await TimeplayedAPI.getGameByIGDB(similar_id);
+        if (similarGame) {
+          similarGames.value.push(similarGame);
+        }
+      }
+
+      for (const expansion_id of _igdbInfo.expansions) {
+        const expansionGame = await TimeplayedAPI.getGameByIGDB(expansion_id);
+        if (expansionGame) {
+          expansions.value.push(expansionGame);
+        }
+      }
+
+      for (const expanded_id of _igdbInfo.expanded_games) {
+        const expandedGame = await TimeplayedAPI.getGameByIGDB(expanded_id);
+        if (expandedGame) {
+          expandedGames.value.push(expandedGame);
+        }
+      }
     }
   }
 });
@@ -251,6 +283,58 @@ onMounted(async () => {
                       </td>
                       <td v-else>
                         <a :href="igdbInfo.url">{{ game.igdb_id }}</a>
+
+                        <div class="card mt-2 p-0 h-100">
+                          <div class="card-body">
+                            <div v-if="igdbInfo.summary">
+                              <h4>Summary</h4>
+                              <p>{{ igdbInfo.summary }}</p>
+                            </div>
+
+                            <div v-if="igdbParent">
+                              <h4>Parent Game</h4>
+                              <p>
+                                <a :href="'/game/' + igdbParent.id">{{
+                                  igdbParent.name
+                                }}</a>
+                              </p>
+                            </div>
+
+                            <div v-if="similarGames.length > 0">
+                              <h4>Similar Games</h4>
+
+                              <ul>
+                                <li
+                                  v-for="similar in similarGames.sort((a, b) =>
+                                    a.name.localeCompare(b.name),
+                                  )"
+                                  :key="similar.id"
+                                >
+                                  <a :href="'/game/' + similar.id">{{
+                                    similar.name
+                                  }}</a>
+                                </li>
+                              </ul>
+                            </div>
+
+                            <div v-if="expansions.length > 0">
+                              <h4>Expansions</h4>
+
+                              <ul>
+                                <li
+                                  v-for="similar in expansions.sort((a, b) =>
+                                    a.name.localeCompare(b.name),
+                                  )"
+                                  :key="similar.id"
+                                >
+                                  <a :href="'/game/' + similar.id">{{
+                                    similar.name
+                                  }}</a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                     <tr v-if="game.sgdb_id && game.sgdb_grid_id">
@@ -283,6 +367,7 @@ onMounted(async () => {
                         >
                       </td>
                     </tr>
+
                     <tr v-if="game.aliases.length > 0">
                       <td><b>Aliases:</b></td>
                       <td>
@@ -293,6 +378,7 @@ onMounted(async () => {
                         </ul>
                       </td>
                     </tr>
+
                     <tr>
                       <td><b>Created:</b></td>
                       <td>

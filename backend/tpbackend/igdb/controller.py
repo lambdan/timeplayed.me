@@ -39,7 +39,9 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
         first_release_date,url,
         summary,
         cover.image_id,
-        cover.id
+        cover.id,
+        similar_games,
+        expanded_games, expansions, parent_game
         ; 
     where id = {igdb_game_id};
     """
