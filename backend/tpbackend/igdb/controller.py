@@ -1,6 +1,7 @@
 import logging
 import json
 from tpbackend.game.query import GameQuery
+from tpbackend.game.select import GameSelect
 from tpbackend.igdb.client import IGDBClient
 from tpbackend.igdb.models import IGDB_Cover, IGDB_GameInfo, IGDB_SearchResult
 from typing import cast
@@ -62,7 +63,7 @@ def get_or_create_game(igdb_game_id: int, history_create_msg: str) -> Game | Non
     if not igdb_game_id:
         return None
 
-    game = Game.get_or_none(Game.igdb_id == igdb_game_id)
+    game = GameSelect.by_igdb_id(igdb_game_id)
     if game:
         return game
 

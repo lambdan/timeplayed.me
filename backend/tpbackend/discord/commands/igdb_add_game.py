@@ -1,3 +1,4 @@
+from tpbackend.game.select import GameSelect
 from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.storage import User
 from .command import Command
@@ -31,7 +32,7 @@ Returns: Confirmation message
         if igdb_id <= 0:
             return "Error: Invalid id (must be > 0). 0 is used for games that are NOT on IGDB."
 
-        game_by_igdb_id = Game.get_or_none(Game.igdb_id == igdb_id)
+        game_by_igdb_id = GameSelect.by_igdb_id(igdb_id)
         if game_by_igdb_id:
             return f"Error: Game already exists in the database (id: {game_by_igdb_id.id}, name: {game_by_igdb_id.name})"
 
