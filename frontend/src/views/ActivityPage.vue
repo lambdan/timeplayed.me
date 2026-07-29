@@ -84,8 +84,21 @@ onMounted(async () => {
               </li>
 
               <li class="list-group-item">
-                <CalendarBasic :date="activity.timestamp" :absolute="true" />
+                <CalendarBasic
+                  :date="activity.started"
+                  :absolute="true"
+                  :showIcon="true"
+                />
+                 
+                <i class="bi bi-arrow-right"></i>
+                 
+                <CalendarBasic
+                  :date="activity.ended"
+                  :absolute="true"
+                  :showIcon="true"
+                />
               </li>
+
               <li
                 class="list-group-item"
                 :title="activity.seconds + ' seconds'"
