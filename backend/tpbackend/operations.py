@@ -93,12 +93,10 @@ def add_session(
             incoming_ended_dt=timestamp,
             incoming_seconds=seconds,
         )
+        overlap_msg = None
         if overlapping_activity is not None:
-            logger.info(
-                "Deleting overlapping activity %s for user %s",
-                overlapping_activity,
-                user,
-            )
+            overlap_msg = f"overlapped activity id {overlapping_activity.get_id()} ({overlapping_activity.get_seconds()} seconds @ {overlapping_activity.get_datetime().isoformat()})"
+            logger.info(overlap_msg)
             # what is longest?
             seconds = int(
                 max(
@@ -107,8 +105,7 @@ def add_session(
                     overlapping_activity.get_seconds(),
                 )
             )
-            # overlapping_activity.delete_instance()  # or maybe just hide...
-            overlapping_activity.set_hidden(True)
+            overlapping_activity.delete_instance()  # or maybe just hide...
 
         raw_activity = Activity.create(
             user=user,
@@ -133,6 +130,10 @@ def add_session(
             activity.get_datetime().isoformat(),
             activity.get_hidden(),
         )
+
+        if overlap_msg:
+            raw_activity.add_history(overlap_msg)
+            raw_activity.save()
 
         return activity, None
     except Exception as e:
