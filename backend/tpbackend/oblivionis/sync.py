@@ -82,9 +82,8 @@ def parseActivity(activity: PassedActivity) -> bool:
             )
             return True
 
-        game_name = activity["game_name"]
-        game_name = game_name.removesuffix(" with Medal").strip()
-
+        raw_game = activity["game_name"]
+        game_name = raw_game.removesuffix(" with Medal").strip()
         game = get_game_by_name_or_alias_or_create(game_name)
 
         platform_abbr = activity["platform"]
@@ -108,7 +107,9 @@ def parseActivity(activity: PassedActivity) -> bool:
         if success[0]:
             logger.info("Activity synced successfully")
             created_activity = success[0]
-            created_activity.add_history("Activity source: Oblivionis")
+            created_activity.add_history(
+                f"Activity source: Oblivionis (raw game: '{raw_game}')"
+            )
             created_activity.save()
             return True
 
