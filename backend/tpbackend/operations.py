@@ -132,8 +132,8 @@ def add_session(
         )
 
         if overlap_msg:
-            raw_activity.add_history(overlap_msg)
-            raw_activity.save()
+            activity.add_history(overlap_msg)
+            activity.save()
 
         return activity, None
     except Exception as e:
