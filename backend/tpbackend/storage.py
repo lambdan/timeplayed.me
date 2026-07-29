@@ -638,6 +638,9 @@ class Activity(IdMixin, HistoryMixin, HiddenMixin):
     def get_started(self) -> datetime:
         return self.get_datetime() - timedelta(seconds=self.get_seconds())
 
+    def get_ended(self) -> datetime:
+        return self.get_datetime()
+
 
 class LiveActivity(IdMixin):
     user = ForeignKeyField(User, backref="live_activities", on_delete="CASCADE")

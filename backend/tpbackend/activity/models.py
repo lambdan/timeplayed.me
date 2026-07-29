@@ -2,11 +2,20 @@ from pydantic import BaseModel, Field
 
 from tpbackend.common.models import BaseTotals
 from tpbackend.utils2 import dt_to_ts
+from typing import cast
 
 
 class API_Activity(BaseModel):
     id: int
-    timestamp: int
+    started: int = Field(
+        description="Timestamp of when the activity started in milliseconds since epoch"
+    )
+    ended: int = Field(
+        description="Timestamp of when the activity ended in milliseconds since epoch"
+    )
+    timestamp: int = Field(
+        description="Same as ended, kept for backwards compatibility", deprecated=True
+    )
     seconds: int
     user_id: int
     game_id: int
@@ -17,17 +26,20 @@ class API_Activity(BaseModel):
 
     @classmethod
     def from_activity(cls, activity):
+        # from tpbackend.storage import Activity
         # activity = cast(Activity, activity)
         return cls(
-            id=activity.id,
-            timestamp=dt_to_ts(activity.timestamp),
-            seconds=activity.seconds,
-            user_id=activity.user.id,
-            game_id=activity.game.id,
-            platform_id=activity.platform.id,
-            emulated=activity.emulated,
-            created=dt_to_ts(activity.created),
-            updated=dt_to_ts(activity.updated),
+            id=activity.get_id(),
+            timestamp=activity.get_timestamp(),
+            ended=dt_to_ts(activity.get_ended()),
+            started=dt_to_ts(activity.get_started()),
+            seconds=activity.get_seconds(),
+            user_id=activity.get_user().get_id(),
+            game_id=activity.get_game().get_id(),
+            platform_id=activity.get_platform().get_id(),
+            emulated=activity.get_emulated(),
+            created=dt_to_ts(activity.get_created()),
+            updated=dt_to_ts(activity.get_updated()),
         )
 
 

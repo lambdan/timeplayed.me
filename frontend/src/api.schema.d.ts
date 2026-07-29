@@ -140,6 +140,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/who_am_i": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who Am I */
+        get: operations["who_am_i_api_who_am_i_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Activity */
+        post: operations["add_activity_api_activity_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/activity/newest": {
         parameters: {
             query?: never;
@@ -185,7 +219,8 @@ export interface paths {
         get: operations["get_single_activity_api_activity__id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Activity */
+        delete: operations["delete_activity_api_activity__id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -591,7 +626,21 @@ export interface components {
         API_Activity: {
             /** Id */
             id: number;
-            /** Timestamp */
+            /**
+             * Started
+             * @description Timestamp of when the activity started in milliseconds since epoch
+             */
+            started: number;
+            /**
+             * Ended
+             * @description Timestamp of when the activity ended in milliseconds since epoch
+             */
+            ended: number;
+            /**
+             * Timestamp
+             * @deprecated
+             * @description Same as ended, kept for backwards compatibility
+             */
             timestamp: number;
             /** Seconds */
             seconds: number;
@@ -705,6 +754,35 @@ export interface components {
             /** Updated */
             updated: number;
             stats: components["schemas"]["PlatformTotals"];
+        };
+        /** API_PostActivity */
+        API_PostActivity: {
+            /**
+             * Seconds
+             * @description Length of the activity in seconds
+             */
+            seconds: number;
+            /**
+             * Game Id
+             * @description ID of the game being played, can be null if igdb_id is provided
+             */
+            game_id?: number | null;
+            /**
+             * Igdb Id
+             * @description IGDB ID of the game being played, can be null if game_id is provided
+             */
+            igdb_id?: number | null;
+            /**
+             * Platform Id
+             * @description ID of platform that was played on. Will default to user's default platform if not provided
+             */
+            platform_id?: number | null;
+            /**
+             * Emulated
+             * @description Was activity played in an emulator?
+             * @default false
+             */
+            emulated: boolean;
         };
         /** API_User */
         API_User: {
@@ -1283,6 +1361,59 @@ export interface operations {
             };
         };
     };
+    who_am_i_api_who_am_i_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_User"];
+                };
+            };
+        };
+    };
+    add_activity_api_activity_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["API_PostActivity"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_newest_activity_api_activity_newest_get: {
         parameters: {
             query?: {
@@ -1373,6 +1504,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_Activity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_activity_api_activity__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
