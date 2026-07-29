@@ -99,7 +99,16 @@ def add_session(
                 overlapping_activity,
                 user,
             )
-            overlapping_activity.delete_instance()  # or maybe just hide...
+            # what is longest?
+            seconds = int(
+                max(
+                    seconds,
+                    (timestamp - overlapping_activity.get_started()).total_seconds(),
+                    overlapping_activity.get_seconds(),
+                )
+            )
+            # overlapping_activity.delete_instance()  # or maybe just hide...
+            overlapping_activity.set_hidden(True)
 
         raw_activity = Activity.create(
             user=user,

@@ -635,6 +635,9 @@ class Activity(IdMixin, HistoryMixin, HiddenMixin):
         self.emulated = cast(BooleanField, emulated)
         self.add_history(f"Emulated changed from {old_emulated} to {emulated}")
 
+    def get_started(self) -> datetime:
+        return self.get_datetime() - timedelta(seconds=self.get_seconds())
+
 
 class LiveActivity(IdMixin):
     user = ForeignKeyField(User, backref="live_activities", on_delete="CASCADE")
