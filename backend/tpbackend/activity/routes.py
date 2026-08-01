@@ -1,11 +1,20 @@
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter
 from typing import Literal
-from tpbackend.activity.controller import add_through_api, delete_through_api
+from tpbackend.activity.controller import (
+    add_through_api,
+    delete_through_api,
+    get_live_activity_through_api,
+)
 
 from tpbackend.api.auth import AuthenticatedUser
 from tpbackend.api.params import query_id, query_ts, sorts
 from tpbackend.storage import Activity
-from tpbackend.activity.models import API_Activity, API_PostActivity, Total
+from tpbackend.activity.models import (
+    API_Activity,
+    API_LiveActivity,
+    API_PostActivity,
+    Total,
+)
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import parse_csv, clamp, validateTS, dt_to_ts
 from tpbackend.api.params import AscDescOrder, path_csv, query_csv, offset, limit
@@ -70,6 +79,15 @@ def get_oldest_activity(
     if not x:
         raise not_found("No activity found")
     return x
+
+
+@router.get(
+    "/activity/live",
+    tags=["activities", "live", "authenticated"],
+    response_model=API_LiveActivity,
+)
+def get_live_activity(user: AuthenticatedUser) -> API_LiveActivity:
+    return get_live_activity_through_api(user=user)
 
 
 @router.get(

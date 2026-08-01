@@ -43,6 +43,28 @@ class API_Activity(BaseModel):
         )
 
 
+class API_LiveActivity(BaseModel):
+    id: int
+    started: int = Field(
+        description="Timestamp of when the activity started in milliseconds since epoch"
+    )
+    user_id: int
+    game_id: int
+    platform_id: int
+
+    @classmethod
+    def from_live_activity(cls, live_activity):
+        # import tpbackend.storage as storage
+        # live_activity = cast(storage.LiveActivity, live_activity)
+        return cls(
+            id=live_activity.get_id(),
+            started=live_activity.get_started_timestamp(),
+            user_id=live_activity.get_user().get_id(),
+            game_id=live_activity.get_game().get_id(),
+            platform_id=live_activity.get_platform().get_id(),
+        )
+
+
 class Total(BaseTotals):
     user_count: int
     platform_count: int

@@ -1,4 +1,4 @@
-from tpbackend.activity.models import API_Activity, API_PostActivity
+from tpbackend.activity.models import API_Activity, API_LiveActivity, API_PostActivity
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.api.responses import (
     bad_request,
@@ -10,7 +10,7 @@ from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.operations import add_session
-from tpbackend.storage import Activity, Platform_or_none, User
+from tpbackend.storage import Activity, LiveActivity_or_none, Platform_or_none, User
 from tpbackend.utils2 import ts_to_dt
 import logging
 from typing import cast
@@ -73,3 +73,10 @@ def delete_through_api(user: User, activity_id: int):
         return "Deleted!"
     else:
         return forbidden("You cannot delete someone else's activity")
+
+
+def get_live_activity_through_api(user: User) -> API_LiveActivity:
+    act = LiveActivity_or_none(user=user)
+    if not act:
+        return not_found("No live activity found")
+    return API_LiveActivity.from_live_activity(act)
