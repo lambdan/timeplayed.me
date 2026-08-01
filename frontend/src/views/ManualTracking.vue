@@ -8,7 +8,9 @@ import { TimeplayedAPI } from "../api.client";
 
 const route = useRoute();
 
-const token = ref<string | null>(localStorage.getItem("token"));
+const TOKEN_KEY = "mt-token";
+
+const token = ref<string | null>(localStorage.getItem(TOKEN_KEY) || null);
 const loading = ref(false);
 const liveActivity = ref<LiveActivity | null>(null);
 const user = ref<User>();
@@ -33,17 +35,18 @@ function updateDuration() {
   )}`;
 }
 
-function tokenSaveClick() {
+function login() {
+  error.value = "";
   if (token.value) {
-    localStorage.setItem("token", token.value);
+    localStorage.setItem(TOKEN_KEY, token.value);
     getUser();
   } else {
     alert("Please enter a token.");
   }
 }
 
-function tokenReset() {
-  localStorage.removeItem("token");
+function logout() {
+  localStorage.removeItem(TOKEN_KEY);
   token.value = null;
   user.value = undefined;
 }
@@ -52,11 +55,12 @@ async function getUser() {
   if (!token.value) {
     return;
   }
-  user.value = await TimeplayedAPI.whoAmI(token.value);
-  if (!user.value) {
-    tokenReset();
-  } else {
+  try {
+    user.value = await TimeplayedAPI.whoAmI(token.value);
     await getLiveActivity();
+  } catch (err: any) {
+    error.value = "Authorization failed";
+    logout();
   }
 }
 
@@ -136,103 +140,122 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!user">
-    <input
-      v-model="token"
-      type="password"
-      placeholder="Enter your token"
-      class="border p-2 rounded w-full mb-4"
-    />
-    <button @click="tokenSaveClick" class="bg-primary text-white p-2 rounded">
-      Save Token
-    </button>
-    <p class="mt-2 text-sm text-secondary">
-      Get a token by sending <code>!token</code> to the bot in Discord.
-    </p>
-  </div>
-
-  <div v-if="user" class="mt-4">
-    <p>
-      Authenticated as
-      <a :href="'/user/' + user.id">{{ user.display_name }}</a>
-    </p>
-    <button @click="tokenReset" class="bg-danger text-white p-2 rounded mt-2">
-      Logout
-    </button>
-  </div>
-
-  <div v-if="user">
-    <hr />
-    <div v-if="loading">Loading live activity...</div>
-
-    <div v-if="!loading">
-      <div v-if="!liveActivity" class="text-secondary">
-        No live activity running
+  <div class="card p-0">
+    <h1 class="card-header">Manual tracking</h1>
+    <div class="card-body">
+      <div v-if="error" class="alert alert-danger">
+        {{ error }}
       </div>
 
-      <div v-else-if="liveActivity">
-        <div class="card p-0">
-          <h1 class="card-header">Currently playing</h1>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-2 text-center" v-if="game">
-                <GameCover :gameId="game.id" :size="128" />
-              </div>
-              <span v-else class="col-md-2 text-center"
-                >Loading game cover...</span
-              >
+      <div v-if="!user">
+        <div class="input-group input-group-sm">
+          <input
+            v-model="token"
+            type="password"
+            placeholder="Enter your token"
+            class="form-control"
+          />
+          <button @click="login" class="bg-primary text-white p-2 rounded">
+            Login
+          </button>
+        </div>
+        <p class="mt-2 text-sm text-secondary">
+          Get a token by sending <code>!token</code> to the bot in Discord.
+        </p>
+      </div>
 
-              <div class="col">
-                <ul class="mt-4 list-group">
-                  <li class="list-group-item">
-                    <i class="bi bi-joystick"></i> 
-                    <a
-                      class="text-decoration-none"
-                      :href="'/game/' + game.id"
-                      v-if="game"
-                      >{{ game.name }}</a
-                    >
-                    <span v-else>Loading...</span>
-                  </li>
+      <div v-if="user">
+        <p>
+          <a class="text-decoration-none" :href="'/user/' + user.id"
+            >Logged in as {{ user.display_name }}</a
+          >.
+          <a
+            class="text-decoration-none text-danger"
+            @click="logout"
+            style="cursor: pointer"
+            >Click here to logout.</a
+          >
+        </p>
+      </div>
 
-                  <li class="list-group-item">
-                    <i class="bi bi-controller"></i> 
-                    <a
-                      class="text-decoration-none"
-                      :href="'/platform/' + platform.id"
-                      v-if="platform"
-                      >{{ platform.display_name }}</a
-                    >
-                    <span v-else>Loading...</span>
-                  </li>
+      <div v-if="user">
+        <hr />
+        <div v-if="loading">Loading live activity...</div>
 
-                  <li class="list-group-item">
-                    <i class="bi bi-stopwatch"></i> 
-                    <b><span id="duration" class="text-success">...</span></b>
-                  </li>
-                </ul>
+        <div v-if="!loading">
+          <div v-if="!liveActivity" class="text-secondary">
+            No live activity running
+          </div>
 
-                <div
-                  class="btn-group"
-                  role="group"
-                  aria-label="Live activity controls"
-                >
-                  <button
-                    @click="stopLiveActivity"
-                    class="btn btn-primary mt-4"
-                    id="stop-live-activity-button"
+          <div v-else-if="liveActivity">
+            <div class="card p-0">
+              <h1 class="card-header">Currently playing</h1>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-2 text-center" v-if="game">
+                    <GameCover :gameId="game.id" :size="128" />
+                  </div>
+                  <span v-else class="col-md-2 text-center"
+                    >Loading game cover...</span
                   >
-                    <i class="bi bi-stop-circle"></i>
-                    Stop
-                  </button>
-                  <button
-                    @click="abortLiveActivity"
-                    class="btn btn-danger mt-4"
-                    id="abort-live-activity-button"
-                  >
-                    <i class="bi bi-x-circle"></i>
-                    Abort
-                  </button>
+
+                  <div class="col">
+                    <ul class="mt-4 list-group">
+                      <li class="list-group-item">
+                        <i class="bi bi-joystick"></i> 
+                        <a
+                          class="text-decoration-none"
+                          :href="'/game/' + game.id"
+                          v-if="game"
+                          >{{ game.name }}</a
+                        >
+                        <span v-else>Loading...</span>
+                      </li>
+
+                      <li class="list-group-item">
+                        <i class="bi bi-controller"></i> 
+                        <a
+                          class="text-decoration-none"
+                          :href="'/platform/' + platform.id"
+                          v-if="platform"
+                          >{{ platform.display_name }}</a
+                        >
+                        <span v-else>Loading...</span>
+                      </li>
+
+                      <li class="list-group-item">
+                        <i class="bi bi-stopwatch"></i> 
+                        <b
+                          ><span id="duration" class="text-success"
+                            >...</span
+                          ></b
+                        >
+                      </li>
+                    </ul>
+
+                    <div
+                      class="btn-group"
+                      role="group"
+                      aria-label="Live activity controls"
+                    >
+                      <button
+                        @click="stopLiveActivity"
+                        class="btn btn-primary mt-4"
+                        id="stop-live-activity-button"
+                      >
+                        <i class="bi bi-stop-circle"></i>
+                        Stop
+                      </button>
+                      <button
+                        @click="abortLiveActivity"
+                        class="btn btn-danger mt-4"
+                        id="abort-live-activity-button"
+                      >
+                        <i class="bi bi-x-circle"></i>
+                        Abort
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

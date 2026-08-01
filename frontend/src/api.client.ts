@@ -63,8 +63,7 @@ export class TimeplayedAPI {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Error fetching who am I:", errorText);
-      throw new Error(`Error fetching who am I: ${errorText}`);
+      throw new Error(errorText);
     }
 
     const data = await response.json();
