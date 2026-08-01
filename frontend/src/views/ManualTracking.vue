@@ -15,6 +15,8 @@ import { TimeplayedAPI } from "../api.client";
 const route = useRoute();
 
 const TOKEN_KEY = "mt-token";
+const LAST_GAME_KEY = "mt-last-game";
+const LAST_PLATFORM_KEY = "mt-last-platform";
 
 const token = ref<string | null>(localStorage.getItem(TOKEN_KEY) || null);
 const loading = ref(false);
@@ -154,6 +156,9 @@ async function startLiveActivity() {
   }
   const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
   liveActivity.value = r;
+
+  localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
+  localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
 }
 
 async function stopLiveActivity() {
@@ -239,8 +244,27 @@ onMounted(async () => {
     await getPlatforms();
   }
   loading.value = false;
+
+  // load last used if not running
+  if (!liveActivity.value) {
+    const lastGameId = localStorage.getItem(LAST_GAME_KEY);
+    const lastPlatformId = localStorage.getItem(LAST_PLATFORM_KEY);
+    if (lastGameId) {
+      try {
+        setGame(await TimeplayedAPI.getGame(parseInt(lastGameId)));
+      } catch (err: any) {
+        console.error("Failed to load last game:", err);
+      }
+    }
+    if (lastPlatformId) {
+      platform.value = platforms.value.find(
+        (p) => p.id === parseInt(lastPlatformId),
+      );
+    }
+  }
 });
 </script>
+
 <template>
   <div class="card p-0">
     <h1 class="card-header">Manual tracking</h1>
