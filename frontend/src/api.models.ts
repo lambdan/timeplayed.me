@@ -9,6 +9,8 @@ export type Activity = components["schemas"]["API_Activity"];
 export type ActivitiesQuery =
   paths["/api/activities"]["get"]["parameters"]["query"];
 
+export type LiveActivity = components["schemas"]["API_LiveActivity"];
+
 export type Platform = components["schemas"]["API_Platform"];
 export type PlatformWithStats = components["schemas"]["API_PlatformWithStats"];
 

@@ -29,6 +29,47 @@ export class TimeplayedAPI {
     return client;
   }
 
+  static makeAuthenticatedRequest(req: {
+    url: string;
+    token: string;
+    method: "GET" | "POST" | "DELETE";
+    body?: any;
+  }) {
+    const headers = {
+      Authorization: `Bearer ${req.token}`,
+      "Content-Type": "application/json",
+    };
+
+    const requestOptions: RequestInit = {
+      headers: headers,
+      method: req.method,
+    };
+
+    if (req.body) {
+      requestOptions.body = JSON.stringify(req.body);
+    }
+
+    return fetch(req.url, requestOptions);
+  }
+
+  /////////////// AUTH /////////////////
+  static async whoAmI(token: string) {
+    const response = await this.makeAuthenticatedRequest({
+      url: "/api/who_am_i",
+      token,
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error fetching who am I:", errorText);
+      throw new Error(`Error fetching who am I: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data as paths["/api/who_am_i"]["get"]["responses"]["200"]["content"]["application/json"];
+  }
+
   /////////////// USERS //////////////////
 
   static async getUser(user_id: number) {
@@ -496,5 +537,29 @@ export class TimeplayedAPI {
       throw error;
     }
     return data;
+  }
+
+  /////////// MANUAL TRACKING ////////////
+  static async getLiveActivity(
+    token: string,
+  ): Promise<
+    | paths["/api/activity/live"]["get"]["responses"]["200"]["content"]["application/json"]
+    | null
+  > {
+    const r = await this.makeAuthenticatedRequest({
+      url: "/api/activity/live",
+      method: "GET",
+      token,
+    });
+    if (r.ok) {
+      const data = await r.json();
+      return data;
+    }
+    if (r.status === 404) {
+      return null;
+    }
+    throw new Error(
+      `Error fetching live activity: ${r.status} ${r.statusText}`,
+    );
   }
 }
