@@ -1,9 +1,12 @@
 from fastapi import APIRouter
 from typing import Literal
 from tpbackend.activity.controller import (
+    abort_live_activity_through_api,
     add_through_api,
     delete_through_api,
     get_live_activity_through_api,
+    start_live_activity_through_api,
+    stop_live_activity_through_api,
 )
 
 from tpbackend.api.auth import AuthenticatedUser
@@ -13,6 +16,7 @@ from tpbackend.activity.models import (
     API_Activity,
     API_LiveActivity,
     API_PostActivity,
+    API_PostLiveActivity,
     Total,
 )
 from tpbackend.activity.query import ActivityQuery
@@ -88,6 +92,30 @@ def get_oldest_activity(
 )
 def get_live_activity(user: AuthenticatedUser) -> API_LiveActivity:
     return get_live_activity_through_api(user=user)
+
+
+@router.post(
+    "/activity/live",
+    tags=["activities", "authenticated", "live"],
+    response_model=API_LiveActivity,
+)
+def start_live_activity(
+    user: AuthenticatedUser, data: API_PostLiveActivity
+) -> API_LiveActivity:
+    return start_live_activity_through_api(user=user, data=data)
+
+
+@router.post(
+    "/activity/live/stop",
+    tags=["activities", "authenticated", "live"],
+)
+def stop_live_activity(user: AuthenticatedUser) -> API_Activity:
+    return stop_live_activity_through_api(user=user)
+
+
+@router.delete("/activity/live", tags=["activities", "authenticated", "live"])
+def abort_live_activity(user: AuthenticatedUser):
+    return abort_live_activity_through_api(user=user)
 
 
 @router.get(

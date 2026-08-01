@@ -88,3 +88,8 @@ class API_PostActivity(BaseModel):
     emulated: bool = Field(
         description="Was activity played in an emulator?", default=False
     )
+
+
+class API_PostLiveActivity(BaseModel):
+    game_id: int
+    platform_id: int | None
