@@ -3,7 +3,13 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { formatDuration, iso8601Date, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
-import type { Game, LiveActivity, Platform, User } from "../api.models";
+import type {
+  Game,
+  LiveActivity,
+  LiveActivityPost,
+  Platform,
+  User,
+} from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 
 const route = useRoute();
@@ -16,7 +22,11 @@ const liveActivity = ref<LiveActivity | null>(null);
 const user = ref<User>();
 const game = ref<Game>();
 const platform = ref<Platform>();
+const platforms = ref<Platform[]>([]);
 const error = ref("");
+
+const searchGameResults = ref<Game[]>([]);
+const searchDropdownVisible = ref(false);
 
 const updateDurationInterval = setInterval(updateDuration, 1000);
 
@@ -39,7 +49,12 @@ function login() {
   error.value = "";
   if (token.value) {
     localStorage.setItem(TOKEN_KEY, token.value);
-    getUser();
+    getUser().then(() => {
+      if (user.value) {
+        getLiveActivity();
+        getPlatforms();
+      }
+    });
   } else {
     alert("Please enter a token.");
   }
@@ -51,13 +66,56 @@ function logout() {
   user.value = undefined;
 }
 
+function setGame(g: Game) {
+  game.value = g;
+  console.log("Game set to", g.name);
+  searchGameResults.value = [];
+  const input = document.getElementById(
+    "search-game-input",
+  ) as HTMLInputElement;
+  if (input) {
+    input.value = g.name;
+  }
+}
+
+let searchTimeout: number | null = null;
+let lastSearchQuery = "";
+async function searchGame(query: string) {
+  if (query === lastSearchQuery) {
+    return;
+  }
+  lastSearchQuery = query;
+
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+
+  searchTimeout = window.setTimeout(async () => {
+    if (!token.value) {
+      return;
+    }
+    try {
+      const results = await TimeplayedAPI.getGames({
+        search: query,
+        limit: 10,
+        order: "desc",
+        sort: "updated",
+      });
+      searchGameResults.value = results;
+      searchDropdownVisible.value = results.length > 0;
+    } catch (err: any) {
+      error.value =
+        err.message || "An error occurred while searching for games.";
+    }
+  }, 300); // Debounce for 300ms
+}
+
 async function getUser() {
   if (!token.value) {
     return;
   }
   try {
     user.value = await TimeplayedAPI.whoAmI(token.value);
-    await getLiveActivity();
   } catch (err: any) {
     error.value = "Authorization failed";
     logout();
@@ -72,13 +130,30 @@ async function getLiveActivity() {
     liveActivity.value = await TimeplayedAPI.getLiveActivity(token.value);
     if (liveActivity.value) {
       game.value = await TimeplayedAPI.getGame(liveActivity.value.game_id);
-      platform.value = await TimeplayedAPI.getPlatform(
-        liveActivity.value.platform_id,
+      platform.value = platforms.value.find(
+        (p) => p.id === liveActivity.value?.platform_id,
       );
     }
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
   }
+}
+
+async function startLiveActivity() {
+  if (!token.value || !game.value || !platform.value) {
+    return;
+  }
+  const postData: LiveActivityPost = {
+    game_id: game.value.id,
+    platform_id: platform.value.id,
+  };
+  const button = document.getElementById("start-live-activity-button");
+  if (button) {
+    button.setAttribute("disabled", "true");
+    button.textContent = "Starting...";
+  }
+  const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
+  liveActivity.value = r;
 }
 
 async function stopLiveActivity() {
@@ -87,14 +162,20 @@ async function stopLiveActivity() {
   }
   try {
     // redirect to created activity
-    const button = document.getElementById("stop-live-activity-button");
-    if (button) {
-      button.setAttribute("disabled", "true");
-      button.textContent = "Stopping...";
+    const stopButton = document.getElementById("stop-live-activity-button");
+    const abortButton = document.getElementById("abort-live-activity-button");
+    if (stopButton) {
+      stopButton.setAttribute("disabled", "true");
+      stopButton.textContent = "Stopping...";
+    }
+    if (abortButton) {
+      abortButton.setAttribute("disabled", "true");
     }
     const resp = await TimeplayedAPI.stopLiveActivity(token.value);
-    if (button && resp) {
-      button.textContent = "Success! Redirecting...";
+    if (stopButton && resp) {
+      stopButton.textContent = "Success! Redirecting...";
+      stopButton.classList.remove("btn-primary");
+      stopButton.classList.add("btn-success");
       await sleep(1000);
     }
     window.location.href = "/activity/" + resp.id;
@@ -129,16 +210,37 @@ async function abortLiveActivity() {
   }
 }
 
+async function getPlatforms() {
+  let offset = 0;
+  platforms.value = [];
+  while (true) {
+    const incoming = await TimeplayedAPI.getPlatforms({ offset, limit: 100 });
+    platforms.value.push(...incoming);
+    if (incoming.length < 100) {
+      break;
+    }
+    offset += 100;
+  }
+  platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+  const u = user.value;
+  if (u) {
+    platform.value = platforms.value.find(
+      (p) => p.id === u.default_platform_id,
+    );
+  }
+}
+
 onMounted(async () => {
   loading.value = true;
   await getUser();
   if (user.value) {
     await getLiveActivity();
+    await getPlatforms();
   }
   loading.value = false;
 });
 </script>
-
 <template>
   <div class="card p-0">
     <h1 class="card-header">Manual tracking</h1>
@@ -180,11 +282,82 @@ onMounted(async () => {
 
       <div v-if="user">
         <hr />
-        <div v-if="loading">Loading live activity...</div>
+        <div v-if="loading">Checking for live activity...</div>
 
         <div v-if="!loading">
-          <div v-if="!liveActivity" class="text-secondary">
-            No live activity running
+          <div v-if="!liveActivity">
+            <div class="card p-0">
+              <h1 class="card-header">Start playing</h1>
+              <div class="card-body">
+                <!-- search game -->
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="search-game-addon"
+                      ><i class="bi bi-joystick"></i
+                    ></span>
+                  </div>
+                  <input
+                    type="text"
+                    id="search-game-input"
+                    placeholder="Search for a game..."
+                    class="form-control"
+                    @input="
+                      searchGame(
+                        ($event.target && ($event.target as any).value) || '',
+                      )
+                    "
+                  />
+                </div>
+                <ul
+                  v-if="searchGameResults.length > 0"
+                  class="dropdown-menu show w-100"
+                  style="max-height: 300px; overflow-y: auto"
+                >
+                  <li
+                    v-for="game in searchGameResults"
+                    :key="game.id"
+                    class="dropdown-item"
+                  >
+                    <a class="text-decoration-none" @click="setGame(game)">
+                      <span class="text-secondary">{{ game.id }}</span
+                      > 
+                      {{ game.name }}
+                      <span v-if="game.release_year" class="text-secondary"
+                        >({{ game.release_year }})</span
+                      ></a
+                    >
+                  </li>
+                </ul>
+
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="search-platform-addon"
+                      ><i class="bi bi-controller"></i
+                    ></span>
+                  </div>
+                  <select
+                    v-model="platform"
+                    class="form-select"
+                    aria-label="Select platform"
+                  >
+                    <option disabled value="">Select a platform</option>
+                    <option v-for="p in platforms" :key="p.id" :value="p">
+                      {{ p.display_name }}
+                    </option>
+                  </select>
+                </div>
+
+                <button
+                  @click="startLiveActivity"
+                  class="btn btn-primary mt-4"
+                  id="start-live-activity-button"
+                  :disabled="!game || !platform"
+                >
+                  <i class="bi bi-play-circle"></i>
+                  Start
+                </button>
+              </div>
+            </div>
           </div>
 
           <div v-else-if="liveActivity">
