@@ -249,45 +249,13 @@ onMounted(async () => {
         {{ error }}
       </div>
 
-      <div v-if="!user">
-        <div class="input-group input-group-sm">
-          <input
-            v-model="token"
-            type="password"
-            placeholder="Enter your token"
-            class="form-control"
-          />
-          <button @click="login" class="bg-primary text-white p-2 rounded">
-            Login
-          </button>
-        </div>
-        <p class="mt-2 text-sm text-secondary">
-          Get a token by sending <code>!token</code> to the bot in Discord.
-        </p>
-      </div>
-
       <div v-if="user">
-        <p>
-          <a class="text-decoration-none" :href="'/user/' + user.id"
-            >Logged in as {{ user.display_name }}</a
-          >.
-          <a
-            class="text-decoration-none text-danger"
-            @click="logout"
-            style="cursor: pointer"
-            >Click here to logout.</a
-          >
-        </p>
-      </div>
-
-      <div v-if="user">
-        <hr />
         <div v-if="loading">Checking for live activity...</div>
 
         <div v-if="!loading">
           <div v-if="!liveActivity">
             <div class="card p-0">
-              <h1 class="card-header">Start playing</h1>
+              <h2 class="card-header">Start playing</h2>
               <div class="card-body">
                 <!-- search game -->
                 <div class="input-group">
@@ -362,7 +330,7 @@ onMounted(async () => {
 
           <div v-else-if="liveActivity">
             <div class="card p-0">
-              <h1 class="card-header">Currently playing</h1>
+              <h2 class="card-header">Currently playing</h2>
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-2 text-center" v-if="game">
@@ -434,6 +402,41 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div v-if="!user">
+        <div class="input-group input-group-sm">
+          <input
+            v-model="token"
+            type="password"
+            placeholder="Enter your token"
+            class="form-control"
+          />
+          <button @click="login" class="bg-primary text-white p-2 rounded">
+            Login
+          </button>
+        </div>
+        <p class="mt-2 text-sm text-secondary">
+          Get a token by sending <code>!token</code> to the bot in Discord.
+        </p>
+      </div>
+
+      <div v-if="user">
+        <hr />
+        <p>
+          Logged in as
+          <a class="text-decoration-none" :href="'/user/' + user.id">{{
+            user.display_name
+          }}</a>
+        </p>
+        <p>
+          <a
+            class="text-decoration-none text-danger"
+            @click="logout"
+            style="cursor: pointer"
+            >Logout</a
+          >
+        </p>
       </div>
     </div>
   </div>
