@@ -10,6 +10,8 @@ export type ActivitiesQuery =
   paths["/api/activities"]["get"]["parameters"]["query"];
 
 export type LiveActivity = components["schemas"]["API_LiveActivity"];
+export type LiveActivityPost =
+  paths["/api/activity/live"]["post"]["requestBody"]["content"]["application/json"];
 
 export type Platform = components["schemas"]["API_Platform"];
 export type PlatformWithStats = components["schemas"]["API_PlatformWithStats"];

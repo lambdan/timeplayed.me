@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration, iso8601Date } from "../utils";
+import { formatDuration, iso8601Date, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import type { Game, LiveActivity, Platform, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
@@ -74,6 +74,54 @@ async function getLiveActivity() {
     }
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
+  }
+}
+
+async function stopLiveActivity() {
+  if (!token.value) {
+    return;
+  }
+  try {
+    // redirect to created activity
+    const button = document.getElementById("stop-live-activity-button");
+    if (button) {
+      button.setAttribute("disabled", "true");
+      button.textContent = "Stopping...";
+    }
+    const resp = await TimeplayedAPI.stopLiveActivity(token.value);
+    if (button && resp) {
+      button.textContent = "Success! Redirecting...";
+      await sleep(1000);
+    }
+    window.location.href = "/activity/" + resp.id;
+  } catch (err: any) {
+    error.value = err.message || "An error occurred while stopping activity.";
+  }
+}
+
+let abortClicked = 0;
+async function abortLiveActivity() {
+  abortClicked++;
+
+  const button = document.getElementById("abort-live-activity-button");
+  if (abortClicked === 1 && button) {
+    button.textContent = "Are you sure? Click again to confirm.";
+    return;
+  }
+
+  if (!token.value) {
+    return;
+  }
+  try {
+    if (button) {
+      button.setAttribute("disabled", "true");
+      button.textContent = "Aborting...";
+    }
+    abortClicked = 0;
+    await TimeplayedAPI.abortLiveActivity(token.value);
+    await getLiveActivity();
+  } catch (err: any) {
+    error.value = err.message || "An error occurred while aborting activity.";
   }
 }
 
@@ -163,6 +211,29 @@ onMounted(async () => {
                     <b><span id="duration" class="text-success">...</span></b>
                   </li>
                 </ul>
+
+                <div
+                  class="btn-group"
+                  role="group"
+                  aria-label="Live activity controls"
+                >
+                  <button
+                    @click="stopLiveActivity"
+                    class="btn btn-primary mt-4"
+                    id="stop-live-activity-button"
+                  >
+                    <i class="bi bi-stop-circle"></i>
+                    Stop
+                  </button>
+                  <button
+                    @click="abortLiveActivity"
+                    class="btn btn-danger mt-4"
+                    id="abort-live-activity-button"
+                  >
+                    <i class="bi bi-x-circle"></i>
+                    Abort
+                  </button>
+                </div>
               </div>
             </div>
           </div>
