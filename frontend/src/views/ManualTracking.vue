@@ -162,7 +162,7 @@ async function getLiveActivity() {
     if (liveActivity.value) {
       game.value = await TimeplayedAPI.getGame(liveActivity.value.game_id);
       platform.value = platforms.value.find(
-        (p) => p.id === liveActivity.value?.platform_id,
+        (p) => p.id === liveActivity.value!.platform_id,
       );
       startDurationTick();
     } else {
@@ -274,10 +274,13 @@ async function getPlatforms() {
   }
   platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
-  const u = user.value;
-  if (u) {
+  if (liveActivity.value) {
     platform.value = platforms.value.find(
-      (p) => p.id === u.default_platform_id,
+      (p) => p.id === liveActivity.value!.platform_id,
+    );
+  } else if (user.value) {
+    platform.value = platforms.value.find(
+      (p) => p.id === user.value!.default_platform_id,
     );
   }
 }
