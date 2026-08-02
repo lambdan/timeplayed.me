@@ -136,7 +136,16 @@ def start_live_activity_through_api(
     if existing:
         return bad_request("You already have a live activity running")
 
-    game = GameSelect.by_id(data.game_id)
+    if not data.game_id and not data.igdb_id:
+        return bad_request("game_id or igdb_id must be provided")
+
+    game = None
+    if data.game_id:
+        game = GameSelect.by_id(data.game_id)
+    elif data.igdb_id:
+        game = get_or_create_game(
+            data.igdb_id, history_create_msg="Created during API live activity start"
+        )
     if not game:
         return not_found("Game not found")
 

@@ -838,10 +838,21 @@ export interface components {
         };
         /** API_PostLiveActivity */
         API_PostLiveActivity: {
-            /** Game Id */
-            game_id: number;
-            /** Platform Id */
-            platform_id: number | null;
+            /**
+             * Game Id
+             * @description ID of the game being played, can be null if igdb_id is provided
+             */
+            game_id?: number | null;
+            /**
+             * Igdb Id
+             * @description IGDB ID of the game being played, can be null if game_id is provided
+             */
+            igdb_id?: number | null;
+            /**
+             * Platform Id
+             * @description ID of platform that was played on. Will default to user's default platform if not provided
+             */
+            platform_id?: number | null;
         };
         /** API_User */
         API_User: {

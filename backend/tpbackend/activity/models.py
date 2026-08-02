@@ -91,5 +91,15 @@ class API_PostActivity(BaseModel):
 
 
 class API_PostLiveActivity(BaseModel):
-    game_id: int
-    platform_id: int | None
+    game_id: int | None = Field(
+        description="ID of the game being played, can be null if igdb_id is provided",
+        default=None,
+    )
+    igdb_id: int | None = Field(
+        description="IGDB ID of the game being played, can be null if game_id is provided",
+        default=None,
+    )
+    platform_id: int | None = Field(
+        description="ID of platform that was played on. Will default to user's default platform if not provided",
+        default=None,
+    )
