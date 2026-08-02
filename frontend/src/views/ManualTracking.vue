@@ -30,7 +30,25 @@ const error = ref("");
 const searchGameResults = ref<Game[]>([]);
 const searchDropdownVisible = ref(false);
 
-const updateDurationInterval = setInterval(updateDuration, 1000);
+let updateDurationInterval: number | undefined;
+
+function startDurationTick() {
+  clearInterval(updateDurationInterval);
+  updateDurationInterval = setInterval(updateDuration, 1000);
+  updateDuration();
+}
+
+function stopDurationTick() {
+  clearInterval(updateDurationInterval);
+}
+
+/** in seconds */
+function getDuration(): number {
+  if (!liveActivity.value) {
+    return 0;
+  }
+  return (Date.now() - liveActivity.value.started) / 1000;
+}
 
 function updateDuration() {
   const durationElement = document.getElementById("duration");
@@ -41,10 +59,8 @@ function updateDuration() {
     durationElement.textContent = "...";
     return;
   }
-  durationElement.textContent = `${formatDuration(
-    (Date.now() - liveActivity.value.started) / 1000,
-    true,
-  )}`;
+  //durationElement.textContent = getDuration().toString();
+  durationElement.textContent = `${formatDuration(getDuration(), true)}`;
 }
 
 function login() {
@@ -135,6 +151,9 @@ async function getLiveActivity() {
       platform.value = platforms.value.find(
         (p) => p.id === liveActivity.value?.platform_id,
       );
+      startDurationTick();
+    } else {
+      stopDurationTick();
     }
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
@@ -142,7 +161,9 @@ async function getLiveActivity() {
 }
 
 async function startLiveActivity() {
+  error.value = "";
   if (!token.value || !game.value || !platform.value) {
+    error.value = "Token, game, or platform is missing";
     return;
   }
   const postData: LiveActivityPost = {
@@ -156,12 +177,20 @@ async function startLiveActivity() {
   }
   const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
   liveActivity.value = r;
-
+  startDurationTick();
   localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
   localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
 }
 
 async function stopLiveActivity() {
+  stopDurationTick();
+  if (getDuration() < 30) {
+    abortLiveActivity(true).then(() => {
+      error.value =
+        "Activity was shorter than 30 seconds, it was aborted instead.";
+    });
+    return;
+  }
   if (!token.value) {
     return;
   }
@@ -182,26 +211,30 @@ async function stopLiveActivity() {
       stopButton.classList.remove("btn-primary");
       stopButton.classList.add("btn-success");
       await sleep(1000);
+      window.location.href = "/activity/" + resp.id;
     }
-    window.location.href = "/activity/" + resp.id;
   } catch (err: any) {
+    console.error(err);
     error.value = err.message || "An error occurred while stopping activity.";
   }
 }
 
 let abortClicked = 0;
-async function abortLiveActivity() {
+async function abortLiveActivity(force = false) {
   abortClicked++;
 
   const button = document.getElementById("abort-live-activity-button");
-  if (abortClicked === 1 && button) {
-    button.textContent = "Are you sure? Click again to confirm.";
-    return;
+  if (!force) {
+    if (abortClicked === 1 && button) {
+      button.textContent = "Are you sure? Click again to confirm.";
+      return;
+    }
   }
 
   if (!token.value) {
     return;
   }
+
   try {
     if (button) {
       button.setAttribute("disabled", "true");
@@ -412,7 +445,7 @@ onMounted(async () => {
                         Stop
                       </button>
                       <button
-                        @click="abortLiveActivity"
+                        @click="abortLiveActivity(false)"
                         class="btn btn-danger mt-4"
                         id="abort-live-activity-button"
                       >
