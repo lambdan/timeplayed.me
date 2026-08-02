@@ -18,7 +18,7 @@ from peewee import (
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 
-from tpbackend.utils2 import js_iso, now_iso, assertTimezone, now
+from tpbackend.utils2 import dt_to_ts, js_iso, now_iso, assertTimezone, now
 
 logger = logging.getLogger("storage_v2")
 
@@ -661,7 +661,7 @@ class LiveActivity(IdMixin):
         return assertTimezone(self.started)
 
     def get_started_timestamp(self) -> int:
-        return int(self.get_started_datetime().timestamp() * 1000)
+        return dt_to_ts(self.get_started_datetime())
 
 
 class DiscordHistory(IdMixin):

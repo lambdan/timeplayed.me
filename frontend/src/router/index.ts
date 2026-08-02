@@ -11,6 +11,7 @@ import YearRecapUser from "../views/YearRecapUser.vue";
 import HelpPage from "../views/HelpPage.vue";
 import ActivityPage from "../views/ActivityPage.vue";
 import GamePageByIGDB from "../views/GamePageByIGDB.vue";
+import ManualTracking from "../views/ManualTracking.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -48,6 +49,11 @@ const routes = [
     path: "/platform/:id",
     name: "PlatformPage",
     component: PlatformPage,
+  },
+  {
+    path: "/manual-tracking",
+    name: "ManualTracingPage",
+    component: ManualTracking,
   },
 ];
 

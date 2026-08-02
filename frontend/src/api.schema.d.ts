@@ -208,6 +208,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/activity/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Live Activity */
+        get: operations["get_live_activity_api_activity_live_get"];
+        put?: never;
+        /** Start Live Activity */
+        post: operations["start_live_activity_api_activity_live_post"];
+        /** Abort Live Activity */
+        delete: operations["abort_live_activity_api_activity_live_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/activity/live/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop Live Activity */
+        post: operations["stop_live_activity_api_activity_live_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/activity/{id}": {
         parameters: {
             query?: never;
@@ -712,6 +748,22 @@ export interface components {
             parent_id: number | null;
             stats: components["schemas"]["GameStats"];
         };
+        /** API_LiveActivity */
+        API_LiveActivity: {
+            /** Id */
+            id: number;
+            /**
+             * Started
+             * @description Timestamp of when the activity started in milliseconds since epoch
+             */
+            started: number;
+            /** User Id */
+            user_id: number;
+            /** Game Id */
+            game_id: number;
+            /** Platform Id */
+            platform_id: number;
+        };
         /** API_Platform */
         API_Platform: {
             /** Id */
@@ -783,6 +835,24 @@ export interface components {
              * @default false
              */
             emulated: boolean;
+        };
+        /** API_PostLiveActivity */
+        API_PostLiveActivity: {
+            /**
+             * Game Id
+             * @description ID of the game being played, can be null if igdb_id is provided
+             */
+            game_id?: number | null;
+            /**
+             * Igdb Id
+             * @description IGDB ID of the game being played, can be null if game_id is provided
+             */
+            igdb_id?: number | null;
+            /**
+             * Platform Id
+             * @description ID of platform that was played on. Will default to user's default platform if not provided
+             */
+            platform_id?: number | null;
         };
         /** API_User */
         API_User: {
@@ -1482,6 +1552,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_live_activity_api_activity_live_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_LiveActivity"];
+                };
+            };
+        };
+    };
+    start_live_activity_api_activity_live_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["API_PostLiveActivity"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_LiveActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    abort_live_activity_api_activity_live_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    stop_live_activity_api_activity_live_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"];
                 };
             };
         };

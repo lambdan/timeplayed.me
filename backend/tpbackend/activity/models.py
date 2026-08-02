@@ -43,6 +43,28 @@ class API_Activity(BaseModel):
         )
 
 
+class API_LiveActivity(BaseModel):
+    id: int
+    started: int = Field(
+        description="Timestamp of when the activity started in milliseconds since epoch"
+    )
+    user_id: int
+    game_id: int
+    platform_id: int
+
+    @classmethod
+    def from_live_activity(cls, live_activity):
+        # import tpbackend.storage as storage
+        # live_activity = cast(storage.LiveActivity, live_activity)
+        return cls(
+            id=live_activity.get_id(),
+            started=live_activity.get_started_timestamp(),
+            user_id=live_activity.get_user().get_id(),
+            game_id=live_activity.get_game().get_id(),
+            platform_id=live_activity.get_platform().get_id(),
+        )
+
+
 class Total(BaseTotals):
     user_count: int
     platform_count: int
@@ -65,4 +87,19 @@ class API_PostActivity(BaseModel):
     )
     emulated: bool = Field(
         description="Was activity played in an emulator?", default=False
+    )
+
+
+class API_PostLiveActivity(BaseModel):
+    game_id: int | None = Field(
+        description="ID of the game being played, can be null if igdb_id is provided",
+        default=None,
+    )
+    igdb_id: int | None = Field(
+        description="IGDB ID of the game being played, can be null if game_id is provided",
+        default=None,
+    )
+    platform_id: int | None = Field(
+        description="ID of platform that was played on. Will default to user's default platform if not provided",
+        default=None,
     )

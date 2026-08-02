@@ -42,6 +42,12 @@
             >
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="/manual-tracking"
+              ><i class="bi bi-clock-history"></i> Manual tracking (beta)</a
+            >
+          </li>
+
+          <li class="nav-item">
             <a class="nav-link" href="/help"
               ><i class="bi bi-question-circle"></i> Help</a
             >
