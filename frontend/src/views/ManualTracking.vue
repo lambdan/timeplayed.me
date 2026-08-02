@@ -32,6 +32,19 @@ const searchDropdownVisible = ref(false);
 
 let updateDurationInterval: number | undefined;
 
+async function addByIGDB() {
+  const igdbId = prompt("Enter IGDB ID:");
+  if (!igdbId || isNaN(+igdbId) || +igdbId <= 0) {
+    return;
+  }
+  try {
+    const igdbGame = await TimeplayedAPI.getGameByIGDB(+igdbId);
+    setGame(igdbGame);
+  } catch (err: any) {
+    error.value = "Could not get game by IGDB ID, probably invalid ID?";
+  }
+}
+
 function startDurationTick() {
   clearInterval(updateDurationInterval);
   updateDurationInterval = setInterval(updateDuration, 1000);
@@ -333,6 +346,7 @@ onMounted(async () => {
                     "
                   />
                 </div>
+
                 <ul
                   v-if="searchGameResults.length > 0"
                   class="dropdown-menu show w-100"
@@ -372,15 +386,20 @@ onMounted(async () => {
                   </select>
                 </div>
 
-                <button
-                  @click="startLiveActivity"
-                  class="btn btn-primary mt-4"
-                  id="start-live-activity-button"
-                  :disabled="!game || !platform"
-                >
-                  <i class="bi bi-play-circle"></i>
-                  Start
-                </button>
+                <div class="btn-group mt-4">
+                  <button
+                    @click="startLiveActivity"
+                    class="btn btn-primary"
+                    id="start-live-activity-button"
+                    :disabled="!game || !platform"
+                  >
+                    <i class="bi bi-play-circle"></i>
+                    Start
+                  </button>
+                  <button @click="addByIGDB" class="btn btn-secondary">
+                    <i class="bi bi-plus-circle"></i> Add game by IGDB ID
+                  </button>
+                </div>
               </div>
             </div>
           </div>
