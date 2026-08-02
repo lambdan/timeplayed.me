@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration, iso8601Date, sleep } from "../utils";
+import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import type {
   Game,
@@ -26,11 +26,10 @@ const game = ref<Game>();
 const platform = ref<Platform>();
 const platforms = ref<Platform[]>([]);
 const error = ref("");
-
 const searchGameResults = ref<Game[]>([]);
 const searchDropdownVisible = ref(false);
 
-let updateDurationInterval: number | undefined;
+const durationText = ref("...");
 
 async function addByIGDB() {
   const igdbId = prompt("Enter IGDB ID:");
@@ -45,16 +44,6 @@ async function addByIGDB() {
   }
 }
 
-function startDurationTick() {
-  clearInterval(updateDurationInterval);
-  updateDurationInterval = setInterval(updateDuration, 1000);
-  updateDuration();
-}
-
-function stopDurationTick() {
-  clearInterval(updateDurationInterval);
-}
-
 /** in seconds */
 function getDuration(): number {
   if (!liveActivity.value) {
@@ -63,17 +52,11 @@ function getDuration(): number {
   return (Date.now() - liveActivity.value.started) / 1000;
 }
 
-function updateDuration() {
-  const durationElement = document.getElementById("duration");
-  if (!durationElement) {
-    return;
-  }
+function updateDurationText() {
   if (!liveActivity.value) {
-    durationElement.textContent = "...";
-    return;
+    return (durationText.value = "...");
   }
-  //durationElement.textContent = getDuration().toString();
-  durationElement.textContent = `${formatDuration(getDuration(), true)}`;
+  durationText.value = formatDuration(getDuration(), true);
 }
 
 function login() {
@@ -164,9 +147,6 @@ async function getLiveActivity() {
       platform.value = platforms.value.find(
         (p) => p.id === liveActivity.value!.platform_id,
       );
-      startDurationTick();
-    } else {
-      stopDurationTick();
     }
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
@@ -190,13 +170,11 @@ async function startLiveActivity() {
   }
   const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
   liveActivity.value = r;
-  startDurationTick();
   localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
   localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
 }
 
 async function stopLiveActivity() {
-  stopDurationTick();
   if (getDuration() < 30) {
     abortLiveActivity(true).then(() => {
       error.value =
@@ -255,7 +233,8 @@ async function abortLiveActivity(force = false) {
     }
     abortClicked = 0;
     await TimeplayedAPI.abortLiveActivity(token.value);
-    await getLiveActivity();
+    liveActivity.value = null;
+    //await getLiveActivity();
   } catch (err: any) {
     error.value = err.message || "An error occurred while aborting activity.";
   }
@@ -274,6 +253,7 @@ async function getPlatforms() {
   }
   platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
+  // set platform to live activity platform or user default platform
   if (liveActivity.value) {
     platform.value = platforms.value.find(
       (p) => p.id === liveActivity.value!.platform_id,
@@ -311,6 +291,10 @@ onMounted(async () => {
       );
     }
   }
+
+  setInterval(() => {
+    updateDurationText();
+  }, 1000);
 });
 </script>
 
@@ -446,9 +430,9 @@ onMounted(async () => {
                       <li class="list-group-item">
                         <i class="bi bi-stopwatch"></i> 
                         <b
-                          ><span id="duration" class="text-success"
-                            >...</span
-                          ></b
+                          ><span id="duration" class="text-success">{{
+                            durationText
+                          }}</span></b
                         >
                       </li>
                     </ul>
