@@ -55,7 +55,6 @@ const routes = [
     name: "ManualTracingPage",
     component: ManualTracking,
   },
-  {},
 ];
 
 export const router = createRouter({
