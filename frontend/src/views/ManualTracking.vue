@@ -12,11 +12,17 @@ import type {
 } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 
-const route = useRoute();
+interface PreviousGame {
+  gameId: number;
+  platformId: number;
+  date: number;
+}
 
+const route = useRoute();
 const TOKEN_KEY = "mt-token";
 const LAST_GAME_KEY = "mt-last-game";
 const LAST_PLATFORM_KEY = "mt-last-platform";
+const PREVIOUS_GAMES_KEY = "mt-previousGames";
 
 const token = ref<string | null>(localStorage.getItem(TOKEN_KEY) || null);
 const loading = ref(false);
@@ -24,12 +30,15 @@ const liveActivity = ref<LiveActivity | null>(null);
 const user = ref<User>();
 const game = ref<Game>();
 const platform = ref<Platform>();
+
 const platforms = ref<Platform[]>([]);
 const error = ref("");
 const searchGameResults = ref<Game[]>([]);
 const searchDropdownVisible = ref(false);
-
 const durationText = ref("...");
+const previousGames = ref<PreviousGame[]>([]);
+const cachedGames = ref<Record<number, Game>>({});
+const cachedPlatforms = ref<Record<number, Platform>>({});
 
 async function addByIGDB() {
   const igdbId = prompt("Enter IGDB ID:");
@@ -124,6 +133,42 @@ async function searchGame(query: string) {
   }, 300); // Debounce for 300ms
 }
 
+async function getGame(id: number | string): Promise<Game | null> {
+  if (cachedGames.value[+id]) {
+    return cachedGames.value[+id];
+  }
+  try {
+    const g = await TimeplayedAPI.getGame(+id);
+    cachedGames.value[+id] = g;
+    return g;
+  } catch (err) {
+    console.error("Error getting game", id, err);
+    return null;
+  }
+}
+
+function getGameSync(id: number | string): Game | null {
+  return cachedGames.value[+id] || null;
+}
+
+function getPlatformSync(id: number | string): Platform | null {
+  return cachedPlatforms.value[+id] || null;
+}
+
+async function getPlatform(id: number | string): Promise<Platform | null> {
+  if (cachedPlatforms.value[+id]) {
+    return cachedPlatforms.value[+id];
+  }
+  try {
+    const p = await TimeplayedAPI.getPlatform(+id);
+    cachedPlatforms.value[+id] = p;
+    return p;
+  } catch (err) {
+    console.error("Error getting platform", id, err);
+    return null;
+  }
+}
+
 async function getUser() {
   if (!token.value) {
     return;
@@ -136,18 +181,28 @@ async function getUser() {
   }
 }
 
+function applyGamePlatform(g: Game, p: Platform) {
+  platform.value = p;
+  setGame(g);
+}
+
 async function getLiveActivity() {
   if (!token.value) {
     return;
   }
   try {
     liveActivity.value = await TimeplayedAPI.getLiveActivity(token.value);
-    if (liveActivity.value) {
-      game.value = await TimeplayedAPI.getGame(liveActivity.value.game_id);
-      platform.value = platforms.value.find(
-        (p) => p.id === liveActivity.value!.platform_id,
+    if (!liveActivity.value) {
+      return;
+    }
+    const _game = await getGame(liveActivity.value.game_id);
+    const _platform = await getPlatform(liveActivity.value.platform_id);
+    if (!_game || !_platform) {
+      throw new Error(
+        "Failed to fetch game or platform for running live activity",
       );
     }
+    applyGamePlatform(_game, _platform);
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
   }
@@ -170,8 +225,11 @@ async function startLiveActivity() {
   }
   const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
   liveActivity.value = r;
+
+  // update local previous
   localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
   localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
+  addPreviousGame(game.value.id, platform.value.id);
 }
 
 async function stopLiveActivity() {
@@ -201,7 +259,7 @@ async function stopLiveActivity() {
       stopButton.textContent = "Success! Redirecting...";
       stopButton.classList.remove("btn-primary");
       stopButton.classList.add("btn-success");
-      await sleep(1000);
+      await sleep(200);
       window.location.href = "/activity/" + resp.id;
     }
   } catch (err: any) {
@@ -265,7 +323,35 @@ async function getPlatforms() {
   }
 }
 
+function addPreviousGame(gameId: number, platformId: number) {
+  let updated = false;
+  for (const pg of previousGames.value) {
+    if (pg.gameId === gameId && pg.platformId === platformId) {
+      pg.date = Date.now();
+      updated = true;
+    }
+  }
+  if (!updated) {
+    previousGames.value.push({ gameId, platformId, date: Date.now() });
+  }
+
+  if (previousGames.value.length > 10) {
+    // remove oldest
+    previousGames.value.sort((a, b) => a.date - b.date);
+    previousGames.value.shift();
+  }
+
+  localStorage.setItem(PREVIOUS_GAMES_KEY, JSON.stringify(previousGames.value));
+  console.log("Saved previousGames", previousGames.value);
+}
+
 onMounted(async () => {
+  // start updating duration text
+  setInterval(() => {
+    updateDurationText();
+  }, 1000);
+  updateDurationText();
+
   loading.value = true;
   await getUser();
   if (user.value) {
@@ -279,22 +365,29 @@ onMounted(async () => {
     const lastGameId = localStorage.getItem(LAST_GAME_KEY);
     const lastPlatformId = localStorage.getItem(LAST_PLATFORM_KEY);
     if (lastGameId) {
-      try {
-        setGame(await TimeplayedAPI.getGame(parseInt(lastGameId)));
-      } catch (err: any) {
-        console.error("Failed to load last game:", err);
+      const _game = await getGame(lastGameId);
+      if (_game) {
+        setGame(_game);
       }
     }
     if (lastPlatformId) {
-      platform.value = platforms.value.find(
-        (p) => p.id === parseInt(lastPlatformId),
-      );
+      const _platform = await getPlatform(lastPlatformId);
+      if (_platform) {
+        platform.value = _platform;
+      }
     }
   }
 
-  setInterval(() => {
-    updateDurationText();
-  }, 1000);
+  // load in previous games
+  const storedPreviousGames = localStorage.getItem(PREVIOUS_GAMES_KEY);
+  if (storedPreviousGames) {
+    const parsed = JSON.parse(storedPreviousGames) as PreviousGame[];
+    parsed.forEach(async (pg) => {
+      await getGame(pg.gameId);
+      await getPlatform(pg.platformId);
+    });
+    previousGames.value = parsed;
+  }
 });
 </script>
 
@@ -386,6 +479,50 @@ onMounted(async () => {
                   <button @click="addByIGDB" class="btn btn-secondary">
                     <i class="bi bi-plus-circle"></i> Add game by IGDB ID
                   </button>
+                </div>
+                <!-- previous games -->
+                <div class="mt-4 card p-0">
+                  <h2 class="card-header">Previous Games</h2>
+                  <div class="card-body">
+                    <ul class="list-group">
+                      <li
+                        class="list-group-item"
+                        v-for="previousGame in previousGames.sort(
+                          /* recent first */ (a, b) => b.date - a.date,
+                        )"
+                        :key="previousGame.date"
+                      >
+                        <div
+                          v-if="
+                            getGameSync(previousGame.gameId) &&
+                            getPlatformSync(previousGame.platformId)
+                          "
+                        >
+                          <a
+                            class="text-decoration-none"
+                            :href="'/game/' + previousGame.gameId"
+                            >{{ getGameSync(previousGame.gameId)!.name }}</a
+                          >
+                          -
+                          {{
+                            getPlatformSync(previousGame.platformId)!
+                              .display_name
+                          }}
+                          -
+                          <button
+                            @click="
+                              applyGamePlatform(
+                                getGameSync(previousGame.gameId)!,
+                                getPlatformSync(previousGame.platformId)!,
+                              )
+                            "
+                          >
+                            Play Again
+                          </button>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -492,14 +629,9 @@ onMounted(async () => {
             user.display_name
           }}</a>
         </p>
-        <p>
-          <a
-            class="text-decoration-none text-danger"
-            @click="logout"
-            style="cursor: pointer"
-            >Logout</a
-          >
-        </p>
+        <button @click="logout" class="bg-danger text-white p-2 rounded">
+          Logout
+        </button>
       </div>
     </div>
   </div>

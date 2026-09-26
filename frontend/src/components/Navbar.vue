@@ -43,7 +43,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/manual-tracking"
-              ><i class="bi bi-clock-history"></i> Manual tracking (beta)</a
+              ><i class="bi bi-clock-history"></i> Manual Tracking</a
             >
           </li>
 
