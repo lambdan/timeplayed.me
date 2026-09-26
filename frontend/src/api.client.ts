@@ -337,6 +337,19 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async deleteActivity(token: string, activityId: number) {
+    const r = await this.makeAuthenticatedRequest({
+      url: `/api/activity/${activityId}`,
+      method: "DELETE",
+      token,
+    });
+    if (!r.ok) {
+      throw new Error(
+        `Error deleting activity: ${r.status} ${r.statusText}`,
+      );
+    }
+  }
+
   static async getActivities(
     query: paths["/api/activities"]["get"]["parameters"]["query"],
   ) {
