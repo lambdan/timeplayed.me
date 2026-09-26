@@ -404,9 +404,13 @@ onMounted(async () => {
   const storedPreviousGames = localStorage.getItem(PREVIOUS_GAMES_KEY);
   if (storedPreviousGames) {
     const parsed = JSON.parse(storedPreviousGames) as PreviousGame[];
-    for (const pg of parsed) {
-      await getGame(pg.gameId);
-      await getPlatform(pg.platformId);
+    if (Array.isArray(parsed)) {
+      for (const pg of parsed) {
+        if (pg.gameId && pg.platformId) {
+          await getGame(pg.gameId);
+          await getPlatform(pg.platformId);
+        }
+      }
     }
     previousGames.value = parsed;
   }
