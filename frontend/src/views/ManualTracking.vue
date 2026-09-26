@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
@@ -37,6 +37,9 @@ const searchGameResults = ref<Game[]>([]);
 const searchDropdownVisible = ref(false);
 const durationText = ref("...");
 const previousGames = ref<PreviousGame[]>([]);
+const sortedPreviousGames = computed(() =>
+  [...previousGames.value].sort((a, b) => b.date - a.date),
+);
 const cachedGames = ref<Record<number, Game>>({});
 const cachedPlatforms = ref<Record<number, Platform>>({});
 
@@ -189,6 +192,27 @@ function applyGamePlatform(g: Game, p: Platform) {
   setGame(g);
 }
 
+function selectPreviousGame(previousGame: PreviousGame) {
+  const gameInfo = getGameSync(previousGame.gameId);
+  const platformInfo = getPlatformSync(previousGame.platformId);
+
+  if (!gameInfo || !platformInfo) {
+    return;
+  }
+
+  applyGamePlatform(gameInfo, platformInfo);
+
+  const startHeader = document.getElementById("start-playing-card-header");
+  if (startHeader) {
+    startHeader.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 async function getLiveActivity() {
   if (!token.value) {
     return;
@@ -338,7 +362,7 @@ function addPreviousGame(gameId: number, platformId: number) {
     previousGames.value.push({ gameId, platformId, date: Date.now() });
   }
 
-  if (previousGames.value.length > 10) {
+  while (previousGames.value.length > 10) {
     // remove oldest
     previousGames.value.sort((a, b) => a.date - b.date);
     previousGames.value.shift();
@@ -408,7 +432,7 @@ onMounted(async () => {
         <div v-if="!loading">
           <div v-if="!liveActivity">
             <div class="card p-0">
-              <h2 class="card-header">Start playing</h2>
+              <h2 class="card-header" id="start-playing-card-header">Start playing</h2>
               <div class="card-body">
                 <!-- search game -->
                 <div class="input-group">
@@ -484,47 +508,54 @@ onMounted(async () => {
                   </button>
                 </div>
                 <!-- previous games -->
-                <div class="mt-4 card p-0">
-                  <h2 class="card-header">Previous Games</h2>
-                  <div class="card-body">
-                    <ul class="list-group">
-                      <li
-                        class="list-group-item"
-                        v-for="previousGame in previousGames.sort(
-                          /* recent first */ (a, b) => b.date - a.date,
-                        )"
-                        :key="previousGame.date"
+                <div class="mt-4">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 class="h5 mb-0">Previous games</h2>
+                    <span class="text-muted small"
+                      >{{ previousGames.length }} recent</span
+                    >
+                  </div>
+
+                  <div v-if="previousGames.length === 0" class="text-muted small">
+                    No recent games yet. Your last sessions will appear here.
+                  </div>
+
+                  <div v-else class="d-grid gap-2">
+                    <div
+                      v-for="previousGame in sortedPreviousGames"
+                      :key="previousGame.date"
+                      class="previous-game-item"
+                    >
+                      <div
+                        v-if="
+                          getGameSync(previousGame.gameId) &&
+                          getPlatformSync(previousGame.platformId)
+                        "
+                        class="d-flex align-items-center justify-content-between gap-3 w-100"
                       >
-                        <div
-                          v-if="
-                            getGameSync(previousGame.gameId) &&
-                            getPlatformSync(previousGame.platformId)
-                          "
-                        >
+                        <div class="d-flex flex-column overflow-hidden min-width-0">
                           <a
-                            class="text-decoration-none"
+                            class="text-decoration-none fw-semibold d-block text-truncate"
                             :href="'/game/' + previousGame.gameId"
                             >{{ getGameSync(previousGame.gameId)!.name }}</a
                           >
-                          -
-                          {{
-                            getPlatformSync(previousGame.platformId)!
-                              .display_name
-                          }}
-                          -
-                          <button
-                            @click="
-                              applyGamePlatform(
-                                getGameSync(previousGame.gameId)!,
-                                getPlatformSync(previousGame.platformId)!,
-                              )
-                            "
-                          >
-                            Play Again
-                          </button>
+                          <small class="text-muted text-truncate">
+                            {{
+                              getPlatformSync(previousGame.platformId)!
+                                .display_name
+                            }}
+                          </small>
                         </div>
-                      </li>
-                    </ul>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-primary"
+                          @click="selectPreviousGame(previousGame)"
+                        >
+                          Play again
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -639,3 +670,59 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.manual-tracking-card {
+  border-radius: 1rem;
+}
+
+.previous-game-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(13, 110, 253, 0.1);
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 252, 0.96));
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.previous-game-item:hover {
+  border-color: rgba(13, 110, 253, 0.25);
+  box-shadow: 0 0.25rem 0.9rem rgba(13, 110, 253, 0.08);
+  transform: translateY(-1px);
+}
+
+.previous-game-item > .d-flex {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .previous-game-item {
+    padding: 0.75rem;
+  }
+
+  .previous-game-item > .d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .previous-game-item .btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+</style>
