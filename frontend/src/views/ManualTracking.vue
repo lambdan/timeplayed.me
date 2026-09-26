@@ -124,6 +124,9 @@ async function searchGame(query: string) {
         order: "desc",
         sort: "updated",
       });
+      for (const result of results) {
+        cachedGames.value[result.id] = result;
+      }
       searchGameResults.value = results;
       searchDropdownVisible.value = results.length > 0;
     } catch (err: any) {
