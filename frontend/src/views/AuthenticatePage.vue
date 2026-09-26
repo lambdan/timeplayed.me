@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import type { User } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
+import { useApiToken } from "../composables/useApiToken";
+
+const { token, setApiToken, clearApiToken } = useApiToken();
+const sessionUser = ref<User>();
+const pendingToken = ref("");
+const authError = ref("");
+const authenticating = ref(false);
+
+async function refreshSessionUser() {
+  if (!token.value) {
+    sessionUser.value = undefined;
+    return;
+  }
+
+  try {
+    sessionUser.value = await TimeplayedAPI.whoAmI(token.value);
+  } catch {
+    sessionUser.value = undefined;
+  }
+}
+
+async function authenticateSession() {
+  authError.value = "";
+  const nextToken = pendingToken.value.trim();
+  if (!nextToken) {
+    authError.value = "Please enter your token.";
+    return;
+  }
+
+  authenticating.value = true;
+  try {
+    const whoAmI = await TimeplayedAPI.whoAmI(nextToken);
+    setApiToken(nextToken);
+    sessionUser.value = whoAmI;
+    pendingToken.value = "";
+  } catch (err: any) {
+    authError.value = err?.message || "Authorization failed.";
+  } finally {
+    authenticating.value = false;
+  }
+}
+
+function logoutSession() {
+  clearApiToken();
+  sessionUser.value = undefined;
+  authError.value = "";
+}
+
+watch(token, () => {
+  refreshSessionUser();
+}, { immediate: true });
+</script>
+
+<template>
+  <div class="card p-0 auth-card">
+    <h1 class="card-header">Authenticate</h1>
+    <div class="card-body">
+      <div class="auth-intro mb-3">
+        Authenticating your web session with a token from the Discord bot is
+        <strong>completely optional</strong>, but it lets you do things like
+        manual activity tracking through the website, and maybe more cool stuff in the future.
+      </div>
+
+      <div v-if="sessionUser" class="alert alert-success mb-3">
+        Signed in as
+        <a class="text-decoration-none" :href="'/user/' + sessionUser.id">
+          {{ sessionUser.display_name }}
+        </a>
+      </div>
+
+      <div v-if="!sessionUser">
+        <div class="input-group">
+          <input
+            v-model="pendingToken"
+            type="password"
+            class="form-control"
+            placeholder="Enter API token"
+            @keydown.enter.prevent="authenticateSession"
+          />
+          <button
+            class="btn btn-primary"
+            @click="authenticateSession"
+            :disabled="authenticating"
+          >
+            {{ authenticating ? "Authenticating..." : "Authenticate" }}
+          </button>
+        </div>
+
+        <p class="text-secondary mt-3 mb-0">
+          Get a token by sending <code>!token</code> to the bot in Discord.
+        </p>
+        <div v-if="authError" class="alert alert-danger mt-3 mb-0">
+          {{ authError }}
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button v-if="sessionUser" class="btn btn-outline-danger" @click="logoutSession">
+          Logout
+        </button>
+
+      </div>
+      <p class="auth-note mb-0" v-if="sessionUser">
+        Clicking logout here only removes your API token from this browser.
+        The token (and any other active tokens) still remains valid on the
+        server. To invalidate all of your tokens, DM the bot
+        <code>!revoke_tokens</code>.
+      </p>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.auth-card {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.auth-intro {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #f8f9fa;
+  color: #334155;
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+  line-height: 1.45;
+}
+
+.auth-note {
+  margin-top: 0.85rem;
+  color: #6b7280;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+</style>

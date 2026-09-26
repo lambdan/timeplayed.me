@@ -1,3 +1,35 @@
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import type { User } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
+import { useApiToken } from "../composables/useApiToken";
+
+const { token, clearApiToken } = useApiToken();
+const sessionUser = ref<User>();
+
+async function refreshSessionUser() {
+  if (!token.value) {
+    sessionUser.value = undefined;
+    return;
+  }
+
+  try {
+    sessionUser.value = await TimeplayedAPI.whoAmI(token.value);
+  } catch (err) {
+    sessionUser.value = undefined;
+  }
+}
+
+function logoutSession() {
+  clearApiToken();
+  sessionUser.value = undefined;
+}
+
+watch(token, () => {
+  refreshSessionUser();
+}, { immediate: true });
+</script>
+
 <template>
   <nav class="navbar navbar-expand-lg">
     <div class="container">
@@ -52,7 +84,29 @@
               ><i class="bi bi-question-circle"></i> Help</a
             >
           </li>
+
+          <li v-if="!sessionUser" class="nav-item">
+            <a class="nav-link" href="/authenticate"
+              ><i class="bi bi-shield-lock"></i> Authenticate</a
+            >
+          </li>
         </ul>
+
+        <div
+          v-if="sessionUser"
+          class="ms-lg-auto mt-3 mt-lg-0 d-flex align-items-center gap-2"
+        >
+          <small class="navbar-text text-body-secondary">
+            Authenticated as
+            <a class="text-decoration-none" :href="'/user/' + sessionUser.id">
+              {{ sessionUser.display_name }}
+            </a>
+          </small>
+          <button class="btn btn-outline-danger btn-sm" @click="logoutSession">
+            Logout
+          </button>
+        </div>
+
       </div>
     </div>
   </nav>

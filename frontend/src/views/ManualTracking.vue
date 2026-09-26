@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
+import { useApiToken } from "../composables/useApiToken";
 import type {
   Game,
   LiveActivity,
@@ -17,12 +18,11 @@ interface PreviousGame {
   date: number;
 }
 
-const TOKEN_KEY = "mt-token";
 const LAST_GAME_KEY = "mt-last-game";
 const LAST_PLATFORM_KEY = "mt-last-platform";
 const PREVIOUS_GAMES_KEY = "mt-previousGames";
 
-const token = ref<string | null>(localStorage.getItem(TOKEN_KEY) || null);
+const { token, clearApiToken } = useApiToken();
 const loading = ref(false);
 const liveActivity = ref<LiveActivity | null>(null);
 const user = ref<User>();
@@ -68,24 +68,8 @@ function updateDurationText() {
   durationText.value = formatDuration(getDuration(), true);
 }
 
-function login() {
-  error.value = "";
-  if (token.value) {
-    localStorage.setItem(TOKEN_KEY, token.value);
-    getUser().then(() => {
-      if (user.value) {
-        getLiveActivity();
-        getPlatforms();
-      }
-    });
-  } else {
-    alert("Please enter a token.");
-  }
-}
-
 function logout() {
-  localStorage.removeItem(TOKEN_KEY);
-  token.value = null;
+  clearApiToken();
   user.value = undefined;
 }
 
@@ -433,6 +417,32 @@ onUnmounted(() => {
     searchTimeout = null;
   }
 });
+
+watch(token, (nextToken) => {
+  if (!nextToken) {
+    user.value = undefined;
+    liveActivity.value = null;
+    game.value = undefined;
+    platform.value = undefined;
+    searchGameResults.value = [];
+    error.value = "";
+    return;
+  }
+
+  if (!user.value) {
+    loading.value = true;
+    getUser()
+      .then(async () => {
+        if (user.value) {
+          await getLiveActivity();
+          await getPlatforms();
+        }
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  }
+});
 </script>
 
 <template>
@@ -449,7 +459,9 @@ onUnmounted(() => {
         <div v-if="!loading">
           <div v-if="!liveActivity">
             <div class="card p-0">
-              <h2 class="card-header" id="start-playing-card-header">Start playing</h2>
+              <h2 class="card-header" id="start-playing-card-header">
+                Start playing
+              </h2>
               <div class="card-body">
                 <!-- search game -->
                 <div class="input-group manual-field">
@@ -530,19 +542,17 @@ onUnmounted(() => {
                   </button>
                 </div>
                 <!-- previous games -->
-                <div class="mt-4">
-                  <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="mt-4" v-if="previousGames.length > 0">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
                     <h2 class="h5 mb-0">Previous games</h2>
                     <span class="text-muted small"
                       >{{ previousGames.length }} recent</span
                     >
                   </div>
 
-                  <div v-if="previousGames.length === 0" class="text-muted small">
-                    No recent games yet. Your last sessions will appear here.
-                  </div>
-
-                  <div v-else class="d-grid gap-2">
+                  <div class="d-grid gap-2">
                     <div
                       v-for="previousGame in sortedPreviousGames"
                       :key="`${previousGame.gameId}-${previousGame.platformId}-${previousGame.date}`"
@@ -560,7 +570,9 @@ onUnmounted(() => {
                         "
                         class="d-flex align-items-center justify-content-between gap-3 w-100"
                       >
-                        <div class="d-flex flex-column overflow-hidden min-width-0">
+                        <div
+                          class="d-flex flex-column overflow-hidden min-width-0"
+                        >
                           <span class="fw-semibold text-truncate">{{
                             getGameSync(previousGame.gameId)!.name
                           }}</span>
@@ -580,10 +592,10 @@ onUnmounted(() => {
           </div>
 
           <div v-else-if="liveActivity">
-            <div class="card p-0">
-              <h2 class="card-header">Currently playing</h2>
-              <div class="card-body">
-                <div class="row">
+            <div class="card p-0 manual-panel">
+              <h2 class="card-header manual-card-header">Currently playing</h2>
+              <div class="card-body manual-panel-body">
+                <div class="row g-3 align-items-start">
                   <div class="col-md-2 text-center" v-if="game">
                     <GameCover :gameId="game.id" :size="128" />
                   </div>
@@ -592,9 +604,9 @@ onUnmounted(() => {
                   >
 
                   <div class="col">
-                    <ul class="mt-4 list-group">
-                      <li class="list-group-item">
-                        <i class="bi bi-joystick"></i> 
+                    <ul class="mt-2 list-group currently-list">
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-joystick"></i>
                         <a
                           class="text-decoration-none"
                           :href="'/game/' + game.id"
@@ -604,8 +616,8 @@ onUnmounted(() => {
                         <span v-else>Loading...</span>
                       </li>
 
-                      <li class="list-group-item">
-                        <i class="bi bi-controller"></i> 
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-controller"></i>
                         <a
                           class="text-decoration-none"
                           :href="'/platform/' + platform.id"
@@ -615,8 +627,8 @@ onUnmounted(() => {
                         <span v-else>Loading...</span>
                       </li>
 
-                      <li class="list-group-item">
-                        <i class="bi bi-stopwatch"></i> 
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-stopwatch"></i>
                         <b
                           ><span id="duration" class="text-success">{{
                             durationText
@@ -626,13 +638,13 @@ onUnmounted(() => {
                     </ul>
 
                     <div
-                      class="btn-group"
+                      class="btn-group mt-4 w-100 manual-button-row"
                       role="group"
                       aria-label="Live activity controls"
                     >
                       <button
                         @click="stopLiveActivity"
-                        class="btn btn-primary mt-4"
+                        class="btn btn-primary"
                         id="stop-live-activity-button"
                       >
                         <i class="bi bi-stop-circle"></i>
@@ -640,7 +652,7 @@ onUnmounted(() => {
                       </button>
                       <button
                         @click="abortLiveActivity(false)"
-                        class="btn btn-danger mt-4"
+                        class="btn btn-danger"
                         id="abort-live-activity-button"
                       >
                         <i class="bi bi-x-circle"></i>
@@ -655,34 +667,9 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div v-if="!user">
-        <div class="input-group input-group-sm">
-          <input
-            v-model="token"
-            type="password"
-            placeholder="Enter your token"
-            class="form-control"
-          />
-          <button @click="login" class="btn btn-primary">
-            Login
-          </button>
-        </div>
-        <p class="mt-2 text-sm text-secondary">
-          Get a token by sending <code>!token</code> to the bot in Discord.
-        </p>
-      </div>
-
-      <div v-if="user">
-        <hr />
-        <p>
-          Logged in as
-          <a class="text-decoration-none" :href="'/user/' + user.id">{{
-            user.display_name
-          }}</a>
-        </p>
-        <button @click="logout" class="btn btn-danger">
-          Logout
-        </button>
+      <div v-if="!user" class="alert alert-secondary mt-3 mb-0">
+        You need to be
+        <a href="/authenticate" class="alert-link">authenticated</a>.
       </div>
     </div>
   </div>
@@ -752,6 +739,27 @@ onUnmounted(() => {
   flex: 1 1 0;
 }
 
+.currently-list {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.currently-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8f9fa;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.currently-list-item > i {
+  color: #4b5563;
+}
+
+.currently-list-item + .currently-list-item {
+  border-top-color: rgba(15, 23, 42, 0.06);
+}
+
 .previous-game-item {
   display: flex;
   align-items: center;
@@ -761,7 +769,9 @@ onUnmounted(() => {
   border: 1px solid rgba(13, 110, 253, 0.1);
   border-radius: 0.75rem;
   background: #f8f9fa;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
   cursor: pointer;
 }
 
