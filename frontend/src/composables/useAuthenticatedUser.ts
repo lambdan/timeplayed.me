@@ -32,9 +32,13 @@ function ensureInitialized() {
   initialized = true;
   const scope = effectScope(true);
   scope.run(() => {
-    watch(token, () => {
-      refreshAuthenticatedUser();
-    }, { immediate: true });
+    watch(
+      token,
+      () => {
+        refreshAuthenticatedUser();
+      },
+      { immediate: true },
+    );
   });
 }
 

@@ -40,7 +40,8 @@ function logoutCurrentSession() {
       <div class="auth-intro mb-3">
         Authenticating your web session with a token from the Discord bot is
         <strong>completely optional</strong>, but it lets you do things like
-        manual activity tracking through the website, and maybe more cool stuff in the future.
+        manual activity tracking through the website, and maybe more cool stuff
+        in the future.
       </div>
 
       <div v-if="authenticatedUser" class="alert alert-success mb-3">
@@ -77,15 +78,18 @@ function logoutCurrentSession() {
       </div>
 
       <div class="d-flex gap-2 mt-3">
-        <button v-if="authenticatedUser" class="btn btn-outline-danger" @click="logoutCurrentSession">
+        <button
+          v-if="authenticatedUser"
+          class="btn btn-outline-danger"
+          @click="logoutCurrentSession"
+        >
           Logout
         </button>
-
       </div>
       <p class="auth-note mb-0" v-if="authenticatedUser">
-        Clicking logout here only removes your API token from this browser.
-        The token (and any other active tokens) still remains valid on the
-        server. To invalidate all of your tokens, DM the bot
+        Clicking logout here only removes your API token from this browser. The
+        token (and any other active tokens) still remains valid on the server.
+        To invalidate all of your tokens, DM the bot
         <code>!revoke_tokens</code>.
       </p>
     </div>

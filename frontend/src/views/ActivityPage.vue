@@ -5,12 +5,7 @@ import { formatDuration } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
-import type {
-  Activity,
-  Game,
-  Platform,
-  User,
-} from "../api.models";
+import type { Activity, Game, Platform, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "../components/CalendarBasic.vue";
 
@@ -37,7 +32,12 @@ function canDeleteActivity() {
 
 async function deleteCurrentActivity() {
   const currentToken = token.value;
-  if (!activity.value || !currentToken || !canDeleteActivity() || deleting.value) {
+  if (
+    !activity.value ||
+    !currentToken ||
+    !canDeleteActivity() ||
+    deleting.value
+  ) {
     return;
   }
 
@@ -171,9 +171,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <div v-else-if="deleted" class="alert alert-success">
-    Activity deleted.
-  </div>
+  <div v-else-if="deleted" class="alert alert-success">Activity deleted.</div>
   <div v-if="error">
     <p class="text-muted">{{ error }}</p>
   </div>

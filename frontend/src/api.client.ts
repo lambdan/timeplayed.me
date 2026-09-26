@@ -344,9 +344,7 @@ export class TimeplayedAPI {
       token,
     });
     if (!r.ok) {
-      throw new Error(
-        `Error deleting activity: ${r.status} ${r.statusText}`,
-      );
+      throw new Error(`Error deleting activity: ${r.status} ${r.statusText}`);
     }
   }
 

@@ -72,7 +72,10 @@ const { authenticatedUser, logoutSession } = useAuthenticatedUser();
         >
           <small class="navbar-text text-body-secondary">
             Authenticated as
-            <a class="text-decoration-none" :href="'/user/' + authenticatedUser.id">
+            <a
+              class="text-decoration-none"
+              :href="'/user/' + authenticatedUser.id"
+            >
               {{ authenticatedUser.display_name }}
             </a>
           </small>
@@ -80,7 +83,6 @@ const { authenticatedUser, logoutSession } = useAuthenticatedUser();
             Logout
           </button>
         </div>
-
       </div>
     </div>
   </nav>
