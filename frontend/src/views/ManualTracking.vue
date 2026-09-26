@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import type {
@@ -18,7 +17,6 @@ interface PreviousGame {
   date: number;
 }
 
-const route = useRoute();
 const TOKEN_KEY = "mt-token";
 const LAST_GAME_KEY = "mt-last-game";
 const LAST_PLATFORM_KEY = "mt-last-platform";
@@ -34,7 +32,6 @@ const platform = ref<Platform>();
 const platforms = ref<Platform[]>([]);
 const error = ref("");
 const searchGameResults = ref<Game[]>([]);
-const searchDropdownVisible = ref(false);
 const durationText = ref("...");
 const previousGames = ref<PreviousGame[]>([]);
 const sortedPreviousGames = computed(() =>
@@ -106,6 +103,7 @@ function setGame(g: Game) {
 
 let searchTimeout: number | null = null;
 let lastSearchQuery = "";
+let durationInterval: number | null = null;
 async function searchGame(query: string) {
   if (query === lastSearchQuery) {
     return;
@@ -131,7 +129,6 @@ async function searchGame(query: string) {
         cachedGames.value[result.id] = result;
       }
       searchGameResults.value = results;
-      searchDropdownVisible.value = results.length > 0;
     } catch (err: any) {
       error.value =
         err.message || "An error occurred while searching for games.";
@@ -250,13 +247,21 @@ async function startLiveActivity() {
     button.setAttribute("disabled", "true");
     button.textContent = "Starting...";
   }
-  const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
-  liveActivity.value = r;
+  try {
+    const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
+    liveActivity.value = r;
 
-  // update local previous
-  localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
-  localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
-  addPreviousGame(game.value.id, platform.value.id);
+    // update local previous
+    localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
+    localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
+    addPreviousGame(game.value.id, platform.value.id);
+  } catch (err: any) {
+    error.value = err.message || "An error occurred while starting activity.";
+    if (button) {
+      button.removeAttribute("disabled");
+      button.textContent = "Start";
+    }
+  }
 }
 
 async function stopLiveActivity() {
@@ -374,7 +379,7 @@ function addPreviousGame(gameId: number, platformId: number) {
 
 onMounted(async () => {
   // start updating duration text
-  setInterval(() => {
+  durationInterval = window.setInterval(() => {
     updateDurationText();
   }, 1000);
   updateDurationText();
@@ -414,6 +419,18 @@ onMounted(async () => {
       await getPlatform(pg.platformId);
     });
     previousGames.value = parsed;
+  }
+});
+
+onUnmounted(() => {
+  if (durationInterval) {
+    clearInterval(durationInterval);
+    durationInterval = null;
+  }
+
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
   }
 });
 </script>
@@ -528,7 +545,7 @@ onMounted(async () => {
                   <div v-else class="d-grid gap-2">
                     <div
                       v-for="previousGame in sortedPreviousGames"
-                      :key="previousGame.date"
+                      :key="`${previousGame.gameId}-${previousGame.platformId}-${previousGame.date}`"
                       class="previous-game-item previous-game-entry"
                       role="button"
                       tabindex="0"
