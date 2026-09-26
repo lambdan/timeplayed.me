@@ -435,7 +435,7 @@ onMounted(async () => {
               <h2 class="card-header" id="start-playing-card-header">Start playing</h2>
               <div class="card-body">
                 <!-- search game -->
-                <div class="input-group">
+                <div class="input-group manual-field">
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="search-game-addon"
                       ><i class="bi bi-joystick"></i
@@ -445,7 +445,7 @@ onMounted(async () => {
                     type="text"
                     id="search-game-input"
                     placeholder="Search for a game..."
-                    class="form-control"
+                    class="form-control manual-form-control"
                     @input="
                       searchGame(
                         ($event.target && ($event.target as any).value) || '',
@@ -475,7 +475,7 @@ onMounted(async () => {
                   </li>
                 </ul>
 
-                <div class="input-group">
+                <div class="input-group manual-field mt-3">
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="search-platform-addon"
                       ><i class="bi bi-controller"></i
@@ -483,7 +483,7 @@ onMounted(async () => {
                   </div>
                   <select
                     v-model="platform"
-                    class="form-select"
+                    class="form-select manual-form-control"
                     aria-label="Select platform"
                   >
                     <option disabled value="">Select a platform</option>
@@ -493,7 +493,10 @@ onMounted(async () => {
                   </select>
                 </div>
 
-                <div class="btn-group mt-4">
+                <div
+                  class="btn-group mt-4 w-100 manual-button-row"
+                  role="group"
+                >
                   <button
                     @click="startLiveActivity"
                     class="btn btn-primary"
@@ -504,7 +507,9 @@ onMounted(async () => {
                     Start
                   </button>
                   <button @click="addByIGDB" class="btn btn-secondary">
-                    <i class="bi bi-plus-circle"></i> Add game by IGDB ID
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="d-none d-sm-inline">Add game by IGDB ID</span>
+                    <span class="d-inline d-sm-none">Add by IGDB ID</span>
                   </button>
                 </div>
                 <!-- previous games -->
@@ -524,7 +529,12 @@ onMounted(async () => {
                     <div
                       v-for="previousGame in sortedPreviousGames"
                       :key="previousGame.date"
-                      class="previous-game-item"
+                      class="previous-game-item previous-game-entry"
+                      role="button"
+                      tabindex="0"
+                      @click="selectPreviousGame(previousGame)"
+                      @keydown.enter.prevent="selectPreviousGame(previousGame)"
+                      @keydown.space.prevent="selectPreviousGame(previousGame)"
                     >
                       <div
                         v-if="
@@ -534,11 +544,9 @@ onMounted(async () => {
                         class="d-flex align-items-center justify-content-between gap-3 w-100"
                       >
                         <div class="d-flex flex-column overflow-hidden min-width-0">
-                          <a
-                            class="text-decoration-none fw-semibold d-block text-truncate"
-                            :href="'/game/' + previousGame.gameId"
-                            >{{ getGameSync(previousGame.gameId)!.name }}</a
-                          >
+                          <span class="fw-semibold text-truncate">{{
+                            getGameSync(previousGame.gameId)!.name
+                          }}</span>
                           <small class="text-muted text-truncate">
                             {{
                               getPlatformSync(previousGame.platformId)!
@@ -546,14 +554,6 @@ onMounted(async () => {
                             }}
                           </small>
                         </div>
-
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-outline-primary"
-                          @click="selectPreviousGame(previousGame)"
-                        >
-                          Play again
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -646,7 +646,7 @@ onMounted(async () => {
             placeholder="Enter your token"
             class="form-control"
           />
-          <button @click="login" class="bg-primary text-white p-2 rounded">
+          <button @click="login" class="btn btn-primary">
             Login
           </button>
         </div>
@@ -663,7 +663,7 @@ onMounted(async () => {
             user.display_name
           }}</a>
         </p>
-        <button @click="logout" class="bg-danger text-white p-2 rounded">
+        <button @click="logout" class="btn btn-danger">
           Logout
         </button>
       </div>
@@ -676,6 +676,65 @@ onMounted(async () => {
   border-radius: 1rem;
 }
 
+.manual-panel {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.manual-card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+}
+
+.manual-panel-body {
+  padding-top: 1.25rem;
+}
+
+.manual-field {
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
+  align-items: stretch;
+}
+
+.manual-field .input-group-text {
+  background: #f8f9fb;
+  border: 0;
+  color: #4b5563;
+  padding-inline: 0.9rem;
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+}
+
+.manual-field .form-select {
+  min-height: 3.125rem;
+}
+
+.manual-form-control {
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
+  box-shadow: none !important;
+  min-height: 2.9rem;
+}
+
+.manual-form-control:focus {
+  background: #ffffff;
+}
+
+.manual-button-row {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.manual-button-row > .btn {
+  flex: 1 1 0;
+}
+
 .previous-game-item {
   display: flex;
   align-items: center;
@@ -684,14 +743,19 @@ onMounted(async () => {
   padding: 0.8rem 1rem;
   border: 1px solid rgba(13, 110, 253, 0.1);
   border-radius: 0.75rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 252, 0.96));
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  background: #f8f9fa;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
 }
 
 .previous-game-item:hover {
   border-color: rgba(13, 110, 253, 0.25);
-  box-shadow: 0 0.25rem 0.9rem rgba(13, 110, 253, 0.08);
-  transform: translateY(-1px);
+  background: #f2f6ff;
+}
+
+.previous-game-entry:focus-visible {
+  outline: 2px solid rgba(13, 110, 253, 0.45);
+  outline-offset: 2px;
 }
 
 .previous-game-item > .d-flex {
