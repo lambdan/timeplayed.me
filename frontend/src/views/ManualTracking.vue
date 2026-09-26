@@ -121,12 +121,13 @@ async function searchGame(query: string) {
 }
 
 async function getGame(id: number | string): Promise<Game | null> {
-  if (cachedGames.value[+id]) {
-    return cachedGames.value[+id];
+  id = +id;
+  if (cachedGames.value[id]) {
+    return cachedGames.value[id];
   }
   try {
-    const g = await TimeplayedAPI.getGame(+id);
-    cachedGames.value[+id] = g;
+    const g = await TimeplayedAPI.getGame(id);
+    cachedGames.value[id] = g;
     return g;
   } catch (err) {
     console.error("Error getting game", id, err);
@@ -143,12 +144,13 @@ function getPlatformSync(id: number | string): Platform | null {
 }
 
 async function getPlatform(id: number | string): Promise<Platform | null> {
-  if (cachedPlatforms.value[+id]) {
-    return cachedPlatforms.value[+id];
+  id = +id;
+  if (cachedPlatforms.value[id]) {
+    return cachedPlatforms.value[id];
   }
   try {
-    const p = await TimeplayedAPI.getPlatform(+id);
-    cachedPlatforms.value[+id] = p;
+    const p = await TimeplayedAPI.getPlatform(id);
+    cachedPlatforms.value[id] = p;
     return p;
   } catch (err) {
     console.error("Error getting platform", id, err);
@@ -326,6 +328,10 @@ async function getPlatforms() {
     offset += 100;
   }
   platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+  for (const p of platforms.value) {
+    cachedPlatforms.value[p.id] = p;
+  }
 
   // set platform to live activity platform or user default platform
   if (liveActivity.value) {
