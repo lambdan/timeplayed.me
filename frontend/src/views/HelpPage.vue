@@ -41,9 +41,10 @@
         tracking through Discord. How can I track it here, manually?
       </h2>
       <p>
-        By DMing the bot manually. The best way to do it to use the
-        <code>!start</code> and <code>!stop</code> commands:
+        <b>NEW:</b> Use the <a href="/manual-tracking">manual tracking page</a>.
+        Alternatively, you can still do it by DMing the bot manually:
       </p>
+      <p>Use the <code>!start</code> and <code>!stop</code> commands:</p>
       <ul>
         <li>
           First off, you probably want to set your default platform (otherwise

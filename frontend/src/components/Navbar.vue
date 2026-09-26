@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+
+const { authenticatedUser, logoutSession } = useAuthenticatedUser();
+</script>
+
 <template>
   <nav class="navbar navbar-expand-lg">
     <div class="container">
@@ -43,7 +49,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/manual-tracking"
-              ><i class="bi bi-clock-history"></i> Manual tracking (beta)</a
+              ><i class="bi bi-clock-history"></i> Manual Tracking</a
             >
           </li>
 
@@ -52,7 +58,31 @@
               ><i class="bi bi-question-circle"></i> Help</a
             >
           </li>
+
+          <li v-if="!authenticatedUser" class="nav-item">
+            <a class="nav-link" href="/authenticate"
+              ><i class="bi bi-shield-lock"></i> Authenticate</a
+            >
+          </li>
         </ul>
+
+        <div
+          v-if="authenticatedUser"
+          class="ms-lg-auto mt-3 mt-lg-0 d-flex align-items-center gap-2"
+        >
+          <small class="navbar-text text-body-secondary">
+            Authenticated as
+            <a
+              class="text-decoration-none"
+              :href="'/user/' + authenticatedUser.id"
+            >
+              {{ authenticatedUser.display_name }}
+            </a>
+          </small>
+          <button class="btn btn-outline-danger btn-sm" @click="logoutSession">
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   </nav>

@@ -12,6 +12,7 @@ import HelpPage from "../views/HelpPage.vue";
 import ActivityPage from "../views/ActivityPage.vue";
 import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
+import AuthenticatePage from "../views/AuthenticatePage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -42,6 +43,7 @@ const routes = [
   },
   { path: "/news", component: NewsPage },
   { path: "/help", component: HelpPage },
+  { path: "/authenticate", component: AuthenticatePage },
   { path: "/users", component: UserListPage },
   { path: "/games", component: GameListPage },
   { path: "/platforms", component: PlatformListPage },

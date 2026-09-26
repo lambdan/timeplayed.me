@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
+import { useApiToken } from "../composables/useApiToken";
 import type {
   Game,
   LiveActivity,
@@ -12,24 +12,33 @@ import type {
 } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 
-const route = useRoute();
+interface PreviousGame {
+  gameId: number;
+  platformId: number;
+  date: number;
+}
 
-const TOKEN_KEY = "mt-token";
 const LAST_GAME_KEY = "mt-last-game";
 const LAST_PLATFORM_KEY = "mt-last-platform";
+const PREVIOUS_GAMES_KEY = "mt-previousGames";
 
-const token = ref<string | null>(localStorage.getItem(TOKEN_KEY) || null);
+const { token, clearApiToken } = useApiToken();
 const loading = ref(false);
 const liveActivity = ref<LiveActivity | null>(null);
 const user = ref<User>();
 const game = ref<Game>();
 const platform = ref<Platform>();
+
 const platforms = ref<Platform[]>([]);
 const error = ref("");
 const searchGameResults = ref<Game[]>([]);
-const searchDropdownVisible = ref(false);
-
 const durationText = ref("...");
+const previousGames = ref<PreviousGame[]>([]);
+const sortedPreviousGames = computed(() =>
+  [...previousGames.value].sort((a, b) => b.date - a.date),
+);
+const cachedGames = ref<Record<number, Game>>({});
+const cachedPlatforms = ref<Record<number, Platform>>({});
 
 async function addByIGDB() {
   const igdbId = prompt("Enter IGDB ID:");
@@ -59,24 +68,8 @@ function updateDurationText() {
   durationText.value = formatDuration(getDuration(), true);
 }
 
-function login() {
-  error.value = "";
-  if (token.value) {
-    localStorage.setItem(TOKEN_KEY, token.value);
-    getUser().then(() => {
-      if (user.value) {
-        getLiveActivity();
-        getPlatforms();
-      }
-    });
-  } else {
-    alert("Please enter a token.");
-  }
-}
-
 function logout() {
-  localStorage.removeItem(TOKEN_KEY);
-  token.value = null;
+  clearApiToken();
   user.value = undefined;
 }
 
@@ -94,6 +87,7 @@ function setGame(g: Game) {
 
 let searchTimeout: number | null = null;
 let lastSearchQuery = "";
+let durationInterval: number | null = null;
 async function searchGame(query: string) {
   if (query === lastSearchQuery) {
     return;
@@ -115,13 +109,53 @@ async function searchGame(query: string) {
         order: "desc",
         sort: "updated",
       });
+      for (const result of results) {
+        cachedGames.value[result.id] = result;
+      }
       searchGameResults.value = results;
-      searchDropdownVisible.value = results.length > 0;
     } catch (err: any) {
       error.value =
         err.message || "An error occurred while searching for games.";
     }
   }, 300); // Debounce for 300ms
+}
+
+async function getGame(id: number | string): Promise<Game | null> {
+  id = +id;
+  if (cachedGames.value[id]) {
+    return cachedGames.value[id];
+  }
+  try {
+    const g = await TimeplayedAPI.getGame(id);
+    cachedGames.value[id] = g;
+    return g;
+  } catch (err) {
+    console.error("Error getting game", id, err);
+    return null;
+  }
+}
+
+function getGameSync(id: number | string): Game | null {
+  return cachedGames.value[+id] || null;
+}
+
+function getPlatformSync(id: number | string): Platform | null {
+  return cachedPlatforms.value[+id] || null;
+}
+
+async function getPlatform(id: number | string): Promise<Platform | null> {
+  id = +id;
+  if (cachedPlatforms.value[id]) {
+    return cachedPlatforms.value[id];
+  }
+  try {
+    const p = await TimeplayedAPI.getPlatform(id);
+    cachedPlatforms.value[id] = p;
+    return p;
+  } catch (err) {
+    console.error("Error getting platform", id, err);
+    return null;
+  }
 }
 
 async function getUser() {
@@ -136,18 +170,49 @@ async function getUser() {
   }
 }
 
+function applyGamePlatform(g: Game, p: Platform) {
+  platform.value = p;
+  setGame(g);
+}
+
+function selectPreviousGame(previousGame: PreviousGame) {
+  const gameInfo = getGameSync(previousGame.gameId);
+  const platformInfo = getPlatformSync(previousGame.platformId);
+
+  if (!gameInfo || !platformInfo) {
+    return;
+  }
+
+  applyGamePlatform(gameInfo, platformInfo);
+
+  const startHeader = document.getElementById("start-playing-card-header");
+  if (startHeader) {
+    startHeader.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 async function getLiveActivity() {
   if (!token.value) {
     return;
   }
   try {
     liveActivity.value = await TimeplayedAPI.getLiveActivity(token.value);
-    if (liveActivity.value) {
-      game.value = await TimeplayedAPI.getGame(liveActivity.value.game_id);
-      platform.value = platforms.value.find(
-        (p) => p.id === liveActivity.value!.platform_id,
+    if (!liveActivity.value) {
+      return;
+    }
+    const _game = await getGame(liveActivity.value.game_id);
+    const _platform = await getPlatform(liveActivity.value.platform_id);
+    if (!_game || !_platform) {
+      throw new Error(
+        "Failed to fetch game or platform for running live activity",
       );
     }
+    applyGamePlatform(_game, _platform);
   } catch (err: any) {
     error.value = err.message || "An error occurred while fetching data.";
   }
@@ -168,10 +233,21 @@ async function startLiveActivity() {
     button.setAttribute("disabled", "true");
     button.textContent = "Starting...";
   }
-  const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
-  liveActivity.value = r;
-  localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
-  localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
+  try {
+    const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
+    liveActivity.value = r;
+
+    // update local previous
+    localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
+    localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
+    addPreviousGame(game.value.id, platform.value.id);
+  } catch (err: any) {
+    error.value = err.message || "An error occurred while starting activity.";
+    if (button) {
+      button.removeAttribute("disabled");
+      button.textContent = "Start";
+    }
+  }
 }
 
 async function stopLiveActivity() {
@@ -201,7 +277,7 @@ async function stopLiveActivity() {
       stopButton.textContent = "Success! Redirecting...";
       stopButton.classList.remove("btn-primary");
       stopButton.classList.add("btn-success");
-      await sleep(1000);
+      await sleep(200);
       window.location.href = "/activity/" + resp.id;
     }
   } catch (err: any) {
@@ -253,6 +329,10 @@ async function getPlatforms() {
   }
   platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
+  for (const p of platforms.value) {
+    cachedPlatforms.value[p.id] = p;
+  }
+
   // set platform to live activity platform or user default platform
   if (liveActivity.value) {
     platform.value = platforms.value.find(
@@ -265,7 +345,35 @@ async function getPlatforms() {
   }
 }
 
+function addPreviousGame(gameId: number, platformId: number) {
+  let updated = false;
+  for (const pg of previousGames.value) {
+    if (pg.gameId === gameId && pg.platformId === platformId) {
+      pg.date = Date.now();
+      updated = true;
+    }
+  }
+  if (!updated) {
+    previousGames.value.push({ gameId, platformId, date: Date.now() });
+  }
+
+  while (previousGames.value.length > 10) {
+    // remove oldest
+    previousGames.value.sort((a, b) => a.date - b.date);
+    previousGames.value.shift();
+  }
+
+  localStorage.setItem(PREVIOUS_GAMES_KEY, JSON.stringify(previousGames.value));
+  console.log("Saved previousGames", previousGames.value);
+}
+
 onMounted(async () => {
+  // start updating duration text
+  durationInterval = window.setInterval(() => {
+    updateDurationText();
+  }, 1000);
+  updateDurationText();
+
   loading.value = true;
   await getUser();
   if (user.value) {
@@ -279,22 +387,71 @@ onMounted(async () => {
     const lastGameId = localStorage.getItem(LAST_GAME_KEY);
     const lastPlatformId = localStorage.getItem(LAST_PLATFORM_KEY);
     if (lastGameId) {
-      try {
-        setGame(await TimeplayedAPI.getGame(parseInt(lastGameId)));
-      } catch (err: any) {
-        console.error("Failed to load last game:", err);
+      const _game = await getGame(lastGameId);
+      if (_game) {
+        setGame(_game);
       }
     }
     if (lastPlatformId) {
-      platform.value = platforms.value.find(
-        (p) => p.id === parseInt(lastPlatformId),
-      );
+      const _platform = await getPlatform(lastPlatformId);
+      if (_platform) {
+        platform.value = _platform;
+      }
     }
   }
 
-  setInterval(() => {
-    updateDurationText();
-  }, 1000);
+  // load in previous games
+  const storedPreviousGames = localStorage.getItem(PREVIOUS_GAMES_KEY);
+  if (storedPreviousGames) {
+    const parsed = JSON.parse(storedPreviousGames) as PreviousGame[];
+    if (Array.isArray(parsed)) {
+      for (const pg of parsed) {
+        if (pg.gameId && pg.platformId) {
+          await getGame(pg.gameId);
+          await getPlatform(pg.platformId);
+        }
+      }
+    }
+    previousGames.value = parsed;
+  }
+});
+
+onUnmounted(() => {
+  if (durationInterval) {
+    clearInterval(durationInterval);
+    durationInterval = null;
+  }
+
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
+  }
+});
+
+watch(token, (nextToken) => {
+  if (!nextToken) {
+    user.value = undefined;
+    liveActivity.value = null;
+    game.value = undefined;
+    platform.value = undefined;
+    searchGameResults.value = [];
+    error.value = "";
+    return;
+  }
+
+  if (!user.value) {
+    loading.value = true;
+    getUser()
+      .then(async () => {
+        if (user.value) {
+          await getLiveActivity();
+          await getPlatforms();
+        }
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  }
 });
 </script>
 
@@ -312,10 +469,12 @@ onMounted(async () => {
         <div v-if="!loading">
           <div v-if="!liveActivity">
             <div class="card p-0">
-              <h2 class="card-header">Start playing</h2>
+              <h2 class="card-header" id="start-playing-card-header">
+                Start playing
+              </h2>
               <div class="card-body">
                 <!-- search game -->
-                <div class="input-group">
+                <div class="input-group manual-field">
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="search-game-addon"
                       ><i class="bi bi-joystick"></i
@@ -325,7 +484,7 @@ onMounted(async () => {
                     type="text"
                     id="search-game-input"
                     placeholder="Search for a game..."
-                    class="form-control"
+                    class="form-control manual-form-control"
                     @input="
                       searchGame(
                         ($event.target && ($event.target as any).value) || '',
@@ -355,7 +514,7 @@ onMounted(async () => {
                   </li>
                 </ul>
 
-                <div class="input-group">
+                <div class="input-group manual-field mt-3">
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="search-platform-addon"
                       ><i class="bi bi-controller"></i
@@ -363,7 +522,7 @@ onMounted(async () => {
                   </div>
                   <select
                     v-model="platform"
-                    class="form-select"
+                    class="form-select manual-form-control"
                     aria-label="Select platform"
                   >
                     <option disabled value="">Select a platform</option>
@@ -373,7 +532,10 @@ onMounted(async () => {
                   </select>
                 </div>
 
-                <div class="btn-group mt-4">
+                <div
+                  class="btn-group mt-4 w-100 manual-button-row"
+                  role="group"
+                >
                   <button
                     @click="startLiveActivity"
                     class="btn btn-primary"
@@ -384,18 +546,66 @@ onMounted(async () => {
                     Start
                   </button>
                   <button @click="addByIGDB" class="btn btn-secondary">
-                    <i class="bi bi-plus-circle"></i> Add game by IGDB ID
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="d-none d-sm-inline">Add game by IGDB ID</span>
+                    <span class="d-inline d-sm-none">Add by IGDB ID</span>
                   </button>
+                </div>
+                <!-- previous games -->
+                <div class="mt-4" v-if="previousGames.length > 0">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h2 class="h5 mb-0">Previous games</h2>
+                    <span class="text-muted small"
+                      >{{ previousGames.length }} recent</span
+                    >
+                  </div>
+
+                  <div class="d-grid gap-2">
+                    <div
+                      v-for="previousGame in sortedPreviousGames"
+                      :key="`${previousGame.gameId}-${previousGame.platformId}-${previousGame.date}`"
+                      class="previous-game-item previous-game-entry"
+                      role="button"
+                      tabindex="0"
+                      @click="selectPreviousGame(previousGame)"
+                      @keydown.enter.prevent="selectPreviousGame(previousGame)"
+                      @keydown.space.prevent="selectPreviousGame(previousGame)"
+                    >
+                      <div
+                        v-if="
+                          getGameSync(previousGame.gameId) &&
+                          getPlatformSync(previousGame.platformId)
+                        "
+                        class="d-flex align-items-center justify-content-between gap-3 w-100"
+                      >
+                        <div
+                          class="d-flex flex-column overflow-hidden min-width-0"
+                        >
+                          <span class="fw-semibold text-truncate">{{
+                            getGameSync(previousGame.gameId)!.name
+                          }}</span>
+                          <small class="text-muted text-truncate">
+                            {{
+                              getPlatformSync(previousGame.platformId)!
+                                .display_name
+                            }}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <div v-else-if="liveActivity">
-            <div class="card p-0">
-              <h2 class="card-header">Currently playing</h2>
-              <div class="card-body">
-                <div class="row">
+            <div class="card p-0 manual-panel">
+              <h2 class="card-header manual-card-header">Currently playing</h2>
+              <div class="card-body manual-panel-body">
+                <div class="row g-3 align-items-start">
                   <div class="col-md-2 text-center" v-if="game">
                     <GameCover :gameId="game.id" :size="128" />
                   </div>
@@ -404,9 +614,9 @@ onMounted(async () => {
                   >
 
                   <div class="col">
-                    <ul class="mt-4 list-group">
-                      <li class="list-group-item">
-                        <i class="bi bi-joystick"></i> 
+                    <ul class="mt-2 list-group currently-list">
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-joystick"></i>
                         <a
                           class="text-decoration-none"
                           :href="'/game/' + game.id"
@@ -416,8 +626,8 @@ onMounted(async () => {
                         <span v-else>Loading...</span>
                       </li>
 
-                      <li class="list-group-item">
-                        <i class="bi bi-controller"></i> 
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-controller"></i>
                         <a
                           class="text-decoration-none"
                           :href="'/platform/' + platform.id"
@@ -427,8 +637,8 @@ onMounted(async () => {
                         <span v-else>Loading...</span>
                       </li>
 
-                      <li class="list-group-item">
-                        <i class="bi bi-stopwatch"></i> 
+                      <li class="list-group-item currently-list-item">
+                        <i class="bi bi-stopwatch"></i>
                         <b
                           ><span id="duration" class="text-success">{{
                             durationText
@@ -438,13 +648,13 @@ onMounted(async () => {
                     </ul>
 
                     <div
-                      class="btn-group"
+                      class="btn-group mt-4 w-100 manual-button-row"
                       role="group"
                       aria-label="Live activity controls"
                     >
                       <button
                         @click="stopLiveActivity"
-                        class="btn btn-primary mt-4"
+                        class="btn btn-primary"
                         id="stop-live-activity-button"
                       >
                         <i class="bi bi-stop-circle"></i>
@@ -452,7 +662,7 @@ onMounted(async () => {
                       </button>
                       <button
                         @click="abortLiveActivity(false)"
-                        class="btn btn-danger mt-4"
+                        class="btn btn-danger"
                         id="abort-live-activity-button"
                       >
                         <i class="bi bi-x-circle"></i>
@@ -467,40 +677,153 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="!user">
-        <div class="input-group input-group-sm">
-          <input
-            v-model="token"
-            type="password"
-            placeholder="Enter your token"
-            class="form-control"
-          />
-          <button @click="login" class="bg-primary text-white p-2 rounded">
-            Login
-          </button>
-        </div>
-        <p class="mt-2 text-sm text-secondary">
-          Get a token by sending <code>!token</code> to the bot in Discord.
-        </p>
-      </div>
-
-      <div v-if="user">
-        <hr />
-        <p>
-          Logged in as
-          <a class="text-decoration-none" :href="'/user/' + user.id">{{
-            user.display_name
-          }}</a>
-        </p>
-        <p>
-          <a
-            class="text-decoration-none text-danger"
-            @click="logout"
-            style="cursor: pointer"
-            >Logout</a
-          >
-        </p>
+      <div v-if="!user" class="alert alert-secondary mt-3 mb-0">
+        You need to be
+        <a href="/authenticate" class="alert-link">authenticated</a>.
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.manual-tracking-card {
+  border-radius: 1rem;
+}
+
+.manual-panel {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.manual-card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+}
+
+.manual-panel-body {
+  padding-top: 1.25rem;
+}
+
+.manual-field {
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
+  align-items: stretch;
+}
+
+.manual-field .input-group-text {
+  background: #f8f9fb;
+  border: 0;
+  color: #4b5563;
+  padding-inline: 0.9rem;
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+}
+
+.manual-field .form-select {
+  min-height: 3.125rem;
+}
+
+.manual-form-control {
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
+  box-shadow: none !important;
+  min-height: 2.9rem;
+}
+
+.manual-form-control:focus {
+  background: #ffffff;
+}
+
+.manual-button-row {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.manual-button-row > .btn {
+  flex: 1 1 0;
+}
+
+.currently-list {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.currently-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8f9fa;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.currently-list-item > i {
+  color: #4b5563;
+}
+
+.currently-list-item + .currently-list-item {
+  border-top-color: rgba(15, 23, 42, 0.06);
+}
+
+.previous-game-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(13, 110, 253, 0.1);
+  border-radius: 0.75rem;
+  background: #f8f9fa;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+  cursor: pointer;
+}
+
+.previous-game-item:hover {
+  border-color: rgba(13, 110, 253, 0.25);
+  background: #f2f6ff;
+}
+
+.previous-game-entry:focus-visible {
+  outline: 2px solid rgba(13, 110, 253, 0.45);
+  outline-offset: 2px;
+}
+
+.previous-game-item > .d-flex {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .previous-game-item {
+    padding: 0.75rem;
+  }
+
+  .previous-game-item > .d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .previous-game-item .btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+</style>
