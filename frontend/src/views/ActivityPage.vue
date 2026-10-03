@@ -71,7 +71,6 @@ onMounted(async () => {
       );
 
       updateDocumentTitle(`Activity ${activity.value.id}`);
-
     }
   } catch (e: any) {
     error.value = e.detail || JSON.stringify(e) || "Error";

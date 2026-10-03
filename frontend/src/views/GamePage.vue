@@ -15,7 +15,7 @@ const game = ref<GameWithStats>();
 onMounted(async () => {
   const gameId = route.params.id as string;
   game.value = await TimeplayedAPI.getGameStats(+gameId);
-  
+
   if (game.value?.name) {
     let title = game.value.name;
     if (game.value.release_year) {

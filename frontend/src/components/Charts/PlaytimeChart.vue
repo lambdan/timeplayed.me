@@ -104,14 +104,14 @@ const props = withDefaults(
   },
 );
 
-async function makeChart(before?: number, after?: number) {  
+async function makeChart(before?: number, after?: number) {
   chartData.value = {
     labels: [],
     datasets: [],
   };
 
   const data = await TimeplayedAPI.getChartsPlaytimeByDay({
-    before, 
+    before,
     after,
     user: props.user ? props.user.id : undefined,
     game: props.game ? props.game.id : undefined,
@@ -126,7 +126,9 @@ async function makeChart(before?: number, after?: number) {
   // Fill in missing dates
   if (data.labels.length > 0) {
     const startDate = after ? new Date(after) : new Date(data.labels[0]); // First date
-    const endDate = before ? new Date(before) : new Date(new Date().toISOString().split("T")[0]);
+    const endDate = before
+      ? new Date(before)
+      : new Date(new Date().toISOString().split("T")[0]);
     const allLabels: string[] = [];
     const dateMap = new Map(data.labels.map((d, i) => [d, i]));
     let d = new Date(startDate);
@@ -206,24 +208,18 @@ async function makeChart(before?: number, after?: number) {
 
 function dateRangeUpdated({ before, after, allTime, relativeMode }: any) {
   console.log(
-    'date range updated',
-    JSON.stringify(
-      { before, after, allTime, relativeMode },
-      undefined,
-      4,
-    ),
+    "date range updated",
+    JSON.stringify({ before, after, allTime, relativeMode }, undefined, 4),
   );
   makeChart(before, after);
 }
 </script>
 
-
-
 <template>
   <div class="p-4">
     <DateRangerPicker
-    :toggleable="true"
-    :relative-millis="365 * 24 * 60 * 60 * 1000 /* default to one year */"
+      :toggleable="true"
+      :relative-millis="365 * 24 * 60 * 60 * 1000 /* default to one year */"
       @updated:both="dateRangeUpdated"
     ></DateRangerPicker>
     <Line

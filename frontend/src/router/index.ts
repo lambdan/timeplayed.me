@@ -86,7 +86,6 @@ export const router = createRouter({
   routes,
 });
 
-
 router.afterEach((to) => {
   // Update <title> if page itself hasn't already
   if (typeof to.meta?.title === "string") {
