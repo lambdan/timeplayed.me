@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import type { Game, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
+import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 
 ChartJS.register(
   Title,
@@ -103,8 +104,15 @@ const props = withDefaults(
   },
 );
 
-onMounted(async () => {
+async function makeChart(before?: number, after?: number) {  
+  chartData.value = {
+    labels: [],
+    datasets: [],
+  };
+
   const data = await TimeplayedAPI.getChartsPlaytimeByDay({
+    before, 
+    after,
     user: props.user ? props.user.id : undefined,
     game: props.game ? props.game.id : undefined,
     platform: props.platform ? props.platform.id : undefined,
@@ -117,8 +125,8 @@ onMounted(async () => {
 
   // Fill in missing dates
   if (data.labels.length > 0) {
-    const startDate = new Date(data.labels[0]); // First date
-    const endDate = new Date(new Date().toISOString().split("T")[0]); // Today at 00:00:00
+    const startDate = after ? new Date(after) : new Date(data.labels[0]); // First date
+    const endDate = before ? new Date(before) : new Date(new Date().toISOString().split("T")[0]);
     const allLabels: string[] = [];
     const dateMap = new Map(data.labels.map((d, i) => [d, i]));
     let d = new Date(startDate);
@@ -194,16 +202,36 @@ onMounted(async () => {
       }
     }),
   };
-});
+}
+
+function dateRangeUpdated({ before, after, allTime, relativeMode }: any) {
+  console.log(
+    'date range updated',
+    JSON.stringify(
+      { before, after, allTime, relativeMode },
+      undefined,
+      4,
+    ),
+  );
+  makeChart(before, after);
+}
 </script>
+
+
 
 <template>
   <div class="p-4">
+    <DateRangerPicker
+    :toggleable="true"
+    :relative-millis="365 * 24 * 60 * 60 * 1000 /* default to one year */"
+      @updated:both="dateRangeUpdated"
+    ></DateRangerPicker>
     <Line
       v-if="chartData.labels.length"
       :data="chartData"
       :options="chartOptions"
     />
+
     <span v-else class="spinner-border" role="status"> </span>
   </div>
 </template>
