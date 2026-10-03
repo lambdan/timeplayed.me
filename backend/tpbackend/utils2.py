@@ -200,6 +200,9 @@ def validateTS(ts) -> int | None:
     Also tries to convert to int if possible.
     Returns None on failure
     """
+    if ts is None or ts == "":
+        return None
+
     if isinstance(ts, int) and ts > 0:
         if ts < 10**12:  # if it's in seconds, convert to ms
             ts *= 1000

@@ -1,6 +1,7 @@
 import datetime
 from typing import cast
 from fastapi import APIRouter
+from tpbackend.utils2 import validateTS
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.api.params import query_id, query_ts
 from tpbackend.charts.models import PlaytimeChart
@@ -25,6 +26,8 @@ def get_playtime_by_day(
     after=query_ts("after"),
 ) -> PlaytimeChart:
     query = ActivityQuery.base()
+    before = validateTS(before)
+    after = validateTS(after)
 
     if user:
         query = ActivityQuery.user(query, user)
