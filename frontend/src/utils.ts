@@ -168,3 +168,8 @@ export function getRecapYear(): number | null {
   // rest of the year, no recap
   return null;
 }
+
+/** Update <title> */
+export function updateDocumentTitle(title: string): void {
+  document.title = `${title} - Timeplayed.me`;
+}

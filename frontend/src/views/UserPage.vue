@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { APP_NAME } from "../main";
 import GameListCard from "../components/Games/GameListCard.vue";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
@@ -8,7 +9,7 @@ import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import PlatformTable from "../components/Platforms/PlatformTable.vue";
 import type { UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import { getRecapYear } from "../utils";
+import { getRecapYear, updateDocumentTitle } from "../utils";
 
 const route = useRoute();
 const apiUser = ref<UserWithStats>();
@@ -31,6 +32,9 @@ function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
   apiUser.value = await TimeplayedAPI.getUserStats(+userId);
+  if (apiUser.value) {
+    updateDocumentTitle(apiUser.value.display_name);
+  }
 });
 </script>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration } from "../utils";
+import { formatDuration, updateDocumentTitle } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
@@ -69,6 +69,9 @@ onMounted(async () => {
       platform.value = await TimeplayedAPI.getPlatform(
         activity.value.platform_id,
       );
+
+      updateDocumentTitle(`Activity ${activity.value.id}`);
+
     }
   } catch (e: any) {
     error.value = e.detail || JSON.stringify(e) || "Error";

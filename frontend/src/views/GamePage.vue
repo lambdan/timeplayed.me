@@ -7,6 +7,7 @@ import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import { updateDocumentTitle } from "../utils";
 
 const route = useRoute();
 const game = ref<GameWithStats>();
@@ -14,6 +15,14 @@ const game = ref<GameWithStats>();
 onMounted(async () => {
   const gameId = route.params.id as string;
   game.value = await TimeplayedAPI.getGameStats(+gameId);
+  
+  if (game.value?.name) {
+    let title = game.value.name;
+    if (game.value.release_year) {
+      title += ` (${game.value.release_year})`;
+    }
+    updateDocumentTitle(title);
+  }
 });
 </script>
 

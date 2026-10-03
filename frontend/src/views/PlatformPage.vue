@@ -6,7 +6,7 @@ import { TimeplayedAPI } from "../api.client";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
-import { formatDuration, iso8601Date } from "../utils";
+import { formatDuration, iso8601Date, updateDocumentTitle } from "../utils";
 import CalendarBasic from "../components/CalendarBasic.vue";
 
 const route = useRoute();
@@ -22,6 +22,9 @@ async function fetchPlatform() {
 
 onMounted(async () => {
   await fetchPlatform();
+  if (platform.value) {
+    updateDocumentTitle(platform.value.display_name);
+  }
 });
 </script>
 
