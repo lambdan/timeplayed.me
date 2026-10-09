@@ -4,11 +4,13 @@ import Footer from "./components/Footer.vue";
 import { onMounted, onBeforeUnmount } from "vue";
 
 function setThemeBySystemPreference() {
-  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // always dark for now
+  document.documentElement.setAttribute("data-bs-theme", "dark");
+  /*const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   document.documentElement.setAttribute(
     "data-bs-theme",
     isDark ? "dark" : "light",
-  );
+  );*/
 }
 
 onMounted(() => {
