@@ -691,15 +691,15 @@ watch(token, (nextToken) => {
 }
 
 .manual-panel {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--bs-border-color-translucent);
   box-shadow: none;
   overflow: hidden;
 }
 
 .manual-card-header {
-  background: #f8f9fa;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  color: #1f2937;
+  background: var(--bs-tertiary-bg);
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+  color: var(--bs-emphasis-color);
 }
 
 .manual-panel-body {
@@ -709,15 +709,15 @@ watch(token, (nextToken) => {
 .manual-field {
   border-radius: 0.9rem;
   overflow: hidden;
-  border: 1px solid rgba(13, 110, 253, 0.12);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.22);
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
   align-items: stretch;
 }
 
 .manual-field .input-group-text {
-  background: #f8f9fb;
+  background: var(--bs-tertiary-bg);
   border: 0;
-  color: #4b5563;
+  color: var(--bs-secondary-color);
   padding-inline: 0.9rem;
   display: flex;
   align-items: center;
@@ -730,14 +730,14 @@ watch(token, (nextToken) => {
 
 .manual-form-control {
   border: 0 !important;
-  background: rgba(255, 255, 255, 0.96);
-  color: #1f2937;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
   box-shadow: none !important;
   min-height: 2.9rem;
 }
 
 .manual-form-control:focus {
-  background: #ffffff;
+  background: var(--bs-body-bg);
 }
 
 .manual-button-row {
@@ -758,16 +758,16 @@ watch(token, (nextToken) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f8f9fa;
-  border-color: rgba(15, 23, 42, 0.08);
+  background: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color-translucent);
 }
 
 .currently-list-item > i {
-  color: #4b5563;
+  color: var(--bs-secondary-color);
 }
 
 .currently-list-item + .currently-list-item {
-  border-top-color: rgba(15, 23, 42, 0.06);
+  border-top-color: var(--bs-border-color-translucent);
 }
 
 .previous-game-item {
@@ -776,9 +776,10 @@ watch(token, (nextToken) => {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.8rem 1rem;
-  border: 1px solid rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
   border-radius: 0.75rem;
-  background: #f8f9fa;
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
   transition:
     border-color 0.2s ease,
     background 0.2s ease;
@@ -786,12 +787,12 @@ watch(token, (nextToken) => {
 }
 
 .previous-game-item:hover {
-  border-color: rgba(13, 110, 253, 0.25);
-  background: #f2f6ff;
+  border-color: rgba(var(--bs-primary-rgb), 0.45);
+  background: rgba(var(--bs-primary-rgb), 0.12);
 }
 
 .previous-game-entry:focus-visible {
-  outline: 2px solid rgba(13, 110, 253, 0.45);
+  outline: 2px solid rgba(var(--bs-primary-rgb), 0.6);
   outline-offset: 2px;
 }
 
