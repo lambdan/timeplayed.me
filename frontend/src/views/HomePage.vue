@@ -61,7 +61,7 @@ onMounted(async () => {
         <p>
           You can also use the
           <a href="/manual-tracking">manual tracking page</a> to log your
-          playtime manually, or you can make a custom tracking implementations
+          playtime manually, or you can make custom tracking implementations
           using the <a href="/api/docs">API</a>.
         </p>
         <p class="text-muted">
