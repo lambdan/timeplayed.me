@@ -21,7 +21,7 @@ def available() -> bool:
 
 def search_game(query: str) -> list[IGDB_SearchResult]:
     data = f'search "{query}"; fields id,name,first_release_date,url; limit 10;'
-    res = igdb.request(data)
+    res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
     logger.info("Got res: %s", res)
     ret = []
     if res:
@@ -48,7 +48,7 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     """
     # to get everything:
     # data = f"fields *; where id = {igdb_game_id};"
-    res = igdb.request(data)
+    res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
     logger.info("Got res: %s", res)
     try:
         parsed = json.loads(cast(str, res))
@@ -83,3 +83,50 @@ def get_or_create_game(igdb_game_id: int, history_create_msg: str) -> Game | Non
     new_game.add_history(history_create_msg)
     new_game.save()
     return new_game
+
+
+def get_or_create_game_by_steam_id(
+    steam_app_id: int, history_create_msg: str
+) -> Game | None:
+    if not steam_app_id:
+        return None
+
+    game = GameSelect.by_steam_id(steam_app_id)
+    if game:
+        return game
+
+    # look it up on igdb
+    # external source 1 = steam
+    data = f"""
+    fields uid, name, game; 
+    where uid = "{steam_app_id}" & external_game_source = 1; 
+    limit 1;
+    """
+
+    res = igdb.request(url="https://api.igdb.com/v4/external_games", query=data)
+    logger.info("Got res: %s", res)
+    igdb_game_id = None
+    if res:
+        try:
+            parsed = json.loads(res)
+            # id = ???
+            # game = igdb id
+            # name = game name on igdb
+            # uid = steam app id
+            igdb_game_id = int(parsed[0]["game"])
+        except Exception as e:
+            logger.error("Error parsing IGDB external game response: %s", e)
+            igdb_game_id = None
+
+    if not igdb_game_id:
+        return None
+
+    created_game = get_or_create_game(igdb_game_id, history_create_msg)
+    if not created_game:
+        return None
+
+    # update internal game with steam id
+    created_game.set_steam_id(steam_app_id)
+    created_game.save()
+
+    return created_game

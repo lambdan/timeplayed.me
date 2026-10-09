@@ -4,6 +4,7 @@ from tpbackend.activity.models import (
     API_PostActivity,
     API_PostLiveActivity,
 )
+from tpbackend.igdb.controller import get_or_create_game_by_steam_id
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.api.responses import (
     bad_request,
@@ -40,10 +41,14 @@ def add_through_api(user: User, data: API_PostActivity) -> API_Activity:
         game = GameSelect.by_id(data.game_id)
     elif data.igdb_id:
         game = get_or_create_game(
-            data.igdb_id, history_create_msg="Created during API activity add"
+            data.igdb_id, history_create_msg="Created during API activity add (IGDB)"
+        )
+    elif data.steam_id:
+        game = get_or_create_game_by_steam_id(
+            data.steam_id, history_create_msg="Created during API activity add (Steam)"
         )
     else:
-        return bad_request("game_id or igdb_id must be provided")
+        return bad_request("game_id, igdb_id or steam_id must be provided")
 
     if not game:
         return not_found("Game not found")
