@@ -818,17 +818,17 @@ export interface components {
             seconds: number;
             /**
              * Game Id
-             * @description ID of the game being played, can be null if igdb_id is provided
+             * @description Timeplayed ID of the game being played, can be null if igdb or steam id is provided
              */
             game_id?: number | null;
             /**
              * Igdb Id
-             * @description IGDB ID of the game being played, can be null if game_id is provided
+             * @description IGDB ID of the game being played, can be null if game or steam id is provided
              */
             igdb_id?: number | null;
             /**
              * Steam Id
-             * @description Steam App ID of the game being played, can be null if game_id is provided
+             * @description Steam App ID of the game being played, can be null if game or igdb id is provided
              */
             steam_id?: number | null;
             /**
