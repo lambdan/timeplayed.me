@@ -20,7 +20,6 @@ class API_Activity(BaseModel):
     user_id: int
     game_id: int
     platform_id: int
-    emulated: bool
     created: int
     updated: int
 
@@ -37,7 +36,6 @@ class API_Activity(BaseModel):
             user_id=activity.get_user().get_id(),
             game_id=activity.get_game().get_id(),
             platform_id=activity.get_platform().get_id(),
-            emulated=activity.get_emulated(),
             created=dt_to_ts(activity.get_created()),
             updated=dt_to_ts(activity.get_updated()),
         )
@@ -84,9 +82,6 @@ class API_PostActivity(BaseModel):
     platform_id: int | None = Field(
         description="ID of platform that was played on. Will default to user's default platform if not provided",
         default=None,
-    )
-    emulated: bool = Field(
-        description="Was activity played in an emulator?", default=False
     )
 
 

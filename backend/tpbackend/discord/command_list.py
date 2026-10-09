@@ -7,7 +7,6 @@ from .commands.add_platform import AddPlatformCommand
 from .commands.delete_activity import DeleteActivityCommand
 from .commands.delete_game import DeleteGameCommand
 from .commands.delete_platform import DeletePlatformCommand
-from .commands.emulated import ToggleEmulatedCommand
 from .commands.get_activity import GetActivityCommand
 from .commands.get_cache_stats import GetCacheStats
 from .commands.get_game import GetGameCommand
@@ -78,7 +77,6 @@ REGULAR_COMMANDS = [
     SetPlatformCommand(),
     SetGameCommand(),
     MoveGameCommand(),
-    ToggleEmulatedCommand(),
     DeleteActivityCommand(),
     # gets
     GetActivityCommand(),

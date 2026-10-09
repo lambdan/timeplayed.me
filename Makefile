@@ -39,3 +39,7 @@ check-version:
 
 release:
 	./make-release.sh
+
+format:
+	cd frontend && npm run format
+	cd backend && make format

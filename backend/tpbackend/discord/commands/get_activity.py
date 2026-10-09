@@ -36,8 +36,6 @@ class GetActivityCommand(Command):
         msg += f"- User: {activity.get_user().get_name()}\n"
         msg += f"- Game: {md_game_link(activity.get_game())}\n"
         msg += f"- Platform: *{display_name(activity.get_platform())}*"
-        if activity.get_emulated():
-            msg += " (Emulated)"
         msg += "\n"
         msg += f"- Date: {js_iso(activity.get_datetime())}\n"
         msg += f"- Duration: {formatted_duration}\n"

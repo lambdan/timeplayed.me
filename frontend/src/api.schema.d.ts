@@ -686,8 +686,6 @@ export interface components {
             game_id: number;
             /** Platform Id */
             platform_id: number;
-            /** Emulated */
-            emulated: boolean;
             /** Created */
             created: number;
             /** Updated */
@@ -829,12 +827,6 @@ export interface components {
              * @description ID of platform that was played on. Will default to user's default platform if not provided
              */
             platform_id?: number | null;
-            /**
-             * Emulated
-             * @description Was activity played in an emulator?
-             * @default false
-             */
-            emulated: boolean;
         };
         /** API_PostLiveActivity */
         API_PostLiveActivity: {

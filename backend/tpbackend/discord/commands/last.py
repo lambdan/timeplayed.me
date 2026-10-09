@@ -48,8 +48,6 @@ Get your last n activities: `!last n`
             out += md_activity_link(act) + "\n"
             out += f"- {md_game_link(act.get_game())}\n"
             out += f"- {display_name(act.get_platform())}"
-            if act.emulated:
-                out += " (emu)"
             out += "\n"
             out += f"- {ts} UTC\n"
             out += f"- {secsToHHMMSS(act.get_seconds())}\n"

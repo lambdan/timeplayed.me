@@ -573,7 +573,6 @@ class Activity(IdMixin, HistoryMixin, HiddenMixin):
     game = ForeignKeyField(Game, backref="activities")
     platform = ForeignKeyField(Platform, backref="activities")
     seconds = IntegerField()
-    emulated = BooleanField(default=False)
 
     def get_game(self) -> Game:
         return cast(Game, self.game)
@@ -626,14 +625,6 @@ class Activity(IdMixin, HistoryMixin, HiddenMixin):
         Returns timestamp in milliseconds since epoch
         """
         return int(self.get_datetime().timestamp() * 1000)
-
-    def get_emulated(self) -> bool:
-        return cast(bool, self.emulated)
-
-    def set_emulated(self, emulated: bool):
-        old_emulated = self.get_emulated()
-        self.emulated = cast(BooleanField, emulated)
-        self.add_history(f"Emulated changed from {old_emulated} to {emulated}")
 
     def get_started(self) -> datetime:
         return self.get_datetime() - timedelta(seconds=self.get_seconds())
