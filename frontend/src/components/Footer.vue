@@ -30,7 +30,7 @@ onMounted(async () => {
         <i class="bi bi-github"></i
       ></a>
       frontend {{ FRONTEND_VERSION }} /
-      <a style="text-decoration: none" class="text-muted" href="/docs"
+      <a style="text-decoration: none" class="text-muted" href="/api/docs"
         >backend {{ BACKEND_VERSION }}</a
       >
     </small>
