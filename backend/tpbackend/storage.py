@@ -364,6 +364,7 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     sgdb_id = IntegerField(null=True, default=None)
     sgdb_grid_id = IntegerField(null=True, default=None)
     igdb_id = IntegerField(null=True, default=None)
+    steam_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
@@ -450,6 +451,19 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         old_igdb_id = self.get_igdb_id()
         self.igdb_id = cast(IntegerField, igdb_id)
         self.add_history(f"IGDB ID changed from '{old_igdb_id}' to '{igdb_id}'")
+
+    def get_steam_id(self) -> int | None:
+        if self.steam_id is not None:
+            return cast(int, self.steam_id)
+        parent = self.get_parent()
+        if parent:
+            return parent.get_steam_id()
+        return None
+
+    def set_steam_id(self, steam_id: int | None):
+        old_steam_id = self.get_steam_id()
+        self.steam_id = cast(IntegerField, steam_id)
+        self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
     def get_image_url(self) -> str | None:
         """
