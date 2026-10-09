@@ -72,11 +72,15 @@ class Total(BaseTotals):
 class API_PostActivity(BaseModel):
     seconds: int = Field(description="Length of the activity in seconds", gt=0)
     game_id: int | None = Field(
-        description="ID of the game being played, can be null if igdb_id is provided",
+        description="Timeplayed ID of the game being played, can be null if igdb or steam id is provided",
         default=None,
     )
     igdb_id: int | None = Field(
-        description="IGDB ID of the game being played, can be null if game_id is provided",
+        description="IGDB ID of the game being played, can be null if game or steam id is provided",
+        default=None,
+    )
+    steam_id: int | None = Field(
+        description="Steam App ID of the game being played, can be null if game or igdb id is provided",
         default=None,
     )
     platform_id: int | None = Field(

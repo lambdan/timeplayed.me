@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/ping": {
+    "/ping": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ping */
-        get: operations["ping_api_ping_get"];
+        get: operations["ping_ping_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/info": {
+    "/info": {
         parameters: {
             query?: never;
             header?: never;
@@ -29,7 +29,7 @@ export interface paths {
             cookie?: never;
         };
         /** Info */
-        get: operations["info_api_info_get"];
+        get: operations["info_info_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -38,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/user-stats/{user_id}": {
+    "/user-stats/{user_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -46,7 +46,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single User Stats */
-        get: operations["get_single_user_stats_api_user_stats__user_id__get"];
+        get: operations["get_single_user_stats_user_stats__user_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -55,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users-stats/{user_ids}": {
+    "/users-stats/{user_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -63,7 +63,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Users Stats */
-        get: operations["get_many_users_stats_api_users_stats__user_ids__get"];
+        get: operations["get_many_users_stats_users_stats__user_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -72,7 +72,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users-stats": {
+    "/users-stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -80,7 +80,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Users Stats */
-        get: operations["get_users_stats_api_users_stats_get"];
+        get: operations["get_users_stats_users_stats_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -89,7 +89,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/user/{user_id}": {
+    "/user/{user_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -97,7 +97,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single User */
-        get: operations["get_single_user_api_user__user_id__get"];
+        get: operations["get_single_user_user__user_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -106,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users/{user_ids}": {
+    "/users/{user_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -114,7 +114,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Users */
-        get: operations["get_many_users_api_users__user_ids__get"];
+        get: operations["get_many_users_users__user_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -123,7 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/users": {
+    "/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -131,7 +131,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Users */
-        get: operations["get_users_api_users_get"];
+        get: operations["get_users_users_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -140,7 +140,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/who_am_i": {
+    "/who_am_i": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +148,7 @@ export interface paths {
             cookie?: never;
         };
         /** Who Am I */
-        get: operations["who_am_i_api_who_am_i_get"];
+        get: operations["who_am_i_who_am_i_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -157,7 +157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/activity": {
+    "/activity": {
         parameters: {
             query?: never;
             header?: never;
@@ -167,14 +167,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Add Activity */
-        post: operations["add_activity_api_activity_post"];
+        post: operations["add_activity_activity_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/activity/newest": {
+    "/activity/newest": {
         parameters: {
             query?: never;
             header?: never;
@@ -182,7 +182,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Newest Activity */
-        get: operations["get_newest_activity_api_activity_newest_get"];
+        get: operations["get_newest_activity_activity_newest_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -191,7 +191,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/activity/oldest": {
+    "/activity/oldest": {
         parameters: {
             query?: never;
             header?: never;
@@ -199,7 +199,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Oldest Activity */
-        get: operations["get_oldest_activity_api_activity_oldest_get"];
+        get: operations["get_oldest_activity_activity_oldest_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -208,7 +208,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/activity/live": {
+    "/activity/live": {
         parameters: {
             query?: never;
             header?: never;
@@ -216,18 +216,18 @@ export interface paths {
             cookie?: never;
         };
         /** Get Live Activity */
-        get: operations["get_live_activity_api_activity_live_get"];
+        get: operations["get_live_activity_activity_live_get"];
         put?: never;
         /** Start Live Activity */
-        post: operations["start_live_activity_api_activity_live_post"];
+        post: operations["start_live_activity_activity_live_post"];
         /** Abort Live Activity */
-        delete: operations["abort_live_activity_api_activity_live_delete"];
+        delete: operations["abort_live_activity_activity_live_delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/activity/live/stop": {
+    "/activity/live/stop": {
         parameters: {
             query?: never;
             header?: never;
@@ -237,14 +237,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Stop Live Activity */
-        post: operations["stop_live_activity_api_activity_live_stop_post"];
+        post: operations["stop_live_activity_activity_live_stop_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/activity/{id}": {
+    "/activity/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -252,17 +252,17 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single Activity */
-        get: operations["get_single_activity_api_activity__id__get"];
+        get: operations["get_single_activity_activity__id__get"];
         put?: never;
         post?: never;
         /** Delete Activity */
-        delete: operations["delete_activity_api_activity__id__delete"];
+        delete: operations["delete_activity_activity__id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/activities/{ids}": {
+    "/activities/{ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -270,7 +270,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Activities */
-        get: operations["get_many_activities_api_activities__ids__get"];
+        get: operations["get_many_activities_activities__ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -279,7 +279,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/activities": {
+    "/activities": {
         parameters: {
             query?: never;
             header?: never;
@@ -287,7 +287,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Activities */
-        get: operations["get_activities_api_activities_get"];
+        get: operations["get_activities_activities_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -296,7 +296,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/total": {
+    "/total": {
         parameters: {
             query?: never;
             header?: never;
@@ -304,7 +304,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Total */
-        get: operations["get_total_api_total_get"];
+        get: operations["get_total_total_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -313,7 +313,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/game-stats/{game_id}": {
+    "/game-stats/{game_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -321,7 +321,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single Game Stats */
-        get: operations["get_single_game_stats_api_game_stats__game_id__get"];
+        get: operations["get_single_game_stats_game_stats__game_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -330,7 +330,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/games-stats/{game_ids}": {
+    "/games-stats/{game_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -338,7 +338,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Games Stats */
-        get: operations["get_many_games_stats_api_games_stats__game_ids__get"];
+        get: operations["get_many_games_stats_games_stats__game_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -347,7 +347,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/games-stats": {
+    "/games-stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -355,7 +355,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Games Stats */
-        get: operations["get_games_stats_api_games_stats_get"];
+        get: operations["get_games_stats_games_stats_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -364,7 +364,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/game/{game_id}": {
+    "/game/{game_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -372,7 +372,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single Game */
-        get: operations["get_single_game_api_game__game_id__get"];
+        get: operations["get_single_game_game__game_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -381,7 +381,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/game_igdb/{igdb_id}": {
+    "/game_igdb/{igdb_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -392,7 +392,7 @@ export interface paths {
          * Get Single Game By Igdb Id
          * @description Get a game by its IGDB ID. If the game is not in the database, it will be created from IGDB data.
          */
-        get: operations["get_single_game_by_igdb_id_api_game_igdb__igdb_id__get"];
+        get: operations["get_single_game_by_igdb_id_game_igdb__igdb_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -401,7 +401,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/games/{game_ids}": {
+    "/games/{game_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -409,7 +409,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Games */
-        get: operations["get_many_games_api_games__game_ids__get"];
+        get: operations["get_many_games_games__game_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -418,7 +418,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/games": {
+    "/games": {
         parameters: {
             query?: never;
             header?: never;
@@ -426,7 +426,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Games */
-        get: operations["get_games_api_games_get"];
+        get: operations["get_games_games_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -435,7 +435,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform-stats/{platform_id}": {
+    "/platform-stats/{platform_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -443,7 +443,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single Platform Stats */
-        get: operations["get_single_platform_stats_api_platform_stats__platform_id__get"];
+        get: operations["get_single_platform_stats_platform_stats__platform_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -452,7 +452,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platforms-stats/{platform_ids}": {
+    "/platforms-stats/{platform_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -460,7 +460,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Platforms Stats */
-        get: operations["get_many_platforms_stats_api_platforms_stats__platform_ids__get"];
+        get: operations["get_many_platforms_stats_platforms_stats__platform_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -469,7 +469,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platforms-stats": {
+    "/platforms-stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -477,7 +477,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Platforms Stats */
-        get: operations["get_platforms_stats_api_platforms_stats_get"];
+        get: operations["get_platforms_stats_platforms_stats_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -486,7 +486,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/{platform_id}": {
+    "/platform/{platform_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -494,7 +494,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Single Platform */
-        get: operations["get_single_platform_api_platform__platform_id__get"];
+        get: operations["get_single_platform_platform__platform_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -503,7 +503,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platforms/{platform_ids}": {
+    "/platforms/{platform_ids}": {
         parameters: {
             query?: never;
             header?: never;
@@ -511,7 +511,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Many Platforms */
-        get: operations["get_many_platforms_api_platforms__platform_ids__get"];
+        get: operations["get_many_platforms_platforms__platform_ids__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -520,7 +520,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platforms": {
+    "/platforms": {
         parameters: {
             query?: never;
             header?: never;
@@ -528,7 +528,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Platforms */
-        get: operations["get_platforms_api_platforms_get"];
+        get: operations["get_platforms_platforms_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -537,7 +537,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/charts/playtime/by_day": {
+    "/charts/playtime/by_day": {
         parameters: {
             query?: never;
             header?: never;
@@ -545,7 +545,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Playtime By Day */
-        get: operations["get_playtime_by_day_api_charts_playtime_by_day_get"];
+        get: operations["get_playtime_by_day_charts_playtime_by_day_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -554,7 +554,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/discord/{discord_user_id}/avatar": {
+    "/discord/{discord_user_id}/avatar": {
         parameters: {
             query?: never;
             header?: never;
@@ -565,7 +565,7 @@ export interface paths {
          * Redirect Discord Avatar
          * @description Redirects to URL for Discord avatar
          */
-        get: operations["redirect_discord_avatar_api_discord__discord_user_id__avatar_get"];
+        get: operations["redirect_discord_avatar_discord__discord_user_id__avatar_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -574,7 +574,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/{sgdb_game_id}/grids/best": {
+    "/sgdb/{sgdb_game_id}/grids/best": {
         parameters: {
             query?: never;
             header?: never;
@@ -585,7 +585,7 @@ export interface paths {
          * Best Grid Sgdb
          * @description Tries to get the best grid for a game from SteamGridDB
          */
-        get: operations["best_grid_sgdb_api_sgdb__sgdb_game_id__grids_best_get"];
+        get: operations["best_grid_sgdb_sgdb__sgdb_game_id__grids_best_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -594,7 +594,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/{sgdb_game_id}/grids": {
+    "/sgdb/{sgdb_game_id}/grids": {
         parameters: {
             query?: never;
             header?: never;
@@ -605,7 +605,7 @@ export interface paths {
          * Sgdb Grids
          * @description Gets grids for a game from SteamGridDB
          */
-        get: operations["sgdb_grids_api_sgdb__sgdb_game_id__grids_get"];
+        get: operations["sgdb_grids_sgdb__sgdb_game_id__grids_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -614,7 +614,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/sgdb/{sgdb_game_id}/grids/{grid_id}": {
+    "/sgdb/{sgdb_game_id}/grids/{grid_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -625,7 +625,7 @@ export interface paths {
          * Sgdb Grid By Id
          * @description Gets a grid by ID for a game from SteamGridDB
          */
-        get: operations["sgdb_grid_by_id_api_sgdb__sgdb_game_id__grids__grid_id__get"];
+        get: operations["sgdb_grid_by_id_sgdb__sgdb_game_id__grids__grid_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -634,7 +634,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/igdb/game/{igdb_game_id}": {
+    "/igdb/game/{igdb_game_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -645,7 +645,7 @@ export interface paths {
          * Get Igdb Game Info
          * @description Get game info from IGDB by their ID
          */
-        get: operations["get_igdb_game_info_api_igdb_game__igdb_game_id__get"];
+        get: operations["get_igdb_game_info_igdb_game__igdb_game_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -703,6 +703,8 @@ export interface components {
             sgdb_grid_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
+            /** Steam Id */
+            steam_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -730,6 +732,8 @@ export interface components {
             sgdb_grid_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
+            /** Steam Id */
+            steam_id: number | null;
             /** Image Url */
             image_url: string | null;
             /** Aliases */
@@ -814,14 +818,19 @@ export interface components {
             seconds: number;
             /**
              * Game Id
-             * @description ID of the game being played, can be null if igdb_id is provided
+             * @description Timeplayed ID of the game being played, can be null if igdb or steam id is provided
              */
             game_id?: number | null;
             /**
              * Igdb Id
-             * @description IGDB ID of the game being played, can be null if game_id is provided
+             * @description IGDB ID of the game being played, can be null if game or steam id is provided
              */
             igdb_id?: number | null;
+            /**
+             * Steam Id
+             * @description Steam App ID of the game being played, can be null if game or igdb id is provided
+             */
+            steam_id?: number | null;
             /**
              * Platform Id
              * @description ID of platform that was played on. Will default to user's default platform if not provided
@@ -1152,7 +1161,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    ping_api_ping_get: {
+    ping_ping_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1172,7 +1181,7 @@ export interface operations {
             };
         };
     };
-    info_api_info_get: {
+    info_info_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,7 +1201,7 @@ export interface operations {
             };
         };
     };
-    get_single_user_stats_api_user_stats__user_id__get: {
+    get_single_user_stats_user_stats__user_id__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1230,7 +1239,7 @@ export interface operations {
             };
         };
     };
-    get_many_users_stats_api_users_stats__user_ids__get: {
+    get_many_users_stats_users_stats__user_ids__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1274,7 +1283,7 @@ export interface operations {
             };
         };
     };
-    get_users_stats_api_users_stats_get: {
+    get_users_stats_users_stats_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -1319,7 +1328,7 @@ export interface operations {
             };
         };
     };
-    get_single_user_api_user__user_id__get: {
+    get_single_user_user__user_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1350,7 +1359,7 @@ export interface operations {
             };
         };
     };
-    get_many_users_api_users__user_ids__get: {
+    get_many_users_users__user_ids__get: {
         parameters: {
             query?: {
                 /** @description Sort by */
@@ -1386,7 +1395,7 @@ export interface operations {
             };
         };
     };
-    get_users_api_users_get: {
+    get_users_users_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -1423,7 +1432,7 @@ export interface operations {
             };
         };
     };
-    who_am_i_api_who_am_i_get: {
+    who_am_i_who_am_i_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1443,7 +1452,7 @@ export interface operations {
             };
         };
     };
-    add_activity_api_activity_post: {
+    add_activity_activity_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1476,7 +1485,7 @@ export interface operations {
             };
         };
     };
-    get_newest_activity_api_activity_newest_get: {
+    get_newest_activity_activity_newest_get: {
         parameters: {
             query?: {
                 /** @description ID of the user to filter by */
@@ -1512,7 +1521,7 @@ export interface operations {
             };
         };
     };
-    get_oldest_activity_api_activity_oldest_get: {
+    get_oldest_activity_activity_oldest_get: {
         parameters: {
             query?: {
                 /** @description ID of the user to filter by */
@@ -1548,7 +1557,7 @@ export interface operations {
             };
         };
     };
-    get_live_activity_api_activity_live_get: {
+    get_live_activity_activity_live_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1568,7 +1577,7 @@ export interface operations {
             };
         };
     };
-    start_live_activity_api_activity_live_post: {
+    start_live_activity_activity_live_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1601,7 +1610,7 @@ export interface operations {
             };
         };
     };
-    abort_live_activity_api_activity_live_delete: {
+    abort_live_activity_activity_live_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1621,7 +1630,7 @@ export interface operations {
             };
         };
     };
-    stop_live_activity_api_activity_live_stop_post: {
+    stop_live_activity_activity_live_stop_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1641,7 +1650,7 @@ export interface operations {
             };
         };
     };
-    get_single_activity_api_activity__id__get: {
+    get_single_activity_activity__id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1672,7 +1681,7 @@ export interface operations {
             };
         };
     };
-    delete_activity_api_activity__id__delete: {
+    delete_activity_activity__id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1703,7 +1712,7 @@ export interface operations {
             };
         };
     };
-    get_many_activities_api_activities__ids__get: {
+    get_many_activities_activities__ids__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1735,7 +1744,7 @@ export interface operations {
             };
         };
     };
-    get_activities_api_activities_get: {
+    get_activities_activities_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -1780,7 +1789,7 @@ export interface operations {
             };
         };
     };
-    get_total_api_total_get: {
+    get_total_total_get: {
         parameters: {
             query?: {
                 /** @description Comma-separated list of users to filter by */
@@ -1820,7 +1829,7 @@ export interface operations {
             };
         };
     };
-    get_single_game_stats_api_game_stats__game_id__get: {
+    get_single_game_stats_game_stats__game_id__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1861,7 +1870,7 @@ export interface operations {
             };
         };
     };
-    get_many_games_stats_api_games_stats__game_ids__get: {
+    get_many_games_stats_games_stats__game_ids__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1905,7 +1914,7 @@ export interface operations {
             };
         };
     };
-    get_games_stats_api_games_stats_get: {
+    get_games_stats_games_stats_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -1950,7 +1959,7 @@ export interface operations {
             };
         };
     };
-    get_single_game_api_game__game_id__get: {
+    get_single_game_game__game_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1982,7 +1991,7 @@ export interface operations {
             };
         };
     };
-    get_single_game_by_igdb_id_api_game_igdb__igdb_id__get: {
+    get_single_game_by_igdb_id_game_igdb__igdb_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2014,7 +2023,7 @@ export interface operations {
             };
         };
     };
-    get_many_games_api_games__game_ids__get: {
+    get_many_games_games__game_ids__get: {
         parameters: {
             query?: {
                 /** @description Sort by */
@@ -2050,7 +2059,7 @@ export interface operations {
             };
         };
     };
-    get_games_api_games_get: {
+    get_games_games_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -2087,7 +2096,7 @@ export interface operations {
             };
         };
     };
-    get_single_platform_stats_api_platform_stats__platform_id__get: {
+    get_single_platform_stats_platform_stats__platform_id__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -2128,7 +2137,7 @@ export interface operations {
             };
         };
     };
-    get_many_platforms_stats_api_platforms_stats__platform_ids__get: {
+    get_many_platforms_stats_platforms_stats__platform_ids__get: {
         parameters: {
             query?: {
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -2172,7 +2181,7 @@ export interface operations {
             };
         };
     };
-    get_platforms_stats_api_platforms_stats_get: {
+    get_platforms_stats_platforms_stats_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -2217,7 +2226,7 @@ export interface operations {
             };
         };
     };
-    get_single_platform_api_platform__platform_id__get: {
+    get_single_platform_platform__platform_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2248,7 +2257,7 @@ export interface operations {
             };
         };
     };
-    get_many_platforms_api_platforms__platform_ids__get: {
+    get_many_platforms_platforms__platform_ids__get: {
         parameters: {
             query?: {
                 /** @description Sort by */
@@ -2284,7 +2293,7 @@ export interface operations {
             };
         };
     };
-    get_platforms_api_platforms_get: {
+    get_platforms_platforms_get: {
         parameters: {
             query?: {
                 offset?: number;
@@ -2321,7 +2330,7 @@ export interface operations {
             };
         };
     };
-    get_playtime_by_day_api_charts_playtime_by_day_get: {
+    get_playtime_by_day_charts_playtime_by_day_get: {
         parameters: {
             query?: {
                 /** @description ID of the user to filter by */
@@ -2361,7 +2370,7 @@ export interface operations {
             };
         };
     };
-    redirect_discord_avatar_api_discord__discord_user_id__avatar_get: {
+    redirect_discord_avatar_discord__discord_user_id__avatar_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2392,7 +2401,7 @@ export interface operations {
             };
         };
     };
-    best_grid_sgdb_api_sgdb__sgdb_game_id__grids_best_get: {
+    best_grid_sgdb_sgdb__sgdb_game_id__grids_best_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2423,7 +2432,7 @@ export interface operations {
             };
         };
     };
-    sgdb_grids_api_sgdb__sgdb_game_id__grids_get: {
+    sgdb_grids_sgdb__sgdb_game_id__grids_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2454,7 +2463,7 @@ export interface operations {
             };
         };
     };
-    sgdb_grid_by_id_api_sgdb__sgdb_game_id__grids__grid_id__get: {
+    sgdb_grid_by_id_sgdb__sgdb_game_id__grids__grid_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2486,7 +2495,7 @@ export interface operations {
             };
         };
     };
-    get_igdb_game_info_api_igdb_game__igdb_game_id__get: {
+    get_igdb_game_info_igdb_game__igdb_game_id__get: {
         parameters: {
             query?: never;
             header?: never;

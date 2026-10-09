@@ -62,7 +62,7 @@ class IGDBClient:
     def available(self) -> bool:
         return self._authenticate()
 
-    def request(self, query: str, cache_expiry=3600) -> str | None:
+    def request(self, url: str, query: str, cache_expiry=3600) -> str | None:
         self.req_no += 1
 
         def log(*args):
@@ -71,16 +71,16 @@ class IGDBClient:
         def error(*args):
             logger.error(f"IGDB request #{self.req_no}: " + args[0], *args[1:])
 
-        cache_key = f"igdb_request:{query}"
+        cache_key = f"igdb_request:{url}:{query}"
         cached = cache_get(cache_key)
         if cached:
             log("Cache hit for query: %s", query)
             return cached.decode("utf-8")  # type: ignore
         try:
             self._authenticate()
-            log("Making query: %s", query)
+            log("Making query %s %s", url, query)
             r = requests.post(
-                "https://api.igdb.com/v4/games",
+                url,
                 headers={
                     "Client-ID": self.client_id,
                     "Authorization": f"Bearer {self.token}",

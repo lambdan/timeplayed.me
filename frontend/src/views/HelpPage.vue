@@ -136,14 +136,25 @@
         <a href="/api/docs">API documentation</a>, in particular the
         <a href="/api/docs#/authenticated/add_activity_api_activity_post"
           >Add Activity endpoint</a
-        >. <br />For example, if you're on Linux, you can make a
-        <a
-          href="https://gist.github.com/lambdan/440b5dd4a6fb264716234b153fe6073b"
-          >simple shell script</a
-        >
-        that sends playtime data to the API using curl that can easily be used
-        together with Steam.
+        >.
       </p>
+      <p>Here are some example scripts I've made for Linux:</p>
+
+      <ul>
+        <li>
+          <a
+            href="https://gist.github.com/lambdan/440b5dd4a6fb264716234b153fe6073b"
+            >tp.bash</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://gist.github.com/lambdan/4639e3a451b94b6e38ae1e31f99f7838"
+            >tp.steam.bash</a
+          >
+        </li>
+      </ul>
+
       <p>
         To authenticate with the API you need a token, send
         <code>!token</code> to the bot in a DM to get one.

@@ -17,6 +17,10 @@ class GameSelect:
         return Game.get_or_none(Game.igdb_id == igdb_id)  # type: ignore
 
     @staticmethod
+    def by_steam_id(steam_id: int) -> Game | None:
+        return Game.get_or_none(Game.steam_id == steam_id)  # type: ignore
+
+    @staticmethod
     def by_name(name: str, case_sensitive=False) -> Game | None:
         # sort by release year (null last)
         base = GameQuery.base(include_hidden=True)
