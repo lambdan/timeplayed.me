@@ -145,7 +145,7 @@
         together with Steam.
       </p>
       <p>
-        To authenticate with the API you need an token. Send
+        To authenticate with the API you need a token, send
         <code>!token</code> to the bot in a DM to get one.
       </p>
     </div>
