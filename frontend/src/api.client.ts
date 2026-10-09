@@ -4,8 +4,7 @@ import type { Activity, LiveActivity, LiveActivityPost } from "./api.models.ts";
 
 const client = createClient<paths>({
   // fetch: _fetch, // can hijack fetch if needed
-  // leave baseUrl empty to automatically append to the current origin
-  // baseUrl: "http://localhost:8000",
+  baseUrl: "/api",
 });
 
 function getSessionCache(key: string) {
@@ -67,7 +66,7 @@ export class TimeplayedAPI {
     }
 
     const data = await response.json();
-    return data as paths["/api/who_am_i"]["get"]["responses"]["200"]["content"]["application/json"];
+    return data as paths["/who_am_i"]["get"]["responses"]["200"]["content"]["application/json"];
   }
 
   /////////////// USERS //////////////////
@@ -76,9 +75,9 @@ export class TimeplayedAPI {
     const key = `api_getUser_${user_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached as paths["/api/user/{user_id}"]["get"]["responses"]["200"]["content"]["application/json"];
+      return cached as paths["/user/{user_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
-    const { data, error } = await this.getClient().GET("/api/user/{user_id}", {
+    const { data, error } = await this.getClient().GET("/user/{user_id}", {
       params: {
         path: {
           user_id,
@@ -94,9 +93,9 @@ export class TimeplayedAPI {
   }
 
   static async getUsers(
-    query: paths["/api/users"]["get"]["parameters"]["query"],
+    query: paths["/users"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/users", {
+    const { data, error } = await this.getClient().GET("/users", {
       params: {
         query,
       },
@@ -110,7 +109,7 @@ export class TimeplayedAPI {
 
   static async getUserStats(user_id: number) {
     const { data, error } = await this.getClient().GET(
-      "/api/user-stats/{user_id}",
+      "/user-stats/{user_id}",
       {
         params: {
           path: {
@@ -127,9 +126,9 @@ export class TimeplayedAPI {
   }
 
   static async getUsersStats(
-    query: paths["/api/users-stats"]["get"]["parameters"]["query"],
+    query: paths["/users-stats"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/users-stats", {
+    const { data, error } = await this.getClient().GET("/users-stats", {
       params: {
         query,
       },
@@ -147,10 +146,10 @@ export class TimeplayedAPI {
     const key = `api_getPlatform_${platform_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached as paths["/api/platform/{platform_id}"]["get"]["responses"]["200"]["content"]["application/json"];
+      return cached as paths["/platform/{platform_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
     const { data, error } = await this.getClient().GET(
-      "/api/platform/{platform_id}",
+      "/platform/{platform_id}",
       {
         params: {
           path: {
@@ -168,9 +167,9 @@ export class TimeplayedAPI {
   }
 
   static async getPlatforms(
-    query: paths["/api/platforms"]["get"]["parameters"]["query"],
+    query: paths["/platforms"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/platforms", {
+    const { data, error } = await this.getClient().GET("/platforms", {
       params: {
         query,
       },
@@ -184,7 +183,7 @@ export class TimeplayedAPI {
 
   static async getPlatformStats(platform_id: number) {
     const { data, error } = await this.getClient().GET(
-      "/api/platform-stats/{platform_id}",
+      "/platform-stats/{platform_id}",
       {
         params: {
           path: {
@@ -201,9 +200,9 @@ export class TimeplayedAPI {
   }
 
   static async getPlatformsStats(
-    query: paths["/api/platforms-stats"]["get"]["parameters"]["query"],
+    query: paths["/platforms-stats"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/platforms-stats", {
+    const { data, error } = await this.getClient().GET("/platforms-stats", {
       params: {
         query,
       },
@@ -221,9 +220,9 @@ export class TimeplayedAPI {
     const key = `api_getGame_${game_id}`;
     const cached = getSessionCache(key);
     if (cached) {
-      return cached as paths["/api/game/{game_id}"]["get"]["responses"]["200"]["content"]["application/json"];
+      return cached as paths["/game/{game_id}"]["get"]["responses"]["200"]["content"]["application/json"];
     }
-    const { data, error } = await this.getClient().GET("/api/game/{game_id}", {
+    const { data, error } = await this.getClient().GET("/game/{game_id}", {
       params: {
         path: {
           game_id,
@@ -240,7 +239,7 @@ export class TimeplayedAPI {
 
   static async getGameByIGDB(igdb_id: number) {
     const { data, error } = await this.getClient().GET(
-      "/api/game_igdb/{igdb_id}",
+      "/game_igdb/{igdb_id}",
       {
         params: {
           path: {
@@ -257,9 +256,9 @@ export class TimeplayedAPI {
   }
 
   static async getGames(
-    query: paths["/api/games"]["get"]["parameters"]["query"],
+    query: paths["/games"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/games", {
+    const { data, error } = await this.getClient().GET("/games", {
       params: {
         query,
       },
@@ -273,7 +272,7 @@ export class TimeplayedAPI {
 
   static async getGameStats(game_id: number) {
     const { data, error } = await this.getClient().GET(
-      "/api/game-stats/{game_id}",
+      "/game-stats/{game_id}",
       {
         params: {
           path: {
@@ -292,7 +291,7 @@ export class TimeplayedAPI {
   static async getGameStatsMany(game_ids: number[]) {
     //console.log("Executing with", game_ids, game_ids.join(","));
     const { data, error } = await this.getClient().GET(
-      "/api/games-stats/{game_ids}",
+      "/games-stats/{game_ids}",
       {
         params: {
           path: {
@@ -310,9 +309,9 @@ export class TimeplayedAPI {
   }
 
   static async getGamesStats(
-    query: paths["/api/games-stats"]["get"]["parameters"]["query"],
+    query: paths["/games-stats"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/games-stats", {
+    const { data, error } = await this.getClient().GET("/games-stats", {
       params: {
         query,
       },
@@ -327,7 +326,7 @@ export class TimeplayedAPI {
   ////////////////// ACTIVITIES //////////////////
 
   static async getActivity(id: number) {
-    const { data, error } = await this.getClient().GET("/api/activity/{id}", {
+    const { data, error } = await this.getClient().GET("/activity/{id}", {
       params: { path: { id } },
     });
     if (error) {
@@ -349,9 +348,9 @@ export class TimeplayedAPI {
   }
 
   static async getActivities(
-    query: paths["/api/activities"]["get"]["parameters"]["query"],
+    query: paths["/activities"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/activities", {
+    const { data, error } = await this.getClient().GET("/activities", {
       params: {
         query,
       },
@@ -364,9 +363,9 @@ export class TimeplayedAPI {
   }
 
   static async getNewestActivity(
-    query: paths["/api/activity/newest"]["get"]["parameters"]["query"],
+    query: paths["/activity/newest"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/activity/newest", {
+    const { data, error } = await this.getClient().GET("/activity/newest", {
       params: {
         query,
       },
@@ -379,9 +378,9 @@ export class TimeplayedAPI {
   }
 
   static async getOldestActivity(
-    query: paths["/api/activity/oldest"]["get"]["parameters"]["query"],
+    query: paths["/activity/oldest"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/activity/oldest", {
+    const { data, error } = await this.getClient().GET("/activity/oldest", {
       params: {
         query,
       },
@@ -394,9 +393,9 @@ export class TimeplayedAPI {
   }
 
   static async getTotals(
-    query?: paths["/api/total"]["get"]["parameters"]["query"],
+    query?: paths["/total"]["get"]["parameters"]["query"],
   ) {
-    const { data, error } = await this.getClient().GET("/api/total", {
+    const { data, error } = await this.getClient().GET("/total", {
       params: {
         query,
       },
@@ -413,10 +412,10 @@ export class TimeplayedAPI {
   static async getIGDBGameInfo(
     igdb_id: number,
   ): Promise<
-    paths["/api/igdb/game/{igdb_game_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+    paths["/igdb/game/{igdb_game_id}"]["get"]["responses"]["200"]["content"]["application/json"]
   > {
     const { data, error } = await this.getClient().GET(
-      "/api/igdb/game/{igdb_game_id}",
+      "/igdb/game/{igdb_game_id}",
       {
         params: {
           path: {
@@ -437,7 +436,7 @@ export class TimeplayedAPI {
   static async getBestSGDBGridForGame(
     sgdb_game_id: number,
   ): Promise<
-    paths["/api/sgdb/{sgdb_game_id}/grids/best"]["get"]["responses"]["200"]["content"]["application/json"]
+    paths["/sgdb/{sgdb_game_id}/grids/best"]["get"]["responses"]["200"]["content"]["application/json"]
   > {
     const key = `api_getBestSGDBGridForGame_${sgdb_game_id}`;
     const cached = getSessionCache(key);
@@ -445,7 +444,7 @@ export class TimeplayedAPI {
       return cached;
     }
     const { data, error } = await this.getClient().GET(
-      "/api/sgdb/{sgdb_game_id}/grids/best",
+      "/sgdb/{sgdb_game_id}/grids/best",
       {
         params: {
           path: {
@@ -481,7 +480,7 @@ export class TimeplayedAPI {
     sgdb_game_id: number,
     grid_id: number,
   ): Promise<
-    paths["/api/sgdb/{sgdb_game_id}/grids/{grid_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+    paths["/sgdb/{sgdb_game_id}/grids/{grid_id}"]["get"]["responses"]["200"]["content"]["application/json"]
   > {
     const key = `api_getGrid_${sgdb_game_id}_${grid_id}`;
     const cached = getSessionCache(key);
@@ -489,7 +488,7 @@ export class TimeplayedAPI {
       return cached;
     }
     const { data, error } = await this.getClient().GET(
-      "/api/sgdb/{sgdb_game_id}/grids/{grid_id}",
+      "/sgdb/{sgdb_game_id}/grids/{grid_id}",
       {
         params: {
           path: {
@@ -509,10 +508,10 @@ export class TimeplayedAPI {
 
   ////////////////// CHART /////////////////////
   static async getChartsPlaytimeByDay(
-    query: paths["/api/charts/playtime/by_day"]["get"]["parameters"]["query"],
+    query: paths["/charts/playtime/by_day"]["get"]["parameters"]["query"],
   ) {
     const { data, error } = await this.getClient().GET(
-      "/api/charts/playtime/by_day",
+      "/charts/playtime/by_day",
       {
         params: {
           query,
@@ -533,7 +532,7 @@ export class TimeplayedAPI {
 
   ////////////// MISC ///////////////
   static async ping() {
-    const { data, error } = await this.getClient().GET("/api/ping");
+    const { data, error } = await this.getClient().GET("/ping");
     if (error) {
       console.error("Error pinging API:", error);
       throw error;
@@ -542,7 +541,7 @@ export class TimeplayedAPI {
   }
 
   static async info() {
-    const { data, error } = await this.getClient().GET("/api/info");
+    const { data, error } = await this.getClient().GET("/info");
     if (error) {
       console.error("Error fetching API info:", error);
       throw error;
@@ -554,7 +553,7 @@ export class TimeplayedAPI {
   static async getLiveActivity(
     token: string,
   ): Promise<
-    | paths["/api/activity/live"]["get"]["responses"]["200"]["content"]["application/json"]
+    | paths["/activity/live"]["get"]["responses"]["200"]["content"]["application/json"]
     | null
   > {
     const r = await this.makeAuthenticatedRequest({
