@@ -31,7 +31,7 @@ onMounted(async () => {
 <template>
   <div class="row">
     <div class="col card p-0 mt-4">
-      <h1 class="card-header">Discord Playtime Tracker</h1>
+      <h1 class="card-header">Playtime Tracker</h1>
 
       <div class="card-body text-start">
         <p class="lead">
@@ -40,7 +40,6 @@ onMounted(async () => {
         </p>
         <p>
           All you need to do is join the Discord server and you will be tracked:
-          <br />
           <i class="bi bi-discord"></i> 
           <a href="https://discord.gg/YyhX6KHE27"
             >https://discord.gg/YyhX6KHE27</a
@@ -54,11 +53,23 @@ onMounted(async () => {
           <a href="/help#what-is-tracked">see the help page for more info</a>.
         </p>
         <p>
-          You can also use the bot to track your playtime manually. DM the bot
-          <code>!help</code> to see what's possible.
+          You can also DM the bot on Discord to log your playtime manually and
+          manage your activities. Send it <code>!help</code> to see what's
+          possible.
         </p>
         <hr />
-        <!-- <p>Check the <a href="/news">news page</a> to see what's new!</p> -->
+        <p>
+          You can also use the
+          <a href="/manual-tracking">manual tracking page</a> to log your
+          playtime manually, or you can make a custom tracking implementations
+          using the <a href="/api/docs">API</a>.
+        </p>
+        <p class="text-muted">
+          Note that for now the only way to become a member, which you need to
+          be to be able to authenticate with the API, is by joining the Discord
+          server. In the future I might add other ways to become a member, but
+          for now Discord is required, unfortunately.
+        </p>
         <marquee
           v-if="recapYear"
           behavior="scroll"

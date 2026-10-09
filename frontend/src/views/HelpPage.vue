@@ -37,66 +37,13 @@
 
       <a name="manual-tracking"></a>
       <h2>
-        I am playing a game on a platform that does not support automatic
-        tracking through Discord. How can I track it here, manually?
+        I am playing a game on a platform that does not show up on Discord. How
+        can I track it here, manually?
       </h2>
       <p>
-        <b>NEW:</b> Use the <a href="/manual-tracking">manual tracking page</a>.
-        Alternatively, you can still do it by DMing the bot manually:
+        Use the <a href="/manual-tracking">manual tracking page</a> or DM the
+        bot (send <code>!help start</code>).
       </p>
-      <p>Use the <code>!start</code> and <code>!stop</code> commands:</p>
-      <ul>
-        <li>
-          First off, you probably want to set your default platform (otherwise
-          it will show up as unknown)
-          <ul>
-            <li>
-              For example, to make your default <i>mobile</i> you would send:
-              <code>!set_default_platform mobile</code> (or use the shortcut:
-              <code>!sdp mobile</code>)
-            </li>
-            <li>
-              Send <code>!platforms</code> to see the full list of available
-              platforms. Only admins can create new platforms, so if yours is
-              missing, just ask an admin to add it for you.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <code>!start game_id</code> - send this when you start playing
-          <ul>
-            <li>
-              If it's a distinct game name, or the game has an alias, you can
-              try using that instead, eg <code>!start roblox</code> or
-              <code>!start lol</code>
-            </li>
-            <li>
-              If it's a game that does not exist in the database, you will need
-              to add it by supplying a
-              <a href="https://www.steamgriddb.com/">SteamGridDB</a> or
-              <a href="https://www.igdb.com/">IGDB</a> ID. You can use
-              <code>!ssgdb query</code> to search SteamGridDB for games, or
-              <code>!sigdb query</code> to search IGDB, and then
-              <code>!add_sgdb 1234</code> or <code>!add_igdb 1234</code> to add
-              the game.
-              <ul>
-                <li>
-                  If the game does not exist on SteamGridDB or IGDB, an admin
-                  will need to add it manually.
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-
-        <li><code>!stop</code> - send this when you stop playing</li>
-      </ul>
-      <p>Easy as that.</p>
-      <p>
-        Alternatively you can add retroactively if you want to wing it:
-        <code>!add game_id h:m:s</code>
-      </p>
-
       <hr />
 
       <a name="game-not-showing"></a>
@@ -181,24 +128,26 @@
 
       <a name="api"></a>
       <h2>
-        I don't trust Discord activity tracking and want to make my own tracker,
-        do you have an API?
+        Apart from Discord and the manual tracking page, is there any other way
+        to track my playtime?
       </h2>
       <p>
-        Yes, a very basic one, the endpoint you are interested in is likely
-        <code>POST /api/activity</code>, see the
-        <a href="/docs#/activities/add_activity_api_activity_post"
-          >Swagger documentation</a
+        Yes, there is an API which you can use to send in playtime. See the
+        <a href="/api/docs">API documentation</a>, in particular the
+        <a
+          href="https://timeplayed.me/docs#/authenticated/add_activity_api_activity_post"
+          >Add Activity endpoint</a
+        >. <br />For example, if you're on Linux, you can make a
+        <a
+          href="https://gist.github.com/lambdan/440b5dd4a6fb264716234b153fe6073b"
+          >simple shell script</a
         >
+        that sends playtime data to the API using curl that can easily be used
+        together with Steam.
       </p>
       <p>
-        (psst, you should send in IGDB ID, that way the game gets automatically
-        created if it doesn't exist...)
-      </p>
-      <p>
-        For now you still need Discord to generate an API token (using
-        <code>!token</code>), but at some point I want to make a new user/auth
-        system that is not Discord based.
+        To authenticate with the API you need an token. Send
+        <code>!token</code> to the bot in a DM to get one.
       </p>
     </div>
   </div>
