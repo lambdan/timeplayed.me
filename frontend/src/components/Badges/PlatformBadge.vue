@@ -6,12 +6,10 @@ const props = withDefaults(
   defineProps<{
     platform: Platform;
     showName?: boolean;
-    emulated?: boolean;
     showAbbreviation?: boolean;
   }>(),
   {
     showName: true,
-    emulated: false,
     showAbbreviation: false,
   },
 );
@@ -62,7 +60,6 @@ function getIcon() {
       <span v-if="showName || showAbbreviation"
         > 
         {{ displayedText() }}
-        <sup v-if="emulated">EMU</sup>
       </span>
     </span>
   </a>

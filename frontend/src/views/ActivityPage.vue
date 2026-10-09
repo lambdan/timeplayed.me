@@ -109,7 +109,6 @@ onMounted(async () => {
                   >{{ platform.display_name }}</a
                 >
                 <span v-else>Loading...</span>
-                {{ activity.emulated ? "(Emulated)" : "" }}
               </li>
 
               <li class="list-group-item">
