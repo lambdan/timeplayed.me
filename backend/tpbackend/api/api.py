@@ -22,8 +22,8 @@ class VersionInfo(BaseModel):
 
 
 def create_app():
-    app = FastAPI(title="timeplayed", version=__version__)
-    api_router = APIRouter(prefix="/api")
+    app = FastAPI(title="timeplayed", version=__version__, root_path="/api")
+    api_router = APIRouter()
 
     api_router.include_router(misc_router)
     api_router.include_router(user_router)
