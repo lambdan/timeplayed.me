@@ -57,7 +57,7 @@ const weekdayData = computed(() => ({
 }));
 const weekdayOptions = barOptions(({ dataIndex: i }) => {
   const w = props.weekdays[i];
-  return `${formatDuration(w.seconds)} · ${w.sessions} sessions · ${share(w.seconds)}`;
+  return `${formatDuration(w.seconds)} · ${w.sessions} activities · ${share(w.seconds)}`;
 });
 
 const hourData = computed(() => ({
@@ -73,16 +73,24 @@ const hourOptions = barOptions(
 <template>
   <div class="row g-3">
     <div class="col-12 col-md-4">
-      <RecapStatTile label="Peak hour" :value="hourLabel(peakHour)" />
+      <RecapStatTile
+        label="Peak hour"
+        :value="hourLabel(peakHour)"
+        :sub="`${formatDuration(hours[peakHour])} played between ${hourLabel(peakHour)} and ${hourLabel((peakHour + 1) % 24)}`"
+      />
     </div>
     <div class="col-12 col-md-4">
-      <RecapStatTile label="Top weekday" :value="WEEKDAYS[topDay]" />
+      <RecapStatTile
+        label="Top weekday"
+        :value="WEEKDAYS[topDay]"
+        :sub="`${formatDuration(weekdays[topDay].seconds)} played on ${WEEKDAYS[topDay]}s`"
+      />
     </div>
     <div class="col-12 col-md-4">
       <RecapStatTile
         label="Weekends"
         :value="share(weekend)"
-        :sub="formatDuration(weekend)"
+        :sub="`${formatDuration(weekend)} played on Saturdays and Sundays`"
       />
     </div>
 

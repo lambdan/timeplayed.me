@@ -39,11 +39,11 @@ function average(game: RecapGame): string {
           </div>
           <div>
             <div class="fs-3 fw-bold">{{ top.sessions }}</div>
-            <div class="small text-body-secondary">sessions</div>
+            <div class="small text-body-secondary">activities</div>
           </div>
           <div>
             <div class="fs-3 fw-bold">{{ average(top) }}</div>
-            <div class="small text-body-secondary">average session</div>
+            <div class="small text-body-secondary">average length</div>
           </div>
         </div>
         <div class="small text-body-secondary mt-2">
@@ -75,7 +75,7 @@ function average(game: RecapGame): string {
               {{ formatDuration(game.seconds) }}
             </div>
             <div class="small text-body-secondary">
-              {{ game.sessions }} sessions · {{ average(game) }} avg
+              {{ game.sessions }} activities · {{ average(game) }} avg
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ function average(game: RecapGame): string {
         >
       </div>
       <div class="small text-body-secondary">
-        {{ formatDuration(game.seconds) }} · {{ game.sessions }} sessions
+        {{ formatDuration(game.seconds) }} · {{ game.sessions }} activities
       </div>
     </div>
   </div>
@@ -118,8 +118,8 @@ function average(game: RecapGame): string {
           <th>#</th>
           <th>Game</th>
           <th class="text-end">Played</th>
-          <th class="text-end d-none d-sm-table-cell">Sessions</th>
-          <th class="text-end d-none d-md-table-cell">Avg session</th>
+          <th class="text-end d-none d-sm-table-cell">Activities</th>
+          <th class="text-end d-none d-md-table-cell">Avg length</th>
           <th class="text-end d-none d-lg-table-cell">Days</th>
           <th class="text-end d-none d-lg-table-cell">Weeks</th>
           <th class="text-end d-none d-lg-table-cell">First played</th>

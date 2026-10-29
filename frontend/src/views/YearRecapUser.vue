@@ -19,7 +19,7 @@ import RecapMonths from "../components/Recap/RecapMonths.vue";
 import RecapTimeOfDay from "../components/Recap/RecapTimeOfDay.vue";
 import RecapMonthStack from "../components/Recap/RecapMonthStack.vue";
 import RecapReleaseYears from "../components/Recap/RecapReleaseYears.vue";
-import RecapSessionLengths from "../components/Recap/RecapSessionLengths.vue";
+import RecapActivityLengths from "../components/Recap/RecapActivityLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
 const route = useRoute();
@@ -104,7 +104,7 @@ onMounted(async () => {
           </div>
           <div class="col">
             <RecapStatTile
-              label="Sessions"
+              label="Activities"
               :value="`${totals.sessions}`"
               :sub="`${formatDuration(totals.seconds / totals.sessions)} average`"
               :change="percentChange(totals.sessions, prev?.sessions)"
@@ -206,6 +206,11 @@ onMounted(async () => {
           </div>
         </section>
 
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Activity length</h2>
+          <RecapActivityLengths :sessions="recap.sessionsByDay.flat()" />
+        </section>
+
         <section class="mt-5" v-if="recap.records">
           <h2 class="h4 fw-bold mb-3">Records</h2>
           <div class="row g-3">
@@ -246,7 +251,7 @@ onMounted(async () => {
             </div>
             <div class="col-12 col-md-6 col-lg-4" v-if="recap.longest_session">
               <RecapStatTile
-                label="Longest session"
+                label="Longest activity"
                 :value="formatDuration(recap.longest_session.seconds)"
               >
                 <a
@@ -258,11 +263,6 @@ onMounted(async () => {
               </RecapStatTile>
             </div>
           </div>
-        </section>
-
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Session length</h2>
-          <RecapSessionLengths :sessions="recap.sessionsByDay.flat()" />
         </section>
 
         <section class="mt-5">

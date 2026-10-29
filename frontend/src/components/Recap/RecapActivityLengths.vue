@@ -3,7 +3,7 @@ import { computed } from "vue";
 import type { Activity } from "../../api.models";
 import { formatDuration } from "../../utils";
 
-// sessions grouped by how long they were
+// activities grouped by how long they were
 const props = defineProps<{ sessions: Activity[] }>();
 
 const MINUTE = 60;
@@ -39,7 +39,7 @@ const totalSeconds = computed(() =>
         <tr>
           <th>Length</th>
           <th class="w-25 d-none d-md-table-cell"></th>
-          <th class="text-end">Sessions</th>
+          <th class="text-end">Activities</th>
           <th class="text-end d-none d-sm-table-cell">Share</th>
           <th class="text-end">Played</th>
           <th class="text-end d-none d-sm-table-cell">Share of playtime</th>

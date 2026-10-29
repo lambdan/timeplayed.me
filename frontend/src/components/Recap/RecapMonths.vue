@@ -24,7 +24,7 @@ function share(seconds: number): string {
           <th>Month</th>
           <th class="w-25 d-none d-md-table-cell"></th>
           <th class="text-end">Played</th>
-          <th class="text-end d-none d-sm-table-cell">Sessions</th>
+          <th class="text-end d-none d-sm-table-cell">Activities</th>
           <th class="text-end d-none d-sm-table-cell">Share</th>
           <th>Most played</th>
         </tr>

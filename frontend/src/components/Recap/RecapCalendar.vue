@@ -123,7 +123,7 @@ function time(ts: number): string {
           {{ dateLabel(hovered) }}:
           <b class="text-body">{{ formatDuration(days[hovered]) }}</b>
         </template>
-        <template v-else>Click a day to see its sessions</template>
+        <template v-else>Click a day to see its activities</template>
       </div>
       <span class="text-body-secondary me-1">Less</span>
       <span
@@ -142,7 +142,7 @@ function time(ts: number): string {
           {{ dateLabel(selected, "long") }}
           <span class="fw-normal text-body-secondary">
             · {{ formatDuration(days[selected]) }} ·
-            {{ sessionsByDay[selected].length }} sessions
+            {{ sessionsByDay[selected].length }} activities
           </span>
         </h3>
         <button
