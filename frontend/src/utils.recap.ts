@@ -79,6 +79,22 @@ export const WEEKDAYS = Array.from({ length: 7 }, (_, d) =>
   new Date(2024, 0, 1 + d).toLocaleDateString("en-US", { weekday: "long" }),
 );
 
+/**
+ * heatmap colors, 0 = nothing played. pale yellow to deep red, all bright enough to
+ * stand out from the empty gray
+ */
+export const HEAT_COLORS = [
+  "var(--bs-secondary-bg)",
+  "#fde68a",
+  "#fcd34d",
+  "#fbbf24",
+  "#f59e0b",
+  "#f97316",
+  "#ea580c",
+  "#dc2626",
+  "#b91c1c",
+];
+
 // for platforms without a (visible) color
 const FALLBACK_COLORS = ["#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#10b981"];
 

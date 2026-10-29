@@ -1,25 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
-import { WEEKDAYS } from "../../utils.recap";
+import { HEAT_COLORS, WEEKDAYS } from "../../utils.recap";
 
 // playtime per weekday and hour of day
 const props = defineProps<{ weekHours: number[][] }>();
 
-const LEVEL_CLASSES = [
-  "bg-body-secondary",
-  "bg-warning bg-opacity-25",
-  "bg-warning bg-opacity-50",
-  "bg-warning bg-opacity-75",
-  "bg-warning",
-];
-
 const max = computed(() => Math.max(...props.weekHours.flat(), 1));
 const total = computed(() => props.weekHours.flat().reduce((a, b) => a + b, 0));
 
-/** 0 = nothing, 1-4 relative to the busiest hour */
+/** 0 = nothing, then relative to the busiest hour */
 function level(seconds: number): number {
-  return seconds ? Math.ceil((seconds / max.value) * 4) : 0;
+  const steps = HEAT_COLORS.length - 1;
+  return seconds ? Math.ceil((seconds / max.value) * steps) : 0;
 }
 
 const hovered = ref<{ day: number; hour: number }>();
@@ -64,14 +57,15 @@ function hourLabel(h: number): string {
             <td v-for="(s, hour) in hours" :key="hour" class="p-0">
               <div
                 class="rounded-1"
-                :class="[
-                  LEVEL_CLASSES[level(s)],
-                  {
-                    'border border-2 border-light':
-                      hovered?.day === day && hovered?.hour === hour,
-                  },
-                ]"
-                style="height: 1.1rem; margin: 1px"
+                :class="{
+                  'border border-2 border-light':
+                    hovered?.day === day && hovered?.hour === hour,
+                }"
+                :style="{
+                  height: '1.1rem',
+                  margin: '1px',
+                  background: HEAT_COLORS[level(s)],
+                }"
                 @mouseenter="hovered = { day, hour }"
               ></div>
             </td>

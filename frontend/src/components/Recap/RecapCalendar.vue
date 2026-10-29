@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
+import { HEAT_COLORS } from "../../utils.recap";
 import type { Activity } from "../../api.models";
 
 const props = defineProps<{
@@ -12,14 +13,18 @@ const props = defineProps<{
 }>();
 
 // hours thresholds for the color levels (level 0 = nothing played)
-const LEVELS = [0, 1, 3, 6];
-const LEGEND = ["None", "< 1 h", "1-3 h", "3-6 h", "6 h +"];
-const LEVEL_CLASSES = [
-  "bg-body-secondary",
-  "bg-warning bg-opacity-25",
-  "bg-warning bg-opacity-50",
-  "bg-warning bg-opacity-75",
-  "bg-warning",
+// hours thresholds for each color, a day gets the last one it reaches
+const LEVELS = [0, 0.5, 1, 2, 3, 4, 6, 8];
+const LEGEND = [
+  "None",
+  "< 30 m",
+  "30 m – 1 h",
+  "1 – 2 h",
+  "2 – 3 h",
+  "3 – 4 h",
+  "4 – 6 h",
+  "6 – 8 h",
+  "8 h +",
 ];
 
 function level(seconds: number): number {
@@ -96,12 +101,15 @@ function time(ts: number): string {
             :key="i"
             class="calendar-cell rounded-1"
             :class="[
-              day === undefined ? 'invisible' : LEVEL_CLASSES[level(days[day])],
               {
+                invisible: day === undefined,
                 'border border-2 border-light': hovered === day,
-                'border border-2 border-danger': selected === day,
+                'border border-2 border-primary': selected === day,
               },
             ]"
+            :style="{
+              background: HEAT_COLORS[level(day === undefined ? 0 : days[day])],
+            }"
             :role="day !== undefined && days[day] ? 'button' : undefined"
             @mouseenter="hovered = day"
             @click="day !== undefined && days[day] && select(day)"
@@ -122,8 +130,7 @@ function time(ts: number): string {
         v-for="(label, l) in LEGEND"
         :key="label"
         class="d-inline-block rounded-1"
-        :class="LEVEL_CLASSES[l]"
-        style="width: 12px; height: 12px"
+        :style="{ width: '12px', height: '12px', background: HEAT_COLORS[l] }"
         :title="label"
       ></span>
       <span class="text-body-secondary ms-1">More</span>
