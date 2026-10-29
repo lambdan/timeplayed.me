@@ -120,6 +120,10 @@ function average(game: RecapGame): string {
           <th class="text-end">Played</th>
           <th class="text-end d-none d-sm-table-cell">Sessions</th>
           <th class="text-end d-none d-md-table-cell">Avg session</th>
+          <th class="text-end d-none d-lg-table-cell">Days</th>
+          <th class="text-end d-none d-lg-table-cell">Weeks</th>
+          <th class="text-end d-none d-lg-table-cell">First played</th>
+          <th class="text-end d-none d-lg-table-cell">Last played</th>
           <th class="text-end d-none d-md-table-cell">Share</th>
         </tr>
       </thead>
@@ -144,6 +148,18 @@ function average(game: RecapGame): string {
           </td>
           <td class="text-end d-none d-sm-table-cell">{{ game.sessions }}</td>
           <td class="text-end d-none d-md-table-cell">{{ average(game) }}</td>
+          <td class="text-end d-none d-lg-table-cell">
+            {{ game.days_played }}
+          </td>
+          <td class="text-end d-none d-lg-table-cell">
+            {{ game.weeks_played }}
+          </td>
+          <td class="text-end text-nowrap d-none d-lg-table-cell">
+            {{ shortDate(game.first_played) }}
+          </td>
+          <td class="text-end text-nowrap d-none d-lg-table-cell">
+            {{ shortDate(game.last_played) }}
+          </td>
           <td class="text-end d-none d-md-table-cell">
             {{ game.percentage.toFixed(1) }}%
           </td>

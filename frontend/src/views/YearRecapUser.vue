@@ -16,8 +16,8 @@ import RecapStatTile from "../components/Recap/RecapStatTile.vue";
 import RecapTopGames from "../components/Recap/RecapTopGames.vue";
 import RecapCalendar from "../components/Recap/RecapCalendar.vue";
 import RecapMonths from "../components/Recap/RecapMonths.vue";
-import RecapRhythm from "../components/Recap/RecapRhythm.vue";
-import RecapMonthGames from "../components/Recap/RecapMonthGames.vue";
+import RecapTimeOfDay from "../components/Recap/RecapTimeOfDay.vue";
+import RecapMonthStack from "../components/Recap/RecapMonthStack.vue";
 import RecapSessionLengths from "../components/Recap/RecapSessionLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
@@ -142,6 +142,28 @@ onMounted(async () => {
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Games</h2>
           <RecapTopGames :games="recap.games" :showNew="!!prev" />
+          <div class="row g-3 mt-0">
+            <div class="col-12 col-md-6" v-if="oldestGame">
+              <RecapStatTile
+                label="Oldest game"
+                :value="`${oldestGame.release_year}`"
+              >
+                <a
+                  :href="`/game/${oldestGame.game_id}`"
+                  class="link-body-emphasis text-decoration-none"
+                  >{{ oldestGame.name }}</a
+                >
+                · {{ formatDuration(oldestGame.seconds) }}
+              </RecapStatTile>
+            </div>
+            <div class="col-12 col-md-6">
+              <RecapStatTile
+                :label="`Released in ${year}`"
+                :value="`${recap.games.filter((g) => g.release_year === year).length}`"
+                :sub="`of ${totals.games} games played`"
+              />
+            </div>
+          </div>
         </section>
 
         <section class="mt-5">
@@ -178,44 +200,45 @@ onMounted(async () => {
           </div>
         </section>
 
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Months</h2>
-          <RecapMonthGames
-            :sessionsByDay="recap.sessionsByDay"
-            :games="recap.games"
-            :year="year"
-          />
-          <RecapMonths
-            class="mt-3"
-            :months="recap.months"
-            :gameNames="gameNames"
-          />
-        </section>
-
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Time of day</h2>
-          <p class="small text-body-secondary">Times in {{ timezone }}</p>
-          <RecapRhythm
-            :weekdays="recap.weekdays"
-            :hours="recap.hours"
-            :weekHours="recap.weekHours"
-          />
-        </section>
-
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Platforms</h2>
-          <RecapPlatforms :platforms="recap.platforms" :gameNames="gameNames" />
-        </section>
-
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Session length</h2>
-          <RecapSessionLengths :sessions="recap.sessionsByDay.flat()" />
-        </section>
-
-        <section class="mt-5">
-          <h2 class="h4 fw-bold mb-3">Other</h2>
+        <section class="mt-5" v-if="recap.records">
+          <h2 class="h4 fw-bold mb-3">Records</h2>
           <div class="row g-3">
-            <div class="col-12 col-md-4" v-if="recap.longest_session">
+            <div class="col-12 col-md-6 col-lg-4">
+              <RecapStatTile
+                label="Most regularly played"
+                :value="gameNames.get(recap.records.most_regular.game_id)!"
+                :sub="`Played in ${recap.records.most_regular.weeks} of ${recap.records.most_regular.of} weeks`"
+              />
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <RecapStatTile
+                label="Longest streak on one game"
+                :value="`${recap.records.game_streak.days} days`"
+                :sub="`${gameNames.get(recap.records.game_streak.game_id)} · ${shortDate(recap.records.game_streak.start)} – ${shortDate(recap.records.game_streak.end)}`"
+              />
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <RecapStatTile
+                label="Most played game in one day"
+                :value="formatDuration(recap.records.biggest_game_day.seconds)"
+                :sub="`${gameNames.get(recap.records.biggest_game_day.game_id)} · ${shortDate(recap.records.biggest_game_day.date)}`"
+              />
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <RecapStatTile
+                label="Most games in one day"
+                :value="`${recap.records.most_games_day.games} games`"
+                :sub="shortDate(recap.records.most_games_day.date)"
+              />
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+              <RecapStatTile
+                label="Busiest week"
+                :value="formatDuration(recap.records.busiest_week.seconds)"
+                :sub="`${shortDate(recap.records.busiest_week.start)} – ${shortDate(recap.records.busiest_week.end)}`"
+              />
+            </div>
+            <div class="col-12 col-md-6 col-lg-4" v-if="recap.longest_session">
               <RecapStatTile
                 label="Longest session"
                 :value="formatDuration(recap.longest_session.seconds)"
@@ -228,27 +251,64 @@ onMounted(async () => {
                 · {{ shortDate(recap.longest_session.date) }}
               </RecapStatTile>
             </div>
-            <div class="col-12 col-md-4" v-if="oldestGame">
-              <RecapStatTile
-                label="Oldest game"
-                :value="`${oldestGame.release_year}`"
-              >
-                <a
-                  :href="`/game/${oldestGame.game_id}`"
-                  class="link-body-emphasis text-decoration-none"
-                  >{{ oldestGame.name }}</a
-                >
-                · {{ formatDuration(oldestGame.seconds) }}
-              </RecapStatTile>
+          </div>
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Session length</h2>
+          <RecapSessionLengths :sessions="recap.sessionsByDay.flat()" />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Months</h2>
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <RecapMonthStack
+                title="By game"
+                :sessionsByDay="recap.sessionsByDay"
+                :year="year"
+                :items="
+                  recap.games.map((g) => ({ id: g.game_id, name: g.name }))
+                "
+                :keyOf="(a) => a.game_id"
+              />
             </div>
-            <div class="col-12 col-md-4">
-              <RecapStatTile
-                :label="`Released in ${year}`"
-                :value="`${recap.games.filter((g) => g.release_year === year).length}`"
-                :sub="`of ${totals.games} games played`"
+            <div class="col-12 col-lg-6">
+              <RecapMonthStack
+                title="By platform"
+                :sessionsByDay="recap.sessionsByDay"
+                :year="year"
+                :items="
+                  recap.platforms.map((p) => ({
+                    id: p.platform_id,
+                    name: p.name,
+                    color: p.color,
+                  }))
+                "
+                :keyOf="(a) => a.platform_id"
               />
             </div>
           </div>
+          <RecapMonths
+            class="mt-3"
+            :months="recap.months"
+            :gameNames="gameNames"
+          />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Time of day</h2>
+          <p class="small text-body-secondary">Times in {{ timezone }}</p>
+          <RecapTimeOfDay
+            :weekdays="recap.weekdays"
+            :hours="recap.hours"
+            :weekHours="recap.weekHours"
+          />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Platforms</h2>
+          <RecapPlatforms :platforms="recap.platforms" :gameNames="gameNames" />
         </section>
       </template>
     </template>

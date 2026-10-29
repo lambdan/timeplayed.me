@@ -8,6 +8,7 @@
  */
 import { TimeplayedAPI } from "./api.client";
 import type { Activity } from "./api.models";
+import type { ChartOptions, TooltipItem } from "chart.js";
 
 export interface Bucket {
   seconds: number;
@@ -23,6 +24,8 @@ export interface RecapGame extends Bucket {
   last_played: Date;
   /** first time ever playing it */
   new: boolean;
+  days_played: number;
+  weeks_played: number;
 }
 
 export interface RecapPlatform extends Bucket {
@@ -69,6 +72,14 @@ export interface Recap {
   longest_break?: Period;
   biggest_day?: { date: Date; seconds: number; top_game_id: number };
   community?: { rank: number; players: number; share: number };
+  records?: {
+    most_games_day: { date: Date; games: number };
+    game_streak: Period & { game_id: number };
+    busiest_week: { start: Date; end: Date; seconds: number };
+    biggest_game_day: { date: Date; game_id: number; seconds: number };
+    /** game played in the most different weeks */
+    most_regular: { game_id: number; weeks: number; of: number };
+  };
 }
 
 export const MONTHS = Array.from({ length: 12 }, (_, m) =>
@@ -343,9 +354,22 @@ function buildRecap(
   const day = (a: Activity) => localDay(a, year);
   const dayIndex = (a: Activity) => daysBetween(first, day(a));
   const monthOf = (a: Activity) => day(a).getMonth();
+  // monday based calendar weeks, the first and last week of the year can be partial
+  const firstWeekday = (first.getDay() + 6) % 7;
+  const weekOf = (dayIdx: number) => Math.floor((dayIdx + firstWeekday) / 7);
+  const daysInYear = daysBetween(first, new Date(year + 1, 0, 1));
+
+  // per game: the days of the year it was played on, sorted
+  const gameDays = new Map<number, number[]>();
+  for (const a of activities) {
+    const set = gameDays.get(a.game_id) ?? [];
+    if (!set.includes(dayIndex(a))) set.push(dayIndex(a));
+    gameDays.set(a.game_id, set);
+  }
+  gameDays.forEach((d) => d.sort((x, y) => x - y));
 
   const games = [...totalsBy(activities, (a) => a.game_id)].map(([id, t]) => {
-    const played = activities.filter((a) => a.game_id === id).map(day);
+    const played = gameDays.get(id)!;
     const info = lookups.games.get(id);
     return {
       ...t,
@@ -353,9 +377,11 @@ function buildRecap(
       name: info?.name ?? `Game ${id}`,
       release_year: info?.release_year ?? null,
       percentage: pct(t.seconds),
-      first_played: new Date(Math.min(...played.map((d) => d.getTime()))),
-      last_played: new Date(Math.max(...played.map((d) => d.getTime()))),
+      first_played: addDays(first, played[0]),
+      last_played: addDays(first, played[played.length - 1]),
       new: !lookups.playedBefore.has(id),
+      days_played: played.length,
+      weeks_played: new Set(played.map(weekOf)).size,
     };
   });
 
@@ -376,11 +402,7 @@ function buildRecap(
 
   const monthTop = topBy(activities, monthOf);
   const week = weekHours(activities);
-  const days = buckets(
-    activities,
-    dayIndex,
-    daysBetween(first, new Date(year + 1, 0, 1)),
-  ).map((t) => t.seconds);
+  const days = buckets(activities, dayIndex, daysInYear).map((t) => t.seconds);
   const dates = days.flatMap((s, i) => (s ? [addDays(first, i)] : []));
   const sessionsByDay: Activity[][] = days.map(() => []);
   // activities are newest first, go backwards so each day is oldest first
@@ -430,6 +452,95 @@ function buildRecap(
           top_game_id: topBy(activities, dayIndex).get(biggest)!,
         }
       : undefined,
+    records: activities.length
+      ? records(
+          activities,
+          sessionsByDay,
+          games,
+          gameDays,
+          first,
+          dayIndex,
+          weekOf,
+        )
+      : undefined,
+  };
+}
+
+function records(
+  activities: Activity[],
+  sessionsByDay: Activity[][],
+  games: RecapGame[],
+  gameDays: Map<number, number[]>,
+  first: Date,
+  dayIndex: (a: Activity) => number,
+  weekOf: (dayIdx: number) => number,
+): Recap["records"] {
+  const date = (dayIdx: number) => addDays(first, dayIdx);
+
+  const gamesPerDay = sessionsByDay.map(
+    (s) => new Set(s.map((a) => a.game_id)).size,
+  );
+  const mostGamesDay = gamesPerDay.indexOf(Math.max(...gamesPerDay));
+
+  // longest streak of one game, ties go to the most played game
+  let gameStreak: Period & { game_id: number } = {
+    game_id: 0,
+    days: 0,
+    start: first,
+    end: first,
+  };
+  for (const g of games) {
+    const streak = longestStreak(gameDays.get(g.game_id)!.map(date))!;
+    if (streak.days > gameStreak.days)
+      gameStreak = { ...streak, game_id: g.game_id };
+  }
+
+  const weekSeconds = new Map<number, number>();
+  sessionsByDay.forEach((sessions, dayIdx) => {
+    const w = weekOf(dayIdx);
+    weekSeconds.set(
+      w,
+      (weekSeconds.get(w) ?? 0) + sessions.reduce((a, b) => a + b.seconds, 0),
+    );
+  });
+  const [busiestWeek, busiestSeconds] = [...weekSeconds].reduce((a, b) =>
+    b[1] > a[1] ? b : a,
+  );
+  const weekDays = sessionsByDay
+    .map((_, i) => i)
+    .filter((i) => weekOf(i) === busiestWeek);
+
+  const [gameDay, gameDayTotals] = [
+    ...totalsBy(activities, (a) => `${dayIndex(a)}:${a.game_id}`),
+  ][0];
+  const [gameDayIdx, gameDayGame] = gameDay.split(":").map(Number);
+
+  // games are most played first, so ties go to the most played one
+  const mostRegular = games.reduce((a, b) =>
+    b.weeks_played > a.weeks_played ? b : a,
+  );
+
+  return {
+    most_games_day: {
+      date: date(mostGamesDay),
+      games: gamesPerDay[mostGamesDay],
+    },
+    game_streak: gameStreak,
+    busiest_week: {
+      start: date(weekDays[0]),
+      end: date(weekDays[weekDays.length - 1]),
+      seconds: busiestSeconds,
+    },
+    biggest_game_day: {
+      date: date(gameDayIdx),
+      game_id: gameDayGame,
+      seconds: gameDayTotals.seconds,
+    },
+    most_regular: {
+      game_id: mostRegular.game_id,
+      weeks: mostRegular.weeks_played,
+      of: weekOf(sessionsByDay.length - 1) + 1,
+    },
   };
 }
 
@@ -446,6 +557,31 @@ export function percentChange(
   previous?: number,
 ): number | undefined {
   return previous ? ((current - previous) / previous) * 100 : undefined;
+}
+
+/** options shared by the recap bar charts, which have hours on the y axis */
+export function barOptions(
+  label: (ctx: TooltipItem<"bar">) => string,
+  stacked = false,
+): ChartOptions<"bar"> {
+  const muted = bsColor("secondary-color");
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => ` ${label(ctx)}` } },
+    },
+    scales: {
+      x: { stacked, grid: { display: false }, ticks: { color: muted } },
+      y: {
+        stacked,
+        ticks: { color: muted, callback: (v) => `${v}h` },
+        grid: { color: bsColor("border-color-translucent") },
+      },
+    },
+  };
 }
 
 /** a bootstrap css variable, so charts follow the theme */

@@ -7,10 +7,9 @@ import {
   Chart as ChartJS,
   LinearScale,
   Tooltip,
-  type ChartOptions,
 } from "chart.js";
 import { formatDuration } from "../../utils";
-import { WEEKDAYS, bsColor, type Bucket } from "../../utils.recap";
+import { WEEKDAYS, barOptions, bsColor, type Bucket } from "../../utils.recap";
 import RecapStatTile from "./RecapStatTile.vue";
 import RecapWeekGrid from "./RecapWeekGrid.vue";
 
@@ -44,28 +43,6 @@ const weekend = computed(
   () => props.weekdays[5].seconds + props.weekdays[6].seconds,
 );
 
-function chartOptions(
-  tooltipLabel: (i: number) => string,
-): ChartOptions<"bar"> {
-  const muted = bsColor("secondary-color");
-  return {
-    responsive: true,
-    animation: false,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: (ctx) => tooltipLabel(ctx.dataIndex) } },
-    },
-    scales: {
-      x: { grid: { display: false }, ticks: { color: muted } },
-      y: {
-        ticks: { color: muted, callback: (v) => `${v}h` },
-        grid: { color: bsColor("border-color-translucent") },
-      },
-    },
-  };
-}
-
 function dataset(seconds: number[]) {
   return {
     data: seconds.map((s) => s / 3600),
@@ -78,17 +55,18 @@ const weekdayData = computed(() => ({
   labels: WEEKDAYS.map((d) => d.slice(0, 3)),
   datasets: [dataset(props.weekdays.map((w) => w.seconds))],
 }));
-const weekdayOptions = chartOptions((i) => {
+const weekdayOptions = barOptions(({ dataIndex: i }) => {
   const w = props.weekdays[i];
-  return ` ${formatDuration(w.seconds)} · ${w.sessions} sessions · ${share(w.seconds)}`;
+  return `${formatDuration(w.seconds)} · ${w.sessions} sessions · ${share(w.seconds)}`;
 });
 
 const hourData = computed(() => ({
   labels: props.hours.map((_, h) => String(h).padStart(2, "0")),
   datasets: [dataset(props.hours)],
 }));
-const hourOptions = chartOptions(
-  (h) => ` ${formatDuration(props.hours[h])} · ${share(props.hours[h])}`,
+const hourOptions = barOptions(
+  ({ dataIndex: h }) =>
+    `${formatDuration(props.hours[h])} · ${share(props.hours[h])}`,
 );
 </script>
 
