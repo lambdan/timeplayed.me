@@ -4,10 +4,11 @@ from tpbackend.discord.routes import redirect_discord_avatar
 from tpbackend.game.models import API_GameWithStats
 from tpbackend.game.query import GameStatsQuery
 from tpbackend.igdb.controller import get_or_create_game
+from tpbackend.igdb.controller import enabled as igdb_enabled
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
 from tpbackend.game.models import API_Game
-from tpbackend.api.responses import bad_request, not_found
+from tpbackend.api.responses import bad_request, not_found, service_unavailable
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.api.params import (
@@ -206,6 +207,8 @@ def get_single_game_by_igdb_id(igdb_id=path_id("IGDB game")) -> API_Game:
     x = get_or_create_game(igdb_id, "Created by IGDB ID redirect")
     if x:
         return API_Game.from_game(x)
+    if not igdb_enabled():
+        return service_unavailable("Game not in database, and IGDB is not enabled")
     return not_found("Game not found (probably not in IGDB)")
 
 

@@ -1,17 +1,21 @@
 from steamgrid import Game, SteamGridDB
 from steamgrid import StyleType, MimeType
 import json
-import os
 from .models import SGDB_Game, SGDB_Grid, SGDB_Author
 from tpbackend.cache import cache_get, cache_set
+from tpbackend.globals import SGDB_ENABLED, SGDB_TOKEN
 import logging
 
 logger = logging.getLogger("sgdb")
 
-sgdb = SteamGridDB(os.environ["SGDB_TOKEN"])
+sgdb = SteamGridDB(SGDB_TOKEN) if SGDB_ENABLED else None
 ONE_DAY = 60 * 60 * 24
 
 __PREFERED_ASPECT = 600 / 900
+
+
+def available() -> bool:
+    return sgdb is not None
 
 
 def search(query: str) -> list[SGDB_Game]:
@@ -27,6 +31,9 @@ def search(query: str) -> list[SGDB_Game]:
             # res.append(v)
             res.append(SGDB_Game.model_validate(v))
         return res
+
+    if not sgdb:
+        return []
 
     key = f"sgdb_search:{query}"
 
@@ -53,6 +60,8 @@ def search(query: str) -> list[SGDB_Game]:
 
 
 def get_game_by_id(game_id: int) -> Game | None:
+    if not sgdb:
+        return None
     try:
         g = sgdb.get_game_by_gameid(game_id)
         if g and g.id == game_id:
@@ -75,6 +84,9 @@ def get_grids(game_id: int) -> list[SGDB_Grid]:
         for v in json.loads(val):
             res.append(SGDB_Grid.model_validate(v))
         return res
+
+    if not sgdb:
+        return []
 
     key = f"sgdb_grids:{game_id}"
     cached = cache_get(key)

@@ -46,6 +46,27 @@ jobs:
         working-directory: backend
         run: make test
 
+  test-backend-e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run e2e tests (docker)
+        working-directory: backend
+        run: make e2e
+
   test-frontend:
     runs-on: ubuntu-latest
     permissions:

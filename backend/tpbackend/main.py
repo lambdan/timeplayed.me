@@ -1,9 +1,18 @@
 import asyncio
-import os
 from .oblivionis import storage as oblivionis_storage, sync as oblivionis_sync
 from .discord.bot import bot
+from tpbackend.globals import (
+    DISCORD_ENABLED,
+    DISCORD_TOKEN,
+    IGDB_ENABLED,
+    OBLIVIONIS_ENABLED,
+    SGDB_ENABLED,
+)
 from tpbackend.storage import db, clean_loop
 import tpbackend.api.api as api
+import logging
+
+logger = logging.getLogger("main")
 
 
 async def start_api():
@@ -11,17 +20,32 @@ async def start_api():
 
 
 async def start_bot():
-    await bot.start(os.environ["DISCORD_TOKEN"])
+    await bot.start(DISCORD_TOKEN)
+
+
+def log_integrations():
+    def status(enabled: bool) -> str:
+        return "enabled" if enabled else "disabled"
+
+    logger.info("Discord: %s (DISCORD_TOKEN)", status(DISCORD_ENABLED))
+    logger.info("SGDB: %s (SGDB_TOKEN)", status(SGDB_ENABLED))
+    logger.info("IGDB: %s (IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)", status(IGDB_ENABLED))
+    logger.info("Oblivionis sync: %s (OBLIVIONIS_DB)", status(OBLIVIONIS_ENABLED))
 
 
 async def async_main():
-    await asyncio.gather(
-        start_api(), start_bot(), oblivionis_sync.sync_loop(), clean_loop()
-    )
+    tasks = [start_api(), clean_loop()]
+    if DISCORD_ENABLED:
+        tasks.append(start_bot())
+    if OBLIVIONIS_ENABLED:
+        tasks.append(oblivionis_sync.sync_loop())
+    await asyncio.gather(*tasks)
 
 
 def main():
-    oblivionis_storage.connect_db()
+    log_integrations()
+    if OBLIVIONIS_ENABLED:
+        oblivionis_storage.connect_db()
     db.connect()
     asyncio.run(async_main())
 

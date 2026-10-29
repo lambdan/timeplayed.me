@@ -15,6 +15,10 @@ igdb = IGDBClient()
 # theres a toooon of stuff: https://api-docs.igdb.com/#game
 
 
+def enabled() -> bool:
+    return igdb.enabled()
+
+
 def available() -> bool:
     return igdb.available()
 

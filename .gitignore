@@ -134,3 +134,6 @@ build-test
 .pg-data/
 backend/docker-compose.yml
 .vscode/
+
+# database backups (may contain prod data)
+/storage_v2_*.sql

@@ -28,13 +28,15 @@ services:
       - composenet
     environment:
       DB_HOST: postgres
-      DB_NAME: oblivionis # keeping same key as oblivionis so model file can be synced easily
-      DB_NAME_TIMEPLAYED: storage_v2
+      OBLIVIONIS_DB: oblivionis # oblivionis sync is disabled if not set
+      TIMEPLAYED_DB: storage_v2
       DB_USER: x
       DB_PASSWORD: x
-      DISCORD_TOKEN: x
+      DISCORD_TOKEN: x # Discord bot is disabled if not set
       ADMINS: "x,y" # Discord user id of admins
-      SGDB_TOKEN: x
+      SGDB_TOKEN: x # SteamGridDB is disabled if not set
+      IGDB_CLIENT_ID: x # IGDB is disabled if client id/secret not set
+      IGDB_CLIENT_SECRET: x
       REDIS_HOST: redis
       # TIMEPLAYED_URL: https://timeplayed.me  # Base URL for game page links in bot commands
     restart: always

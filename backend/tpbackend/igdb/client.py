@@ -1,15 +1,13 @@
 import time
 import requests
 import logging
-import os
 import json
 
 from tpbackend.cache import cache_get, cache_set
+from tpbackend.globals import IGDB_CLIENT_ID, IGDB_CLIENT_SECRET
 from tpbackend.utils2 import ts_to_dt
 
 logger = logging.getLogger("IGDBClient")
-IGDB_CLIENT_ID = os.environ.get("IGDB_CLIENT_ID", "")
-IGDB_CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET", "")
 
 
 class IGDBClient:
@@ -59,10 +57,15 @@ class IGDBClient:
             logger.error("Error during IGDB auth: %s", e)
             return False
 
+    def enabled(self) -> bool:
+        return bool(self.client_id and self.client_secret)
+
     def available(self) -> bool:
-        return self._authenticate()
+        return self.enabled() and self._authenticate()
 
     def request(self, url: str, query: str, cache_expiry=3600) -> str | None:
+        if not self.enabled():
+            return None
         self.req_no += 1
 
         def log(*args):

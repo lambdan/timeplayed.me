@@ -5,12 +5,14 @@ from tpbackend.activity.models import (
     API_PostLiveActivity,
 )
 from tpbackend.igdb.controller import get_or_create_game_by_steam_id
+from tpbackend.igdb.controller import enabled as igdb_enabled
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.api.responses import (
     bad_request,
     forbidden,
     internal_server_error,
     not_found,
+    service_unavailable,
 )
 from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
@@ -50,6 +52,8 @@ def add_through_api(user: User, data: API_PostActivity) -> API_Activity:
     else:
         return bad_request("game_id, igdb_id or steam_id must be provided")
 
+    if not game and not data.game_id and not igdb_enabled():
+        return service_unavailable("Game not in database, and IGDB is not enabled")
     if not game:
         return not_found("Game not found")
 
@@ -149,6 +153,8 @@ def start_live_activity_through_api(
         game = get_or_create_game(
             data.igdb_id, history_create_msg="Created during API live activity start"
         )
+    if not game and not data.game_id and not igdb_enabled():
+        return service_unavailable("Game not in database, and IGDB is not enabled")
     if not game:
         return not_found("Game not found")
 

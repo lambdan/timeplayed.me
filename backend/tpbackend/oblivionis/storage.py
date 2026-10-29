@@ -1,4 +1,5 @@
 # https://github.com/Hamuko/oblivionis/blob/master/oblivionis/storage.py
+# (except db name comes from OBLIVIONIS_DB instead of DB_NAME)
 import datetime
 import os
 
@@ -12,7 +13,7 @@ from peewee import (
 )
 
 db = PostgresqlDatabase(
-    os.environ.get("DB_NAME"),
+    os.environ.get("OBLIVIONIS_DB"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
     host=os.environ.get("DB_HOST"),

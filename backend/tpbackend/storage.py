@@ -40,7 +40,7 @@ class CustomDb(PostgresqlExtDatabase):
 
 
 db = CustomDb(
-    os.environ.get("DB_NAME_TIMEPLAYED"),
+    os.environ.get("TIMEPLAYED_DB", "storage_v2"),
     user=os.environ.get("DB_USER"),
     password=os.environ.get("DB_PASSWORD"),
     host=os.environ.get("DB_HOST"),
