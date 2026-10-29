@@ -66,12 +66,14 @@ def dm_receive(message: discord.Message) -> str | None:
     def _err(msg: str):
         logger.error("[CMD#%s] %s", __CMD, msg)
 
-    def _ret(reply: str | None) -> str | None:
+    def _ret(reply: str | None, sensitive=False) -> str | None:
         if reply:
+            # sensitive replies (like tokens) are only sent to the user, never logged or stored
+            logged = "<redacted>" if sensitive else reply
             DiscordHistory.create(
-                event="reply", user=str(message.author.id), message=reply
+                event="reply", user=str(message.author.id), message=logged
             )
-            _info(f"<REPLY> {reply}")
+            _info(f"<REPLY> {logged}")
             return reply
         _info("(No reply)")
         return None
@@ -121,7 +123,7 @@ def dm_receive(message: discord.Message) -> str | None:
             if in_cmd == n and c.can_execute(user, body):
                 try:
                     _info(f"Executing command `{n}` with body `{body}`")
-                    return _ret(c.execute(user, body))
+                    return _ret(c.execute(user, body), sensitive=c.sensitive_reply)
                 except Exception as e:
                     _err(f"Exception while executing command: {e}")
                     return _ret(f"Error. Maybe `!help {n}` can... help")

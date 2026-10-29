@@ -4,6 +4,8 @@ from .command import Command
 
 
 class TokenGenerateCommand(Command):
+    sensitive_reply = True
+
     def __init__(self):
         names = ["token"]
         d = "Generates a token for your user"

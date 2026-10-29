@@ -9,6 +9,7 @@ class Command(ABC):
     description: str
     help: str
     logger: logging.Logger
+    sensitive_reply = False  # if True, reply is not logged or stored in DiscordHistory
 
     def __init__(
         self,
