@@ -2,7 +2,7 @@
 # builder #
 ###########
 
-FROM node:22 AS builder
+FROM node:26 AS builder
 WORKDIR /app
 # install dependencies
 # (only copy in package.json so we don't bust cache on src changes)
