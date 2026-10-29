@@ -115,11 +115,7 @@ onMounted(async () => {
             <RecapStatTile
               label="Games"
               :value="`${totals.games}`"
-              :sub="
-                prev
-                  ? `${totals.new_games} played for the first time`
-                  : undefined
-              "
+              :sub="`on ${recap.platforms.length} ${recap.platforms.length === 1 ? 'platform' : 'platforms'}`"
               :change="percentChange(totals.games, prev?.games)"
               :previousYear="year - 1"
             />
@@ -148,7 +144,7 @@ onMounted(async () => {
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Release years</h2>
           <div class="row g-3 mb-3">
-            <div class="col-12 col-md-6" v-if="oldestGame">
+            <div class="col-12 col-md" v-if="oldestGame">
               <RecapStatTile
                 label="Oldest game"
                 :value="`${oldestGame.release_year}`"
@@ -161,10 +157,18 @@ onMounted(async () => {
                 · {{ formatDuration(oldestGame.seconds) }}
               </RecapStatTile>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md">
               <RecapStatTile
                 :label="`Released in ${year}`"
                 :value="`${recap.games.filter((g) => g.release_year === year).length}`"
+                :sub="`of ${totals.games} games played`"
+              />
+            </div>
+            <!-- only makes sense when there's a year before to compare with -->
+            <div class="col-12 col-md" v-if="prev">
+              <RecapStatTile
+                label="First time played"
+                :value="`${totals.new_games}`"
                 :sub="`of ${totals.games} games played`"
               />
             </div>
