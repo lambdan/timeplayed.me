@@ -96,7 +96,10 @@ class HistoryMixin(BaseModel):
     # history = ArrayField(TextField, default=lambda: [])  # type: ignore
     # history is now in a separate table, with foreign key to the model
 
-    pending_history = []
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # per-instance, a class-level list would be shared between all models
+        self.pending_history = []
 
     def save(self, *args, **kwargs):
         self.updated = now()
