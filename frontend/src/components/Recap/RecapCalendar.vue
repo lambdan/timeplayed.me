@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
+import type { Activity } from "../../api.models";
 
-const props = defineProps<{ days: number[]; year: number }>();
+const props = defineProps<{
+  days: number[];
+  sessionsByDay: Activity[][];
+  year: number;
+  gameNames: Map<number, string>;
+  platformNames: Map<number, string>;
+}>();
 
 // hours thresholds for the color levels (level 0 = nothing played)
 const LEVELS = [0, 1, 3, 6];
@@ -15,68 +22,54 @@ const LEVEL_CLASSES = [
   "bg-warning",
 ];
 
-interface Cell {
-  date?: Date;
-  seconds: number;
-  level: number;
-}
-
 function level(seconds: number): number {
   if (seconds <= 0) return 0;
-  const hours = seconds / 3600;
-  return LEVELS.filter((l) => hours >= l).length;
+  return LEVELS.filter((l) => seconds / 3600 >= l).length;
 }
 
-const firstWeekday = computed(() => {
-  // monday = 0
-  return (new Date(Date.UTC(props.year, 0, 1)).getUTCDay() + 6) % 7;
-});
-
-const cells = computed<Cell[]>(() => {
-  const padding: Cell[] = Array.from({ length: firstWeekday.value }, () => ({
-    seconds: 0,
-    level: -1,
-  }));
-  return [
-    ...padding,
-    ...props.days.map((seconds, i) => ({
-      date: new Date(Date.UTC(props.year, 0, 1 + i)),
-      seconds,
-      level: level(seconds),
-    })),
-  ];
-});
-
+// monday = 0
+const firstWeekday = computed(
+  () => (new Date(props.year, 0, 1).getDay() + 6) % 7,
+);
+/** day of year for each cell in the grid, undefined for the padding before jan 1 */
+const cells = computed(() => [
+  ...Array(firstWeekday.value).fill(undefined),
+  ...props.days.map((_, i) => i),
+]);
 const weeks = computed(() => Math.ceil(cells.value.length / 7));
 
-const monthLabels = computed(() => {
-  return Array.from({ length: 12 }, (_, m) => {
+const monthLabels = computed(() =>
+  Array.from({ length: 12 }, (_, m) => {
+    const first = new Date(props.year, m, 1);
     const dayOfYear = Math.round(
-      (Date.UTC(props.year, m, 1) - Date.UTC(props.year, 0, 1)) / 86400000,
+      (first.getTime() - new Date(props.year, 0, 1).getTime()) / 86400000,
     );
     return {
-      name: new Date(Date.UTC(props.year, m, 1)).toLocaleDateString("en-US", {
-        month: "short",
-        timeZone: "UTC",
-      }),
+      name: first.toLocaleDateString("en-US", { month: "short" }),
       week: Math.floor((dayOfYear + firstWeekday.value) / 7),
     };
-  });
-});
-
-const hoveredIndex = ref<number>();
-const hovered = computed(() =>
-  hoveredIndex.value === undefined
-    ? undefined
-    : cells.value[hoveredIndex.value],
+  }),
 );
 
-function dateLabel(cell: Cell): string {
-  return cell.date!.toLocaleDateString("en-US", {
-    weekday: "short",
+const hovered = ref<number>();
+const selected = ref<number>();
+
+function select(day: number) {
+  selected.value = selected.value === day ? undefined : day;
+}
+
+function dateLabel(day: number, weekday: "short" | "long" = "short"): string {
+  return new Date(props.year, 0, 1 + day).toLocaleDateString("en-US", {
+    weekday,
     month: "short",
     day: "numeric",
-    timeZone: "UTC",
+  });
+}
+
+function time(ts: number): string {
+  return new Date(ts).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 </script>
@@ -96,27 +89,33 @@ function dateLabel(cell: Cell): string {
         </div>
         <div
           class="calendar-grid calendar-days"
-          @mouseleave="hoveredIndex = undefined"
+          @mouseleave="hovered = undefined"
         >
           <div
-            v-for="(cell, i) in cells"
+            v-for="(day, i) in cells"
             :key="i"
             class="calendar-cell rounded-1"
             :class="[
-              cell.level >= 0 ? LEVEL_CLASSES[cell.level] : 'invisible',
-              { 'border border-2 border-light': hoveredIndex === i },
+              day === undefined ? 'invisible' : LEVEL_CLASSES[level(days[day])],
+              {
+                'border border-2 border-light': hovered === day,
+                'border border-2 border-danger': selected === day,
+              },
             ]"
-            @mouseenter="hoveredIndex = cell.date ? i : undefined"
+            :role="day !== undefined && days[day] ? 'button' : undefined"
+            @mouseenter="hovered = day"
+            @click="day !== undefined && days[day] && select(day)"
           ></div>
         </div>
       </div>
     </div>
     <div class="d-flex flex-wrap align-items-center gap-1 mt-2 small">
       <div class="me-auto text-body-secondary">
-        <template v-if="hovered">
+        <template v-if="hovered !== undefined">
           {{ dateLabel(hovered) }}:
-          <b class="text-body">{{ formatDuration(hovered.seconds) }}</b>
+          <b class="text-body">{{ formatDuration(days[hovered]) }}</b>
         </template>
+        <template v-else>Click a day to see its sessions</template>
       </div>
       <span class="text-body-secondary me-1">Less</span>
       <span
@@ -128,6 +127,60 @@ function dateLabel(cell: Cell): string {
         :title="label"
       ></span>
       <span class="text-body-secondary ms-1">More</span>
+    </div>
+
+    <div v-if="selected !== undefined" class="mt-3">
+      <div class="d-flex align-items-center mb-2">
+        <h3 class="h6 fw-bold mb-0 me-auto">
+          {{ dateLabel(selected, "long") }}
+          <span class="fw-normal text-body-secondary">
+            · {{ formatDuration(days[selected]) }} ·
+            {{ sessionsByDay[selected].length }} sessions
+          </span>
+        </h3>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Close"
+          @click="selected = undefined"
+        ></button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Game</th>
+              <th class="d-none d-sm-table-cell">Platform</th>
+              <th class="text-end">Played</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="a in sessionsByDay[selected]" :key="a.id">
+              <td class="text-nowrap text-body-secondary">
+                <a
+                  :href="`/activity/${a.id}`"
+                  class="link-secondary link-underline link-underline-opacity-0"
+                  >{{ time(a.started) }} – {{ time(a.ended) }}</a
+                >
+              </td>
+              <td>
+                <a
+                  :href="`/game/${a.game_id}`"
+                  class="link-underline link-underline-opacity-0"
+                  >{{ gameNames.get(a.game_id) }}</a
+                >
+              </td>
+              <td class="d-none d-sm-table-cell text-body-secondary">
+                {{ platformNames.get(a.platform_id) }}
+              </td>
+              <td class="text-end text-nowrap">
+                {{ formatDuration(a.seconds) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

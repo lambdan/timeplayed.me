@@ -55,6 +55,8 @@ export interface Recap {
   hours: number[];
   /** seconds per day of year */
   days: number[];
+  /** sessions per day of year, oldest first */
+  sessionsByDay: Activity[][];
   longest_session?: {
     activity_id: number;
     game_id: number;
@@ -360,6 +362,9 @@ function buildRecap(
     daysBetween(first, new Date(year + 1, 0, 1)),
   ).map((t) => t.seconds);
   const dates = days.flatMap((s, i) => (s ? [addDays(first, i)] : []));
+  const sessionsByDay: Activity[][] = days.map(() => []);
+  // activities are newest first, go backwards so each day is oldest first
+  for (const a of [...activities].reverse()) sessionsByDay[dayIndex(a)].push(a);
   const biggest = days.indexOf(Math.max(...days));
   const longest = activities.reduce<Activity | undefined>(
     (best, a) => (!best || a.seconds > best.seconds ? a : best),
@@ -388,6 +393,7 @@ function buildRecap(
     ),
     hours: hours(activities),
     days,
+    sessionsByDay,
     longest_session: longest && {
       activity_id: longest.id,
       game_id: longest.game_id,

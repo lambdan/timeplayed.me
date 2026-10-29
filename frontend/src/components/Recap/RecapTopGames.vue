@@ -14,10 +14,6 @@ const showAll = ref(false);
 function average(game: RecapGame): string {
   return formatDuration(game.seconds / game.sessions);
 }
-
-function barWidth(game: RecapGame): string {
-  return `${(game.seconds / top.value.seconds) * 100}%`;
-}
 </script>
 
 <template>
@@ -80,12 +76,6 @@ function barWidth(game: RecapGame): string {
             </div>
             <div class="small text-body-secondary">
               {{ game.sessions }} sessions · {{ average(game) }} avg
-            </div>
-            <div class="progress mt-2" style="height: 6px">
-              <div
-                class="progress-bar bg-warning"
-                :style="{ width: barWidth(game) }"
-              ></div>
             </div>
           </div>
         </div>
