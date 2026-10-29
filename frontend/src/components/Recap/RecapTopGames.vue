@@ -6,8 +6,7 @@ import RecapCover from "./RecapCover.vue";
 
 const props = defineProps<{ games: RecapGame[]; showNew: boolean }>();
 
-const top = computed(() => props.games[0]);
-const podium = computed(() => props.games.slice(1, 4));
+const podium = computed(() => props.games.slice(0, 4));
 const rest = computed(() => props.games.slice(4, 10));
 const showAll = ref(false);
 
@@ -17,67 +16,28 @@ function average(game: RecapGame): string {
 </script>
 
 <template>
-  <!-- #1 -->
-  <div class="border rounded bg-body-tertiary p-3" v-if="top">
-    <div class="row g-3 align-items-center">
-      <div class="col-4 col-md-2">
-        <RecapCover :gameId="top.game_id" />
-      </div>
-      <div class="col-8 col-md-10">
-        <div class="small fw-semibold text-body-secondary">#1</div>
-        <a
-          :href="`/game/${top.game_id}`"
-          class="fs-3 fw-bold link-body-emphasis text-decoration-none"
-          >{{ top.name }}</a
-        >
-        <div class="row row-cols-auto g-4 mt-0">
-          <div>
-            <div class="fs-3 fw-bold">{{ formatDuration(top.seconds) }}</div>
-            <div class="small text-body-secondary">
-              {{ top.percentage.toFixed(0) }}% of playtime
-            </div>
-          </div>
-          <div>
-            <div class="fs-3 fw-bold">{{ top.sessions }}</div>
-            <div class="small text-body-secondary">activities</div>
-          </div>
-          <div>
-            <div class="fs-3 fw-bold">{{ average(top) }}</div>
-            <div class="small text-body-secondary">average length</div>
-          </div>
-        </div>
-        <div class="small text-body-secondary mt-2">
-          First played: {{ shortDate(top.first_played) }} · Last played:
-          {{ shortDate(top.last_played) }}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- #2-#4 -->
-  <div class="row row-cols-1 row-cols-md-3 g-3 mt-0">
+  <!-- #1-#4 -->
+  <div class="row row-cols-2 row-cols-lg-4 g-3">
     <div v-for="(game, i) in podium" :key="game.game_id">
-      <div class="border rounded bg-body-tertiary p-3 h-100">
-        <div class="row g-3">
-          <div class="col-4">
-            <RecapCover :gameId="game.game_id" :thumb="true" />
-          </div>
-          <div class="col-8">
-            <div class="small fw-semibold text-body-secondary">
-              #{{ i + 2 }}
-            </div>
-            <a
-              :href="`/game/${game.game_id}`"
-              class="fw-bold link-body-emphasis text-decoration-none"
-              >{{ game.name }}</a
-            >
-            <div class="fs-4 fw-bold mt-1">
-              {{ formatDuration(game.seconds) }}
-            </div>
-            <div class="small text-body-secondary">
-              {{ game.sessions }} activities · {{ average(game) }} avg
-            </div>
-          </div>
+      <div
+        class="border rounded bg-body-tertiary p-3 h-100"
+        :class="{ 'border-warning': i === 0 }"
+      >
+        <RecapCover :gameId="game.game_id" />
+        <div class="small fw-semibold text-body-secondary mt-2">
+          #{{ i + 1 }}
+        </div>
+        <a
+          :href="`/game/${game.game_id}`"
+          class="fw-bold link-body-emphasis text-decoration-none"
+          >{{ game.name }}</a
+        >
+        <div class="fs-4 fw-bold mt-1">
+          {{ formatDuration(game.seconds) }}
+        </div>
+        <div class="small text-body-secondary">
+          {{ game.percentage.toFixed(0) }}% of playtime ·
+          {{ game.sessions }} activities · {{ average(game) }} avg
         </div>
       </div>
     </div>
