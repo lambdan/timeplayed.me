@@ -1,812 +1,227 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { clamp, getRecapYear, iso8601Date } from "../utils";
-import { buildGamesList, buildPlatformsList } from "../utils.stats";
-import DiscordAvatar from "../components/DiscordAvatar.vue";
-import GameCover from "../components/Games/GameCover.vue";
-import type {
-  RecapGameEntry,
-  RecapPlatformEntry,
-} from "../models/stats.models";
-import type { Activity, Game, User } from "../api.models";
+import { formatDuration, getRecapYear, updateDocumentTitle } from "../utils";
+import {
+  loadRecap,
+  percentChange,
+  shortDate,
+  type Recap,
+} from "../utils.recap";
+import type { User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import DiscordAvatar from "../components/DiscordAvatar.vue";
 import LoadingBar from "../components/LoadingBar.vue";
+import RecapStatTile from "../components/Recap/RecapStatTile.vue";
+import RecapTopGames from "../components/Recap/RecapTopGames.vue";
+import RecapCalendar from "../components/Recap/RecapCalendar.vue";
+import RecapMonths from "../components/Recap/RecapMonths.vue";
+import RecapRhythm from "../components/Recap/RecapRhythm.vue";
+import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
-// TODO: This page is a hastily vibecoded piece of shit...
-
-const available = ref(false);
 const route = useRoute();
-const loading = ref<boolean>(true);
-const loadingProgress = ref(0);
-const refYear = ref<number>();
-const refUserId = ref<number>();
-const activities = ref<Activity[]>([]);
-const userInfo = ref<User>();
-const gamesList = ref<RecapGameEntry[]>([]);
-const platformsList = ref<RecapPlatformEntry[]>([]);
-const refLongestSession = ref<Activity>();
+const year = parseInt(route.params.year as string);
+const userId = parseInt(route.params.id as string);
 
-const gamesCount = ref(0);
-const totalSeconds = ref(0);
+// past years, and the current year once it's recap season
+const available =
+  (year >= 2025 && year < new Date().getFullYear()) || year === getRecapYear();
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-const GOLD = "#FFD700";
-const SILVER = "#C0C0C0";
-const BRONZE = "#CD7F32";
+const progress = ref(0);
+const failed = ref(false);
+const user = ref<User>();
+const recap = ref<Recap>();
 
-function mostPlayedWeekdays(
-  activities: Activity[],
-): { day: string; seconds: number; percentage: number }[] {
-  const daySeconds: { [key: string]: number } = {
-    Sunday: 0,
-    Monday: 0,
-    Tuesday: 0,
-    Wednesday: 0,
-    Thursday: 0,
-    Friday: 0,
-    Saturday: 0,
-  };
-  let totalSeconds = 0;
+const gameNames = computed(
+  () => new Map(recap.value?.games.map((g) => [g.game_id, g.name])),
+);
+const totals = computed(() => recap.value!.totals);
+const prev = computed(() => recap.value!.previous_year);
 
-  for (const activity of activities) {
-    const date = new Date(activity.timestamp);
-    const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
-    daySeconds[dayName] += activity.seconds;
-    totalSeconds += activity.seconds;
-  }
-
-  const result = Object.keys(daySeconds).map((day) => ({
-    day,
-    seconds: daySeconds[day],
-    percentage: totalSeconds > 0 ? (daySeconds[day] / totalSeconds) * 100 : 0,
-  }));
-
-  result.sort((a, b) => b.seconds - a.seconds);
-  return result;
-}
-
-function mostPlayedMonths(
-  activities: Activity[],
-): { month: string; seconds: number; percentage: number }[] {
-  const monthSeconds: { [key: string]: number } = {
-    January: 0,
-    February: 0,
-    March: 0,
-    April: 0,
-    May: 0,
-    June: 0,
-    July: 0,
-    August: 0,
-    September: 0,
-    October: 0,
-    November: 0,
-    December: 0,
-  };
-  let totalSeconds = 0;
-
-  for (const activity of activities) {
-    const date = new Date(activity.timestamp);
-    const monthName = date.toLocaleDateString("en-US", { month: "long" });
-    monthSeconds[monthName] += activity.seconds;
-    totalSeconds += activity.seconds;
-  }
-
-  const result = Object.keys(monthSeconds).map((month) => ({
-    month,
-    seconds: monthSeconds[month],
-    percentage:
-      totalSeconds > 0 ? (monthSeconds[month] / totalSeconds) * 100 : 0,
-  }));
-
-  result.sort((a, b) => b.seconds - a.seconds);
-  return result;
-}
-
-/** How many days in a row the user played something */
-function longestStreak(activities: Activity[]): number {
-  if (activities.length === 0) {
-    return 0;
-  }
-
-  // Get unique days the user played something
-  const uniqueDays = Array.from(
-    new Set(
-      activities.map((a) => {
-        const d = new Date(a.timestamp);
-        // Use UTC to avoid timezone issues
-        return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
-      }),
-    ),
-  ).sort();
-
-  if (uniqueDays.length === 0) {
-    return 0;
-  }
-
-  let longestStreak = 1;
-  let currentStreak = 1;
-
-  for (let i = 1; i < uniqueDays.length; i++) {
-    const prev = new Date(uniqueDays[i - 1]);
-    const curr = new Date(uniqueDays[i]);
-    const diffInTime = curr.getTime() - prev.getTime();
-    const diffInDays = diffInTime / (1000 * 3600 * 24);
-
-    if (diffInDays === 1) {
-      currentStreak++;
-    } else {
-      currentStreak = 1;
-    }
-
-    if (currentStreak > longestStreak) {
-      longestStreak = currentStreak;
-    }
-  }
-
-  return longestStreak;
-}
-
-/** How many days in a row NOTHING was played */
-function longestBreak(activities: Activity[]): number {
-  if (activities.length === 0) {
-    return 0;
-  }
-
-  // Sort activities by timestamp
-  const sortedActivities = activities
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-    );
-
-  let longestBreak = 0;
-
-  for (let i = 1; i < sortedActivities.length; i++) {
-    const prevDate = new Date(sortedActivities[i - 1].timestamp);
-    const currentDate = new Date(sortedActivities[i].timestamp);
-
-    // Check the gap between current activity and previous activity
-    const diffInTime = currentDate.getTime() - prevDate.getTime();
-    const diffInDays = Math.floor(diffInTime / (1000 * 3600 * 24));
-
-    if (diffInDays > longestBreak) {
-      longestBreak = diffInDays;
-    }
-  }
-
-  return longestBreak;
-}
-
-/** Most popular game each month */
-async function mostPopularGameByMonth(activities: Activity[]): Promise<{
-  [key: string]: string;
-}> {
-  const monthGameMap: { [key: string]: { [gameId: number]: number } } = {};
-
-  for (const activity of activities) {
-    const date = new Date(activity.timestamp);
-    const month = date.toLocaleString("default", { month: "long" });
-    if (!monthGameMap[month]) {
-      monthGameMap[month] = {};
-    }
-    if (!monthGameMap[month][activity.game_id]) {
-      monthGameMap[month][activity.game_id] = 0;
-    }
-    monthGameMap[month][activity.game_id] += activity.seconds;
-  }
-
-  const result: { [key: string]: string } = {};
-  for (const month in monthGameMap) {
-    let topGameId: number | null = null;
-    let topSeconds = 0;
-    for (const gameId in monthGameMap[month]) {
-      if (monthGameMap[month][gameId] > topSeconds) {
-        topSeconds = monthGameMap[month][gameId];
-        topGameId = parseInt(gameId);
-      }
-    }
-    if (topGameId !== null) {
-      const topGame = activities.find((a) => a.game_id === topGameId);
-      const _topGame = await TimeplayedAPI.getGame(topGameId);
-      if (_topGame) {
-        result[month] = _topGame.name;
-      }
-    }
-  }
-  // reverse order to have Jan-Dec
-  const orderedMonths = Object.keys(result).sort((a, b) => {
-    const monthOrder = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return monthOrder.indexOf(a) - monthOrder.indexOf(b);
-  });
-  const orderedResult: { [key: string]: string } = {};
-  for (const month of orderedMonths) {
-    orderedResult[month] = result[month];
-  }
-  return orderedResult;
-}
-
-/** Duration played each month */
-function durationPlayedByMonth(activities: Activity[]): {
-  [key: string]: number;
-} {
-  const monthDurationMap: { [key: string]: number } = {};
-
-  for (const activity of activities) {
-    const date = new Date(activity.timestamp);
-    const month = date.toLocaleString("default", { month: "long" });
-    if (!monthDurationMap[month]) {
-      monthDurationMap[month] = 0;
-    }
-    monthDurationMap[month] += activity.seconds;
-  }
-
-  // reverse order to have Jan-Dec
-  const orderedMonths = Object.keys(monthDurationMap).sort((a, b) => {
-    const monthOrder = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return monthOrder.indexOf(a) - monthOrder.indexOf(b);
-  });
-  const orderedResult: { [key: string]: number } = {};
-  for (const month of orderedMonths) {
-    orderedResult[month] = monthDurationMap[month];
-  }
-  return orderedResult;
-}
-
-/** Longest session */
-function longestSession(activities: Activity[]): Activity {
-  if (activities.length === 0) {
-    throw new Error("No activities found");
-  }
-
-  let longest = activities[0];
-
-  for (const activity of activities) {
-    if (activity.seconds > longest.seconds) {
-      longest = activity;
-    }
-  }
-
-  return longest;
-}
-
-/** Most played platform each month */
-async function mostPlayedPlatformByMonth(activities: Activity[]): Promise<{
-  [key: string]: string;
-}> {
-  const monthPlatformMap: { [key: string]: { [platform: string]: number } } =
-    {};
-
-  for (const activity of activities) {
-    const date = new Date(activity.timestamp);
-    const month = date.toLocaleString("default", { month: "long" });
-    const platformId = activity.platform_id;
-    const _platform = await TimeplayedAPI.getPlatform(platformId);
-    const platform = _platform.display_name;
-    if (!monthPlatformMap[month]) {
-      monthPlatformMap[month] = {};
-    }
-    if (!monthPlatformMap[month][platform]) {
-      monthPlatformMap[month][platform] = 0;
-    }
-    monthPlatformMap[month][platform] += activity.seconds;
-  }
-
-  const result: { [key: string]: string } = {};
-  for (const month in monthPlatformMap) {
-    let topPlatform: string | null = null;
-    let topSeconds = 0;
-    for (const platform in monthPlatformMap[month]) {
-      if (monthPlatformMap[month][platform] > topSeconds) {
-        topSeconds = monthPlatformMap[month][platform];
-        topPlatform = platform;
-      }
-    }
-    if (topPlatform !== null) {
-      result[month] = topPlatform;
-    }
-  }
-
-  // Order months Jan-Dec
-  const monthOrder = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const orderedResult: { [key: string]: string } = {};
-  for (const month of monthOrder) {
-    if (result[month]) {
-      orderedResult[month] = result[month];
-    }
-  }
-  return orderedResult;
-}
-
-async function _fetchActivities() {
-  if (!refUserId.value || !refYear.value) {
-    return;
-  }
-  // UTC dates to avoid timezone issues
-  const startDate = new Date(Date.UTC(refYear.value, 0, 1, 0, 0, 0));
-  const endDate = new Date(Date.UTC(refYear.value + 1, 0, 1, 0, 0, 0));
-  loadingProgress.value = 0;
-
-  while (true) {
-    const limit = 100;
-    const fetchedActivities = await TimeplayedAPI.getActivities({
-      after: startDate.getTime(),
-      before: endDate.getTime(),
-      offset: activities.value.length,
-      user: refUserId.value,
-      limit,
-    });
-    activities.value.push(...fetchedActivities);
-    loadingProgress.value = clamp(loadingProgress.value + 1, 0, 100);
-    if (fetchedActivities.length === 0 || fetchedActivities.length < limit) {
-      break;
-    }
-  }
-
-  if (activities.value.length === 0) {
-    loadingProgress.value = 100;
-    return;
-  }
-
-  // fetching done, build lists
-  gamesList.value = await buildGamesList(activities.value);
-  gamesCount.value = gamesList.value.length;
-  totalSeconds.value = activities.value.reduce((sum, a) => sum + a.seconds, 0);
-  platformsList.value = await buildPlatformsList(activities.value);
-  refLongestSession.value = longestSession(activities.value);
-}
-
-const mostPlayedGameByMonthResult = ref<{ [key: string]: string }>({});
-const mostPlayedPlatformByMonthResult = ref<{ [key: string]: string }>({});
-const longestActivityGame = ref<Game>();
+const oldestGame = computed(() =>
+  recap
+    .value!.games.filter((g) => g.release_year)
+    // most played first, and sort is stable, so ties go to the most played one
+    .sort((a, b) => a.release_year! - b.release_year!)
+    .at(0),
+);
 
 onMounted(async () => {
-  const userId = parseInt(route.params.id as string);
-  const year = parseInt(route.params.year as string);
-
-  // figure out valid years
-  const validYears = new Set<number>();
-  const recapYear = getRecapYear();
-  if (recapYear) {
-    validYears.add(recapYear);
+  updateDocumentTitle(`${year} Recap`);
+  if (!available) return;
+  try {
+    const [u, r] = await Promise.all([
+      TimeplayedAPI.getUser(userId),
+      loadRecap(userId, year, (p) => (progress.value = p)),
+    ]);
+    user.value = u;
+    recap.value = r;
+    updateDocumentTitle(`${u.name} - ${year} Recap`);
+  } catch (e) {
+    console.error(e);
+    failed.value = true;
   }
-  const prevYear = new Date().getFullYear() - 1;
-  for (let y = 2025; y <= prevYear; y++) {
-    validYears.add(y);
-  }
-  available.value = validYears.has(year);
-  if (!available.value) {
-    return;
-  }
-
-  const data = await TimeplayedAPI.getUser(userId);
-  userInfo.value = data;
-  refUserId.value = userId;
-  refYear.value = year;
-  await _fetchActivities();
-
-  mostPlayedGameByMonthResult.value = await mostPopularGameByMonth(
-    activities.value,
-  );
-  mostPlayedPlatformByMonthResult.value = await mostPlayedPlatformByMonth(
-    activities.value,
-  );
-  if (refLongestSession.value) {
-    longestActivityGame.value = await TimeplayedAPI.getGame(
-      refLongestSession.value.game_id,
-    );
-  }
-
-  loading.value = false;
 });
 </script>
 
 <template>
-  <p v-if="!available" class="text-center">Recap not available</p>
-  <LoadingBar v-if="available && loading" :percent="loadingProgress" />
-  <div v-if="available && !loading" class="container mt-4 mb-4">
-    <div class="row mb-3 justify-content-center text-center">
-      <DiscordAvatar
-        v-if="userInfo"
-        :user="userInfo"
-        :max-width="300"
-        class="mb-3 mx-auto"
-      />
-      <h1 class="w-100">{{ userInfo?.name }}</h1>
-      <h1 class="w-100">Recap for {{ refYear }}</h1>
-      <h4>
-        Logged <b class="text-warning">{{ activities.length }} sessions</b> for
-        a total of
-        <b class="text-warning">{{ (totalSeconds / 3600).toFixed(0) }} hours</b>
-        across <b class="text-warning">{{ gamesCount }} games</b>
-      </h4>
-    </div>
-    <hr />
+  <!-- container-xl, the global css breaks .container on small screens -->
+  <div class="container-xl px-0 mt-4 mb-5">
+    <p v-if="!available" class="text-center my-5">Recap not available</p>
+    <p v-else-if="failed" class="text-center my-5">Couldn't load the recap</p>
+    <LoadingBar v-else-if="!recap || !user" :percent="progress" />
 
-    <h1 class="text-center mb-4">Most played games</h1>
-
-    <!-- top 3 row -->
-    <div class="row mt-4 mb-4">
-      <div
-        class="col justify-content-center text-center"
-        v-for="(game, idx) in gamesList.slice(0, 3)"
-        :key="game.id"
-      >
-        <div
-          class="card h-100 text-center p-2"
-          :style="{
-            minWidth: 0,
-            border:
-              idx === 0
-                ? '2px solid ' + GOLD
-                : idx === 1
-                  ? '2px solid ' + SILVER
-                  : idx === 2
-                    ? '2px solid ' + BRONZE
-                    : '',
-            boxShadow:
-              idx === 0
-                ? '0 0 10px ' + GOLD
-                : idx === 1
-                  ? '0 0 10px ' + SILVER
-                  : idx === 2
-                    ? '0 0 10px ' + BRONZE
-                    : '',
-          }"
-        >
-          <GameCover
-            :gameId="game.id"
-            :thumb="true"
-            :maxWidth="200"
-            class="mb-2"
-          />
-          <h3>
-            <a
-              :href="`/game/${game.id}`"
-              style="color: inherit; text-decoration: none"
-            >
-              <i
-                :style="{
-                  color:
-                    idx === 0
-                      ? GOLD
-                      : idx === 1
-                        ? SILVER
-                        : idx === 2
-                          ? BRONZE
-                          : 'inherit',
-                }"
-              >
-                {{ game.name }}
-              </i>
-            </a>
-          </h3>
-          <h4>{{ (game.seconds / 3600).toFixed(0) }} hours</h4>
-          <h5
-            class="text-muted"
-            :title="
-              (game.seconds / 3600 / game.activity_count).toFixed(2) +
-              ' hours average session length'
-            "
-          >
-            {{ game.activity_count }} sessions
-          </h5>
+    <template v-else>
+      <header class="d-flex align-items-center gap-3 flex-wrap">
+        <DiscordAvatar :user="user" :max-width="72" />
+        <div>
+          <div class="small text-body-secondary">{{ user.name }}</div>
+          <h1 class="fw-bold mb-0">{{ year }} recap</h1>
         </div>
-      </div>
-    </div>
+      </header>
 
-    <!-- 4-10 row -->
-    <div class="row">
-      <div
-        class="col justify-content-center text-center"
-        v-for="(game, idx) in gamesList.slice(3, 10)"
-        :key="game.id"
-      >
-        <div class="card h-100 text-center p-2" style="min-width: 0">
-          <GameCover
-            :gameId="game.id"
-            :thumb="true"
-            :maxWidth="100"
-            class="mb-2"
-          />
-          <h5>
-            <a
-              :href="`/game/${game.id}`"
-              style="color: inherit; text-decoration: none"
-            >
-              <i>{{ game.name }}</i>
-            </a>
-          </h5>
-          <h6>{{ (game.seconds / 3600).toFixed(0) }} hours</h6>
-
-          <h7
-            class="text-muted"
-            :title="
-              (game.seconds / 3600 / game.activity_count).toFixed(2) +
-              ' hours average session length'
-            "
-            >{{ game.activity_count }} sessions</h7
-          >
-        </div>
-      </div>
-    </div>
-
-    <hr />
-
-    <div class="row mt-4 mb-4">
-      <h2 class="w-100 text-center">Played platforms</h2>
-      <p class="text-muted text-center w-100 mb-4">
-        (And their most played game)
+      <p v-if="!totals.sessions" class="text-body-secondary my-5">
+        No activity in {{ year }}
       </p>
-      <div class="row">
-        <div
-          class="col-6 col-sm-4 col-md-3 col-lg-2 mb-2"
-          v-for="(platform, idx) in platformsList"
-          :key="platform.name"
-        >
-          <div
-            class="card h-100 text-center p-1"
-            :style="{
-              minWidth: 0,
-              fontSize: '0.9rem',
-              border:
-                idx === 0
-                  ? '2px solid ' + GOLD
-                  : idx === 1
-                    ? '2px solid ' + SILVER
-                    : idx === 2
-                      ? '2px solid ' + BRONZE
-                      : '',
-              boxShadow:
-                idx === 0
-                  ? '0 0 10px ' + GOLD
-                  : idx === 1
-                    ? '0 0 10px ' + SILVER
-                    : idx === 2
-                      ? '0 0 10px ' + BRONZE
-                      : '',
-            }"
-          >
-            <div class="card-body p-2">
-              <h6
-                class="card-title mb-1"
-                :style="{
-                  fontSize: '1rem',
-                  color:
-                    idx === 0
-                      ? GOLD
-                      : idx === 1
-                        ? SILVER
-                        : idx === 2
-                          ? BRONZE
-                          : 'inherit',
-                }"
-              >
-                {{ platform.name }}
-              </h6>
-              <div class="card-text mb-1" style="font-size: 0.95em">
-                <b>{{ (platform.seconds / 3600).toFixed(0) }} hours</b>
-                <br />
-                {{ platform.activity_count }}
-                {{ platform.activity_count === 1 ? "session" : "sessions" }}
-                <br />
-                <span class="text-muted"
-                  >({{ platform.percentage.toFixed(0) }}%)</span
-                >
-              </div>
-              <hr class="my-1" />
-              <small class="text-muted">{{ platform.most_played_game }}</small>
+
+      <template v-else>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mt-2">
+          <div class="col">
+            <RecapStatTile
+              label="Playtime"
+              :value="formatDuration(totals.seconds)"
+              :sub="`${formatDuration(totals.seconds / recap.days.length)} per day`"
+              :change="percentChange(totals.seconds, prev?.seconds)"
+              :previousYear="year - 1"
+            />
+          </div>
+          <div class="col">
+            <RecapStatTile
+              label="Sessions"
+              :value="`${totals.sessions}`"
+              :sub="`${formatDuration(totals.seconds / totals.sessions)} average`"
+              :change="percentChange(totals.sessions, prev?.sessions)"
+              :previousYear="year - 1"
+            />
+          </div>
+          <div class="col">
+            <RecapStatTile
+              label="Games"
+              :value="`${totals.games}`"
+              :sub="
+                prev
+                  ? `${totals.new_games} played for the first time`
+                  : undefined
+              "
+              :change="percentChange(totals.games, prev?.games)"
+              :previousYear="year - 1"
+            />
+          </div>
+          <div class="col">
+            <RecapStatTile
+              label="Days played"
+              :value="`${totals.days_played}`"
+              :sub="`of ${recap.days.length} (${((totals.days_played / recap.days.length) * 100).toFixed(0)}%)`"
+            />
+          </div>
+          <div class="col" v-if="recap.community">
+            <RecapStatTile
+              label="Share of all playtime"
+              :value="`${recap.community.share.toFixed(recap.community.share < 10 ? 1 : 0)}%`"
+              :sub="`#${recap.community.rank} of ${recap.community.players} players`"
+            />
+          </div>
+        </div>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Games</h2>
+          <RecapTopGames :games="recap.games" :showNew="!!prev" />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Activity</h2>
+          <RecapCalendar :days="recap.days" :year="year" />
+          <div class="row g-3 mt-1">
+            <div class="col-12 col-md-4" v-if="recap.longest_streak">
+              <RecapStatTile
+                label="Longest streak"
+                :value="`${recap.longest_streak.days} days`"
+                :sub="`${shortDate(recap.longest_streak.start)} – ${shortDate(recap.longest_streak.end)}`"
+              />
+            </div>
+            <div class="col-12 col-md-4" v-if="recap.longest_break">
+              <RecapStatTile
+                label="Longest break"
+                :value="`${recap.longest_break.days} days`"
+                :sub="`${shortDate(recap.longest_break.start)} – ${shortDate(recap.longest_break.end)}`"
+              />
+            </div>
+            <div class="col-12 col-md-4" v-if="recap.biggest_day">
+              <RecapStatTile
+                label="Most played day"
+                :value="formatDuration(recap.biggest_day.seconds)"
+                :sub="`${shortDate(recap.biggest_day.date)} · ${gameNames.get(recap.biggest_day.top_game_id)}`"
+              />
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
 
-    <hr />
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Months</h2>
+          <RecapMonths :months="recap.months" :gameNames="gameNames" />
+        </section>
 
-    <div class="row mt-4 mb-4">
-      <h2 class="mb-4 w-100 text-center">Miscellaneous Stats</h2>
-      <!-- 3 columns: Streaks & Session -->
-      <div class="col-12 col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body text-center">
-            <h6 class="card-title mb-2 text-primary">Longest streak</h6>
-            <div class="display-6 fw-bold mb-1">
-              {{ longestStreak(activities) }} days
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Time of day</h2>
+          <p class="small text-body-secondary">Times in {{ timezone }}</p>
+          <RecapRhythm :weekdays="recap.weekdays" :hours="recap.hours" />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Platforms</h2>
+          <RecapPlatforms :platforms="recap.platforms" :gameNames="gameNames" />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Other</h2>
+          <div class="row g-3">
+            <div class="col-12 col-md-4" v-if="recap.longest_session">
+              <RecapStatTile
+                label="Longest session"
+                :value="formatDuration(recap.longest_session.seconds)"
+              >
+                <a
+                  :href="`/activity/${recap.longest_session.activity_id}`"
+                  class="link-body-emphasis text-decoration-none"
+                  >{{ gameNames.get(recap.longest_session.game_id) }}</a
+                >
+                · {{ shortDate(recap.longest_session.date) }}
+              </RecapStatTile>
             </div>
-            <small class="text-muted"
-              >Played something this many days in a row</small
-            >
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body text-center">
-            <h6 class="card-title mb-2 text-danger">Longest break</h6>
-            <div class="display-6 fw-bold mb-1">
-              {{ longestBreak(activities) }} days
+            <div class="col-12 col-md-4" v-if="oldestGame">
+              <RecapStatTile
+                label="Oldest game"
+                :value="`${oldestGame.release_year}`"
+              >
+                <a
+                  :href="`/game/${oldestGame.game_id}`"
+                  class="link-body-emphasis text-decoration-none"
+                  >{{ oldestGame.name }}</a
+                >
+                · {{ formatDuration(oldestGame.seconds) }}
+              </RecapStatTile>
             </div>
-            <small class="text-muted"
-              >No games played for this many days in a row</small
-            >
-          </div>
-        </div>
-      </div>
-      <div
-        class="col-12 col-md-4 mb-3"
-        v-if="refLongestSession && longestActivityGame"
-      >
-        <div class="card h-100 shadow-sm">
-          <div class="card-body text-center">
-            <h6 class="card-title mb-2 text-success">Longest session</h6>
-            <div class="display-6 fw-bold mb-1">
-              {{ (refLongestSession.seconds! / 3600).toFixed(0) }} hours
+            <div class="col-12 col-md-4">
+              <RecapStatTile
+                :label="`Released in ${year}`"
+                :value="`${recap.games.filter((g) => g.release_year === year).length}`"
+                :sub="`of ${totals.games} games played`"
+              />
             </div>
-            <small class="text-muted">
-              <a :href="'/activity/' + refLongestSession.id"
-                ><i>{{ longestActivityGame.name }}</i> on
-                {{ iso8601Date(refLongestSession?.timestamp!) }}</a
-              >
-            </small>
           </div>
-        </div>
-      </div>
-
-      <!-- 2 columns: Most played game/platform each month -->
-      <div class="col-12 col-md-6 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h6 class="card-title mb-3 text-info text-center">
-              Most played game each month
-            </h6>
-            <ul class="list-group list-group-flush">
-              <li
-                v-for="(game, month) in mostPlayedGameByMonthResult"
-                :key="month"
-                class="list-group-item py-1 px-2"
-              >
-                <span class="float-start fw-bold">{{ month }}</span>
-                 
-                <span class="float-end">{{ game }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h6 class="card-title mb-3 text-info text-center">
-              Most played platform each month
-            </h6>
-            <ul class="list-group list-group-flush">
-              <li
-                v-for="(platform, month) in mostPlayedPlatformByMonthResult"
-                :key="month"
-                class="list-group-item py-1 px-2"
-              >
-                <span class="fw-bold float-start">{{ month }}</span>
-                 
-                <span class="float-end">{{ platform }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2 columns: Most played months / weekdays -->
-      <div class="col-12 col-md-6 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h6 class="card-title mb-3 text-center">Most played months</h6>
-            <ul class="list-group list-group-flush">
-              <li
-                v-for="(item, idx) in mostPlayedMonths(activities)"
-                :key="item.month"
-                class="list-group-item py-1 px-2"
-              >
-                <span
-                  class="fw-bold float-start"
-                  :style="{
-                    color:
-                      idx === 0
-                        ? GOLD
-                        : idx === 1
-                          ? SILVER
-                          : idx === 2
-                            ? BRONZE
-                            : 'inherit',
-                  }"
-                >
-                  {{ item.month }}
-                </span>
-                 
-                <span class="float-end"
-                  >{{ (item.seconds / 3600).toFixed(0) }} hours ({{
-                    item.percentage.toFixed(0)
-                  }}%)</span
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h6 class="card-title mb-3 text-center">Most played weekdays</h6>
-            <ul class="list-group list-group-flush">
-              <li
-                v-for="(day, idx) in mostPlayedWeekdays(activities)"
-                :key="day.day"
-                class="list-group-item py-1 px-2"
-              >
-                <span
-                  class="fw-bold float-start"
-                  :style="{
-                    color:
-                      idx === 0
-                        ? GOLD
-                        : idx === 1
-                          ? SILVER
-                          : idx === 2
-                            ? BRONZE
-                            : 'inherit',
-                  }"
-                >
-                  {{ day.day }}
-                </span>
-                 
-                <span class="float-end"
-                  >{{ (day.seconds / 3600).toFixed(0) }} hours ({{
-                    day.percentage.toFixed(0)
-                  }}%)</span
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+        </section>
+      </template>
+    </template>
   </div>
 </template>

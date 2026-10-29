@@ -255,13 +255,17 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async getGameStatsMany(game_ids: number[]) {
+  static async getGameStatsMany(
+    game_ids: number[],
+    query?: paths["/games-stats/{game_ids}"]["get"]["parameters"]["query"],
+  ) {
     //console.log("Executing with", game_ids, game_ids.join(","));
     const { data, error } = await this.client.GET("/games-stats/{game_ids}", {
       params: {
         path: {
           game_ids: game_ids.join(","),
         },
+        query,
       },
     });
 
