@@ -17,6 +17,8 @@ import RecapTopGames from "../components/Recap/RecapTopGames.vue";
 import RecapCalendar from "../components/Recap/RecapCalendar.vue";
 import RecapMonths from "../components/Recap/RecapMonths.vue";
 import RecapRhythm from "../components/Recap/RecapRhythm.vue";
+import RecapMonthGames from "../components/Recap/RecapMonthGames.vue";
+import RecapSessionLengths from "../components/Recap/RecapSessionLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
 const route = useRoute();
@@ -178,18 +180,36 @@ onMounted(async () => {
 
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Months</h2>
-          <RecapMonths :months="recap.months" :gameNames="gameNames" />
+          <RecapMonthGames
+            :sessionsByDay="recap.sessionsByDay"
+            :games="recap.games"
+            :year="year"
+          />
+          <RecapMonths
+            class="mt-3"
+            :months="recap.months"
+            :gameNames="gameNames"
+          />
         </section>
 
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Time of day</h2>
           <p class="small text-body-secondary">Times in {{ timezone }}</p>
-          <RecapRhythm :weekdays="recap.weekdays" :hours="recap.hours" />
+          <RecapRhythm
+            :weekdays="recap.weekdays"
+            :hours="recap.hours"
+            :weekHours="recap.weekHours"
+          />
         </section>
 
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Platforms</h2>
           <RecapPlatforms :platforms="recap.platforms" :gameNames="gameNames" />
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Session length</h2>
+          <RecapSessionLengths :sessions="recap.sessionsByDay.flat()" />
         </section>
 
         <section class="mt-5">

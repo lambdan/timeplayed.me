@@ -53,6 +53,8 @@ export interface Recap {
   weekdays: Bucket[];
   /** seconds per hour of day */
   hours: number[];
+  /** seconds per [weekday (monday first)][hour] */
+  weekHours: number[][];
   /** seconds per day of year */
   days: number[];
   /** sessions per day of year, oldest first */
@@ -113,7 +115,7 @@ export async function loadRecap(
       before,
       order: "desc",
       sort: "timestamp",
-      limit: 500,
+      limit: 200,
       offset: activities.length,
     });
     if (!page.length) break;
@@ -255,15 +257,16 @@ function topBy<K>(
   return res;
 }
 
-function hours(activities: Activity[]): number[] {
-  const res = new Array(24).fill(0);
+/** seconds played per [weekday (monday first)][hour], sessions are split over the hours they covered */
+function weekHours(activities: Activity[]): number[][] {
+  const res = Array.from({ length: 7 }, () => new Array(24).fill(0));
   for (const a of activities) {
     let cur = new Date(a.started);
     while (cur.getTime() < a.ended) {
       const next = new Date(cur);
       next.setMinutes(60, 0, 0); // start of the next hour
       const chunk = Math.min(next.getTime(), a.ended) - cur.getTime();
-      res[cur.getHours()] += Math.round(chunk / 1000);
+      res[(cur.getDay() + 6) % 7][cur.getHours()] += Math.round(chunk / 1000);
       cur = next;
     }
   }
@@ -356,6 +359,7 @@ function buildRecap(
   );
 
   const monthTop = topBy(activities, monthOf);
+  const week = weekHours(activities);
   const days = buckets(
     activities,
     dayIndex,
@@ -391,7 +395,8 @@ function buildRecap(
       (a) => (new Date(a.ended).getDay() + 6) % 7,
       7,
     ),
-    hours: hours(activities),
+    weekHours: week,
+    hours: week[0].map((_, h) => week.reduce((a, day) => a + day[h], 0)),
     days,
     sessionsByDay,
     longest_session: longest && {

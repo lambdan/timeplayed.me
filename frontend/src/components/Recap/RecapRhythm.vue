@@ -12,10 +12,15 @@ import {
 import { formatDuration } from "../../utils";
 import { WEEKDAYS, bsColor, type Bucket } from "../../utils.recap";
 import RecapStatTile from "./RecapStatTile.vue";
+import RecapWeekGrid from "./RecapWeekGrid.vue";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
-const props = defineProps<{ weekdays: Bucket[]; hours: number[] }>();
+const props = defineProps<{
+  weekdays: Bucket[];
+  hours: number[];
+  weekHours: number[][];
+}>();
 
 const total = computed(() => props.hours.reduce((a, b) => a + b, 0));
 
@@ -101,6 +106,10 @@ const hourOptions = chartOptions(
         :value="share(weekend)"
         :sub="formatDuration(weekend)"
       />
+    </div>
+
+    <div class="col-12">
+      <RecapWeekGrid :weekHours="weekHours" />
     </div>
 
     <div class="col-12 col-md-5">
