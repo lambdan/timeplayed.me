@@ -18,6 +18,7 @@ import RecapCalendar from "../components/Recap/RecapCalendar.vue";
 import RecapMonths from "../components/Recap/RecapMonths.vue";
 import RecapTimeOfDay from "../components/Recap/RecapTimeOfDay.vue";
 import RecapMonthStack from "../components/Recap/RecapMonthStack.vue";
+import RecapReleaseYears from "../components/Recap/RecapReleaseYears.vue";
 import RecapSessionLengths from "../components/Recap/RecapSessionLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
@@ -142,7 +143,11 @@ onMounted(async () => {
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Games</h2>
           <RecapTopGames :games="recap.games" :showNew="!!prev" />
-          <div class="row g-3 mt-0">
+        </section>
+
+        <section class="mt-5">
+          <h2 class="h4 fw-bold mb-3">Release years</h2>
+          <div class="row g-3 mb-3">
             <div class="col-12 col-md-6" v-if="oldestGame">
               <RecapStatTile
                 label="Oldest game"
@@ -164,6 +169,7 @@ onMounted(async () => {
               />
             </div>
           </div>
+          <RecapReleaseYears :games="recap.games" :year="year" />
         </section>
 
         <section class="mt-5">
