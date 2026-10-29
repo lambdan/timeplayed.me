@@ -10,7 +10,6 @@ from tpbackend.storage import (
 )
 import logging
 
-
 logger = logging.getLogger("charts")
 router = APIRouter()
 

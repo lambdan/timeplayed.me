@@ -3,7 +3,6 @@ from .models import SGDB_Grid
 from .controller import available, get_grids, get_best_grid, get_grid
 from tpbackend.api.responses import not_found, service_unavailable
 
-
 router = APIRouter()
 
 

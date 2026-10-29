@@ -4,7 +4,6 @@ from tpbackend.api.responses import not_found, service_unavailable
 from tpbackend.igdb.controller import available, get_game_info
 from tpbackend.igdb.models import IGDB_GameInfo
 
-
 router = APIRouter()
 
 

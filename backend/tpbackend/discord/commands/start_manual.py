@@ -73,6 +73,4 @@ Use the stop command when you are done playing to save the activity.
 
         started = now()
         LiveActivity.create(user=user, game=game, platform=platform, started=started)
-        return (
-            f"⏱️ Started playing *{md_game_link(game)}*. Send `!stop` when you are done."
-        )
+        return f"⏱️ Started playing *{md_game_link(game)}*. Send `!stop` when you are done."

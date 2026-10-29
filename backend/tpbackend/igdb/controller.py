@@ -54,8 +54,10 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     # data = f"fields *; where id = {igdb_game_id};"
     res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
     logger.info("Got res: %s", res)
+    if not res:
+        return None
     try:
-        parsed = json.loads(cast(str, res))
+        parsed = json.loads(res)
         if parsed:
             return IGDB_GameInfo.model_validate(parsed[0])
     except Exception as e:

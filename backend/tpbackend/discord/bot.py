@@ -12,7 +12,6 @@ from .commands.help_admin import HelpAdminCommand
 import discord
 from discord.ext import commands
 
-
 logger = logging.getLogger("bot")
 
 intents = discord.Intents.default()

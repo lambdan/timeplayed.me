@@ -3,7 +3,6 @@ import logging
 import re
 from typing import cast
 
-
 logger = logging.getLogger("utils2")
 
 
