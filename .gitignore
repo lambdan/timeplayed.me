@@ -133,3 +133,4 @@ dev-compose.yml
 build-test
 .pg-data/
 backend/docker-compose.yml
+.vscode/
