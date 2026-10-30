@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
-import type { Activity, Game, Platform, User } from "../api.models";
+import { onMounted, ref } from "vue";
+import type { Activity, Game, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import { formatDuration } from "../utils";
-import { heatBadgeStyle } from "../utils.heat";
 import DateRangerPicker from "./Misc/DateRangerPicker.vue";
-import DiscordAvatar from "./DiscordAvatar.vue";
-import CroppedCover from "./Games/CroppedCover.vue";
-import PlatformBadge from "./Badges/PlatformBadge.vue";
 import CalendarBasic from "./CalendarBasic.vue";
+import ActivityRow from "./ActivityRow.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -38,39 +34,6 @@ const _after = ref<Date | undefined>();
 const total = ref(0);
 const seen = ref(new Set<number>());
 
-// what the rows show, the api calls are cached so this is cheap
-const users = reactive(new Map<number, User>());
-const games = reactive(new Map<number, Game>());
-const platforms = reactive(new Map<number, Platform>());
-
-// so the same id isn't fetched once per row before the first answer is cached
-const requested = new Set<string>();
-
-function lookup(list: Activity[]) {
-  const once = (key: string, fetch: () => void) => {
-    if (requested.has(key)) return;
-    requested.add(key);
-    fetch();
-  };
-  for (const a of list) {
-    if (!props.user) {
-      once(`u${a.user_id}`, () =>
-        TimeplayedAPI.getUser(a.user_id).then((u) => users.set(u.id, u)),
-      );
-    }
-    if (!props.game) {
-      once(`g${a.game_id}`, () =>
-        TimeplayedAPI.getGame(a.game_id).then((g) => games.set(g.id, g)),
-      );
-    }
-    once(`p${a.platform_id}`, () =>
-      TimeplayedAPI.getPlatform(a.platform_id).then((p) =>
-        platforms.set(p.id, p),
-      ),
-    );
-  }
-}
-
 async function fetchActivities(limit?: number) {
   loading.value = true;
   fetching.value = true;
@@ -88,7 +51,6 @@ async function fetchActivities(limit?: number) {
     createdAt: new Date(activity.timestamp),
   }));
   activities.value.push(...newActivities);
-  lookup(newActivities);
   loading.value = false;
   sortByRecent();
 
@@ -118,7 +80,6 @@ async function autoRefresh() {
       activities.value.unshift({
         ...activity,
       });
-      lookup([activity]);
       seen.value.add(activity.id);
     }
     total.value += data.length;
@@ -173,63 +134,25 @@ onMounted(async () => {
       <!-- columns that would just repeat the page (like the game on a game page) are left out -->
       <table class="table table-sm table-hover table-responsive align-middle">
         <tbody>
-          <tr v-for="a in activities" :key="a.id">
-            <td v-if="!user" style="width: 50px">
-              <DiscordAvatar
-                v-if="users.get(a.user_id)"
-                :user="users.get(a.user_id)!"
-                :maxWidth="40"
-              />
-            </td>
-            <td v-if="!game" class="d-none d-md-table-cell" style="width: 50px">
-              <CroppedCover
-                :gameId="a.game_id"
-                :thumb="true"
-                style="width: 32px"
-              />
-            </td>
-            <td v-if="!game" class="w-100 text-break">
-              <a
-                :href="`/game/${a.game_id}`"
-                class="link-underline link-underline-opacity-0"
-                >{{ games.get(a.game_id)?.name }}</a
-              >
-            </td>
-            <!-- width 1% = only as wide as the content, so these stay together at the end -->
-            <td class="d-none d-md-table-cell" style="width: 1%">
-              <PlatformBadge
-                v-if="platforms.get(a.platform_id)"
-                :platform="platforms.get(a.platform_id)!"
-                :showName="false"
-              />
-            </td>
-            <td class="text-nowrap px-md-3" style="width: 1%">
-              <!-- colored by length, same scale as the recap heatmap -->
-              <a
-                :href="`/activity/${a.id}`"
-                class="badge fw-semibold text-decoration-none"
-                :style="{
-                  ...heatBadgeStyle(a.seconds),
-                  fontVariantNumeric: 'tabular-nums',
-                }"
-                :title="`${a.seconds} seconds`"
-                >{{ formatDuration(a.seconds, true) }}</a
-              >
-            </td>
-            <td class="text-nowrap" style="width: 1%">
-              <!-- shorter on phones -->
-              <CalendarBasic
-                class="d-none d-md-inline"
-                :date="new Date(a.timestamp)"
-              />
-              <CalendarBasic
-                class="d-md-none"
-                :date="new Date(a.timestamp)"
-                :short="true"
-                :showIcon="false"
-              />
-            </td>
-          </tr>
+          <ActivityRow
+            v-for="a in activities"
+            :key="a.id"
+            :activity="a"
+            :showUser="!user"
+            :showGame="!game"
+          >
+            <!-- shorter on phones -->
+            <CalendarBasic
+              class="d-none d-md-inline"
+              :date="new Date(a.timestamp)"
+            />
+            <CalendarBasic
+              class="d-md-none"
+              :date="new Date(a.timestamp)"
+              :short="true"
+              :showIcon="false"
+            />
+          </ActivityRow>
         </tbody>
       </table>
 

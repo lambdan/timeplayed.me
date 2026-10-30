@@ -39,9 +39,6 @@ const recap = ref<Recap>();
 const gameNames = computed(
   () => new Map(recap.value?.games.map((g) => [g.game_id, g.name])),
 );
-const platformNames = computed(
-  () => new Map(recap.value?.platforms.map((p) => [p.platform_id, p.name])),
-);
 const totals = computed(() => recap.value!.totals);
 const prev = computed(() => recap.value!.previous_year);
 
@@ -182,8 +179,6 @@ onMounted(async () => {
             :days="recap.days"
             :daySessions="recap.daySessions"
             :year="year"
-            :gameNames="gameNames"
-            :platformNames="platformNames"
           />
           <div class="row g-3 mt-1">
             <div class="col-12 col-md-4" v-if="recap.longest_streak">

@@ -3,13 +3,12 @@ import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
 import { HEAT_COLORS, HEAT_LEGEND, heatLevel } from "../../utils.heat";
 import type { DaySession } from "../../utils.recap";
+import ActivityRow from "../ActivityRow.vue";
 
 const props = defineProps<{
   days: number[];
   daySessions: DaySession[][];
   year: number;
-  gameNames: Map<number, string>;
-  platformNames: Map<number, string>;
 }>();
 
 // monday = 0
@@ -140,47 +139,17 @@ function time(ts: number): string {
       </div>
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 align-middle">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Game</th>
-              <th class="d-none d-sm-table-cell">Platform</th>
-              <th class="text-end">Played</th>
-            </tr>
-          </thead>
           <tbody>
-            <tr
+            <!-- seconds = what was played that day, an activity can go on for days -->
+            <ActivityRow
               v-for="{ activity: a, seconds } in daySessions[selected]"
               :key="a.id"
+              :activity="a"
+              :showUser="false"
+              :seconds="seconds"
             >
-              <td class="text-nowrap text-body-secondary">
-                <a
-                  :href="`/activity/${a.id}`"
-                  class="link-secondary link-underline link-underline-opacity-0"
-                  >{{ time(a.started) }} – {{ time(a.ended) }}</a
-                >
-              </td>
-              <td>
-                <a
-                  :href="`/game/${a.game_id}`"
-                  class="link-underline link-underline-opacity-0"
-                  >{{ gameNames.get(a.game_id) }}</a
-                >
-              </td>
-              <td class="d-none d-sm-table-cell text-body-secondary">
-                {{ platformNames.get(a.platform_id) }}
-              </td>
-              <td class="text-end text-nowrap">
-                {{ formatDuration(seconds) }}
-                <!-- the activity went on past (or started before) this day -->
-                <div
-                  v-if="Math.round(seconds) !== a.seconds"
-                  class="small text-body-secondary"
-                >
-                  of {{ formatDuration(a.seconds) }}
-                </div>
-              </td>
-            </tr>
+              {{ time(a.started) }} – {{ time(a.ended) }}
+            </ActivityRow>
           </tbody>
         </table>
       </div>
