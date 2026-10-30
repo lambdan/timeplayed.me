@@ -215,7 +215,7 @@ onMounted(async () => {
         v-if="props.activity"
         :href="'/activity/' + props.activity.id"
         class="link-underline link-underline-opacity-0"
-        style="font-family: monospace"
+        style="font-variant-numeric: tabular-nums"
       >
         {{ _timeDisplayed || "-" }}</a
       >
