@@ -8,34 +8,63 @@ export function formatDate(date?: Date | number): string {
   return date.toLocaleString();*/
 }
 
-export function formatDuration(secs?: number, hhmmss = false): string {
-  if (!secs && hhmmss) return "00:00:00";
-  if (!secs) return "0 seconds";
-  // HH:MM:SS
-  if (hhmmss) {
-    const h = Math.floor(secs / 3600)
-      .toString()
-      .padStart(2, "0");
-    const m = Math.floor((secs % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = Math.floor(secs % 60)
-      .toString()
-      .padStart(2, "0");
-    return `${h}:${m}:${s}`;
-  }
-  const h = secs / 3600;
-  if (h >= 1) {
-    if (h >= 24) {
-      return h.toFixed(0) + " h";
+export function formatDuration(
+  secs?: number,
+  hhmmss = false,
+  steam = true,
+): string {
+  const f = () => {
+    if (!secs) {
+      if (hhmmss) return "00:00:00";
+      if (steam) return "0 minutes";
+      return "0s";
     }
-    return h.toFixed(1) + " h";
-  }
-  const m = secs / 60;
-  if (m >= 1) {
-    return m.toFixed(0) + " m";
-  }
-  return secs + " s";
+
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    const [hh, mm, ss] = [
+      h.toString().padStart(2, "0").trim(),
+      m.toString().padStart(2, "0").trim(),
+      s.toString().padStart(2, "0").trim(),
+    ];
+
+    if (hhmmss) {
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    // > 1.5 hours = show hours with 1 decimal
+    // >= 1 minute = show minutes with 0 decimals
+    // < 1 minute: show seconds
+    if (steam) {
+      const _h = secs / 3600;
+      if (_h > 1.5) {
+        return `${_h.toFixed(1)} hours`;
+      }
+      const _m = Math.floor(secs / 60);
+      if (_m == 1) {
+        return `1 minute`;
+      }
+      if (_m > 1) {
+        return `${_m} minutes`;
+      }
+      return `${Math.floor(secs)} seconds`;
+    }
+
+    const parts: string[] = [];
+
+    if (h > 0) {
+      parts.push(`${h}h`);
+    }
+    if (m > 0) {
+      parts.push(`${m}m`);
+    }
+    if (s > 0) {
+      parts.push(`${s}s`);
+    }
+    return parts.join(" ");
+  };
+  return f().trim();
 }
 
 export function timeAgo(other?: Date | number, short = false): string {

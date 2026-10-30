@@ -58,7 +58,7 @@ function updateDate(d: Date | undefined) {
 }
 
 function setupActivity(activity: Activity) {
-  _timeDisplayed.value = formatDuration(activity.seconds);
+  _timeDisplayed.value = formatDuration(activity.seconds, true, false);
   updateDate(new Date(activity.timestamp));
   setInterval(() => {
     updateDate(new Date(activity.timestamp));
@@ -75,7 +75,7 @@ function setupDuration() {
   } else {
     throw new Error("Either activity or duration prop must be provided");
   }
-  _timeDisplayed.value = formatDuration(_durationSeconds.value);
+  _timeDisplayed.value = formatDuration(_durationSeconds.value, true, false);
 }
 
 /** Returns -1 if game cover should not be shown */
@@ -210,6 +210,7 @@ onMounted(async () => {
         v-if="props.activity"
         :href="'/activity/' + props.activity.id"
         class="link-underline link-underline-opacity-0"
+        style="font-family: monospace"
       >
         {{ _timeDisplayed || "-" }}</a
       >
