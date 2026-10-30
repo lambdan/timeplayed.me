@@ -14,6 +14,8 @@ const props = defineProps<{
   after?: Date;
   relativeMillis?: number;
   toggleable?: boolean;
+  /** remember the choice separately from other pickers on the same page */
+  storageKey?: string;
 }>();
 
 const emit = defineEmits<{
@@ -75,7 +77,10 @@ const STORAGE_KEY_VERSION = 1; // increment to invalidate stored values
 function storageKey(
   what: "before" | "after" | "relativeMillis" | "mode",
 ): string {
-  return `dateRangerPicker::${STORAGE_KEY_VERSION}::${window.location.pathname}::${what}`;
+  const page = props.storageKey
+    ? `${window.location.pathname}::${props.storageKey}`
+    : window.location.pathname;
+  return `dateRangerPicker::${STORAGE_KEY_VERSION}::${page}::${what}`;
 }
 
 function loadMode(): "absolute" | "relative" | null {

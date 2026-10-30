@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
+import TopGamesList from "../components/Games/TopGamesList.vue";
+import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
+import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import type { Totals } from "../api.models";
@@ -10,6 +13,11 @@ import { getRecapYear } from "../utils";
 const globalStats = ref<Totals>();
 const fetching = ref(false);
 const recapYear = ref(getRecapYear());
+// date range for the top lists next to recent activity, set by their picker
+const topAfter = ref<Date>();
+const topBefore = ref<Date>();
+// lists wait for the pickers first range, otherwise they'd fetch all time first
+const topReady = ref(false);
 
 onMounted(async () => {
   fetching.value = true;
@@ -30,106 +38,111 @@ onMounted(async () => {
 
 <template>
   <div class="row">
-    <div class="col card p-0 mt-4">
-      <h1 class="card-header">Playtime Tracker</h1>
+    <div class="col-lg-8 p-0 pe-lg-4 mt-4">
+      <div class="card h-100 p-0">
+        <h1 class="card-header">Playtime Tracker</h1>
 
-      <div class="card-body text-start">
-        <p class="lead">
-          This is a thing that automatically tracks your playtime across games
-          using Discord.
-        </p>
-        <p>
-          All you need to do is join the Discord server and you will be tracked:
-          <i class="bi bi-discord"></i> 
-          <a href="https://discord.gg/YyhX6KHE27"
-            >https://discord.gg/YyhX6KHE27</a
+        <div class="card-body text-start">
+          <p class="lead">
+            This is a thing that automatically tracks your playtime across games
+            using Discord.
+          </p>
+          <p>
+            All you need to do is join the Discord server and you will be
+            tracked:
+            <i class="bi bi-discord"></i> 
+            <a href="https://discord.gg/YyhX6KHE27"
+              >https://discord.gg/YyhX6KHE27</a
+            >
+          </p>
+          <p>
+            <i
+              >Please note that you need to be online and have activity sharing
+              enabled</i
+            >, otherwise the bot can't see it -
+            <a href="/help#what-is-tracked">see the help page for more info</a>.
+          </p>
+          <p>
+            You can also DM the bot on Discord to log your playtime manually and
+            manage your activities. Send it <code>!help</code> to see what's
+            possible.
+          </p>
+          <hr />
+          <p>
+            You can also use the
+            <a href="/manual-tracking">manual tracking page</a> to log your
+            playtime manually, or you can make custom tracking implementations
+            using the <a href="/api/docs">API</a>.
+          </p>
+          <p class="text-muted">
+            Note that for now the only way to become a member, which you need to
+            be to be able to authenticate with the API, is by joining the
+            Discord server. In the future I might add other ways to become a
+            member, but for now Discord is required, unfortunately.
+          </p>
+          <marquee
+            v-if="recapYear"
+            behavior="scroll"
+            direction="left"
+            scrollamount="16"
           >
-        </p>
-        <p>
-          <i
-            >Please note that you need to be online and have activity sharing
-            enabled</i
-          >, otherwise the bot can't see it -
-          <a href="/help#what-is-tracked">see the help page for more info</a>.
-        </p>
-        <p>
-          You can also DM the bot on Discord to log your playtime manually and
-          manage your activities. Send it <code>!help</code> to see what's
-          possible.
-        </p>
-        <hr />
-        <p>
-          You can also use the
-          <a href="/manual-tracking">manual tracking page</a> to log your
-          playtime manually, or you can make custom tracking implementations
-          using the <a href="/api/docs">API</a>.
-        </p>
-        <p class="text-muted">
-          Note that for now the only way to become a member, which you need to
-          be to be able to authenticate with the API, is by joining the Discord
-          server. In the future I might add other ways to become a member, but
-          for now Discord is required, unfortunately.
-        </p>
-        <marquee
-          v-if="recapYear"
-          behavior="scroll"
-          direction="left"
-          scrollamount="16"
-        >
-          <h2>
-            {{ recapYear }} recap available! Look for a green button in your
-            profile!
-          </h2>
-          <small
-            >Yes this is a <code>&lt;marquee&gt;</code> in
-            {{ new Date().getFullYear() }}. But you paid attention to it didn't
-            you.</small
-          >
-        </marquee>
+            <h2>
+              {{ recapYear }} recap available! Look for a green button in your
+              profile!
+            </h2>
+            <small
+              >Yes this is a <code>&lt;marquee&gt;</code> in
+              {{ new Date().getFullYear() }}. But you paid attention to it
+              didn't you.</small
+            >
+          </marquee>
+        </div>
       </div>
     </div>
-    <div class="col-lg-4 card p-0 mt-4">
-      <h1 class="card-header">
-        Totals
+    <div class="col-lg-4 p-0 mt-4">
+      <div class="card h-100 p-0">
+        <h1 class="card-header">
+          Totals
 
-        <span
-          v-if="fetching"
-          class="spinner-border spinner-border-sm float-end mt-3"
-          role="status"
-          aria-hidden="true"
-        ></span>
-      </h1>
-      <div class="card-body">
-        <ul class="list-group list-group-flush" v-if="globalStats">
-          <li class="list-group-item py-1 px-2">
-            <span class="fw-bold float-start" title="ah ah he said it"
-              >Time played</span
-            >
-            <span class="float-end"
-              >{{ (globalStats.seconds / 3600).toFixed(0) }} hours<br />
-            </span>
-          </li>
+          <span
+            v-if="fetching"
+            class="spinner-border spinner-border-sm float-end mt-3"
+            role="status"
+            aria-hidden="true"
+          ></span>
+        </h1>
+        <div class="card-body">
+          <ul class="list-group list-group-flush" v-if="globalStats">
+            <li class="list-group-item py-1 px-2">
+              <span class="fw-bold float-start" title="ah ah he said it"
+                >Time played</span
+              >
+              <span class="float-end"
+                >{{ (globalStats.seconds / 3600).toFixed(0) }} hours<br />
+              </span>
+            </li>
 
-          <li class="list-group-item py-1 px-2">
-            <span class="fw-bold float-start">Activity count</span>
-            <span class="float-end">{{ globalStats.activity_count }}</span>
-          </li>
+            <li class="list-group-item py-1 px-2">
+              <span class="fw-bold float-start">Activity count</span>
+              <span class="float-end">{{ globalStats.activity_count }}</span>
+            </li>
 
-          <li class="list-group-item py-1 px-2">
-            <span class="fw-bold float-start">Users</span>
-            <span class="float-end">{{ globalStats.user_count }}</span>
-          </li>
+            <li class="list-group-item py-1 px-2">
+              <span class="fw-bold float-start">Users</span>
+              <span class="float-end">{{ globalStats.user_count }}</span>
+            </li>
 
-          <li class="list-group-item py-1 px-2">
-            <span class="fw-bold float-start">Games</span>
-            <span class="float-end">{{ globalStats.game_count }}</span>
-          </li>
+            <li class="list-group-item py-1 px-2">
+              <span class="fw-bold float-start">Games</span>
+              <span class="float-end">{{ globalStats.game_count }}</span>
+            </li>
 
-          <li class="list-group-item py-1 px-2">
-            <span class="fw-bold float-start">Platforms</span>
-            <span class="float-end">{{ globalStats.platform_count }}</span>
-          </li>
-        </ul>
+            <li class="list-group-item py-1 px-2">
+              <span class="fw-bold float-start">Platforms</span>
+              <span class="float-end">{{ globalStats.platform_count }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -138,7 +151,43 @@ onMounted(async () => {
     <PlaytimeChart class="card p-0" />
   </div>
 
-  <div class="row mb-4">
-    <RecentActivityCard class="col-lg p-0 mt-4" />
+  <!-- recent activity, and what's been played the most lately next to it -->
+  <div class="row mt-4 mb-4">
+    <div class="col-lg-8 p-0 pe-lg-4">
+      <RecentActivityCard />
+    </div>
+    <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+      <!-- one card, the picker applies to everything in it -->
+      <div class="card p-0">
+        <h2 class="card-header">Most played</h2>
+        <div class="card-body d-flex flex-column gap-4">
+          <DateRangerPicker
+            storageKey="top"
+            :relativeMillis="7 * 24 * 60 * 60 * 1000"
+            @updated:both="
+              ({ before, after }) => {
+                topBefore = before;
+                topAfter = after;
+                topReady = true;
+              }
+            "
+          />
+          <template v-if="topReady">
+            <TopGamesList :after="topAfter" :before="topBefore" :limit="10" />
+            <TopPlatformsList
+              :after="topAfter"
+              :before="topBefore"
+              :limit="10"
+            />
+            <TopPlayersCard
+              :compact="true"
+              :after="topAfter"
+              :before="topBefore"
+              :limit="10"
+            />
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

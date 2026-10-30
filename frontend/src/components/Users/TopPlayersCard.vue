@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import DiscordAvatar from "../DiscordAvatar.vue";
 import CalendarBasic from "../CalendarBasic.vue";
@@ -11,15 +11,40 @@ import type { UserWithStats } from "../../api.models";
 const props = defineProps<{
   game?: Game;
   platform?: Platform;
+  /** ranked list without a date picker, the range comes from after/before */
+  compact?: boolean;
+  after?: Date;
+  before?: Date;
+  /** only show the top x */
+  limit?: number;
 }>();
 
 const _users = ref<UserWithStats[]>([]);
 const _loading = ref(false);
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
+// to ignore answers from older requests, declared before the watch below runs
+let latest = 0;
+
+const shown = computed(() =>
+  props.limit ? _users.value.slice(0, props.limit) : _users.value,
+);
+
+// in compact mode the range comes from the page instead of our own picker
+watch(
+  () => [props.compact, props.after, props.before],
+  () => {
+    if (!props.compact) return;
+    _after.value = props.after;
+    _before.value = props.before;
+    fetchTheThings();
+  },
+  { immediate: true },
+);
 
 async function fetchTheThings() {
   // TODO: Change this to show more system (like game table)
+  const request = ++latest;
   _loading.value = true;
   _users.value = [];
   let offset = 0;
@@ -34,6 +59,7 @@ async function fetchTheThings() {
       order: "desc",
       sort: "playtime",
     });
+    if (request !== latest) return; // a newer range was picked meanwhile
     for (const u of data) {
       offset += 1;
       // only include users with playtime
@@ -55,10 +81,13 @@ const showLastPlayed = computed(
 </script>
 
 <template>
-  <div class="card p-0">
-    <h2 class="card-header">Top players</h2>
-    <div class="card-body">
+  <!-- compact = a section in a bigger card (front page), so no card of its own -->
+  <div :class="{ 'card p-0': !compact }">
+    <h2 v-if="!compact" class="card-header">Top players</h2>
+    <h3 v-else class="h5 mb-2">Players</h3>
+    <div :class="{ 'card-body': !compact }">
       <DateRangerPicker
+        v-if="!compact"
         class="mb-2"
         @updated:both="
           ({ before, after }) => {
@@ -74,7 +103,8 @@ const showLastPlayed = computed(
         class="table table-sm table-hover table-responsive"
         v-if="_users.length > 0"
       >
-        <thead>
+        <!-- compact version is a plain ranked list like TopGamesList -->
+        <thead v-if="!compact">
           <tr>
             <th></th>
             <th>User</th>
@@ -86,7 +116,10 @@ const showLastPlayed = computed(
         </thead>
 
         <tbody v-if="!_loading" class="align-middle">
-          <tr v-for="user in _users" :key="user.id">
+          <tr v-for="(user, i) in shown" :key="user.id">
+            <td v-if="compact" class="text-body-secondary" style="width: 1%">
+              {{ i + 1 }}
+            </td>
             <td style="width: 50px">
               <DiscordAvatar :user="user" :maxWidth="40" />
             </td>
@@ -97,7 +130,7 @@ const showLastPlayed = computed(
                 >{{ user.display_name }}</a
               >
             </td>
-            <td class="text-nowrap">
+            <td class="text-nowrap" :class="{ 'text-end': compact }">
               {{ formatDuration(user.stats.seconds) }}
             </td>
             <td
