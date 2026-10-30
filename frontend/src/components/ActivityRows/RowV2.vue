@@ -66,16 +66,21 @@ function setupActivity(activity: Activity) {
 }
 
 function setupDuration() {
-  if (props.durationSeconds) {
-    _durationSeconds.value = props.durationSeconds;
-  } else if (props.activity) {
+  // Rows of games: steam
+  // Rows of activity: hh:mm:ss
+  if (props.activity) {
     _durationSeconds.value = props.activity.seconds;
+    _timeDisplayed.value = formatDuration(_durationSeconds.value, true);
+  } else if (props.durationSeconds) {
+    _durationSeconds.value = props.durationSeconds;
+    _timeDisplayed.value = formatDuration(_durationSeconds.value);
   } else if (_gameWithStats.value) {
     _durationSeconds.value = _gameWithStats.value.stats.seconds;
+    _timeDisplayed.value = formatDuration(_durationSeconds.value, false, true);
+    return;
   } else {
     throw new Error("Either activity or duration prop must be provided");
   }
-  _timeDisplayed.value = formatDuration(_durationSeconds.value, true, false);
 }
 
 /** Returns -1 if game cover should not be shown */
