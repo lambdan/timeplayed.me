@@ -40,6 +40,12 @@ export interface RecapMonth extends Bucket {
   top_game_id?: number;
 }
 
+export interface DaySession {
+  activity: Activity;
+  /** how much of it was played that day */
+  seconds: number;
+}
+
 export interface Period {
   days: number;
   start: Date;
@@ -61,7 +67,10 @@ export interface Recap {
   /** seconds per day of year */
   days: number[];
   /** sessions per day of year, oldest first */
-  sessionsByDay: Activity[][];
+  /** what was played each day, an activity that spans days is on each of them */
+  daySessions: DaySession[][];
+  /** all activities, oldest first */
+  activities: Activity[];
   longest_session?: {
     activity_id: number;
     game_id: number;
@@ -300,6 +309,49 @@ function weekHours(activities: Activity[]): number[][] {
   return res;
 }
 
+/** a piece of an activity that happened on one day of the year */
+interface Chunk {
+  a: Activity;
+  day: number;
+  seconds: number;
+}
+
+/**
+ * the activity split over the (local) days it covered, so a 3 day long activity counts
+ * on all 3 days instead of dumping everything on the day it ended. days outside the
+ * year (an activity that started before new year) are clamped to it
+ */
+function splitByDay(a: Activity, year: number): Chunk[] {
+  const first = new Date(year, 0, 1);
+  const lastDay = daysBetween(first, new Date(year, 11, 31));
+  const res = new Map<number, number>();
+  let cur = a.started;
+  while (cur < a.ended) {
+    const d = new Date(cur);
+    const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const end = Math.min(addDays(midnight, 1).getTime(), a.ended);
+    const day = Math.min(Math.max(daysBetween(first, midnight), 0), lastDay);
+    res.set(day, (res.get(day) ?? 0) + (end - cur) / 1000);
+    cur = end;
+  }
+  return [...res].map(([day, seconds]) => ({ a, day, seconds }));
+}
+
+/** most played game for each key, by the seconds in the chunks */
+function topGameBy<K>(chunks: Chunk[], key: (c: Chunk) => K): Map<K, number> {
+  const seconds = new Map<K, Map<number, number>>();
+  for (const c of chunks) {
+    const m = seconds.get(key(c)) ?? new Map<number, number>();
+    m.set(c.a.game_id, (m.get(c.a.game_id) ?? 0) + c.seconds);
+    seconds.set(key(c), m);
+  }
+  const res = new Map<K, number>();
+  for (const [k, m] of seconds) {
+    res.set(k, [...m].reduce((x, y) => (y[1] > x[1] ? y : x))[0]);
+  }
+  return res;
+}
+
 /** most days in a row with something played */
 function longestStreak(dates: Date[]): Period | undefined {
   if (!dates.length) return undefined;
@@ -352,19 +404,22 @@ function buildRecap(
   const pct = (s: number) => (total ? (s / total) * 100 : 0);
   const first = new Date(year, 0, 1);
   const day = (a: Activity) => localDay(a, year);
-  const dayIndex = (a: Activity) => daysBetween(first, day(a));
   const monthOf = (a: Activity) => day(a).getMonth();
+  const monthOfDay = (dayIdx: number) => addDays(first, dayIdx).getMonth();
   // monday based calendar weeks, the first and last week of the year can be partial
   const firstWeekday = (first.getDay() + 6) % 7;
   const weekOf = (dayIdx: number) => Math.floor((dayIdx + firstWeekday) / 7);
   const daysInYear = daysBetween(first, new Date(year + 1, 0, 1));
 
+  // everything per day is based on these, oldest activity first
+  const chunks = [...activities].reverse().flatMap((a) => splitByDay(a, year));
+
   // per game: the days of the year it was played on, sorted
   const gameDays = new Map<number, number[]>();
-  for (const a of activities) {
-    const set = gameDays.get(a.game_id) ?? [];
-    if (!set.includes(dayIndex(a))) set.push(dayIndex(a));
-    gameDays.set(a.game_id, set);
+  for (const c of chunks) {
+    const set = gameDays.get(c.a.game_id) ?? [];
+    if (!set.includes(c.day)) set.push(c.day);
+    gameDays.set(c.a.game_id, set);
   }
   gameDays.forEach((d) => d.sort((x, y) => x - y));
 
@@ -400,13 +455,23 @@ function buildRecap(
     },
   );
 
-  const monthTop = topBy(activities, monthOf);
   const week = weekHours(activities);
-  const days = buckets(activities, dayIndex, daysInYear).map((t) => t.seconds);
+  const days = new Array(daysInYear).fill(0);
+  // every activity is listed on each day it was played on
+  const daySessions: DaySession[][] = days.map(() => []);
+  for (const c of chunks) {
+    days[c.day] += c.seconds;
+    daySessions[c.day].push({ activity: c.a, seconds: c.seconds });
+  }
   const dates = days.flatMap((s, i) => (s ? [addDays(first, i)] : []));
-  const sessionsByDay: Activity[][] = days.map(() => []);
-  // activities are newest first, go backwards so each day is oldest first
-  for (const a of [...activities].reverse()) sessionsByDay[dayIndex(a)].push(a);
+  const monthTop = topGameBy(chunks, (c) => monthOfDay(c.day));
+  // activity counts go by the month/weekday it ended, playtime by when it was played
+  const monthSessions = buckets(activities, monthOf, 12);
+  const weekdaySessions = buckets(
+    activities,
+    (a) => (new Date(a.ended).getDay() + 6) % 7,
+    7,
+  );
   const biggest = days.indexOf(Math.max(...days));
   const longest = activities.reduce<Activity | undefined>(
     (best, a) => (!best || a.seconds > best.seconds ? a : best),
@@ -423,20 +488,23 @@ function buildRecap(
     },
     games,
     platforms,
-    months: buckets(activities, monthOf, 12).map((t, m) => ({
-      ...t,
+    months: monthSessions.map((t, m) => ({
+      sessions: t.sessions,
+      seconds: days.reduce(
+        (sum, s, i) => (monthOfDay(i) === m ? sum + s : sum),
+        0,
+      ),
       top_game_id: monthTop.get(m),
     })),
-    // not clamped to the year, the weekday it actually ended on is what matters
-    weekdays: buckets(
-      activities,
-      (a) => (new Date(a.ended).getDay() + 6) % 7,
-      7,
-    ),
+    weekdays: weekdaySessions.map((t, d) => ({
+      sessions: t.sessions,
+      seconds: week[d].reduce((a, b) => a + b, 0),
+    })),
     weekHours: week,
     hours: week[0].map((_, h) => week.reduce((a, day) => a + day[h], 0)),
     days,
-    sessionsByDay,
+    daySessions,
+    activities: [...activities].reverse(),
     longest_session: longest && {
       activity_id: longest.id,
       game_id: longest.game_id,
@@ -449,36 +517,28 @@ function buildRecap(
       ? {
           date: addDays(first, biggest),
           seconds: days[biggest],
-          top_game_id: topBy(activities, dayIndex).get(biggest)!,
+          top_game_id: topGameBy(chunks, (c) => c.day).get(biggest)!,
         }
       : undefined,
     records: activities.length
-      ? records(
-          activities,
-          sessionsByDay,
-          games,
-          gameDays,
-          first,
-          dayIndex,
-          weekOf,
-        )
+      ? records(chunks, days, daySessions, games, gameDays, first, weekOf)
       : undefined,
   };
 }
 
 function records(
-  activities: Activity[],
-  sessionsByDay: Activity[][],
+  chunks: Chunk[],
+  days: number[],
+  daySessions: DaySession[][],
   games: RecapGame[],
   gameDays: Map<number, number[]>,
   first: Date,
-  dayIndex: (a: Activity) => number,
   weekOf: (dayIdx: number) => number,
 ): Recap["records"] {
   const date = (dayIdx: number) => addDays(first, dayIdx);
 
-  const gamesPerDay = sessionsByDay.map(
-    (s) => new Set(s.map((a) => a.game_id)).size,
+  const gamesPerDay = daySessions.map(
+    (s) => new Set(s.map((x) => x.activity.game_id)).size,
   );
   const mostGamesDay = gamesPerDay.indexOf(Math.max(...gamesPerDay));
 
@@ -496,23 +556,25 @@ function records(
   }
 
   const weekSeconds = new Map<number, number>();
-  sessionsByDay.forEach((sessions, dayIdx) => {
+  days.forEach((seconds, dayIdx) => {
     const w = weekOf(dayIdx);
-    weekSeconds.set(
-      w,
-      (weekSeconds.get(w) ?? 0) + sessions.reduce((a, b) => a + b.seconds, 0),
-    );
+    weekSeconds.set(w, (weekSeconds.get(w) ?? 0) + seconds);
   });
   const [busiestWeek, busiestSeconds] = [...weekSeconds].reduce((a, b) =>
     b[1] > a[1] ? b : a,
   );
-  const weekDays = sessionsByDay
+  const weekDays = days
     .map((_, i) => i)
     .filter((i) => weekOf(i) === busiestWeek);
 
-  const [gameDay, gameDayTotals] = [
-    ...totalsBy(activities, (a) => `${dayIndex(a)}:${a.game_id}`),
-  ][0];
+  const gameDaySeconds = new Map<string, number>();
+  for (const c of chunks) {
+    const k = `${c.day}:${c.a.game_id}`;
+    gameDaySeconds.set(k, (gameDaySeconds.get(k) ?? 0) + c.seconds);
+  }
+  const [gameDay, gameDayTotal] = [...gameDaySeconds].reduce((x, y) =>
+    y[1] > x[1] ? y : x,
+  );
   const [gameDayIdx, gameDayGame] = gameDay.split(":").map(Number);
 
   // games are most played first, so ties go to the most played one
@@ -534,12 +596,12 @@ function records(
     biggest_game_day: {
       date: date(gameDayIdx),
       game_id: gameDayGame,
-      seconds: gameDayTotals.seconds,
+      seconds: gameDayTotal,
     },
     most_regular: {
       game_id: mostRegular.game_id,
       weeks: mostRegular.weeks_played,
-      of: weekOf(sessionsByDay.length - 1) + 1,
+      of: weekOf(days.length - 1) + 1,
     },
   };
 }

@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "chart.js";
 import type { Activity } from "../../api.models";
+import type { DaySession } from "../../utils.recap";
 import { formatDuration } from "../../utils";
 import { MONTHS, barOptions } from "../../utils.recap";
 
@@ -17,7 +18,7 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 // hours per month, stacked by game or platform or whatever `keyOf` picks
 const props = defineProps<{
   title: string;
-  sessionsByDay: Activity[][];
+  daySessions: DaySession[][];
   year: number;
   /** most played first, so they end up at the bottom of each bar */
   items: { id: number; name: string; color?: string }[];
@@ -27,10 +28,10 @@ const props = defineProps<{
 const data = computed(() => {
   const index = new Map(props.items.map((item, i) => [item.id, i]));
   const seconds = props.items.map(() => new Array(12).fill(0));
-  props.sessionsByDay.forEach((sessions, day) => {
+  props.daySessions.forEach((sessions, day) => {
     const month = new Date(props.year, 0, 1 + day).getMonth();
-    for (const a of sessions) {
-      seconds[index.get(props.keyOf(a))!][month] += a.seconds;
+    for (const x of sessions) {
+      seconds[index.get(props.keyOf(x.activity))!][month] += x.seconds;
     }
   });
   return {

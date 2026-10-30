@@ -2,11 +2,11 @@
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
 import { HEAT_COLORS } from "../../utils.recap";
-import type { Activity } from "../../api.models";
+import type { DaySession } from "../../utils.recap";
 
 const props = defineProps<{
   days: number[];
-  sessionsByDay: Activity[][];
+  daySessions: DaySession[][];
   year: number;
   gameNames: Map<number, string>;
   platformNames: Map<number, string>;
@@ -71,11 +71,16 @@ function dateLabel(day: number, weekday: "short" | "long" = "short"): string {
   });
 }
 
+/** "19:18", or "Oct 22 19:18" if it's not on the selected day */
 function time(ts: number): string {
-  return new Date(ts).toLocaleTimeString("en-GB", {
+  const d = new Date(ts);
+  const t = d.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const day = new Date(props.year, 0, 1 + selected.value!);
+  if (d.toDateString() === day.toDateString()) return t;
+  return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${t}`;
 }
 </script>
 
@@ -142,7 +147,7 @@ function time(ts: number): string {
           {{ dateLabel(selected, "long") }}
           <span class="fw-normal text-body-secondary">
             · {{ formatDuration(days[selected]) }} ·
-            {{ sessionsByDay[selected].length }} activities
+            {{ daySessions[selected].length }} activities
           </span>
         </h3>
         <button
@@ -163,7 +168,10 @@ function time(ts: number): string {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="a in sessionsByDay[selected]" :key="a.id">
+            <tr
+              v-for="{ activity: a, seconds } in daySessions[selected]"
+              :key="a.id"
+            >
               <td class="text-nowrap text-body-secondary">
                 <a
                   :href="`/activity/${a.id}`"
@@ -182,7 +190,14 @@ function time(ts: number): string {
                 {{ platformNames.get(a.platform_id) }}
               </td>
               <td class="text-end text-nowrap">
-                {{ formatDuration(a.seconds) }}
+                {{ formatDuration(seconds) }}
+                <!-- the activity went on past (or started before) this day -->
+                <div
+                  v-if="Math.round(seconds) !== a.seconds"
+                  class="small text-body-secondary"
+                >
+                  of {{ formatDuration(a.seconds) }}
+                </div>
               </td>
             </tr>
           </tbody>

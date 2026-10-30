@@ -180,7 +180,7 @@ onMounted(async () => {
           <h2 class="h4 fw-bold mb-3">Activity</h2>
           <RecapCalendar
             :days="recap.days"
-            :sessionsByDay="recap.sessionsByDay"
+            :daySessions="recap.daySessions"
             :year="year"
             :gameNames="gameNames"
             :platformNames="platformNames"
@@ -212,7 +212,7 @@ onMounted(async () => {
 
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Activity length</h2>
-          <RecapActivityLengths :sessions="recap.sessionsByDay.flat()" />
+          <RecapActivityLengths :sessions="recap.activities" />
         </section>
 
         <section class="mt-5" v-if="recap.records">
@@ -275,7 +275,7 @@ onMounted(async () => {
             <div class="col-12 col-lg-6">
               <RecapMonthStack
                 title="By game"
-                :sessionsByDay="recap.sessionsByDay"
+                :daySessions="recap.daySessions"
                 :year="year"
                 :items="
                   recap.games.map((g) => ({ id: g.game_id, name: g.name }))
@@ -286,7 +286,7 @@ onMounted(async () => {
             <div class="col-12 col-lg-6">
               <RecapMonthStack
                 title="By platform"
-                :sessionsByDay="recap.sessionsByDay"
+                :daySessions="recap.daySessions"
                 :year="year"
                 :items="
                   recap.platforms.map((p) => ({
