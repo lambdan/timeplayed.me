@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { iso8601Date, timeAgo } from "../utils";
 
@@ -8,6 +8,8 @@ const props = withDefaults(
     date?: Date | number | null;
     absolute?: boolean;
     showIcon?: boolean;
+    /** "19 m ago" instead of "19 minutes ago" */
+    short?: boolean;
   }>(),
   {
     absolute: false,
@@ -50,7 +52,7 @@ function text(): string {
 
     switch (mode.value) {
       case 0:
-        return timeAgo(reallyDate);
+        return timeAgo(reallyDate, props.short);
       case 1:
         const delta = Date.now() - reallyDate.getTime();
         return Math.floor(delta / 1000) + " seconds ago";
@@ -78,11 +80,15 @@ onMounted(() => {
   textToDisplay.value = text();
   hoverText.value = props.date ? new Date(props.date).toUTCString() : "-";
 
-  setInterval(() => {
+  timer = setInterval(() => {
     if (showAbsolute.value) return;
     textToDisplay.value = text();
   }, 1000);
 });
+
+// otherwise every badge keeps ticking after its page is gone
+let timer: ReturnType<typeof setInterval>;
+onBeforeUnmount(() => clearInterval(timer));
 </script>
 
 <template>

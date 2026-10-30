@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import type { UserWithStats } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
-import RowV2 from "../ActivityRows/RowV2.vue";
+import DiscordAvatar from "../DiscordAvatar.vue";
+import CalendarBasic from "../CalendarBasic.vue";
+import { formatDuration } from "../../utils";
 const props = withDefaults(
   defineProps<{
     showExpand?: boolean;
@@ -25,6 +27,9 @@ const props = withDefaults(
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
+const showLastPlayed = computed(
+  () => props.showLastPlayed && _after.value === undefined,
+);
 
 const loading = ref(true);
 const localSort = ref(props.sort);
@@ -173,7 +178,7 @@ onMounted(() => {
 
         <th
           @click="setSort('recency')"
-          v-if="_after === undefined && props.showLastPlayed"
+          v-if="showLastPlayed"
           class="d-none d-md-table-cell"
         >
           Last Played
@@ -187,21 +192,23 @@ onMounted(() => {
         </th>
       </tr>
     </thead>
-    <tbody>
-      <RowV2
-        v-for="user in _usersWithStats"
-        :key="user.id"
-        :userWithStats="user"
-        :showDate="_after === undefined && props.showLastPlayed"
-        :context="'userTable'"
-        :durationSeconds="user.stats.seconds"
-        :date="
-          user.stats.last_activity
-            ? new Date(user.stats.last_activity)
-            : undefined
-        "
-        :showUsers="false"
-      />
+    <tbody class="align-middle">
+      <tr v-for="user in _usersWithStats" :key="user.id">
+        <td style="width: 50px">
+          <DiscordAvatar :user="user" :maxWidth="40" />
+        </td>
+        <td class="text-break">
+          <a
+            :href="`/user/${user.id}`"
+            class="link-underline link-underline-opacity-0"
+            >{{ user.display_name }}</a
+          >
+        </td>
+        <td class="text-nowrap">{{ formatDuration(user.stats.seconds) }}</td>
+        <td v-if="showLastPlayed" class="text-nowrap d-none d-md-table-cell">
+          <CalendarBasic :date="user.stats.last_activity" />
+        </td>
+      </tr>
     </tbody>
   </table>
   <div class="text-center" v-if="loading">

@@ -28,6 +28,7 @@ const localOrder = ref(props.order);
         :sort="localSort"
         :order="localOrder"
         :showDateRange="true"
+        :showLastPlayed="false"
       />
     </div>
   </div>

@@ -95,11 +95,7 @@ onMounted(async () => {
         :showDateRange="true"
       ></GameListCard>
 
-      <TopPlayersCard
-        v-if="platform"
-        :platform="platform"
-        :context="'platformPage'"
-      ></TopPlayersCard>
+      <TopPlayersCard v-if="platform" :platform="platform"></TopPlayersCard>
     </div>
   </div>
 </template>

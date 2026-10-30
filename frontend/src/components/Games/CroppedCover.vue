@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GameCover from "../Games/GameCover.vue";
+import GameCover from "./GameCover.vue";
 
 // GameCover cropped to a 2:3 box, so covers line up regardless of source
 defineProps<{ gameId: number; thumb?: boolean }>();

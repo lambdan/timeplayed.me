@@ -32,7 +32,7 @@ onMounted(async () => {
     <PlaytimeChart v-if="game" :game="game" />
   </div>
   <div class="card mt-4 p-0 mb-4">
-    <TopPlayersCard v-if="game" :game="game" :limit="5" context="gamePage" />
+    <TopPlayersCard v-if="game" :game="game" :limit="5" />
   </div>
   <div class="card mt-4 p-0 mb-4">
     <RecentActivityCard v-if="game" :game="game" :limit="5" />

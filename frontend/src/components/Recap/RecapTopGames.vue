@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
 import { shortDate, type RecapGame } from "../../utils.recap";
-import RecapCover from "./RecapCover.vue";
+import CroppedCover from "../Games/CroppedCover.vue";
 
 const props = defineProps<{ games: RecapGame[]; showNew: boolean }>();
 
@@ -23,7 +23,7 @@ function average(game: RecapGame): string {
         class="border rounded bg-body-tertiary p-3 h-100"
         :class="{ 'border-warning': i === 0 }"
       >
-        <RecapCover :gameId="game.game_id" />
+        <CroppedCover :gameId="game.game_id" />
         <div class="small fw-semibold text-body-secondary mt-2">
           #{{ i + 1 }}
         </div>
@@ -46,7 +46,7 @@ function average(game: RecapGame): string {
   <!-- #5-#10 -->
   <div class="row row-cols-3 row-cols-md-6 g-3 mt-0" v-if="rest.length">
     <div v-for="(game, i) in rest" :key="game.game_id">
-      <RecapCover :gameId="game.game_id" :thumb="true" />
+      <CroppedCover :gameId="game.game_id" :thumb="true" />
       <div class="small mt-1 text-truncate">
         <span class="text-body-secondary me-1">#{{ i + 5 }}</span>
         <a

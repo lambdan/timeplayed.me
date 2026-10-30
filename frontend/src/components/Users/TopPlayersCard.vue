@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import RowV2 from "../ActivityRows/RowV2.vue";
+import { computed, ref } from "vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
+import DiscordAvatar from "../DiscordAvatar.vue";
+import CalendarBasic from "../CalendarBasic.vue";
+import { formatDuration } from "../../utils";
 import type { Game, Platform } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import type { UserWithStats } from "../../api.models";
 
-const ONE_HOUR = 60 * 60 * 1000;
-const ONE_DAY = 24 * ONE_HOUR;
-
 const props = defineProps<{
   game?: Game;
   platform?: Platform;
-  context: "gamePage" | "frontPage" | "platformPage";
 }>();
 
 const _users = ref<UserWithStats[]>([]);
@@ -50,7 +48,10 @@ async function fetchTheThings() {
   _loading.value = false;
 }
 
-onMounted(() => {});
+// last played is useful on platform pages, and only makes sense for all time
+const showLastPlayed = computed(
+  () => !!props.platform && _after.value === undefined,
+);
 </script>
 
 <template>
@@ -66,8 +67,8 @@ onMounted(() => {});
             fetchTheThings();
           }
         "
-        :relative-millis="context === 'frontPage' ? 7 * ONE_DAY : -1"
-        :toggleable="context !== 'frontPage'"
+        :relative-millis="-1"
+        :toggleable="true"
       />
       <table
         class="table table-sm table-hover table-responsive"
@@ -77,31 +78,35 @@ onMounted(() => {});
           <tr>
             <th></th>
             <th>User</th>
-            <th>Time played</th>
-            <th
-              v-if="props.context !== 'frontPage' && _after === undefined"
-              class="d-none d-md-table-cell"
-            >
+            <th>Playtime</th>
+            <th v-if="showLastPlayed" class="d-none d-md-table-cell">
               Last played
             </th>
           </tr>
         </thead>
 
-        <tbody v-if="!_loading">
-          <RowV2
-            v-for="user in _users"
-            :key="user.id"
-            :userWithStats="user"
-            :duration-seconds="user.stats.seconds"
-            :context="props.context"
-            :show-users="false"
-            :show-date="props.context !== 'frontPage' && _after === undefined"
-            :date="
-              user.stats.last_activity
-                ? new Date(user.stats.last_activity)
-                : undefined
-            "
-          />
+        <tbody v-if="!_loading" class="align-middle">
+          <tr v-for="user in _users" :key="user.id">
+            <td style="width: 50px">
+              <DiscordAvatar :user="user" :maxWidth="40" />
+            </td>
+            <td class="text-break">
+              <a
+                :href="`/user/${user.id}`"
+                class="link-underline link-underline-opacity-0"
+                >{{ user.display_name }}</a
+              >
+            </td>
+            <td class="text-nowrap">
+              {{ formatDuration(user.stats.seconds) }}
+            </td>
+            <td
+              v-if="showLastPlayed"
+              class="text-nowrap d-none d-md-table-cell"
+            >
+              <CalendarBasic :date="user.stats.last_activity" />
+            </td>
+          </tr>
         </tbody>
       </table>
       <p v-if="!_loading && _users.length === 0" class="text-muted text-center">

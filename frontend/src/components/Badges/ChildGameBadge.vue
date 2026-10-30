@@ -14,7 +14,8 @@ onMounted(async () => {});
 </script>
 
 <template>
-  <span class="badge bg-secondary me-1 mb-1">
+  <!-- text-wrap: long names would otherwise push the table wider than the card -->
+  <span class="badge bg-secondary me-1 mb-1 text-wrap text-start">
     <a :href="'/game/' + game.id" class="text-white text-decoration-none">
       {{ text }}
     </a>

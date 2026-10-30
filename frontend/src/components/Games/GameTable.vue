@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
-import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
+import CroppedCover from "./CroppedCover.vue";
+import CalendarBasic from "../CalendarBasic.vue";
+import { formatDuration } from "../../utils";
 
 const props = withDefaults(
   defineProps<{
@@ -167,7 +169,7 @@ onMounted(() => {
   >
     <thead>
       <tr>
-        <th></th>
+        <th class="d-none d-md-table-cell"></th>
         <th @click="setSort('name')">
           Game
           <i
@@ -216,21 +218,24 @@ onMounted(() => {
         </th>
       </tr>
     </thead>
-    <tbody>
-      <RowV2
-        v-for="game in _gamesData"
-        :key="game.id"
-        :showDate="_showDate"
-        :gameWithStats="game"
-        :context="'gameTable'"
-        :durationSeconds="game.stats.seconds"
-        :date="
-          game.stats.last_activity
-            ? new Date(game.stats.last_activity)
-            : undefined
-        "
-        :show-users="props.user ? false : true"
-      />
+    <tbody class="align-middle">
+      <tr v-for="game in _gamesData" :key="game.id">
+        <td class="d-none d-md-table-cell" style="width: 70px">
+          <CroppedCover :gameId="game.id" :thumb="true" style="width: 40px" />
+        </td>
+        <td class="text-break">
+          <a
+            :href="`/game/${game.id}`"
+            class="link-underline link-underline-opacity-0"
+            >{{ game.name }}</a
+          >
+        </td>
+        <td class="text-nowrap">{{ formatDuration(game.stats.seconds) }}</td>
+        <td v-if="_showDate" class="text-nowrap d-none d-md-table-cell">
+          <CalendarBasic :date="game.stats.last_activity" />
+        </td>
+        <td v-if="!props.user">{{ game.stats.user_count }}</td>
+      </tr>
     </tbody>
   </table>
 

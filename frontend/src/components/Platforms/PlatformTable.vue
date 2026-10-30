@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
-import RowV2 from "../ActivityRows/RowV2.vue";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
+import PlatformBadge from "../Badges/PlatformBadge.vue";
+import CalendarBasic from "../CalendarBasic.vue";
+import { formatDuration } from "../../utils";
 
 const props = withDefaults(
   defineProps<{
@@ -28,6 +30,10 @@ const props = withDefaults(
 const _before = ref<Date | undefined>();
 const _after = ref<Date | undefined>();
 const _showDate = ref(props.showDateRange);
+// same condition for the header and the cells, so the columns line up
+const showLastPlayed = computed(
+  () => props.showLastPlayed && _after.value === undefined && _showDate.value,
+);
 
 const _platformsData = ref<PlatformWithStats[]>([]);
 const loading = ref(true);
@@ -170,7 +176,7 @@ onMounted(() => {
 
           <th
             @click="setSort('recency')"
-            v-if="_after === undefined && _showDate"
+            v-if="showLastPlayed"
             class="d-none d-md-table-cell"
           >
             Last Played
@@ -195,21 +201,26 @@ onMounted(() => {
           </th>
         </tr>
       </thead>
-      <tbody>
-        <RowV2
-          v-for="platform in _platformsData"
-          :key="platform.id"
-          :platformWithStats="platform"
-          :context="'platformTable'"
-          :durationSeconds="platform.stats.seconds"
-          :date="
-            platform.stats.last_activity
-              ? new Date(platform.stats.last_activity)
-              : undefined
-          "
-          :showDate="_after === undefined"
-          :showUsers="props.user ? false : true"
-        />
+      <tbody class="align-middle">
+        <tr v-for="platform in _platformsData" :key="platform.id">
+          <td style="width: 50px">
+            <PlatformBadge :platform="platform" :showName="false" />
+          </td>
+          <td class="text-break">
+            <a
+              :href="`/platform/${platform.id}`"
+              class="link-underline link-underline-opacity-0"
+              >{{ platform.display_name }}</a
+            >
+          </td>
+          <td class="text-nowrap">
+            {{ formatDuration(platform.stats.seconds) }}
+          </td>
+          <td v-if="showLastPlayed" class="text-nowrap d-none d-md-table-cell">
+            <CalendarBasic :date="platform.stats.last_activity" />
+          </td>
+          <td v-if="!props.user">{{ platform.stats.user_count }}</td>
+        </tr>
       </tbody>
     </table>
   </template>
