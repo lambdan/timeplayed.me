@@ -141,13 +141,14 @@ onMounted(async () => {
             :showUser="!user"
             :showGame="!game"
           >
-            <!-- shorter on phones -->
+            <!-- muted, the badges are the main thing. shorter on phones -->
             <CalendarBasic
-              class="d-none d-md-inline"
+              class="d-none d-md-inline text-body-secondary"
               :date="new Date(a.timestamp)"
+              :showIcon="false"
             />
             <CalendarBasic
-              class="d-md-none"
+              class="d-md-none text-body-secondary"
               :date="new Date(a.timestamp)"
               :short="true"
               :showIcon="false"
