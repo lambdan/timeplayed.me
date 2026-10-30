@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
-import { HEAT_COLORS, WEEKDAYS } from "../../utils.recap";
+import { WEEKDAYS } from "../../utils.recap";
+import { HEAT_COLORS } from "../../utils.heat";
 
 // playtime per weekday and hour of day
 const props = defineProps<{ weekHours: number[][] }>();

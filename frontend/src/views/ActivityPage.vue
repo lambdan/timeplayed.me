@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { formatDuration, updateDocumentTitle } from "../utils";
+import { heatBadgeStyle } from "../utils.heat";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
@@ -143,7 +144,15 @@ onMounted(async () => {
                 :title="activity.seconds + ' seconds'"
               >
                 <i class="bi bi-stopwatch"></i> 
-                {{ formatDuration(activity.seconds, true) }}
+                <!-- colored by length, same as activity rows and the recap heatmap -->
+                <span
+                  class="badge fw-semibold"
+                  :style="{
+                    ...heatBadgeStyle(activity.seconds),
+                    fontVariantNumeric: 'tabular-nums',
+                  }"
+                  >{{ formatDuration(activity.seconds, true) }}</span
+                >
               </li>
             </ul>
 

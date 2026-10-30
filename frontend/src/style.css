@@ -122,16 +122,6 @@ Badges
   color: #000 !important;
 }
 
-.bg-timer {
-  font-family: monospace !important;
-  color: #f2f0ef !important;
-  background-color: #000 !important;
-  /*
-  background-color: rgba(0, 0, 0, 1) !important;
-  /*color: rgb(207, 254, 96) !important;*/
-  /*color: rgb(98, 255, 255) !important;*/
-}
-
 /** Platform colors **/
 
 .bg-steamdeck {

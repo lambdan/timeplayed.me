@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
-import { HEAT_COLORS } from "../../utils.recap";
+import { HEAT_COLORS, HEAT_LEGEND, heatLevel } from "../../utils.heat";
 import type { DaySession } from "../../utils.recap";
 
 const props = defineProps<{
@@ -11,26 +11,6 @@ const props = defineProps<{
   gameNames: Map<number, string>;
   platformNames: Map<number, string>;
 }>();
-
-// hours thresholds for the color levels (level 0 = nothing played)
-// hours thresholds for each color, a day gets the last one it reaches
-const LEVELS = [0, 0.5, 1, 2, 3, 4, 6, 8];
-const LEGEND = [
-  "None",
-  "< 30 m",
-  "30 m – 1 h",
-  "1 – 2 h",
-  "2 – 3 h",
-  "3 – 4 h",
-  "4 – 6 h",
-  "6 – 8 h",
-  "8 h +",
-];
-
-function level(seconds: number): number {
-  if (seconds <= 0) return 0;
-  return LEVELS.filter((l) => seconds / 3600 >= l).length;
-}
 
 // monday = 0
 const firstWeekday = computed(
@@ -113,7 +93,8 @@ function time(ts: number): string {
               },
             ]"
             :style="{
-              background: HEAT_COLORS[level(day === undefined ? 0 : days[day])],
+              background:
+                HEAT_COLORS[heatLevel(day === undefined ? 0 : days[day])],
             }"
             :role="day !== undefined && days[day] ? 'button' : undefined"
             @mouseenter="hovered = day"
@@ -132,7 +113,7 @@ function time(ts: number): string {
       </div>
       <span class="text-body-secondary me-1">Less</span>
       <span
-        v-for="(label, l) in LEGEND"
+        v-for="(label, l) in HEAT_LEGEND"
         :key="label"
         class="d-inline-block rounded-1"
         :style="{ width: '12px', height: '12px', background: HEAT_COLORS[l] }"

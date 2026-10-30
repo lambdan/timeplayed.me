@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from "vue";
 import type { Activity, Game, Platform, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { formatDuration } from "../utils";
+import { heatBadgeStyle } from "../utils.heat";
 import DateRangerPicker from "./Misc/DateRangerPicker.vue";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import CroppedCover from "./Games/CroppedCover.vue";
@@ -203,13 +204,15 @@ onMounted(async () => {
               />
             </td>
             <td class="text-nowrap px-md-3" style="width: 1%">
+              <!-- colored by length, same scale as the recap heatmap -->
               <a
                 :href="`/activity/${a.id}`"
-                class="link-underline link-underline-opacity-0"
-                style="font-variant-numeric: tabular-nums"
+                class="badge fw-semibold text-decoration-none"
+                :style="{
+                  ...heatBadgeStyle(a.seconds),
+                  fontVariantNumeric: 'tabular-nums',
+                }"
                 :title="`${a.seconds} seconds`"
-              >
-                <i class="bi bi-stopwatch me-1 d-none d-md-inline"></i
                 >{{ formatDuration(a.seconds, true) }}</a
               >
             </td>
