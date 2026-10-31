@@ -11,13 +11,15 @@ import {
   monthsSince,
   runningTotal,
   secondsPerMonth,
-  secondsPerWeekday,
+  hoursPerMonth,
+  hoursPerWeekday,
+  toDays,
+  WEEKDAYS,
   type DaySeconds,
 } from "../utils.stats";
 import StatsChart from "../components/Charts/StatsChart.vue";
 
 const HOUR = 3600;
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const totals = ref<Totals>();
 const days = ref<DaySeconds[]>([]);
@@ -47,10 +49,7 @@ onMounted(() => {
     totals.value = t;
   });
   TimeplayedAPI.getChartsPlaytimeByDay({}).then((byDay) => {
-    days.value = byDay.labels.map((day, i) => ({
-      day,
-      seconds: byDay.datasets[0]?.data[i] ?? 0,
-    }));
+    days.value = toDays(byDay);
     daysLoaded.value = true;
   });
   everything((offset) =>
@@ -78,10 +77,7 @@ const months = computed(() => {
 });
 const monthLabels = computed(() => months.value.map(monthLabel));
 
-const hoursPerMonth = computed(() => {
-  const perMonth = secondsPerMonth(days.value);
-  return months.value.map((m) => (perMonth.get(m) ?? 0) / HOUR);
-});
+const monthHours = computed(() => hoursPerMonth(days.value, months.value));
 
 const firstActivities = (
   list: { stats: { first_activity?: number | null } }[],
@@ -97,9 +93,7 @@ const newGamesPerMonth = computed(() => {
   return months.value.map((m) => perMonth.get(m) ?? 0);
 });
 
-const hoursPerWeekday = computed(() =>
-  secondsPerWeekday(days.value).map((s) => s / HOUR),
-);
+const weekdayHours = computed(() => hoursPerWeekday(days.value));
 
 const busiestDay = computed(() => busiest(days.value));
 const busiestMonth = computed(() =>
@@ -194,7 +188,7 @@ const figures = computed(() => {
         :loading="!daysLoaded"
         kind="line"
         :labels="monthLabels"
-        :values="runningTotal(hoursPerMonth)"
+        :values="runningTotal(monthHours)"
         unit="hours"
         :aspectRatio="4"
       />
@@ -207,7 +201,7 @@ const figures = computed(() => {
         title="Playtime per month"
         :loading="!daysLoaded"
         :labels="monthLabels"
-        :values="hoursPerMonth"
+        :values="monthHours"
         unit="hours"
       />
     </div>
@@ -216,7 +210,7 @@ const figures = computed(() => {
         title="Playtime per weekday"
         :loading="!daysLoaded"
         :labels="WEEKDAYS"
-        :values="hoursPerWeekday"
+        :values="weekdayHours"
         unit="hours"
       />
     </div>

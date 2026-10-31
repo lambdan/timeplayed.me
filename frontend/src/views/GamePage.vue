@@ -7,7 +7,7 @@ import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
 import GameMetadataCard from "../components/Games/GameMetadataCard.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
-import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
+import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { updateDocumentTitle } from "../utils";
@@ -86,8 +86,6 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="row mt-4 mb-4">
-      <PlaytimeChart class="card p-0" :game="game" />
-    </div>
+    <PlaytimeCharts class="mb-4" :game="game" />
   </template>
 </template>

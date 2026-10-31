@@ -8,6 +8,20 @@ export interface DaySeconds {
   seconds: number;
 }
 
+const HOUR = 3600;
+export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** the playtime by day chart response, as a list of days */
+export function toDays(chart: {
+  labels: string[];
+  datasets: { data: number[] }[];
+}): DaySeconds[] {
+  return chart.labels.map((day, i) => ({
+    day,
+    seconds: chart.datasets[0]?.data[i] ?? 0,
+  }));
+}
+
 /** every month from the first one until now, also months where nothing happened */
 export function monthsSince(first: string, now = new Date()): string[] {
   const months: string[] = [];
@@ -96,4 +110,15 @@ export function busiest<T extends { seconds: number }>(
     }
   }
   return best;
+}
+
+/** hours played in each of the months */
+export function hoursPerMonth(days: DaySeconds[], months: string[]): number[] {
+  const perMonth = secondsPerMonth(days);
+  return months.map((m) => (perMonth.get(m) ?? 0) / HOUR);
+}
+
+/** hours played per weekday, monday first */
+export function hoursPerWeekday(days: DaySeconds[]): number[] {
+  return secondsPerWeekday(days).map((s) => s / HOUR);
 }
