@@ -83,3 +83,63 @@ class TestIGDBCommandMerge:
         target = Game.get_by_id(target.get_id())
         assert "Bla™" in target.get_aliases()
         assert Activity.get().get_game() == target
+
+
+class TestMergeCommand:
+    def test_preview_then_merge(self, make_game, make_platform):
+        User.create(
+            discord_id="1234",
+            name="discordguy",
+            permissions=["commands", "admin"],
+        )
+        pc = make_platform("pc")
+        target = make_game("Bla")
+        source = make_game("Bla™")
+        add_activity(User.get(), source, pc)
+        cmd = f"!merge {source.get_id()} {target.get_id()}"
+
+        reply = dm_receive(FakeMessage(cmd, FakeAuthor()))  # type: ignore
+        assert reply and "Run the command again with `y`" in reply
+        assert Game.get_or_none(Game.id == source.get_id()) is not None
+
+        reply = dm_receive(FakeMessage(cmd + " y", FakeAuthor()))  # type: ignore
+        assert reply and reply.startswith("Merged")
+        assert Game.get_or_none(Game.id == source.get_id()) is None
+        assert "Bla™" in Game.get_by_id(target.get_id()).get_aliases()
+        assert Activity.get().get_game() == target
+
+    def test_same_name_doesnt_add_alias(self, make_game):
+        User.create(
+            discord_id="1234",
+            name="discordguy",
+            permissions=["commands", "admin"],
+        )
+        target = make_game("Grand Theft Auto: Vice City")
+        source = make_game("Grand Theft Auto: Vice City")
+        cmd = f"!merge {source.get_id()} {target.get_id()}"
+
+        reply = dm_receive(FakeMessage(cmd, FakeAuthor()))  # type: ignore
+        assert reply and "alias" not in reply
+        reply = dm_receive(FakeMessage(cmd + " y", FakeAuthor()))  # type: ignore
+        assert reply and reply.startswith("Merged") and "alias" not in reply
+        assert Game.get_by_id(target.get_id()).get_aliases() == []
+
+    def test_admin_only(self, make_game):
+        User.create(discord_id="1234", name="discordguy", permissions=["commands"])
+        source = make_game("Bla™")
+        target = make_game("Bla")
+
+        dm_receive(FakeMessage(f"!merge {source.get_id()} {target.get_id()} y", FakeAuthor()))  # type: ignore
+        assert Game.get_or_none(Game.id == source.get_id()) is not None
+
+    def test_errors(self, make_game):
+        User.create(
+            discord_id="1234",
+            name="discordguy",
+            permissions=["commands", "admin"],
+        )
+        game = make_game("Bla")
+        reply = dm_receive(FakeMessage(f"!merge {game.get_id()} {game.get_id()} y", FakeAuthor()))  # type: ignore
+        assert reply and "itself" in reply
+        reply = dm_receive(FakeMessage(f"!merge 9999 {game.get_id()}", FakeAuthor()))  # type: ignore
+        assert reply and "not found" in reply

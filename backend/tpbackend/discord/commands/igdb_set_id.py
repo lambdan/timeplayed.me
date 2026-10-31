@@ -1,10 +1,11 @@
 from tpbackend.game.select import GameSelect
+from tpbackend.game.utils import game_label
 from tpbackend.igdb.controller import get_game_info
 from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
 from tpbackend.storage import User
-from tpbackend.storage import Activity, Game
-from tpbackend.operations import merge_games
+from tpbackend.storage import Game
+from .merge_game_admin import merge_and_report, merge_preview
 
 
 class SetIGDBIDCommand(AdminCommand):
@@ -40,16 +41,8 @@ If another game already has that IGDB ID, this game gets merged into it: all its
         existing_game = Game.get_or_none(Game.igdb_id == igdb_id)
         if existing_game and existing_game.id != game.id:
             if not confirmed:
-                count = Activity.select().where(Activity.game == game).count()  # type: ignore
-                return (
-                    f"IGDB ID {igdb_id} already belongs to *{existing_game.name}* (id: {existing_game.id}).\n"
-                    f"This will merge *{game.name}* (id: {game.id}) into it: {count} activities are moved, "
-                    f"`{game.name}` is added as an alias and game {game.id} is deleted.\n"
-                    f"Run the command again with `y` at the end to confirm."
-                )
-            name = game.get_name()
-            moved = merge_games(game, existing_game)
-            return f"Merged *{name}* into *{existing_game.name}* ({moved} activities moved, `{name}` added as alias)"
+                return f"IGDB ID {igdb_id} already belongs to *{game_label(existing_game)}*.\n" + merge_preview(game, existing_game)  # type: ignore
+            return merge_and_report(game, existing_game)  # type: ignore
 
         # get info from igdb
         igdb_game = get_game_info(igdb_id)

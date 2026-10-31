@@ -143,6 +143,18 @@ def add_session(
         return None, e
 
 
+def merge_aliases(source: Game, target: Game) -> list[str]:
+    """
+    Sources name and aliases that target doesn't already have (as name or alias)
+    """
+    have = {target.get_name(), *target.get_aliases()}
+    res = []
+    for name in [source.get_name(), *source.get_aliases()]:
+        if name not in have and name not in res:
+            res.append(name)
+    return res
+
+
 def merge_games(source: Game, target: Game) -> int:
     """
     Merges source into target: moves all activities (all users), live activities and
@@ -183,9 +195,8 @@ def merge_games(source: Game, target: Game) -> int:
             if getattr(source, field) and not getattr(target, field):
                 setter(getattr(source, field))
 
-        for alias in [source.get_name(), *source.get_aliases()]:
-            if alias != target.get_name():
-                target.add_alias(alias)
+        for alias in merge_aliases(source, target):
+            target.add_alias(alias)
         target.add_history(
             f"Merged in '{source.get_name()}' ({source.get_id()}), {len(activities)} activities"
         )

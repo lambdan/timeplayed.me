@@ -45,6 +45,7 @@ from .commands.auto_sgdb import AutoSGDBAdminCommand
 from .commands.games_without_activity_admin import GamesWithoutActivityAdminCommand
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
+from .commands.merge_game_admin import MergeGameAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
 from .commands.missing_cover import MissingCoverAdminCommand
 from .commands.set_platform_colors import SetPlatformColorsCommand
@@ -120,6 +121,7 @@ ADMIN_COMMANDS = [
     RemovePermissionCommand(),
     SetGameAdminCommand(),
     MoveGameAdminCommand(),
+    MergeGameAdminCommand(),
     DeleteActivityAdminCommand(),
     # misc
     UptimeCommand(),
