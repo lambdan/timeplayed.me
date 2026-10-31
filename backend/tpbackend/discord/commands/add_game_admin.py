@@ -34,4 +34,4 @@ Returns: Confirmation message with the game ID and name.
         game.add_history(f"Game added by admin {user.get_name()}")
         game.save()
 
-        return f"✅ Game added manually:\n- *{game.name}*\n- id: {game.id}"  # type: ignore
+        return f"✅ Game added manually:\n- *{game.get_label()}*\n- id: {game.id}"  # type: ignore

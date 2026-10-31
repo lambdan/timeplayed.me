@@ -53,13 +53,13 @@ Returns: Confirmation message
             if not game_year:
                 return (
                     f"Error: Game with name *{sgdb_game.name}* already exists in the database "
-                    f"(id: {ex_game.id}, name: {ex_game.name}). "  # type: ignore
+                    f"(id: {ex_game.id}, name: {ex_game.get_label()}). "  # type: ignore
                     "SGDB reports no release year for this game, so it cannot be added as a separate entry."
                 )
             if not ex_game.release_year:  # type: ignore
                 return (
                     f"Error: Game with name *{sgdb_game.name}* already exists in the database "
-                    f"(id: {ex_game.id}, name: {ex_game.name}) but has no release year set. "  # type: ignore
+                    f"(id: {ex_game.id}, name: {ex_game.get_label()}) but has no release year set. "  # type: ignore
                     f"Please set its release year first (`!sgry {ex_game.id} <year>`)."  # type: ignore
                 )
             # Check for a true duplicate: same name AND same year already in DB.
@@ -78,7 +78,7 @@ Returns: Confirmation message
         new_game.save()
 
         out = "✅ Added game by SGDB id!\n"
-        out += f"- *{new_game.name}*\n"
+        out += f"- *{new_game.get_label()}*\n"
         out += f"- Year: {game_year}\n"
         out += f"- SGDB ID: {new_game.sgdb_id}\n"
         out += f"- Game ID: {new_game.id}"

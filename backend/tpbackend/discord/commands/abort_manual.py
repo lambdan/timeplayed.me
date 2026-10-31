@@ -13,6 +13,6 @@ class AbortManualCommand(ManualActivityCommand):
         if not live:
             return "Error: no manual activity running"
 
-        game_name = live.game.name
+        game_name = live.get_game().get_label()
         live.delete_instance()
         return f"Aborted *{game_name}* activity"

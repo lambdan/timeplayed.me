@@ -41,21 +41,21 @@ def execute_move_game(
 
     activities = list(Activity.select().where(*where_clause))  # type: ignore
     if not activities:
-        return f"No activities found for game {from_game.name} (id: {from_game_id})."
+        return f"No activities found for game {from_game.get_label()} (id: {from_game_id})."
 
     count = len(activities)
     noun = "activity" if count == 1 else "activities"
 
     if not confirmed:
         return (
-            f"This will move {count} {noun} from *{from_game.name}* to *{to_game.name}*.\n"
+            f"This will move {count} {noun} from *{from_game.get_label()}* to *{to_game.get_label()}*.\n"
             f"Run the command again with `y` at the end to confirm."
         )
 
     for act in activities:
         set_game_actually(act, to_game)
 
-    return f"Moved {count} {noun} from *{from_game.name}* to *{to_game.name}*."
+    return f"Moved {count} {noun} from *{from_game.get_label()}* to *{to_game.get_label()}*."
 
 
 class MoveGameCommand(Command):

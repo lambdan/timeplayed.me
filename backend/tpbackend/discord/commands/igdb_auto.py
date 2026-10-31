@@ -36,7 +36,7 @@ class AutoIGDBAdminCommand(AdminCommand):
                 rd = ts_to_dt(best_match.first_release_date)
             year = rd.year if rd else "?"
             out = ""
-            out += f"Best IGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
+            out += f"Best IGDB match for '{game.get_label()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += f"{best_match.url}\n"
             out += "If this is correct, run the command again with `y` at the end to confirm."
             return out

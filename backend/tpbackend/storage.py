@@ -508,6 +508,13 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     def get_release_year(self) -> int | None:
         return cast(int | None, self.release_year)
 
+    def get_label(self) -> str:
+        """name + release year (if we have it)"""
+        year = self.get_release_year()
+        if year:
+            return f"{self.get_name()} ({year})"
+        return self.get_name()
+
     def set_release_year(self, release_year: int | None):
         old_release_year = self.get_release_year()
         self.release_year = cast(IntegerField, release_year)

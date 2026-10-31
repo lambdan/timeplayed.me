@@ -26,4 +26,4 @@ class SetGameImageCommand(AdminCommand):
             return f"Error: Game with id {game_id} not found."
         game.set_image_url(url)
         game.save()
-        return f"{game.name} - Image set to: `{game.image_url}`"
+        return f"{game.get_label()} - Image set to: `{game.image_url}`"

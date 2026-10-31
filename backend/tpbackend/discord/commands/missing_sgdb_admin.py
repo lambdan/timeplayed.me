@@ -23,7 +23,7 @@ class MissingSGDBAdminCommand(AdminCommand):
         for game in missing:
             game = cast(Game, game)
             count += 1
-            out += f"- **{game.get_id()}** - {game.get_name()}\n"
+            out += f"- **{game.get_id()}** - {game.get_label()}\n"
             if count > 20 or len(out) > 1337:
                 out += f"... and {len(missing) - count} more\n"
                 break

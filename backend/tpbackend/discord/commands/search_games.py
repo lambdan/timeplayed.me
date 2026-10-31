@@ -30,7 +30,7 @@ Returns: list of game id's and names matching the query
             query = query[1:]
             g = GameSelect.by_name_or_alias(query)
             if g:
-                return f"Found {g.get_name()} {g.get_id()}"
+                return f"Found {g.get_label()} {g.get_id()}"
             else:
                 return "Not found"
 

@@ -25,7 +25,7 @@ class SetParentCommand(AdminCommand):
             try:
                 game.set_parent(None)
                 game.save()
-                return f"Parent of game '{game.get_name()}' cleared."
+                return f"Parent of game '{game.get_label()}' cleared."
             except Exception as e:
                 return f"Error clearing parent: {str(e)}"
 
@@ -36,6 +36,6 @@ class SetParentCommand(AdminCommand):
         try:
             game.set_parent(parent)
             game.save()
-            return f"Game '{game.get_name()}' is now child of '{parent.get_name()}'"
+            return f"Game '{game.get_label()}' is now child of '{parent.get_label()}'"
         except Exception as e:
             return f"Error setting parent: {str(e)}"

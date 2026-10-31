@@ -14,3 +14,13 @@ class TestPendingHistory:
         p = Platform(abbreviation="x")
         g.add_history("only for game")
         assert p.pending_history == []
+
+
+class TestGameLabel:
+    def test_with_year(self):
+        assert (
+            Game(name="Vice City", release_year=2002).get_label() == "Vice City (2002)"
+        )
+
+    def test_without_year(self):
+        assert Game(name="Vice City").get_label() == "Vice City"

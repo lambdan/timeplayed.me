@@ -24,5 +24,5 @@ class AddGameAliasCommand(AdminCommand):
             return f"Error: Alias is already in use by '{game_by_alias.name}' (id: {game_by_alias.id})"  # type: ignore
         if game.add_alias(new_alias):
             game.save()
-            return f"✅ Added alias for *{game.name}*"
+            return f"✅ Added alias for *{game.get_label()}*"
         return "Failed to add alias... most likely the game already has it?"

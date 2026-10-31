@@ -19,7 +19,7 @@ class HideGameCommand(AdminCommand):
         game.save()
         state = "hidden" if game.get_hidden() else "visible"
         affected_activities = self.updateActivities(game)
-        return f"Game '{game.name}' is now {state}. {affected_activities} activities updated hidden state."
+        return f"Game '{game.get_label()}' is now {state}. {affected_activities} activities updated hidden state."
 
     def updateActivities(self, game: Game) -> int:
         """

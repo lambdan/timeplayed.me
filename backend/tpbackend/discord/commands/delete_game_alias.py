@@ -17,5 +17,5 @@ class DeleteGameAliasCommand(AdminCommand):
             return "Error: No game found with that alias"
         if game.remove_alias(alias):
             game.save()
-            return f"✅ Removed alias from *{game.name}*"
+            return f"✅ Removed alias from *{game.get_label()}*"
         return "Could not remove alias... most likely the game didnt have it?"

@@ -17,5 +17,5 @@ class TimeManualCommand(ManualActivityCommand):
         started = live.get_started_datetime()
         duration = now() - started
         seconds = int(duration.total_seconds())
-        game_name = live.get_game().get_name()
+        game_name = live.get_game().get_label()
         return f"You have been playing *{game_name}* for {secsToHHMMSS(seconds)}"

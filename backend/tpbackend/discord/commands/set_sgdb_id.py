@@ -33,12 +33,12 @@ class SetSGDBIDCommand(AdminCommand):
         if sgdb_id != 0 and sgdb_id is not None:
             existing_game = Game.get_or_none(Game.sgdb_id == sgdb_id)  # type: ignore
             if existing_game and existing_game.id != game.id:
-                return f"Error: SGDB ID {sgdb_id} is already assigned to '{existing_game.name}' (id: {existing_game.id})"  # type: ignore
+                return f"Error: SGDB ID {sgdb_id} is already assigned to '{existing_game.get_label()}' (id: {existing_game.id})"  # type: ignore
 
         if sgdb_id == 0 or sgdb_id is None:
             game.set_sgdb_id(sgdb_id)
             game.save()
-            return f"{game.name} - SGDB ID set to: {game.sgdb_id}"
+            return f"{game.get_label()} - SGDB ID set to: {game.sgdb_id}"
 
         # get info from sgdb
         sgdb_game = get_game_by_id(sgdb_id)
@@ -58,7 +58,7 @@ class SetSGDBIDCommand(AdminCommand):
                 # check if any other game has that name or alias
                 aliased_game = GameSelect.by_name_or_alias(sgdb_game.name)
                 if aliased_game and aliased_game.id != game.id:  # type: ignore
-                    out += f"\n OTHER GAME HAS SGDB NAME AS NAME OR ALIAS: '{aliased_game.name}' (id: {aliased_game.id})"  # type: ignore
+                    out += f"\n OTHER GAME HAS SGDB NAME AS NAME OR ALIAS: '{aliased_game.get_label()}' (id: {aliased_game.id})"  # type: ignore
                     out += "\n - ABORTING!"
                     return out
                 old_name = game.get_name()

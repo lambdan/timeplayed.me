@@ -34,7 +34,7 @@ class AutoSGDBAdminCommand(AdminCommand):
             rd = ts_to_dt(best_match.release_date) if best_match.release_date else None
             year = rd.year if rd else "?"
             out = ""
-            out += f"Best SGDB match for '{game.get_name()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
+            out += f"Best SGDB match for '{game.get_label()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."
             return out
 

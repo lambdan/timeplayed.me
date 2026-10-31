@@ -25,7 +25,7 @@ class GamesWithoutActivityAdminCommand(AdminCommand):
         out = ""
         for game in games_without_activity:
             count += 1
-            out += f"- **{game.id}** - {game.name}\n"  # type: ignore
+            out += f"- **{game.id}** - {game.get_label()}\n"  # type: ignore
             if count >= 50 or len(out) >= 1500:
                 remaining = len(games_without_activity) - count
                 if remaining > 0:

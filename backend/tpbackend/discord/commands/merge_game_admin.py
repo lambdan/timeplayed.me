@@ -1,5 +1,4 @@
 from tpbackend.game.select import GameSelect
-from tpbackend.game.utils import game_label
 from tpbackend.operations import merge_aliases, merge_games
 from tpbackend.storage import Activity, Game, User
 from .admin_command import AdminCommand
@@ -14,8 +13,8 @@ def merge_preview(source: Game, target: Game) -> str:
     count = Activity.select().where(Activity.game == source).count()  # type: ignore
     aliases = merge_aliases(source, target)
     out = (
-        f"This will merge *{game_label(source)}* (id: {source.get_id()}) into "
-        f"*{game_label(target)}* (id: {target.get_id()}): {count} activities are moved"
+        f"This will merge *{source.get_label()}* (id: {source.get_id()}) into "
+        f"*{target.get_label()}* (id: {target.get_id()}): {count} activities are moved"
     )
     if aliases:
         out += f", {_aliases_text(aliases)} added as alias"
@@ -25,10 +24,10 @@ def merge_preview(source: Game, target: Game) -> str:
 
 
 def merge_and_report(source: Game, target: Game) -> str:
-    label = game_label(source)
+    label = source.get_label()
     aliases = merge_aliases(source, target)
     moved = merge_games(source, target)
-    out = f"Merged *{label}* into *{game_label(target)}* ({moved} activities moved"
+    out = f"Merged *{label}* into *{target.get_label()}* ({moved} activities moved"
     if aliases:
         out += f", {_aliases_text(aliases)} added as alias"
     return out + ")"

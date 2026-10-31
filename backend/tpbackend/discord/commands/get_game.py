@@ -26,7 +26,7 @@ class GetGameCommand(Command):
 
         parent = game.get_parent()
         if parent:
-            msg += f"### Child of {parent.get_name()} ({parent.get_id()})\n"
+            msg += f"### Child of {parent.get_label()} ({parent.get_id()})\n"
 
         if game.get_sgdb_id():
             msg += f"- SGDB ID: [{game.get_sgdb_id()}](https://www.steamgriddb.com/game/{game.get_sgdb_id()})\n"

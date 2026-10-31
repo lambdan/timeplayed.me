@@ -23,9 +23,9 @@ class DeleteGameCommand(AdminCommand):
         activities = ActivityQuery.base(include_hidden=True)
         activities = ActivityQuery.game(activities, game_id)
         if ActivityQuery.count(activities) > 0:
-            return f"Error: game ({game.get_name()}) has activities"
+            return f"Error: game ({game.get_label()}) has activities"
 
-        name = game.get_name()
+        name = game.get_label()
         if not confirmed:
             return (
                 f"Are you sure you want to delete *{name}*?\n"

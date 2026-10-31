@@ -1,5 +1,4 @@
 from tpbackend.game.select import GameSelect
-from tpbackend.game.utils import game_label
 from tpbackend.igdb.controller import get_game_info
 from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
@@ -35,13 +34,13 @@ If another game already has that IGDB ID, this game gets merged into it: all its
         if igdb_id == 0 or igdb_id is None:
             game.set_igdb_id(igdb_id)
             game.save()
-            return f"{game.name} - IGDB ID set to: {game.igdb_id}"
+            return f"{game.get_label()} - IGDB ID set to: {game.igdb_id}"
 
         # another game already has this igdb_id: it's the same game, merge into that one
         existing_game = Game.get_or_none(Game.igdb_id == igdb_id)
         if existing_game and existing_game.id != game.id:
             if not confirmed:
-                return f"IGDB ID {igdb_id} already belongs to *{game_label(existing_game)}*.\n" + merge_preview(game, existing_game)  # type: ignore
+                return f"IGDB ID {igdb_id} already belongs to *{existing_game.get_label()}*.\n" + merge_preview(game, existing_game)  # type: ignore
             return merge_and_report(game, existing_game)  # type: ignore
 
         # get info from igdb
@@ -62,7 +61,7 @@ If another game already has that IGDB ID, this game gets merged into it: all its
                 # check if any other game has that name or alias
                 aliased_game = GameSelect.by_name_or_alias(igdb_game.name)
                 if aliased_game and aliased_game.id != game.id:  # type: ignore
-                    out += f"\n OTHER GAME HAS IGDB NAME AS NAME OR ALIAS: '{aliased_game.name}' (id: {aliased_game.id})"  # type: ignore
+                    out += f"\n OTHER GAME HAS IGDB NAME AS NAME OR ALIAS: '{aliased_game.get_label()}' (id: {aliased_game.id})"  # type: ignore
                     out += "\n - NOT UPDATING NAME!"
                 else:
                     old_name = game.get_name()
@@ -81,5 +80,5 @@ If another game already has that IGDB ID, this game gets merged into it: all its
 
         game.set_igdb_id(igdb_id)
         game.save()
-        out += f"OK, IGDB ID updated for *{game.name}*"
+        out += f"OK, IGDB ID updated for *{game.get_label()}*"
         return out
