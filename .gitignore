@@ -137,3 +137,6 @@ backend/docker-compose.yml
 
 # database backups (may contain prod data)
 /storage_v2_*.sql
+
+PLAN*.md
+*.swp

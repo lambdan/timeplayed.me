@@ -5,7 +5,6 @@ import {
   Chart as ChartJS,
   BarElement,
   CategoryScale,
-  Filler,
   LinearScale,
   LineElement,
   PointElement,
@@ -15,7 +14,6 @@ import {
 ChartJS.register(
   BarElement,
   CategoryScale,
-  Filler,
   LinearScale,
   LineElement,
   PointElement,
@@ -57,8 +55,12 @@ const data = computed(() => ({
       data: props.values,
       backgroundColor: props.color,
       borderColor: props.color,
+      // no dots on the line, only on the month you hover
       pointRadius: 0,
-      fill: props.kind === "line",
+      pointHoverRadius: 5,
+      // no fill, a total that stays flat for long would be a solid block
+      fill: false,
+      borderWidth: 2,
     },
   ],
 }));
@@ -67,6 +69,8 @@ const options = computed(() => ({
   responsive: true,
   aspectRatio: props.aspectRatio,
   indexAxis: props.horizontal ? ("y" as const) : ("x" as const),
+  // hovering anywhere above a month shows it, no need to hit the line or bar exactly
+  interaction: { mode: "index" as const, intersect: false },
   plugins: {
     legend: { display: false },
     tooltip: {
@@ -80,7 +84,8 @@ const options = computed(() => ({
   },
   scales: {
     x: { grid: { display: false }, beginAtZero: true },
-    y: { beginAtZero: true, ticks: { precision: 0 } },
+    // a bit of room above the highest value, so lines don't run along the top edge
+    y: { beginAtZero: true, grace: "10%", ticks: { precision: 0 } },
   },
 }));
 </script>

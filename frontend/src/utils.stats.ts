@@ -122,3 +122,27 @@ export function hoursPerMonth(days: DaySeconds[], months: string[]): number[] {
 export function hoursPerWeekday(days: DaySeconds[]): number[] {
   return secondsPerWeekday(days).map((s) => s / HOUR);
 }
+
+/**
+ * the running total of hours per month, starting from 0 the month before the first one.
+ * otherwise a first month with most of the playtime would just look like a flat line at the top
+ */
+export function totalOverTime(
+  months: string[],
+  hours: number[],
+): { labels: string[]; totals: number[] } {
+  if (months.length === 0) {
+    return { labels: [], totals: [] };
+  }
+  let year = +months[0].slice(0, 4);
+  let month = +months[0].slice(5, 7) - 1;
+  if (month === 0) {
+    month = 12;
+    year -= 1;
+  }
+  const before = `${year}-${String(month).padStart(2, "0")}`;
+  return {
+    labels: [before, ...months].map(monthLabel),
+    totals: [0, ...runningTotal(hours)],
+  };
+}

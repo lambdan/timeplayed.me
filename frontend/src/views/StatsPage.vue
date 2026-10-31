@@ -9,7 +9,7 @@ import {
   countPerMonth,
   monthLabel,
   monthsSince,
-  runningTotal,
+  totalOverTime,
   secondsPerMonth,
   hoursPerMonth,
   hoursPerWeekday,
@@ -78,6 +78,7 @@ const months = computed(() => {
 const monthLabels = computed(() => months.value.map(monthLabel));
 
 const monthHours = computed(() => hoursPerMonth(days.value, months.value));
+const total = computed(() => totalOverTime(months.value, monthHours.value));
 
 const firstActivities = (
   list: { stats: { first_activity?: number | null } }[],
@@ -187,8 +188,8 @@ const figures = computed(() => {
         title="Total playtime"
         :loading="!daysLoaded"
         kind="line"
-        :labels="monthLabels"
-        :values="runningTotal(monthHours)"
+        :labels="total.labels"
+        :values="total.totals"
         unit="hours"
         :aspectRatio="4"
       />

@@ -7,7 +7,7 @@ import {
   hoursPerWeekday,
   monthLabel,
   monthsSince,
-  runningTotal,
+  totalOverTime,
   toDays,
   WEEKDAYS,
   type DaySeconds,
@@ -34,6 +34,9 @@ const months = computed(() => {
   if (days.value.length === 0) return [];
   return monthsSince(days.value[0].day);
 });
+const total = computed(() =>
+  totalOverTime(months.value, hoursPerMonth(days.value, months.value)),
+);
 </script>
 
 <template>
@@ -43,8 +46,8 @@ const months = computed(() => {
         title="Total playtime"
         kind="line"
         :loading="loading"
-        :labels="months.map(monthLabel)"
-        :values="runningTotal(hoursPerMonth(days, months))"
+        :labels="total.labels"
+        :values="total.totals"
         unit="hours"
         :aspectRatio="4"
       />
