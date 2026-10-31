@@ -614,26 +614,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sgdb/{sgdb_game_id}/grids/{grid_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Sgdb Grid By Id
-         * @description Gets a grid by ID for a game from SteamGridDB
-         */
-        get: operations["sgdb_grid_by_id_sgdb__sgdb_game_id__grids__grid_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/igdb/game/{igdb_game_id}": {
         parameters: {
             query?: never;
@@ -699,8 +679,6 @@ export interface components {
             name: string;
             /** Sgdb Id */
             sgdb_id: number | null;
-            /** Sgdb Grid Id */
-            sgdb_grid_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
             /** Steam Id */
@@ -728,8 +706,6 @@ export interface components {
             name: string;
             /** Sgdb Id */
             sgdb_id: number | null;
-            /** Sgdb Grid Id */
-            sgdb_grid_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
             /** Steam Id */
@@ -1151,6 +1127,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -2450,38 +2430,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SGDB_Grid"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    sgdb_grid_by_id_sgdb__sgdb_game_id__grids__grid_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                sgdb_game_id: number;
-                grid_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SGDB_Grid"];
                 };
             };
             /** @description Validation Error */

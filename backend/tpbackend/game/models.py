@@ -12,7 +12,6 @@ class API_Game(BaseModel):
     id: int
     name: str
     sgdb_id: int | None
-    sgdb_grid_id: int | None
     igdb_id: int | None
     steam_id: int | None
     image_url: str | None
@@ -29,7 +28,6 @@ class API_Game(BaseModel):
             id=game.id,
             name=game.name,
             sgdb_id=game.sgdb_id,
-            sgdb_grid_id=game.sgdb_grid_id,
             igdb_id=game.igdb_id,
             steam_id=game.steam_id,
             image_url=game.image_url,
@@ -51,7 +49,6 @@ class API_GameWithStats(API_Game):
             id=game.id,
             name=game.name,
             sgdb_id=game.sgdb_id,
-            sgdb_grid_id=game.sgdb_grid_id,
             igdb_id=game.igdb_id,
             steam_id=game.steam_id,
             image_url=game.image_url,

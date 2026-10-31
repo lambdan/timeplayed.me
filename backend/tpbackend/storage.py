@@ -365,7 +365,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
 
     name = CharField()
     sgdb_id = IntegerField(null=True, default=None)
-    sgdb_grid_id = IntegerField(null=True, default=None)
     igdb_id = IntegerField(null=True, default=None)
     steam_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
@@ -420,24 +419,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         old_sgdb_id = self.get_sgdb_id()
         self.sgdb_id = cast(IntegerField, sgdb_id)
         self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
-
-    def get_sgdb_grid_id(self) -> int | None:
-        """
-        Get SGDB grid ID (or parents)
-        """
-        if self.sgdb_grid_id:
-            return cast(int, self.sgdb_grid_id)
-        parent = self.get_parent()
-        if parent:
-            return parent.get_sgdb_grid_id()
-        return None
-
-    def set_sgdb_grid_id(self, sgdb_grid_id: int | None):
-        old_sgdb_grid_id = self.get_sgdb_grid_id()
-        self.sgdb_grid_id = cast(IntegerField, sgdb_grid_id)
-        self.add_history(
-            f"SGDB grid ID changed from '{old_sgdb_grid_id}' to '{sgdb_grid_id}'"
-        )
 
     def get_igdb_id(self) -> int | None:
         """

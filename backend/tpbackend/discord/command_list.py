@@ -29,7 +29,6 @@ from .commands.set_sgdb_id_admin import SetSGDBIDAdminCommand
 from .commands.start_manual import StartManualCommand
 from .commands.stop_manual import StopManualCommand
 from .commands.list_platforms import ListPlatformsCommand
-from .commands.set_sgdb_grid_id_admin import SetSGDBGridIDAdminCommand
 from .commands.add_game_alias_admin import AddGameAliasAdminCommand
 from .commands.delete_game_alias_admin import DeleteGameAliasAdminCommand
 from .commands.set_game_release_year_admin import SetGameReleaseYearAdminCommand
@@ -92,7 +91,6 @@ ADMIN_COMMANDS = [
     AddGameAdminCommand(),
     # sgdb
     SetSGDBIDAdminCommand(),
-    SetSGDBGridIDAdminCommand(),
     AutoSGDBAdminCommand(),
     MissingSGDBAdminCommand(),
     # igdb

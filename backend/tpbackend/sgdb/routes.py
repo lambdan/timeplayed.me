@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .models import SGDB_Grid
-from .controller import available, get_grids, get_best_grid, get_grid
+from .controller import available, get_grids, get_best_grid
 from tpbackend.api.responses import not_found, service_unavailable
 
 router = APIRouter()
@@ -31,18 +31,3 @@ def sgdb_grids(sgdb_game_id: int) -> list[SGDB_Grid] | None:
     if not available():
         return service_unavailable("SteamGridDB is not enabled")
     return get_grids(sgdb_game_id)
-
-
-@router.get(
-    "/{sgdb_game_id}/grids/{grid_id}",
-    tags=["SteamGridDB"],
-    response_model=SGDB_Grid,
-    description="Gets a grid by ID for a game from SteamGridDB",
-)
-def sgdb_grid_by_id(sgdb_game_id: int, grid_id: int) -> SGDB_Grid:
-    if not available():
-        return service_unavailable("SteamGridDB is not enabled")
-    grid = get_grid(game_id=sgdb_game_id, grid_id=grid_id)
-    if grid:
-        return grid
-    return not_found("Could not find grid with that ID for that game")

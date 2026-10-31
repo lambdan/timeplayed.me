@@ -31,7 +31,7 @@ async function getGameCoverData(
   gameId: number,
   thumbnail = false,
 ): Promise<GameCoverData> {
-  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData4`;
+  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData5`;
 
   async function test(
     gameId: number,
@@ -60,8 +60,17 @@ async function getGameCoverData(
       return ret(grid.url!);
     }
 
+    /** a source failing (like a grid removed from SGDB) shouldn't stop us from trying the next one */
+    async function orUndefined<T>(promise: Promise<T>): Promise<T | undefined> {
+      try {
+        return await promise;
+      } catch {
+        return undefined;
+      }
+    }
+
     async function getBest(id: number) {
-      const best = await TimeplayedAPI.getBestSGDBGridForGame(id);
+      const best = await orUndefined(TimeplayedAPI.getBestSGDBGridForGame(id));
       if (best) {
         return fromGrid(best);
       }
@@ -109,28 +118,11 @@ async function getGameCoverData(
         };
       }
 
-      // direct sgdb grid id?
-      if (gameData.sgdb_id && gameData.sgdb_grid_id) {
-        const grid = await TimeplayedAPI.getGrid(
-          gameData.sgdb_id,
-          gameData.sgdb_grid_id,
-        );
-        if (grid) {
-          return fromGrid(grid);
-        }
-      }
-
-      // sgdb auto?
-      if (gameData.sgdb_id) {
-        const best = await getBest(gameData.sgdb_id);
-        if (best) {
-          return best;
-        }
-      }
-
       // igdb?
       if (gameData.igdb_id) {
-        const igdbInfo = await TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id);
+        const igdbInfo = await orUndefined(
+          TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id),
+        );
         if (igdbInfo && igdbInfo.cover) {
           const size = thumbnail ? "t_thumb" : "t_cover_big";
           const imageUrl = `https://images.igdb.com/igdb/image/upload/${size}/${igdbInfo.cover.image_id}.jpg`;
@@ -140,6 +132,14 @@ async function getGameCoverData(
             sourceUrl: igdbInfo.url,
             credits: `IGDB cover image ID: ${igdbInfo.cover.image_id}`,
           };
+        }
+      }
+
+      // sgdb as fallback
+      if (gameData.sgdb_id) {
+        const best = await getBest(gameData.sgdb_id);
+        if (best) {
+          return best;
         }
       }
 

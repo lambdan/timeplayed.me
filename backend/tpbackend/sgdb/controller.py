@@ -170,15 +170,3 @@ def get_best_grid(game_id: int) -> SGDB_Grid | None:
             best_lang = lang
 
     return best_grid
-
-
-def get_grid(game_id: int, grid_id: int) -> SGDB_Grid | None:
-    grids = get_grids(game_id)
-    if not grids:
-        return None
-
-    for grid in grids:
-        if grid.id == grid_id:
-            return grid
-
-    return None

@@ -449,39 +449,6 @@ export class TimeplayedAPI {
     return data;
   } */
 
-  static async getGrid(
-    sgdb_game_id: number,
-    grid_id: number,
-  ): Promise<
-    paths["/sgdb/{sgdb_game_id}/grids/{grid_id}"]["get"]["responses"]["200"]["content"]["application/json"]
-  > {
-    const key = `api_getGrid_${sgdb_game_id}_${grid_id}`;
-    const cached =
-      getSessionCache<
-        paths["/sgdb/{sgdb_game_id}/grids/{grid_id}"]["get"]["responses"]["200"]["content"]["application/json"]
-      >(key);
-    if (cached) {
-      return cached;
-    }
-    const { data, error } = await this.client.GET(
-      "/sgdb/{sgdb_game_id}/grids/{grid_id}",
-      {
-        params: {
-          path: {
-            sgdb_game_id,
-            grid_id,
-          },
-        },
-      },
-    );
-    if (error) {
-      console.error("Error fetching grid:", error);
-      throw error;
-    }
-    storeSessionCache(key, data);
-    return data;
-  }
-
   ////////////////// CHART /////////////////////
   static async getChartsPlaytimeByDay(
     query: paths["/charts/playtime/by_day"]["get"]["parameters"]["query"],

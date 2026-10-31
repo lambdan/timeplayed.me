@@ -260,26 +260,7 @@ onMounted(async () => {
                       </td>
                     </tr>
 
-                    <tr v-if="game.sgdb_id && game.sgdb_grid_id">
-                      <td><b>SteamGridDB Game ID/Grid ID:</b></td>
-                      <td>
-                        <a
-                          :href="
-                            'https://www.steamgriddb.com/game/' + game.sgdb_id
-                          "
-                          >{{ game.sgdb_id }}</a
-                        >
-                        /
-                        <a
-                          :href="
-                            'https://www.steamgriddb.com/grid/' +
-                            game.sgdb_grid_id
-                          "
-                          >{{ game.sgdb_grid_id }}</a
-                        >
-                      </td>
-                    </tr>
-                    <tr v-else-if="game.sgdb_id">
+                    <tr v-if="game.sgdb_id">
                       <td><b>SteamGridDB Game ID:</b></td>
                       <td>
                         <a

@@ -8,7 +8,6 @@ class TestSGDBDisabled:
     def test_grids_unavailable(self, api):
         assert api.get("/sgdb/1/grids").status_code == 503
         assert api.get("/sgdb/1/grids/best").status_code == 503
-        assert api.get("/sgdb/1/grids/2").status_code == 503
 
 
 class TestIGDBDisabled:

@@ -188,7 +188,6 @@ def merge_games(source: Game, target: Game) -> int:
         # the setters add history, so it's visible what came from the merge
         for field, setter in [
             ("sgdb_id", target.set_sgdb_id),
-            ("sgdb_grid_id", target.set_sgdb_grid_id),
             ("image_url", target.set_image_url),
             ("release_year", target.set_release_year),
         ]:
