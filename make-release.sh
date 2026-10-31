@@ -84,4 +84,4 @@ if [ $NEW_BACKEND -eq 1 ]; then
   git tag "$TAG"
 fi
 
-git push --tags
+git push origin main --tags
