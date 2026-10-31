@@ -3,56 +3,56 @@ from tpbackend.discord.commands.token_revoke_all import TokenRevokeAllCommand
 from .commands.add_activity import AddActivityCommand
 from .commands.add_game_sgdb import AddGameSGDBCommand
 from .commands.add_game_admin import AddGameAdminCommand
-from .commands.add_platform import AddPlatformCommand
+from .commands.add_platform_admin import AddPlatformAdminCommand
 from .commands.delete_activity import DeleteActivityCommand
-from .commands.delete_game import DeleteGameCommand
-from .commands.delete_platform import DeletePlatformCommand
+from .commands.delete_game_admin import DeleteGameAdminCommand
+from .commands.delete_platform_admin import DeletePlatformAdminCommand
 from .commands.get_activity import GetActivityCommand
-from .commands.get_cache_stats import GetCacheStats
+from .commands.get_cache_stats_admin import GetCacheStatsAdminCommand
 from .commands.get_game import GetGameCommand
 from .commands.last import LastActivityCommand
-from .commands.permission_add import AddPermissionCommand
-from .commands.permission_remove import RemovePermissionCommand
-from .commands.refresh_search import RefreshSearch
+from .commands.permission_add_admin import AddPermissionAdminCommand
+from .commands.permission_remove_admin import RemovePermissionAdminCommand
+from .commands.refresh_search_admin import RefreshSearchAdminCommand
 from .commands.search_games import SearchGamesCommand
 from .commands.set_default_platform import SetDefaultPlatformCommand
 from .commands.set_game import SetGameCommand
-from .commands.set_game_image import SetGameImageCommand
+from .commands.set_game_image_admin import SetGameImageAdminCommand
 from .commands.igdb_missing_admin import MissingIGDBAdminCommand
-from .commands.igdb_set_id import SetIGDBIDCommand
+from .commands.igdb_set_id_admin import SetIGDBIDAdminCommand
 from .commands.igdb_add_game import AddGameIGDBCommand
-from .commands.igdb_auto import AutoIGDBAdminCommand
+from .commands.igdb_auto_admin import AutoIGDBAdminCommand
 from .commands.set_pc_platform import SetPCPlatformCommand
 from .commands.set_platform import SetPlatformCommand
-from .commands.set_platform_name import SetPlatformNameCommand
-from .commands.set_sgdb_id import SetSGDBIDCommand
+from .commands.set_platform_name_admin import SetPlatformNameAdminCommand
+from .commands.set_sgdb_id_admin import SetSGDBIDAdminCommand
 from .commands.start_manual import StartManualCommand
 from .commands.stop_manual import StopManualCommand
 from .commands.list_platforms import ListPlatformsCommand
-from .commands.set_sgdb_grid_id import SetSGDBGridIDCommand
-from .commands.add_game_alias import AddGameAliasCommand
-from .commands.delete_game_alias import DeleteGameAliasCommand
-from .commands.set_game_release_year import SetGameReleaseYearCommand
+from .commands.set_sgdb_grid_id_admin import SetSGDBGridIDAdminCommand
+from .commands.add_game_alias_admin import AddGameAliasAdminCommand
+from .commands.delete_game_alias_admin import DeleteGameAliasAdminCommand
+from .commands.set_game_release_year_admin import SetGameReleaseYearAdminCommand
 from .commands.search_users import SearchUsersCommand
-from .commands.uptime import UptimeCommand
+from .commands.uptime_admin import UptimeAdminCommand
 from .commands.set_game_admin import SetGameAdminCommand
 from .commands.delete_activity_admin import DeleteActivityAdminCommand
 from .commands.abort_manual import AbortManualCommand
 from .commands.time_manual import TimeManualCommand
 from .commands.missing_sgdb_admin import MissingSGDBAdminCommand
 from .commands.search_sgdb import SearchSGDBCommand
-from .commands.auto_sgdb import AutoSGDBAdminCommand
+from .commands.auto_sgdb_admin import AutoSGDBAdminCommand
 from .commands.games_without_activity_admin import GamesWithoutActivityAdminCommand
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
 from .commands.merge_game_admin import MergeGameAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
-from .commands.missing_cover import MissingCoverAdminCommand
-from .commands.set_platform_colors import SetPlatformColorsCommand
+from .commands.missing_cover_admin import MissingCoverAdminCommand
+from .commands.set_platform_colors_admin import SetPlatformColorsAdminCommand
 from .commands.get_platform import GetPlatformCommand
-from .commands.set_platform_icon import SetPlatformIconCommand
-from .commands.hide_game import HideGameCommand
-from .commands.set_parent import SetParentCommand
+from .commands.set_platform_icon_admin import SetPlatformIconAdminCommand
+from .commands.hide_game_admin import HideGameAdminCommand
+from .commands.set_parent_admin import SetParentAdminCommand
 from .commands.igdb_search import SearchIGDBCommand
 
 REGULAR_COMMANDS = [
@@ -91,44 +91,44 @@ ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
     # sgdb
-    SetSGDBIDCommand(),
-    SetSGDBGridIDCommand(),
+    SetSGDBIDAdminCommand(),
+    SetSGDBGridIDAdminCommand(),
     AutoSGDBAdminCommand(),
     MissingSGDBAdminCommand(),
     # igdb
-    SetIGDBIDCommand(),
+    SetIGDBIDAdminCommand(),
     MissingIGDBAdminCommand(),
     AutoIGDBAdminCommand(),
     # manual game
-    SetGameImageCommand(),
-    SetGameReleaseYearCommand(),
+    SetGameImageAdminCommand(),
+    SetGameReleaseYearAdminCommand(),
     # platform mgmt
-    AddPlatformCommand(),
-    SetPlatformNameCommand(),
-    SetPlatformColorsCommand(),
-    SetPlatformIconCommand(),
-    DeletePlatformCommand(),
+    AddPlatformAdminCommand(),
+    SetPlatformNameAdminCommand(),
+    SetPlatformColorsAdminCommand(),
+    SetPlatformIconAdminCommand(),
+    DeletePlatformAdminCommand(),
     # game mgmt
-    AddGameAliasCommand(),
-    DeleteGameAliasCommand(),
-    DeleteGameCommand(),
+    AddGameAliasAdminCommand(),
+    DeleteGameAliasAdminCommand(),
+    DeleteGameAdminCommand(),
     GamesWithoutActivityAdminCommand(),
-    HideGameCommand(),
-    SetParentCommand(),
+    HideGameAdminCommand(),
+    SetParentAdminCommand(),
     # user mgmt
     SearchUsersCommand(),
-    AddPermissionCommand(),
-    RemovePermissionCommand(),
+    AddPermissionAdminCommand(),
+    RemovePermissionAdminCommand(),
     SetGameAdminCommand(),
     MoveGameAdminCommand(),
     MergeGameAdminCommand(),
     DeleteActivityAdminCommand(),
     # misc
-    UptimeCommand(),
+    UptimeAdminCommand(),
     MissingCoverAdminCommand(),
     MissingGRYAdminCommand(),
-    GetCacheStats(),
-    RefreshSearch(),
+    GetCacheStatsAdminCommand(),
+    RefreshSearchAdminCommand(),
 ]
 
 used = set()

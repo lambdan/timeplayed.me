@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class SetParentCommand(AdminCommand):
+class SetParentAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_parent"]
         d = "Set parent ID for game"

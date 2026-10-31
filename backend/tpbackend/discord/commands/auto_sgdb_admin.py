@@ -1,9 +1,8 @@
-import datetime
 from tpbackend.game.select import GameSelect
 from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
 from tpbackend.storage import User
-from .set_sgdb_id import SetSGDBIDCommand
+from .set_sgdb_id_admin import SetSGDBIDAdminCommand
 from tpbackend.sgdb.controller import search
 
 
@@ -39,6 +38,6 @@ class AutoSGDBAdminCommand(AdminCommand):
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."
             return out
 
-        return SetSGDBIDCommand().execute(
+        return SetSGDBIDAdminCommand().execute(
             user, f"{game_id} {best_match.id}"
         )  # HAAAAAAAX

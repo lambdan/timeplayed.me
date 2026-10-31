@@ -3,9 +3,10 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 from tpbackend.storage import Game
 from tpbackend.sgdb.controller import get_game_by_id
+from .external_game import adopt_name
 
 
-class SetSGDBIDCommand(AdminCommand):
+class SetSGDBIDAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_sgdb_id", "set_sgdb", "sgdb"]
         d = "Set SGDB ID for game"
@@ -47,28 +48,17 @@ class SetSGDBIDCommand(AdminCommand):
         if not sgdb_game.name:
             return f"Error: SGDB game with id {sgdb_id} has no name."
 
-        out = ""
-        # check name mismatch
-        if sgdb_game.name != game.name:
-            out += "⚠️ Name mismatch!"
-            out += f"\n- Our name: `{game.name}`"
-            out += f"\n- SGDB name: `{sgdb_game.name}`"
-            # maybe we can add SGDB name as an alias?
-            if sgdb_game.name not in game.aliases:
-                # check if any other game has that name or alias
-                aliased_game = GameSelect.by_name_or_alias(sgdb_game.name)
-                if aliased_game and aliased_game.id != game.id:  # type: ignore
-                    out += f"\n OTHER GAME HAS SGDB NAME AS NAME OR ALIAS: '{aliased_game.get_label()}' (id: {aliased_game.id})"  # type: ignore
-                    out += "\n - ABORTING!"
-                    return out
-                old_name = game.get_name()
-                game.set_name(sgdb_game.name)
-                game.add_alias(old_name)
-                out += "\n- Replaced name with SGDB name and added old name as alias"
-            out += "\n"
+        out, conflict = adopt_name(game, sgdb_game.name, "SGDB")
+        if conflict:
+            return out + "\n - ABORTING!"
 
-        game.set_release_year(sgdb_game.release_date and sgdb_game.release_date.year)
+        if sgdb_game.release_date:
+            year = sgdb_game.release_date.year
+            if year != game.get_release_year():
+                game.set_release_year(year)
+                out += f"- Release year set to {year}\n"
+
         game.set_sgdb_id(sgdb_id)
         game.save()
-        out += f"OK, SGDB ID updated for *{game.name}*"
+        out += f"OK, SGDB ID updated for *{game.get_label()}*"
         return out

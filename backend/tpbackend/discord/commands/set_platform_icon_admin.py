@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import Platform_or_none, User
 
 
-class SetPlatformIconCommand(AdminCommand):
+class SetPlatformIconAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_platform_icon", "spi"]
         d = "Set platform icon"

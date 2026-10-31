@@ -3,7 +3,7 @@ from tpbackend.storage import User
 from .admin_command import AdminCommand
 
 
-class GetCacheStats(AdminCommand):
+class GetCacheStatsAdminCommand(AdminCommand):
     def __init__(self):
         names = ["get_cache_stats", "gcs"]
         super().__init__(names=names, description="Get cache stats")

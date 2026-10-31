@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class AddGameAliasCommand(AdminCommand):
+class AddGameAliasAdminCommand(AdminCommand):
     def __init__(self):
         names = ["add_game_alias", "aga"]
         d = "Add game alias"

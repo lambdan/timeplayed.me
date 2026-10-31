@@ -6,6 +6,7 @@ from peewee import (
     fn,
     Case,
 )
+from tpbackend.common.query import sort_by
 from tpbackend.storage import User, Activity
 
 logger = logging.getLogger("user_query")
@@ -32,10 +33,7 @@ class UserQuery:
 
     @staticmethod
     def apply_sort(query, sort, order):
-        column = UserQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+        return sort_by(query, UserQuery.SORTS[sort], order)
 
     @staticmethod
     def search(query, search: str):
@@ -102,7 +100,4 @@ class UserStatsQuery:
 
     @staticmethod
     def apply_sort(query, sort, order):
-        column = UserStatsQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+        return sort_by(query, UserStatsQuery.SORTS[sort], order)

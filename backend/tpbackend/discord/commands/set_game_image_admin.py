@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class SetGameImageCommand(AdminCommand):
+class SetGameImageAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_game_image_url", "sgiu", "dc"]
         d = "Set game image by url (link to an image)"

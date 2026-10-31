@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import Platform, User
 
 
-class DeletePlatformCommand(AdminCommand):
+class DeletePlatformAdminCommand(AdminCommand):
     def __init__(self):
         names = ["delete_platform", "del_platform", "remove_platform"]
         d = "Delete platform"

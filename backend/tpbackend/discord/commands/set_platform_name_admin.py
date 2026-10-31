@@ -3,7 +3,7 @@ from tpbackend.storage import Platform_or_none, User
 from tpbackend.platform.utils import display_name
 
 
-class SetPlatformNameCommand(AdminCommand):
+class SetPlatformNameAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_platform_name", "spn"]
         d = "Set platform name"

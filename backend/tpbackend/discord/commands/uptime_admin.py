@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 import datetime
 
 
-class UptimeCommand(AdminCommand):
+class UptimeAdminCommand(AdminCommand):
     started = datetime.datetime.now()
 
     def __init__(self):

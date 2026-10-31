@@ -6,6 +6,7 @@ from peewee import (
     fn,
     Case,
 )
+from tpbackend.common.query import sort_by
 from tpbackend.storage import Activity, Game
 
 logger = logging.getLogger("game_query")
@@ -35,15 +36,8 @@ class GameQuery:
         return query.where(Game.id.in_(game_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort,
-        order,
-    ):
-        column = GameQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+    def apply_sort(query, sort, order):
+        return sort_by(query, GameQuery.SORTS[sort], order)
 
     @staticmethod
     def search(query, search: str):
@@ -124,12 +118,5 @@ class GameStatsQuery:
         return query.where(Game.id.in_(game_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort,
-        order,
-    ):
-        column = GameStatsQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+    def apply_sort(query, sort, order):
+        return sort_by(query, GameStatsQuery.SORTS[sort], order)

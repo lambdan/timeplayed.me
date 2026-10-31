@@ -6,6 +6,7 @@ from peewee import (
     fn,
     Case,
 )
+from tpbackend.common.query import sort_by
 from tpbackend.storage import Activity, Platform
 
 logger = logging.getLogger("platform_query")
@@ -32,10 +33,7 @@ class PlatformQuery:
 
     @staticmethod
     def apply_sort(query, sort, order):
-        column = PlatformQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+        return sort_by(query, PlatformQuery.SORTS[sort], order)
 
     @staticmethod
     def search(query, search: str):
@@ -101,12 +99,5 @@ class PlatformStatsQuery:
         return query.where(Platform.id.in_(platform_ids))  # type: ignore
 
     @staticmethod
-    def apply_sort(
-        query,
-        sort,
-        order,
-    ):
-        column = PlatformStatsQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc(nulls="LAST"))
-        return query.order_by(column.asc(nulls="LAST"))
+    def apply_sort(query, sort, order):
+        return sort_by(query, PlatformStatsQuery.SORTS[sort], order)

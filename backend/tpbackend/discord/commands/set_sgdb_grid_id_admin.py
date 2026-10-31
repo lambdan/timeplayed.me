@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class SetSGDBGridIDCommand(AdminCommand):
+class SetSGDBGridIDAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_grid_id", "sgid"]
         d = "Set SGDB Grid ID for game"

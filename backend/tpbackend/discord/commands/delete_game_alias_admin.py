@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class DeleteGameAliasCommand(AdminCommand):
+class DeleteGameAliasAdminCommand(AdminCommand):
     def __init__(self):
         names = ["delete_game_alias", "dga", "remove_game_alias", "rga"]
         d = "Delete game alias"

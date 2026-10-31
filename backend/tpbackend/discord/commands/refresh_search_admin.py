@@ -2,7 +2,7 @@ from tpbackend.storage import Platform, User, Game
 from .admin_command import AdminCommand
 
 
-class RefreshSearch(AdminCommand):
+class RefreshSearchAdminCommand(AdminCommand):
     def __init__(self):
         names = ["refs", "rs"]
         d = "Refresh all search columns"

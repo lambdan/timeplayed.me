@@ -2,6 +2,7 @@ import datetime
 import logging
 from typing import Literal
 
+from tpbackend.common.query import sort_by
 from tpbackend.storage import Activity, User, Game, Platform
 from tpbackend.utils2 import assertTimezone, validateTS, ts_to_dt
 
@@ -23,10 +24,7 @@ class ActivityQuery:
 
     @staticmethod
     def apply_sort(query, sort, order):
-        column = ActivityQuery.SORTS[sort]
-        if order == "desc":
-            return query.order_by(column.desc())
-        return query.order_by(column.asc())
+        return sort_by(query, ActivityQuery.SORTS[sort], order)
 
     @staticmethod
     def id(query, activity_id: int):

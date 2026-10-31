@@ -1,5 +1,4 @@
-import datetime
-from tpbackend.discord.commands.igdb_set_id import SetIGDBIDCommand
+from tpbackend.discord.commands.igdb_set_id_admin import SetIGDBIDAdminCommand
 from tpbackend.game.select import GameSelect
 from tpbackend.igdb.controller import search_game
 from tpbackend.utils2 import ts_to_dt
@@ -21,9 +20,6 @@ class AutoIGDBAdminCommand(AdminCommand):
         if not game:
             return f"Error: Game with id {game_id} not found."
 
-        q = game.get_name()
-        if game.get_release_year():
-            q += f" {game.get_release_year()}"
         igdb_games = search_game(query=game.get_name())
         if len(igdb_games) == 0:
             return "Error: no IGDB games found"
@@ -40,4 +36,6 @@ class AutoIGDBAdminCommand(AdminCommand):
             out += "If this is correct, run the command again with `y` at the end to confirm."
             return out
 
-        return SetIGDBIDCommand().execute(user, f"{game_id} {best_match.id}")  # haaax
+        return SetIGDBIDAdminCommand().execute(
+            user, f"{game_id} {best_match.id}"
+        )  # haaax

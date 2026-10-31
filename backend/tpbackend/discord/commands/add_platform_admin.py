@@ -2,7 +2,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import Platform, Platform_or_none, User
 
 
-class AddPlatformCommand(AdminCommand):
+class AddPlatformAdminCommand(AdminCommand):
     def __init__(self):
         names = ["add_platform", "ap"]
         d = "Add new platform"

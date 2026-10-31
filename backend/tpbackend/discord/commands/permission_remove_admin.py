@@ -2,7 +2,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User, User_or_none
 
 
-class RemovePermissionCommand(AdminCommand):
+class RemovePermissionAdminCommand(AdminCommand):
     def __init__(self):
         names = ["remove_permission", "permission_remove", "rpe"]
         d = "Remove a permission from user"

@@ -5,9 +5,10 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 from tpbackend.storage import Game
 from .merge_game_admin import merge_and_report, merge_preview
+from .external_game import adopt_name
 
 
-class SetIGDBIDCommand(AdminCommand):
+class SetIGDBIDAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_igdb_id", "set_igdb", "igdb"]
         d = "Set IGDB ID for game"
@@ -50,27 +51,9 @@ If another game already has that IGDB ID, this game gets merged into it: all its
         if not igdb_game.name:
             return f"Error: IGDB game with id {igdb_id} has no name."
 
-        out = ""
-        # check name mismatch
-        if igdb_game.name != game.name:
-            out += "⚠️ Name mismatch!"
-            out += f"\n- Our name: `{game.name}`"
-            out += f"\n- IGDB name: `{igdb_game.name}`"
-            # maybe we can add IGDB name as an alias?
-            if igdb_game.name not in game.aliases:
-                # check if any other game has that name or alias
-                aliased_game = GameSelect.by_name_or_alias(igdb_game.name)
-                if aliased_game and aliased_game.id != game.id:  # type: ignore
-                    out += f"\n OTHER GAME HAS IGDB NAME AS NAME OR ALIAS: '{aliased_game.get_label()}' (id: {aliased_game.id})"  # type: ignore
-                    out += "\n - NOT UPDATING NAME!"
-                else:
-                    old_name = game.get_name()
-                    game.set_name(igdb_game.name)
-                    game.add_alias(old_name)
-                    out += (
-                        "\n- Replaced name with IGDB name and added old name as alias"
-                    )
-            out += "\n"
+        out, conflict = adopt_name(game, igdb_game.name, "IGDB")
+        if conflict:
+            out += "\n - NOT UPDATING NAME!\n"
 
         if igdb_game.first_release_date:
             dt = ts_to_dt(igdb_game.first_release_date)

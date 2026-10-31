@@ -4,7 +4,7 @@ from tpbackend.storage import User
 from tpbackend.storage import Game
 
 
-class SetGameReleaseYearCommand(AdminCommand):
+class SetGameReleaseYearAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_game_release_year", "sgry"]
         d = "Set game release year"

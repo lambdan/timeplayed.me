@@ -4,7 +4,7 @@ from .admin_command import AdminCommand
 from typing import cast
 
 
-class HideGameCommand(AdminCommand):
+class HideGameAdminCommand(AdminCommand):
     def __init__(self):
         names = ["hide_game", "hg"]
         d = "Toggle hidden state of game"

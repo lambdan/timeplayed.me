@@ -5,7 +5,7 @@ from tpbackend.permissions import ALL_PERMISSIONS
 VALID_PERMISSIONS_STR = ", ".join(ALL_PERMISSIONS)
 
 
-class AddPermissionCommand(AdminCommand):
+class AddPermissionAdminCommand(AdminCommand):
     def __init__(self):
         names = ["add_permission", "permission_add", "ape"]
         d = "Add a permission to user"

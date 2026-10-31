@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import Platform_or_none, User
 
 
-class SetPlatformColorsCommand(AdminCommand):
+class SetPlatformColorsAdminCommand(AdminCommand):
     def __init__(self):
         names = ["set_platform_colors", "spc"]
         d = "Set platform colors"

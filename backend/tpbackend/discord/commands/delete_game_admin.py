@@ -4,7 +4,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 
 
-class DeleteGameCommand(AdminCommand):
+class DeleteGameAdminCommand(AdminCommand):
     def __init__(self):
         names = ["delete_game", "del_game", "remove_game"]
         d = "Delete game"
