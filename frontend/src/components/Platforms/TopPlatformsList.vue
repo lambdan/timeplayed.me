@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { Game, PlatformWithStats } from "../../api.models";
+import type { Game, PlatformWithStats, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { formatDuration } from "../../utils";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 
 // compact ranked list of the most played platforms in a date range, one section of the "most played" cards
 const props = withDefaults(
-  defineProps<{ game?: Game; after?: Date; before?: Date; limit?: number }>(),
+  defineProps<{
+    game?: Game;
+    user?: User;
+    after?: Date;
+    before?: Date;
+    limit?: number;
+  }>(),
   { limit: 10 },
 );
 
@@ -16,12 +22,13 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.game, props.after, props.before],
+  () => [props.game, props.user, props.after, props.before],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getPlatformsStats({
       game: props.game?.id,
+      user: props.user?.id,
       after: props.after?.getTime(),
       before: props.before?.getTime(),
       limit: props.limit,

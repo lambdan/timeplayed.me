@@ -1,108 +1,83 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import GameListCard from "../components/Games/GameListCard.vue";
+import { useRoute } from "vue-router";
 import UserInfoCard from "../components/UserInfoCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
-import { useRoute } from "vue-router";
-import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
-import PlatformTable from "../components/Platforms/PlatformTable.vue";
+import TopGamesList from "../components/Games/TopGamesList.vue";
+import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
+import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
+import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import { getRecapYear, updateDocumentTitle } from "../utils";
+import { updateDocumentTitle } from "../utils";
 
 const route = useRoute();
-const apiUser = ref<UserWithStats>();
-
-const recapYear = ref(getRecapYear());
-
-// Toggle state for cards (activity, playtime, games, platforms)
-const showActivity = ref(true);
-const showPlaytime = ref(false);
-const showGames = ref(false);
-const showPlatforms = ref(false);
-
-function toggleCard(card: "activity" | "playtime" | "games" | "platforms") {
-  showActivity.value = card === "activity";
-  showPlaytime.value = card === "playtime";
-  showGames.value = card === "games";
-  showPlatforms.value = card === "platforms";
-}
+const user = ref<UserWithStats>();
+// date range for the top lists next to recent activity, set by their picker
+const topAfter = ref<Date>();
+const topBefore = ref<Date>();
+// lists wait for the pickers first range
+const topReady = ref(false);
 
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
-  apiUser.value = await TimeplayedAPI.getUserStats(+userId);
-  if (apiUser.value) {
-    updateDocumentTitle(apiUser.value.display_name);
-  }
+  user.value = await TimeplayedAPI.getUserStats(userId);
+  updateDocumentTitle(user.value.display_name);
 });
 </script>
 
 <template>
-  <UserInfoCard class="mb-4" v-if="apiUser" :user="apiUser" />
-  <div class="mb-3 d-flex justify-content-center gap-2" v-if="apiUser">
-    <button
-      class="btn btn-outline-primary"
-      :class="{ active: showActivity }"
-      @click="toggleCard('activity')"
-    >
-      Activity
-    </button>
-    <button
-      class="btn btn-outline-primary"
-      :class="{ active: showPlaytime }"
-      @click="toggleCard('playtime')"
-    >
-      Chart
-    </button>
-    <button
-      class="btn btn-outline-primary"
-      :class="{ active: showGames }"
-      @click="toggleCard('games')"
-    >
-      Games
-    </button>
+  <div v-if="!user" class="text-center mt-4">
+    <div class="spinner-border" role="status"></div>
+  </div>
 
-    <button
-      class="btn btn-outline-primary"
-      :class="{ active: showPlatforms }"
-      @click="toggleCard('platforms')"
-    >
-      Platforms
-    </button>
-    <a :href="`/user/${route.params.id}/recap/${recapYear}`" v-if="recapYear">
-      <button class="btn btn-success">Recap {{ recapYear }}</button>
-    </a>
-  </div>
-  <RecentActivityCard
-    v-if="apiUser && showActivity"
-    :user="apiUser"
-    :showExpand="true"
-    class="mb-4"
-  />
-  <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlaytime">
-    <h1 class="card-header">Playtime</h1>
-    <PlaytimeChart :user="apiUser" />
-  </div>
-  <GameListCard
-    v-if="apiUser && showGames"
-    class="mb-4"
-    :showExpand="false"
-    :limit="10"
-    :order="'desc'"
-    :sort="'playtime'"
-    :user="apiUser"
-    :showDateRange="true"
-  ></GameListCard>
-  <div class="card mt-4 p-0 mb-4" v-if="apiUser && showPlatforms">
-    <h1 class="card-header">Platforms</h1>
-    <div class="card-body">
-      <PlatformTable
-        :user="apiUser"
-        :sort="'playtime'"
-        :order="'desc'"
-        :showLastPlayed="false"
-        :showDateRange="true"
-      />
+  <template v-else>
+    <div class="row">
+      <div class="col-12 p-0 mt-4">
+        <UserInfoCard :user="user" />
+      </div>
     </div>
-  </div>
+
+    <!-- recent activity, and what they played the most next to it -->
+    <div class="row mt-4">
+      <div class="col-lg-8 p-0 pe-lg-4">
+        <RecentActivityCard :user="user" :limit="12" />
+      </div>
+      <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+        <!-- one card, the picker applies to everything in it -->
+        <div class="card p-0">
+          <h2 class="card-header">Top lists</h2>
+          <div class="card-body d-flex flex-column gap-4">
+            <DateRangerPicker
+              storageKey="top"
+              :relativeMillis="-1"
+              @updated:both="
+                ({ before, after }) => {
+                  topBefore = before;
+                  topAfter = after;
+                  topReady = true;
+                }
+              "
+            />
+            <template v-if="topReady">
+              <TopGamesList
+                :user="user"
+                :after="topAfter"
+                :before="topBefore"
+                :limit="10"
+              />
+              <TopPlatformsList
+                :user="user"
+                :after="topAfter"
+                :before="topBefore"
+                :limit="10"
+              />
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <PlaytimeCharts class="mb-4" :user="user" />
+  </template>
 </template>

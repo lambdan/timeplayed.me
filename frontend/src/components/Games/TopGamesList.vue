@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { GameWithStats, Platform } from "../../api.models";
+import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { formatDuration } from "../../utils";
 import CroppedCover from "./CroppedCover.vue";
@@ -9,6 +9,7 @@ import CroppedCover from "./CroppedCover.vue";
 const props = withDefaults(
   defineProps<{
     platform?: Platform;
+    user?: User;
     after?: Date;
     before?: Date;
     limit?: number;
@@ -21,12 +22,13 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.platform, props.after, props.before],
+  () => [props.platform, props.user, props.after, props.before],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getGamesStats({
       platform: props.platform?.id,
+      user: props.user?.id,
       after: props.after?.getTime(),
       before: props.before?.getTime(),
       limit: props.limit,

@@ -1,98 +1,96 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { formatDate, timeAgo, formatDuration } from "../utils";
+import { formatDuration, getRecapYear } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { UserWithStats } from "../api.models";
 import CalendarBasic from "./CalendarBasic.vue";
+import PlatformBadge from "./Badges/PlatformBadge.vue";
+import { useLookups } from "../composables/useLookups";
 
-const props = defineProps<{ user: UserWithStats }>();
-const _userWithStats = ref<UserWithStats>(props.user);
+defineProps<{ user: UserWithStats }>();
 
-onMounted(async () => {});
+const lookups = useLookups();
+
+const recapYear = getRecapYear();
 </script>
 
 <template>
   <div class="card p-0">
-    <h1 class="card-header">
-      {{ user.display_name }}
-      <!-- <span class="text-muted d-block" style="font-size: 0.5em">
-        {{ user.name }}
-      </span> -->
+    <h1 class="card-header d-flex align-items-center gap-2">
+      <span class="me-auto">{{ user.display_name }}</span>
+      <a
+        v-if="recapYear"
+        :href="`/user/${user.id}/recap/${recapYear}`"
+        class="btn btn-success"
+        >Recap {{ recapYear }}</a
+      >
     </h1>
     <div class="card-body">
-      <div class="row">
-        <div class="col mb-4">
-          <DiscordAvatar :user="user" :maxWidth="300"></DiscordAvatar>
+      <div class="row g-3">
+        <div class="col-12 col-sm-auto text-center">
+          <DiscordAvatar :user="user" :maxWidth="200" />
         </div>
-
-        <div class="col mb-4">
-          <table class="table table-responsive table-hover">
+        <div class="col">
+          <table class="table table-sm table-hover mb-0">
             <tbody>
+              <!-- the display name is in the header already -->
+              <tr v-if="user.name !== user.display_name">
+                <th class="text-nowrap">Username</th>
+                <td class="text-break">{{ user.name }}</td>
+              </tr>
               <tr>
+                <th class="text-nowrap">Playtime</th>
+                <td>{{ formatDuration(user.stats.seconds) }}</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Activities</th>
+                <td>{{ user.stats.activity_count }}</td>
+              </tr>
+              <tr v-if="user.stats.activity_count > 0">
+                <th class="text-nowrap">Average session</th>
                 <td>
-                  <b>Username:</b>
-                </td>
-                <td>
-                  {{ user.name }}
+                  {{
+                    formatDuration(
+                      user.stats.seconds / user.stats.activity_count,
+                    )
+                  }}
                 </td>
               </tr>
               <tr>
-                <td><b>First played:</b></td>
+                <th class="text-nowrap">Games</th>
+                <td>{{ user.stats.game_count }}</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap">Platforms</th>
+                <td>{{ user.stats.platform_count }}</td>
+              </tr>
+              <tr v-if="lookups.platform(user.default_platform_id)">
+                <th class="text-nowrap">Default platform</th>
+                <td>
+                  <PlatformBadge
+                    :platform="lookups.platform(user.default_platform_id)!"
+                  />
+                </td>
+              </tr>
+              <tr v-if="user.stats.first_activity">
+                <th class="text-nowrap">First played</th>
                 <td>
                   <CalendarBasic
-                    :date="_userWithStats.stats.first_activity"
+                    :date="user.stats.first_activity"
                     :absolute="true"
                     :showIcon="false"
                   />
                 </td>
               </tr>
-              <tr>
-                <td><b>Last played:</b></td>
+              <tr v-if="user.stats.last_activity">
+                <th class="text-nowrap">Last played</th>
                 <td>
                   <CalendarBasic
-                    :date="_userWithStats.stats.last_activity"
+                    :date="user.stats.last_activity"
                     :absolute="true"
                     :showIcon="false"
                   />
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="col mb-4">
-          <table class="table table-responsive table-hover">
-            <tbody>
-              <tr>
-                <td><b>Games played:</b></td>
-                <td>{{ _userWithStats.stats.game_count }}</td>
-              </tr>
-              <tr>
-                <td><b>Platforms played on:</b></td>
-                <td>{{ _userWithStats.stats.platform_count }}</td>
-              </tr>
-              <tr>
-                <td><b>Total playtime:</b></td>
-                <td>{{ formatDuration(_userWithStats.stats.seconds) }}</td>
-              </tr>
-              <tr>
-                <td><b>Activity count:</b></td>
-                <td>{{ _userWithStats.stats.activity_count }}</td>
-              </tr>
-              <!--
-              <tr>
-                <td><b>Average playtime/game:</b></td>
-                <td>{{ formatDuration(stats?.average.seconds_per_game) }}</td>
-              </tr>
-              <tr>
-                <td><b>Average sessions/game:</b></td>
-                <td>{{ stats?.average.sessions_per_game.toFixed(0) }}</td>
-              </tr>
-              <tr>
-                <td><b>Average session length:</b></td>
-                <td>{{ formatDuration(stats?.average.session_length) }}</td>
-              </tr>
-              -->
             </tbody>
           </table>
         </div>
