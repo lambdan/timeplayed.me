@@ -10,6 +10,8 @@ const props = withDefaults(
   defineProps<{
     game?: Game;
     user?: User;
+    /** only platforms with names matching this */
+    search?: string;
     after?: Date;
     before?: Date;
     limit?: number;
@@ -22,13 +24,14 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.game, props.user, props.after, props.before],
+  () => [props.game, props.user, props.search, props.after, props.before],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getPlatformsStats({
       game: props.game?.id,
       user: props.user?.id,
+      search: props.search || undefined,
       after: props.after?.getTime(),
       before: props.before?.getTime(),
       limit: props.limit,
@@ -54,7 +57,7 @@ watch(
       v-else-if="!platforms.length"
       class="text-body-secondary text-center mb-0"
     >
-      Nothing played
+      {{ search ? "No matches" : "Nothing played" }}
     </p>
     <table v-else class="table table-sm table-hover align-middle mb-0">
       <tbody>

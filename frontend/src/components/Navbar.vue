@@ -32,19 +32,10 @@ const { authenticatedUser, logoutSession } = useAuthenticatedUser();
               ><i class="bi bi-newspaper"></i> News</a
             >
           </li>
+          <!-- users, games and platforms are reached through browse -->
           <li class="nav-item">
-            <a class="nav-link" href="/users"
-              ><i class="bi bi-people-fill"></i> Users</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/games"
-              ><i class="bi bi-joystick"></i> Games</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/platforms"
-              ><i class="bi bi-controller"></i> Platforms</a
+            <a class="nav-link" href="/browse"
+              ><i class="bi bi-search"></i> Browse</a
             >
           </li>
           <li class="nav-item">

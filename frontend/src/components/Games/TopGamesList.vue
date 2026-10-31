@@ -10,6 +10,8 @@ const props = withDefaults(
   defineProps<{
     platform?: Platform;
     user?: User;
+    /** only games with names matching this */
+    search?: string;
     after?: Date;
     before?: Date;
     limit?: number;
@@ -22,13 +24,14 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.platform, props.user, props.after, props.before],
+  () => [props.platform, props.user, props.search, props.after, props.before],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getGamesStats({
       platform: props.platform?.id,
       user: props.user?.id,
+      search: props.search || undefined,
       after: props.after?.getTime(),
       before: props.before?.getTime(),
       limit: props.limit,
@@ -50,7 +53,7 @@ watch(
       <div class="spinner-border spinner-border-sm" role="status"></div>
     </div>
     <p v-else-if="!games.length" class="text-body-secondary text-center mb-0">
-      Nothing played
+      {{ search ? "No matches" : "Nothing played" }}
     </p>
     <table v-else class="table table-sm table-hover align-middle mb-0">
       <tbody>

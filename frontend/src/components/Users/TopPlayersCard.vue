@@ -17,6 +17,8 @@ const props = defineProps<{
   before?: Date;
   /** only show the top x */
   limit?: number;
+  /** only users with names matching this */
+  search?: string;
 }>();
 
 const _users = ref<UserWithStats[]>([]);
@@ -32,7 +34,7 @@ const shown = computed(() =>
 
 // in compact mode the range comes from the page instead of our own picker
 watch(
-  () => [props.compact, props.after, props.before],
+  () => [props.compact, props.search, props.after, props.before],
   () => {
     if (!props.compact) return;
     _after.value = props.after;
@@ -56,6 +58,7 @@ async function fetchTheThings() {
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
       platform: props.platform ? props.platform.id : undefined,
+      search: props.search || undefined,
       order: "desc",
       sort: "playtime",
     });
@@ -143,7 +146,7 @@ const showLastPlayed = computed(
         </tbody>
       </table>
       <p v-if="!_loading && _users.length === 0" class="text-muted text-center">
-        Nothing found
+        {{ search ? "No matches" : "Nothing found" }}
       </p>
     </div>
   </div>
