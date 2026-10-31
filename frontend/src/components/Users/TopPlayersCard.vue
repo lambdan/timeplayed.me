@@ -74,9 +74,9 @@ async function fetchTheThings() {
   _loading.value = false;
 }
 
-// last played is useful on platform pages, and only makes sense for all time
+// last played is useful on platform pages, and only makes sense for all time. no room for it in the compact list
 const showLastPlayed = computed(
-  () => !!props.platform && _after.value === undefined,
+  () => !props.compact && !!props.platform && _after.value === undefined,
 );
 </script>
 

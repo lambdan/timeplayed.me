@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { GameWithStats } from "../../api.models";
+import type { GameWithStats, Platform } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { formatDuration } from "../../utils";
 import CroppedCover from "./CroppedCover.vue";
 
-// compact ranked list of the most played games in a date range, one section of the "most played" card on the front page
+// compact ranked list of the most played games in a date range, one section of the "most played" cards
 const props = withDefaults(
-  defineProps<{ after?: Date; before?: Date; limit?: number }>(),
+  defineProps<{
+    platform?: Platform;
+    after?: Date;
+    before?: Date;
+    limit?: number;
+  }>(),
   { limit: 10 },
 );
 
@@ -16,11 +21,12 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.after, props.before],
+  () => [props.platform, props.after, props.before],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getGamesStats({
+      platform: props.platform?.id,
       after: props.after?.getTime(),
       before: props.before?.getTime(),
       limit: props.limit,
