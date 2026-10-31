@@ -10,6 +10,8 @@ from .storage import (
     Game,
     Platform,
     Activity,
+    LiveActivity,
+    db,
 )
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 
@@ -139,3 +141,63 @@ def add_session(
     except Exception as e:
         logger.error("Failed to add session for user %s: %s", user.id, e)
         return None, e
+
+
+def merge_games(source: Game, target: Game) -> int:
+    """
+    Merges source into target: moves all activities (all users), live activities and
+    child games over, keeps sources name and aliases as aliases, then deletes source.
+    Returns how many activities were moved.
+    """
+    if source.get_id() == target.get_id():
+        raise ValueError("Cannot merge a game into itself")
+
+    # all or nothing, a half merged game would be a mess to clean up
+    with db.atomic():
+        activities = list(Activity.select().where(Activity.game == source))  # type: ignore
+        for act in activities:
+            act.set_game(target)
+            act.save()
+
+        LiveActivity.update(game=target).where(LiveActivity.game == source).execute()  # type: ignore
+
+        for child in source.get_children(recursive=False):
+            # target can be a child of source, its parent is cleared when source is deleted
+            if child.get_id() != target.get_id():
+                child.set_parent(target)
+                child.save()
+
+        # keep anything target is missing. steam_id is unique, so clear it from source first
+        if source.steam_id and not target.steam_id:
+            steam_id = source.steam_id
+            source.set_steam_id(None)
+            source.save()
+            target.set_steam_id(steam_id)  # type: ignore
+        # the setters add history, so it's visible what came from the merge
+        for field, setter in [
+            ("sgdb_id", target.set_sgdb_id),
+            ("sgdb_grid_id", target.set_sgdb_grid_id),
+            ("image_url", target.set_image_url),
+            ("release_year", target.set_release_year),
+        ]:
+            if getattr(source, field) and not getattr(target, field):
+                setter(getattr(source, field))
+
+        for alias in [source.get_name(), *source.get_aliases()]:
+            if alias != target.get_name():
+                target.add_alias(alias)
+        target.add_history(
+            f"Merged in '{source.get_name()}' ({source.get_id()}), {len(activities)} activities"
+        )
+        target.save()
+
+        logger.info(
+            "Merged game %s '%s' into %s '%s' (%s activities)",
+            source.get_id(),
+            source.get_name(),
+            target.get_id(),
+            target.get_name(),
+            len(activities),
+        )
+        source.delete_instance()
+    return len(activities)

@@ -3,20 +3,26 @@ from tpbackend.igdb.controller import get_game_info
 from tpbackend.utils2 import ts_to_dt
 from .admin_command import AdminCommand
 from tpbackend.storage import User
-from tpbackend.storage import Game
+from tpbackend.storage import Activity, Game
+from tpbackend.operations import merge_games
 
 
 class SetIGDBIDCommand(AdminCommand):
     def __init__(self):
         names = ["set_igdb_id", "set_igdb", "igdb"]
         d = "Set IGDB ID for game"
-        h = "!igdb <game_id> <igdb_id|null>"
+        h = """
+Usage: `!igdb <game_id> <igdb_id|null>`
+
+If another game already has that IGDB ID, this game gets merged into it: all its activities are moved over, its name is kept as an alias, and it's deleted (you'll be asked to confirm first).
+        """
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
         splitted = msg.split(" ")
-        if len(splitted) != 2:
+        if len(splitted) not in (2, 3):
             return f"Invalid syntax. See `!help {self.names[0]}` for help."
+        confirmed = len(splitted) == 3 and splitted[2].strip().lower() == "y"
         game_id = splitted[0].strip()
         igdb_id = None
         if splitted[1].strip().lower() != "null":
@@ -30,10 +36,20 @@ class SetIGDBIDCommand(AdminCommand):
             game.save()
             return f"{game.name} - IGDB ID set to: {game.igdb_id}"
 
-        # any game that already has this igdb_id?
+        # another game already has this igdb_id: it's the same game, merge into that one
         existing_game = Game.get_or_none(Game.igdb_id == igdb_id)
         if existing_game and existing_game.id != game.id:
-            return f"Error: IGDB ID {igdb_id} is already assigned to '{existing_game.name}' (id: {existing_game.id})"  # type: ignore
+            if not confirmed:
+                count = Activity.select().where(Activity.game == game).count()  # type: ignore
+                return (
+                    f"IGDB ID {igdb_id} already belongs to *{existing_game.name}* (id: {existing_game.id}).\n"
+                    f"This will merge *{game.name}* (id: {game.id}) into it: {count} activities are moved, "
+                    f"`{game.name}` is added as an alias and game {game.id} is deleted.\n"
+                    f"Run the command again with `y` at the end to confirm."
+                )
+            name = game.get_name()
+            moved = merge_games(game, existing_game)
+            return f"Merged *{name}* into *{existing_game.name}* ({moved} activities moved, `{name}` added as alias)"
 
         # get info from igdb
         igdb_game = get_game_info(igdb_id)
