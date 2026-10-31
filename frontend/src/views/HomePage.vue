@@ -1,44 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
 import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
-import PlaytimeChart from "../components/Charts/PlaytimeChart.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
-import type { Totals } from "../api.models";
-import { TimeplayedAPI } from "../api.client";
 import { getRecapYear } from "../utils";
 
-const globalStats = ref<Totals>();
-const fetching = ref(false);
 const recapYear = ref(getRecapYear());
 // date range for the top lists next to recent activity, set by their picker
 const topAfter = ref<Date>();
 const topBefore = ref<Date>();
 // lists wait for the pickers first range, otherwise they'd fetch all time first
 const topReady = ref(false);
-
-onMounted(async () => {
-  fetching.value = true;
-  const data = await TimeplayedAPI.getTotals();
-
-  fetching.value = false;
-  globalStats.value = data;
-  // keep refreshing
-  setInterval(async () => {
-    fetching.value = true;
-    const data = await TimeplayedAPI.getTotals();
-    globalStats.value = data;
-    await new Promise((r) => setTimeout(r, 500));
-    fetching.value = false;
-  }, 5000);
-});
 </script>
 
 <template>
   <div class="row">
-    <div class="col-lg-8 p-0 pe-lg-4 mt-4">
+    <div class="col-12 p-0 mt-4">
       <div class="card h-100 p-0">
         <h1 class="card-header">Playtime Tracker</h1>
 
@@ -99,62 +78,12 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div class="col-lg-4 p-0 mt-4">
-      <div class="card h-100 p-0">
-        <h1 class="card-header">
-          Totals
-
-          <span
-            v-if="fetching"
-            class="spinner-border spinner-border-sm float-end mt-3"
-            role="status"
-            aria-hidden="true"
-          ></span>
-        </h1>
-        <div class="card-body">
-          <ul class="list-group list-group-flush" v-if="globalStats">
-            <li class="list-group-item py-1 px-2">
-              <span class="fw-bold float-start" title="ah ah he said it"
-                >Time played</span
-              >
-              <span class="float-end"
-                >{{ (globalStats.seconds / 3600).toFixed(0) }} hours<br />
-              </span>
-            </li>
-
-            <li class="list-group-item py-1 px-2">
-              <span class="fw-bold float-start">Activity count</span>
-              <span class="float-end">{{ globalStats.activity_count }}</span>
-            </li>
-
-            <li class="list-group-item py-1 px-2">
-              <span class="fw-bold float-start">Users</span>
-              <span class="float-end">{{ globalStats.user_count }}</span>
-            </li>
-
-            <li class="list-group-item py-1 px-2">
-              <span class="fw-bold float-start">Games</span>
-              <span class="float-end">{{ globalStats.game_count }}</span>
-            </li>
-
-            <li class="list-group-item py-1 px-2">
-              <span class="fw-bold float-start">Platforms</span>
-              <span class="float-end">{{ globalStats.platform_count }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row mt-4">
-    <PlaytimeChart class="card p-0" />
   </div>
 
   <!-- recent activity, and what's been played the most lately next to it -->
   <div class="row mt-4 mb-4">
     <div class="col-lg-8 p-0 pe-lg-4">
-      <RecentActivityCard />
+      <RecentActivityCard :limit="25" />
     </div>
     <div class="col-lg-4 p-0 mt-4 mt-lg-0">
       <!-- one card, the picker applies to everything in it -->

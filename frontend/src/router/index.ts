@@ -10,6 +10,7 @@ import GamePage from "../views/GamePage.vue";
 import PlatformPage from "../views/PlatformPage.vue";
 import YearRecapUser from "../views/YearRecapUser.vue";
 import HelpPage from "../views/HelpPage.vue";
+import StatsPage from "../views/StatsPage.vue";
 import ActivityPage from "../views/ActivityPage.vue";
 import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
@@ -21,6 +22,7 @@ const routes: RouteRecordRaw[] = [
 
   { path: "/", component: HomePage, meta: { title: "Home" } },
   { path: "/news", component: NewsPage, meta: { title: "News" } },
+  { path: "/stats", component: StatsPage, meta: { title: "Stats" } },
   { path: "/help", component: HelpPage, meta: { title: "Help" } },
   {
     path: "/authenticate",

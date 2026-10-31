@@ -21,7 +21,7 @@ const { authenticatedUser, logoutSession } = useAuthenticatedUser();
       </button>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav gap-2">
+        <ul class="navbar-nav gap-1">
           <li class="nav-item">
             <a class="nav-link" href="/">
               <i class="bi bi-house-fill"></i> Home</a
@@ -45,6 +45,11 @@ const { authenticatedUser, logoutSession } = useAuthenticatedUser();
           <li class="nav-item">
             <a class="nav-link" href="/platforms"
               ><i class="bi bi-controller"></i> Platforms</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/stats"
+              ><i class="bi bi-bar-chart-fill"></i> Stats</a
             >
           </li>
           <li class="nav-item">
