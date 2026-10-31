@@ -1,2 +1,2 @@
--- needed if updraging from < 4.6.0
-DROP INDEX game_name;
+-- remove the option to pin a specific SGDB grid
+ALTER TABLE game DROP COLUMN sgdb_grid_id;

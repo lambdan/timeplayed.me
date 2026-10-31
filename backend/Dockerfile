@@ -13,6 +13,7 @@ RUN python -m venv .venv && \
   .venv/bin/pip install -r requirements.txt
 
 COPY tpbackend /app/tpbackend
+COPY evolutions /app/evolutions
 
 ENV PATH="/app/.venv/bin:$PATH"
 

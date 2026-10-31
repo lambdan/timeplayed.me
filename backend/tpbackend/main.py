@@ -9,6 +9,7 @@ from tpbackend.globals import (
     SGDB_ENABLED,
 )
 from tpbackend.storage import db, clean_loop
+from tpbackend import evolutions
 import tpbackend.api.api as api
 import logging
 
@@ -44,6 +45,7 @@ async def async_main():
 
 def main():
     log_integrations()
+    evolutions.apply(db.database, **db.connect_params)
     if OBLIVIONIS_ENABLED:
         oblivionis_storage.connect_db()
     db.connect()

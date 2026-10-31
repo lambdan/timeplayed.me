@@ -13,7 +13,6 @@ services:
       TIMEPLAYED_DB: storage_v2
     volumes:
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
-      - ../evolutions:/evolutions:ro
     tmpfs:
       - /var/lib/postgresql/data
     ports:

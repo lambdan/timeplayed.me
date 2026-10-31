@@ -23,11 +23,20 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 - `make test`: unit tests in `tpbackend/` (`*_test.py`), no dependencies.
 - `make e2e`: e2e tests in `e2e/`. Spins up a fresh postgres and the backend (without Discord, SGDB and IGDB) in docker, runs the tests against the API, then tears everything down. Use `make e2e-up`, `pytest e2e` and `make e2e-down` to iterate without restarting every time.
 
-# Fresh database
+# Evolutions
 
-`evolutions/` only contains migrations from older schemas, so a fresh install starts from `evolutions/baseline-<n>.sql` (full schema as of evolution `n`), then applies evolutions numbered higher than `n`. `e2e/init-db.sh` does exactly that and can be mounted in `/docker-entrypoint-initdb.d` of the postgres image.
+The backend applies the database migrations in `evolutions/` when it starts. Applied ones are recorded in the `evolutions` table, so each `<n>.sql` only runs once, in order, each in its own transaction. If one fails, the backend doesn't start.
 
-When adding a new evolution, nothing needs to change, it gets applied on top of the baseline. The baseline can be regenerated at some point with `pg_dump --schema-only --no-owner --no-privileges` and renamed to the newest evolution number.
+To change the schema, add the next `<n>.sql` and restart the backend.
+
+## Upgrading from pre-automatic-evolutions
+
+A database from before evolutions were applied automatically has no `evolutions` table, so the backend tries to apply `1.sql` (which is every evolution up to 2026-10-31), which fails on the existing tables (and is rolled back). Tell it once which evolution the database is at:
+
+```sql
+CREATE TABLE IF NOT EXISTS evolutions (id integer PRIMARY KEY, applied timestamptz NOT NULL DEFAULT now());
+INSERT INTO evolutions (id) VALUES (1);
+```
 
 # Restore backup
 
