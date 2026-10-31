@@ -37,11 +37,7 @@ const shown = () => props.seconds ?? props.activity.seconds;
       />
     </td>
     <td v-if="showGame" class="d-none d-md-table-cell" style="width: 50px">
-      <CroppedCover
-        :gameId="activity.game_id"
-        :thumb="true"
-        style="width: 32px"
-      />
+      <CroppedCover :gameId="activity.game_id" style="width: 32px" />
     </td>
     <td v-if="showGame" class="w-100 text-break">
       <a

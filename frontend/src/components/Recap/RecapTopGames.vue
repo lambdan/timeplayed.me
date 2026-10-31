@@ -46,7 +46,7 @@ function average(game: RecapGame): string {
   <!-- #5-#10 -->
   <div class="row row-cols-3 row-cols-md-6 g-3 mt-0" v-if="rest.length">
     <div v-for="(game, i) in rest" :key="game.game_id">
-      <CroppedCover :gameId="game.game_id" :thumb="true" />
+      <CroppedCover :gameId="game.game_id" />
       <div class="small mt-1 text-truncate">
         <span class="text-body-secondary me-1">#{{ i + 5 }}</span>
         <a

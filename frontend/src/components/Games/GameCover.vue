@@ -6,13 +6,11 @@ import { TimeplayedAPI } from "../../api.client";
 const props = withDefaults(
   defineProps<{
     gameId: number;
-    thumb?: boolean;
     clickable?: boolean;
     maxHeight?: number;
     maxWidth?: number;
   }>(),
   {
-    thumb: false,
     clickable: true,
     maxWidth: 0,
     maxHeight: 400,
@@ -27,16 +25,10 @@ const creditsText = ref("...");
 const sourceUrl = ref<string>();
 
 /** this is a clusterfuck */
-async function getGameCoverData(
-  gameId: number,
-  thumbnail = false,
-): Promise<GameCoverData> {
-  const key = `gameCover_${gameId}_${thumbnail}_GameCoverData5`;
+async function getGameCoverData(gameId: number): Promise<GameCoverData> {
+  const key = `gameCover_${gameId}_GameCoverData8`;
 
-  async function test(
-    gameId: number,
-    thumbnail: boolean,
-  ): Promise<GameCoverData | undefined> {
+  async function test(gameId: number): Promise<GameCoverData | undefined> {
     function getFromSessionStorage() {
       const stored = sessionStorage.getItem(key);
       if (stored) {
@@ -53,9 +45,6 @@ async function getGameCoverData(
           source: "SteamGridDB",
           credits: `Grid: ${grid.id}, Author: ${grid.author?.name}`,
         };
-      }
-      if (grid.thumb && thumbnail) {
-        return ret(grid.thumb);
       }
       return ret(grid.url!);
     }
@@ -124,7 +113,7 @@ async function getGameCoverData(
           TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id),
         );
         if (igdbInfo && igdbInfo.cover) {
-          const size = thumbnail ? "t_thumb" : "t_cover_big";
+          const size = "t_cover_big";
           const imageUrl = `https://images.igdb.com/igdb/image/upload/${size}/${igdbInfo.cover.image_id}.jpg`;
           return {
             imageUrl,
@@ -145,7 +134,7 @@ async function getGameCoverData(
 
       // parent?
       if (gameData.parent_id) {
-        return getGameCoverData(gameData.parent_id, thumbnail);
+        return getGameCoverData(gameData.parent_id);
       }
 
       return undefined;
@@ -154,13 +143,13 @@ async function getGameCoverData(
       sessionStorage.setItem(key + "_loading", "false");
     }
   }
-  const coverData = await test(gameId, thumbnail);
+  const coverData = await test(gameId);
   if (coverData) {
     sessionStorage.setItem(key, JSON.stringify(coverData));
     return coverData;
   }
   // fallback to placeholder
-  const size = thumbnail ? "267x400" : "600x900";
+  const size = "600x900";
   return {
     imageUrl: `https://placehold.co/${size}?text=No+cover+art\\n...yet`,
     source: "None",
@@ -168,7 +157,7 @@ async function getGameCoverData(
 }
 
 onMounted(async () => {
-  coverData.value = await getGameCoverData(props.gameId, props.thumb);
+  coverData.value = await getGameCoverData(props.gameId);
   imageUrl.value = coverData.value.imageUrl;
 
   sourceUrl.value = coverData.value.sourceUrl;

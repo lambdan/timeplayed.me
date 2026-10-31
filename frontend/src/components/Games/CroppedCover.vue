@@ -2,7 +2,7 @@
 import GameCover from "./GameCover.vue";
 
 // GameCover cropped to a 2:3 box, so covers line up regardless of source
-defineProps<{ gameId: number; thumb?: boolean }>();
+defineProps<{ gameId: number }>();
 </script>
 
 <template>
@@ -10,7 +10,7 @@ defineProps<{ gameId: number; thumb?: boolean }>();
     class="rounded overflow-hidden bg-body-secondary"
     style="aspect-ratio: 2 / 3"
   >
-    <GameCover :gameId="gameId" :thumb="thumb" :maxHeight="0" />
+    <GameCover :gameId="gameId" :maxHeight="0" />
   </div>
 </template>
 

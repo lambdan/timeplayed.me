@@ -60,7 +60,7 @@ watch(
         <tr v-for="(game, i) in games" :key="game.id">
           <td class="text-body-secondary" style="width: 1%">{{ i + 1 }}</td>
           <td style="width: 40px">
-            <CroppedCover :gameId="game.id" :thumb="true" style="width: 28px" />
+            <CroppedCover :gameId="game.id" style="width: 28px" />
           </td>
           <td class="text-break">
             <a

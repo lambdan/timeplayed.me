@@ -75,12 +75,7 @@ onMounted(async () => {
     <div class="card-body">
       <div class="row g-3">
         <div class="col-12 col-sm-auto text-center">
-          <GameCover
-            :gameId="game.id"
-            :thumb="false"
-            :clickable="false"
-            :maxHeight="300"
-          />
+          <GameCover :gameId="game.id" :clickable="false" :maxHeight="300" />
         </div>
         <div class="col">
           <table v-if="gameWithStats" class="table table-sm table-hover mb-0">
