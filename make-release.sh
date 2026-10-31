@@ -84,4 +84,4 @@ if [ $NEW_BACKEND -eq 1 ]; then
   git tag "$TAG"
 fi
 
-echo "Done! Remember to push (and the tags!)"
+git push --tags
