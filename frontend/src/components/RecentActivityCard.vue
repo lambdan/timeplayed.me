@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import type { Activity, Game, User } from "../api.models";
+import type { Activity, Game, Platform, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import DateRangerPicker from "./Misc/DateRangerPicker.vue";
 import CalendarBasic from "./CalendarBasic.vue";
@@ -10,6 +10,7 @@ const props = withDefaults(
   defineProps<{
     user?: User;
     game?: Game;
+    platform?: Platform;
     limit?: number;
     showExpand?: boolean;
     showDateRange?: boolean;
@@ -18,6 +19,7 @@ const props = withDefaults(
     showExpand: false,
     user: undefined,
     game: undefined,
+    platform: undefined,
   },
 );
 
@@ -42,6 +44,7 @@ async function fetchActivities(limit?: number) {
     offset: activities.value.length,
     game: props.game ? props.game.id : undefined,
     user: props.user ? props.user.id : undefined,
+    platform: props.platform ? props.platform.id : undefined,
     before: _before.value ? _before.value.getTime() : Date.now(),
     after: _after.value ? _after.value.getTime() : undefined,
   });
@@ -70,6 +73,7 @@ async function autoRefresh() {
       offset: 0,
       game: props.game ? props.game.id : undefined,
       user: props.user ? props.user.id : undefined,
+      platform: props.platform ? props.platform.id : undefined,
       after: lastCheck,
       order: "desc",
     });
@@ -116,7 +120,7 @@ onMounted(async () => {
         aria-hidden="true"
       ></span>
     </h2>
-    <div class="card-body">
+    <div class="card-body px-2 px-md-3">
       <DateRangerPicker
         v-if="props.showDateRange"
         class="mb-2"
@@ -140,6 +144,7 @@ onMounted(async () => {
             :activity="a"
             :showUser="!user"
             :showGame="!game"
+            :showPlatform="!platform"
           >
             <!-- muted, the badges are the main thing. shorter on phones -->
             <CalendarBasic

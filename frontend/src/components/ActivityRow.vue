@@ -15,10 +15,12 @@ const props = withDefaults(
     showUser?: boolean;
     /** hide on the games own page */
     showGame?: boolean;
+    /** hide on the platforms own page */
+    showPlatform?: boolean;
     /** duration to show, if not the whole activity (like the part played on one day) */
     seconds?: number;
   }>(),
-  { showUser: true, showGame: true },
+  { showUser: true, showGame: true, showPlatform: true },
 );
 
 const lookups = useLookups();
@@ -48,8 +50,16 @@ const shown = () => props.seconds ?? props.activity.seconds;
         >{{ lookups.game(activity.game_id)?.name }}</a
       >
     </td>
+    <!-- without the game (on its own page) there's room for the name of who played -->
+    <td v-else-if="showUser" class="w-100 text-break">
+      <a
+        :href="`/user/${activity.user_id}`"
+        class="link-underline link-underline-opacity-0"
+        >{{ lookups.user(activity.user_id)?.display_name }}</a
+      >
+    </td>
     <!-- width 1% = only as wide as the content, so these stay together at the end -->
-    <td class="d-none d-md-table-cell" style="width: 1%">
+    <td v-if="showPlatform" class="d-none d-md-table-cell" style="width: 1%">
       <PlatformBadge
         v-if="lookups.platform(activity.platform_id)"
         :platform="lookups.platform(activity.platform_id)!"

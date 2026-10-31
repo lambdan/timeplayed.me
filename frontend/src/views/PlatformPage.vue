@@ -6,6 +6,7 @@ import { TimeplayedAPI } from "../api.client";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import GameListCard from "../components/Games/GameListCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
+import RecentActivityCard from "../components/RecentActivityCard.vue";
 import { formatDuration, iso8601Date, updateDocumentTitle } from "../utils";
 import CalendarBasic from "../components/CalendarBasic.vue";
 
@@ -35,7 +36,7 @@ onMounted(async () => {
     <h1 class="card-header">
       {{ platform.display_name }}
     </h1>
-    <div class="card-body">
+    <div class="card-body px-1 px-md-3">
       <PlatformBadge :platform="platform" class="p-2 mt-4" />
 
       <table class="table table-responsive table-hover p-2 mt-4">
@@ -96,6 +97,13 @@ onMounted(async () => {
       ></GameListCard>
 
       <TopPlayersCard v-if="platform" :platform="platform"></TopPlayersCard>
+
+      <RecentActivityCard
+        v-if="platform"
+        class="mt-4"
+        :platform="platform"
+        :limit="5"
+      />
     </div>
   </div>
 </template>
