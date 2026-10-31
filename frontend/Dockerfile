@@ -2,7 +2,9 @@
 # builder #
 ###########
 
-FROM node:26 AS builder
+# the build output is plain html/js/css, so build it once on the native platform
+# instead of again under emulation for every target platform
+FROM --platform=$BUILDPLATFORM node:26 AS builder
 WORKDIR /app
 # install dependencies
 # (only copy in package.json so we don't bust cache on src changes)
