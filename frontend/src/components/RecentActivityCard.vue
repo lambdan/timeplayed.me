@@ -54,6 +54,8 @@ async function fetchActivities(limit?: number) {
     createdAt: new Date(activity.timestamp),
   }));
   activities.value.push(...newActivities);
+  // fewer than we asked for (the api gives 100 without a limit) means that was the last of them
+  hasMore.value = data.length >= (limit ?? 100);
   loading.value = false;
   sortByRecent();
 
