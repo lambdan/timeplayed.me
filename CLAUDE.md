@@ -15,3 +15,9 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 - In general, try to show as much info as possible, if it makes sense:
     - Eg, on a game page, its redundant to show game cover and game name in the activity rows, because it will be at the top of the page. But on the front page or platform page, we should show game cover/name if there's room for it, as it won't be anywhere else on the page.
     - On mobile (small screens) remove less important stuff
+- Always prefer readable, maintainable code over fancy code
+    - Python ternaries (`x if cond else y`) are OK when both values are simple and the condition is short, so it reads like a sentence: `state = "hidden" if game.get_hidden() else "visible"`
+    - Otherwise use a normal `if` block, e.g. when the values are real expressions (`parts[1].strip().lower() if len(parts) > 1 else ""`), ternaries are chained, or the ternary is inside an f-string or function call
+    - JS/TS ternaries (`a ? b : c`) are fine
+
+    
