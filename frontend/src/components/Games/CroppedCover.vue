@@ -22,6 +22,13 @@ defineProps<{ gameId: number }>();
   display: block !important;
   width: 100%;
   height: 100%;
-  object-fit: scale-down;
+  object-fit: contain;
+}
+
+/* Safari ignores height: 100% on the img, so it would render at its natural height */
+:deep(img) {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

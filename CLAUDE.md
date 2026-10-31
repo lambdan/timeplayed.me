@@ -12,6 +12,8 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 - Avoid custom CSS as much as possible. We don't want to maintain that. Just use plain HTML or Bootstrap or whatever framework we use has to offer. 
 - The site is primarily developed for desktop usage. However, it should still be browsable and have no layout issues on mobile.
     - Especially the manual tracking page has to work good on mobile, as that is primarily where it will most likely be used
+- Site should be 100% compatible and look correct on Chromium based browsers, Safari (WebKit) and Firefox
+    - Safari is particularily important on mobile
 - In general, try to show as much info as possible, if it makes sense:
     - Eg, on a game page, its redundant to show game cover and game name in the activity rows, because it will be at the top of the page. But on the front page or platform page, we should show game cover/name if there's room for it, as it won't be anywhere else on the page.
     - On mobile (small screens) remove less important stuff
