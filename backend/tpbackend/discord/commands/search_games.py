@@ -43,7 +43,10 @@ Returns: list of game id's and names matching the query
         for game in games:
             game = cast(Game, game)
             count += 1
-            out += f"- {md_game_link(game)} ({game.get_id()}) {"🙈" if game.get_hidden() else ""}\n"  # type: ignore
+            out += f"- {md_game_link(game)} ({game.get_id()})"
+            if game.get_hidden():
+                out += " 🙈"
+            out += "\n"
             if count >= 15 or len(out) >= 666:
                 break
         msg = ""

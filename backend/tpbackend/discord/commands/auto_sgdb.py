@@ -31,8 +31,9 @@ class AutoSGDBAdminCommand(AdminCommand):
         #    return "Best matching SGDB ID is already set!"
 
         if not confirmed:
-            rd = ts_to_dt(best_match.release_date) if best_match.release_date else None
-            year = rd.year if rd else "?"
+            year = "?"
+            if best_match.release_date:
+                year = ts_to_dt(best_match.release_date).year
             out = ""
             out += f"Best SGDB match for '{game.get_label()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += "\nIf this is correct, run the command again with `y` at the end to confirm."

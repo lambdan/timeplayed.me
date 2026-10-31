@@ -24,8 +24,8 @@ Returns: list of IGDB id's, names and years matching the query
             return "No games found on IGDB"
         msg = ""
         for result in igdb_results:
-            rd_ts = result.first_release_date
-            rd = ts_to_dt(rd_ts) if rd_ts else None
-            year = rd.year if rd else "?"
+            year = "?"
+            if result.first_release_date:
+                year = ts_to_dt(result.first_release_date).year
             msg += f"- **{result.id}** - [{result.name}]({result.url}) ({year})\n"
         return msg.strip()

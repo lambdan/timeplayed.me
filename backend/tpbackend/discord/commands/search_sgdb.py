@@ -29,8 +29,9 @@ Returns: list of SGDB id's, names and years matching the query
             count += 1
             # convert timestamp to year
             # SGDB release_date is milliseconds, but a float...
-            rd = ts_to_dt(int(result.release_date)) if result.release_date else None
-            year = rd.year if rd else "?"
+            year = "?"
+            if result.release_date:
+                year = ts_to_dt(int(result.release_date)).year
             out += f"- **{result.id}** - {result.name} ({year}) \n"
             # out += f"- **{result.id}** - [{result.name}](https://www.steamgriddb.com/game/{result.id}) ({year}) \n"
             if len(out) > 1337:

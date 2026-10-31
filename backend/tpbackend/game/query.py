@@ -41,9 +41,9 @@ class GameQuery:
         order,
     ):
         column = GameQuery.SORTS[sort]
-        return query.order_by(
-            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
-        )
+        if order == "desc":
+            return query.order_by(column.desc(nulls="LAST"))
+        return query.order_by(column.asc(nulls="LAST"))
 
     @staticmethod
     def search(query, search: str):
@@ -130,6 +130,6 @@ class GameStatsQuery:
         order,
     ):
         column = GameStatsQuery.SORTS[sort]
-        return query.order_by(
-            column.desc(nulls="LAST") if order == "desc" else column.asc(nulls="LAST")
-        )
+        if order == "desc":
+            return query.order_by(column.desc(nulls="LAST"))
+        return query.order_by(column.asc(nulls="LAST"))

@@ -20,7 +20,10 @@ class GetPlatformCommand(Command):
         msg += f"{md_platform_link(platform)}\n"
         msg += f"- ID: {platform.id}\n"  # type: ignore
         msg += f"- Abbreviation: {platform.abbreviation}\n"
-        msg += f"- Name: {'not set' if platform.name is None else platform.name}\n"
+        name = platform.name
+        if name is None:
+            name = "not set"
+        msg += f"- Name: {name}\n"
         msg += f"- Created: {js_iso(platform.get_created())}\n"
         msg += f"- Updated: {js_iso(platform.get_updated())}\n"
 

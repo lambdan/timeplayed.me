@@ -23,7 +23,9 @@ class RemovePermissionCommand(AdminCommand):
             return f"Error: User with id {user_id} not found."
         assert isinstance(target_user, User)
 
-        permission_name = splitted[1].strip().lower() if len(splitted) > 1 else ""
+        permission_name = ""
+        if len(splitted) > 1:
+            permission_name = splitted[1].strip().lower()
         if target_user.has_permission(permission_name):
             target_user.remove_permission(permission_name)
             target_user.save()

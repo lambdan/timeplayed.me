@@ -46,9 +46,8 @@ def __get_newest_or_oldest(
         query = ActivityQuery.platform(query, platform)
     if query.count() == 0:
         return None
-    query = ActivityQuery.apply_sort(
-        query, "timestamp", "desc" if which == "newest" else "asc"
-    )
+    order = "desc" if which == "newest" else "asc"
+    query = ActivityQuery.apply_sort(query, "timestamp", order)
     return API_Activity.from_activity(query.first())
 
 

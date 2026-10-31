@@ -31,10 +31,9 @@ class AutoIGDBAdminCommand(AdminCommand):
         best_match = igdb_games[0]
 
         if not confirmed:
-            rd = None
+            year = "?"
             if best_match.first_release_date:
-                rd = ts_to_dt(best_match.first_release_date)
-            year = rd.year if rd else "?"
+                year = ts_to_dt(best_match.first_release_date).year
             out = ""
             out += f"Best IGDB match for '{game.get_label()}'\nis\n'{best_match.name}' ({year}) (id: {best_match.id}).\n"
             out += f"{best_match.url}\n"

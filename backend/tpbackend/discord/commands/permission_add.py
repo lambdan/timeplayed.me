@@ -25,7 +25,9 @@ class AddPermissionCommand(AdminCommand):
         if not target_user:
             return f"Error: User with id {user_id} not found."
 
-        permission_name = splitted[1].strip().lower() if len(splitted) > 1 else ""
+        permission_name = ""
+        if len(splitted) > 1:
+            permission_name = splitted[1].strip().lower()
         if permission_name not in ALL_PERMISSIONS:
             return f"Error: Invalid permission. Valid permissions: `{VALID_PERMISSIONS_STR}`"
         if target_user.add_permission(permission_name):
