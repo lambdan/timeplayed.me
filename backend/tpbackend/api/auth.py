@@ -3,9 +3,10 @@ from fastapi.openapi.models import HTTPBearer
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from tpbackend.__version__ import __version__
-from tpbackend.storage import User
-from tpbackend.api.responses import unauthorized
-from tpbackend.user.tokens import lookup_user
+from tpbackend.storage import Token, User
+from tpbackend.api.responses import forbidden, unauthorized
+from tpbackend.permissions import Permission
+from tpbackend.user.tokens import lookup_token, lookup_user
 import logging
 
 from typing import Annotated
@@ -24,3 +25,35 @@ def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)) 
 
 
 AuthenticatedUser = Annotated[User, Depends(authenticate)]
+
+
+def current_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> Token:
+    """the token the request was made with"""
+    token = lookup_token(credentials.credentials)
+    if token:
+        return token
+    return unauthorized()
+
+
+CurrentToken = Annotated[Token, Depends(current_token)]
+
+
+def authenticate_admin(user: AuthenticatedUser) -> User:
+    if user.has_permission(Permission.ADMIN):
+        return user
+    return forbidden("Admin permission required")
+
+
+AdminUser = Annotated[User, Depends(authenticate_admin)]
+
+
+def authenticate_manual_activity(user: AuthenticatedUser) -> User:
+    # same permission as the manual activity commands in Discord
+    if user.has_permission(Permission.MANUAL_ACTIVITY):
+        return user
+    return forbidden("Manual activity permission required")
+
+
+ManualActivityUser = Annotated[User, Depends(authenticate_manual_activity)]

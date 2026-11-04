@@ -1,4 +1,5 @@
-from tpbackend.storage import Game, Platform
+from tpbackend.permissions import DEFAULT_PERMISSIONS, DESCRIPTIONS, Permission
+from tpbackend.storage import Game, Platform, User
 
 
 class TestPendingHistory:
@@ -14,6 +15,26 @@ class TestPendingHistory:
         p = Platform(abbreviation="x")
         g.add_history("only for game")
         assert p.pending_history == []
+
+
+class TestDefaultPermissions:
+    def test_not_shared_with_defaults(self):
+        # creating a User needs the db (default platform), so check the field default
+        permissions = User.permissions.default()  # type: ignore
+        assert permissions == DEFAULT_PERMISSIONS
+        permissions.append("admin")
+        assert "admin" not in DEFAULT_PERMISSIONS
+
+
+class TestPermissions:
+    def test_all_have_descriptions(self):
+        assert set(DESCRIPTIONS.keys()) == set(Permission)
+
+    def test_matches_stored_strings(self):
+        # stored as plain strings, has_permission checks the enum is in that list
+        stored = ["admin"]
+        assert Permission.ADMIN in stored
+        assert Permission.COMMANDS not in stored
 
 
 class TestGameLabel:

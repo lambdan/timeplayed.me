@@ -3,7 +3,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 from tpbackend.storage import Game
 from tpbackend.sgdb.controller import get_game_by_id
-from .external_game import adopt_name
+from tpbackend.operations import adopt_name
 
 
 class SetSGDBIDAdminCommand(AdminCommand):

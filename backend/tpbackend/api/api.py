@@ -11,6 +11,7 @@ from tpbackend.sgdb.routes import router as sgdb_router
 from tpbackend.igdb.routes import router as igdb_router
 from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
+from tpbackend.admin.routes import router as admin_router
 from .misc import misc_router
 import logging
 
@@ -34,6 +35,7 @@ def create_app():
     api_router.include_router(discord_router, prefix="/discord")
     api_router.include_router(sgdb_router, prefix="/sgdb")
     api_router.include_router(igdb_router, prefix="/igdb")
+    api_router.include_router(admin_router, prefix="/admin")
 
     app.include_router(api_router)
     return app

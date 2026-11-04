@@ -1,10 +1,14 @@
-import { effectScope, ref, watch } from "vue";
-import type { User } from "../api.models";
+import { computed, effectScope, ref, watch } from "vue";
+import type { AuthenticatedUser } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { useApiToken } from "./useApiToken";
 
 const { token, setApiToken, clearApiToken } = useApiToken();
-const authenticatedUser = ref<User>();
+const authenticatedUser = ref<AuthenticatedUser>();
+// only for showing admin stuff, the backend checks the permission on every admin request
+const isAdmin = computed(
+  () => !!authenticatedUser.value?.permissions.includes("admin"),
+);
 const loadingAuthenticatedUser = ref(false);
 let initialized = false;
 
@@ -59,6 +63,7 @@ export function useAuthenticatedUser() {
 
   return {
     authenticatedUser,
+    isAdmin,
     loadingAuthenticatedUser,
     refreshAuthenticatedUser,
     authenticateWithToken,

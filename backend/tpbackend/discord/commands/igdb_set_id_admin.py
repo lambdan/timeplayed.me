@@ -5,7 +5,7 @@ from .admin_command import AdminCommand
 from tpbackend.storage import User
 from tpbackend.storage import Game
 from .merge_game_admin import merge_and_report, merge_preview
-from .external_game import adopt_name
+from tpbackend.operations import adopt_name
 
 
 class SetIGDBIDAdminCommand(AdminCommand):

@@ -1,15 +1,16 @@
 from .admin_command import AdminCommand
 from tpbackend.storage import User, User_or_none
-from tpbackend.permissions import ALL_PERMISSIONS
+from tpbackend.permissions import ALL_PERMISSIONS, DESCRIPTIONS
 
 VALID_PERMISSIONS_STR = ", ".join(ALL_PERMISSIONS)
+PERMISSIONS_LIST = "\n".join(f"- `{p}`: {DESCRIPTIONS[p]}" for p in ALL_PERMISSIONS)
 
 
 class AddPermissionAdminCommand(AdminCommand):
     def __init__(self):
         names = ["add_permission", "permission_add", "ape"]
         d = "Add a permission to user"
-        h = f"Usage: `!{names[0]} <user_id> <permission_name>`. Valid permissions: `{VALID_PERMISSIONS_STR}`"
+        h = f"Usage: `!{names[0]} <user_id> <permission_name>`\n\nPermissions:\n{PERMISSIONS_LIST}"
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:

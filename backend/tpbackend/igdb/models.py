@@ -1,16 +1,17 @@
 from pydantic import BaseModel
 
 
+class IGDB_Cover(BaseModel):
+    id: int
+    image_id: str
+
+
 class IGDB_SearchResult(BaseModel):
     id: int
     first_release_date: int | None = None
     name: str
     url: str
-
-
-class IGDB_Cover(BaseModel):
-    id: int
-    image_id: str
+    cover: IGDB_Cover | None = None
 
 
 class IGDB_GameInfo(BaseModel):

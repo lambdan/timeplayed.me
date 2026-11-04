@@ -1,7 +1,11 @@
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.user.query import UserStatsQuery, UserQuery
-from tpbackend.user.models import API_UserWithStats, API_User
+from tpbackend.user.models import (
+    API_AuthenticatedUser,
+    API_UserWithStats,
+    API_User,
+)
 from tpbackend.api.responses import bad_request, not_found
 from tpbackend.api.auth import AuthenticatedUser, authenticate
 import logging
@@ -235,7 +239,7 @@ def get_users(
 @router.get(
     "/who_am_i",
     tags=["users", "authenticated"],
-    response_model=API_User,
+    response_model=API_AuthenticatedUser,
 )
-def who_am_i(user: AuthenticatedUser) -> API_User:
-    return API_User.from_user(user)
+def who_am_i(user: AuthenticatedUser) -> API_AuthenticatedUser:
+    return API_AuthenticatedUser.from_user(user)

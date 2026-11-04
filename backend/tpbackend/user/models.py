@@ -30,6 +30,17 @@ class API_User(BaseModel):
         )
 
 
+class API_AuthenticatedUser(API_User):
+    permissions: list[str]
+
+    @classmethod
+    def from_user(cls, user):
+        return cls(
+            **API_User.from_user(user).model_dump(),
+            permissions=user.get_permissions(),
+        )
+
+
 class API_UserWithStats(API_User):
     stats: UserTotals
 

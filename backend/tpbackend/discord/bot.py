@@ -1,7 +1,7 @@
 import logging
 from typing import cast
 import discord
-from tpbackend.permissions import PERMISSION_COMMANDS, PERMISSION_DEVELOPER
+from tpbackend.permissions import Permission
 from tpbackend.storage import User, DiscordHistory
 from tpbackend.globals import DEBUG
 
@@ -95,7 +95,7 @@ def dm_receive(message: discord.Message) -> str | None:
 
     _info(f"User is: {user.id} {user.name}, permissions: {user.permissions}")
     if DEBUG:
-        if not user.has_permission(PERMISSION_DEVELOPER):
+        if not user.has_permission(Permission.DEVELOPER):
             _warn("Ignoring because user doesn't have developer permission")
             return _ret(None)
         if c.startswith("!"):
@@ -111,7 +111,7 @@ def dm_receive(message: discord.Message) -> str | None:
         message=str(message.content),
     )
 
-    if not user.has_permission(PERMISSION_COMMANDS):
+    if not user.has_permission(Permission.COMMANDS):
         return _ret("You don't have permission to use commands.")
 
     content = message.content.strip()  # utils.normalizeQuotes(message.content.strip())

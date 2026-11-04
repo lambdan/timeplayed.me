@@ -9,7 +9,7 @@ from tpbackend.activity.controller import (
     stop_live_activity_through_api,
 )
 
-from tpbackend.api.auth import AuthenticatedUser
+from tpbackend.api.auth import AuthenticatedUser, ManualActivityUser
 from tpbackend.api.params import query_id, query_ts, sorts
 from tpbackend.storage import Activity
 from tpbackend.activity.models import (
@@ -56,7 +56,7 @@ def __get_newest_or_oldest(
     tags=["activities", "authenticated"],
     response_model=API_Activity,
 )
-def add_activity(user: AuthenticatedUser, data: API_PostActivity) -> API_Activity:
+def add_activity(user: ManualActivityUser, data: API_PostActivity) -> API_Activity:
     return add_through_api(user=user, data=data)
 
 
@@ -89,7 +89,7 @@ def get_oldest_activity(
     tags=["activities", "live", "authenticated"],
     response_model=API_LiveActivity,
 )
-def get_live_activity(user: AuthenticatedUser) -> API_LiveActivity:
+def get_live_activity(user: ManualActivityUser) -> API_LiveActivity:
     return get_live_activity_through_api(user=user)
 
 
@@ -99,7 +99,7 @@ def get_live_activity(user: AuthenticatedUser) -> API_LiveActivity:
     response_model=API_LiveActivity,
 )
 def start_live_activity(
-    user: AuthenticatedUser, data: API_PostLiveActivity
+    user: ManualActivityUser, data: API_PostLiveActivity
 ) -> API_LiveActivity:
     return start_live_activity_through_api(user=user, data=data)
 
@@ -108,12 +108,12 @@ def start_live_activity(
     "/activity/live/stop",
     tags=["activities", "authenticated", "live"],
 )
-def stop_live_activity(user: AuthenticatedUser) -> API_Activity:
+def stop_live_activity(user: ManualActivityUser) -> API_Activity:
     return stop_live_activity_through_api(user=user)
 
 
 @router.delete("/activity/live", tags=["activities", "authenticated", "live"])
-def abort_live_activity(user: AuthenticatedUser):
+def abort_live_activity(user: ManualActivityUser):
     return abort_live_activity_through_api(user=user)
 
 

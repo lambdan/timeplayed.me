@@ -13,6 +13,7 @@ from .storage import (
     LiveActivity,
     db,
 )
+from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 
 logger = logging.getLogger("operations")
@@ -135,6 +136,34 @@ def add_session(
         return None, e
 
 
+def adopt_name(game: Game, external_name: str, source: str) -> tuple[str, bool]:
+    """
+    For matching our games with IGDB/SGDB games:
+    if the names differ, take the external name and keep ours as alias.
+    returns (report, conflict), conflict means another game already has that name so we didn't rename
+    """
+    if external_name == game.get_name():
+        return "", False
+
+    out = "⚠️ Name mismatch!"
+    out += f"\n- Our name: `{game.get_name()}`"
+    out += f"\n- {source} name: `{external_name}`"
+
+    # an alias of this game is fine, eg going back to an earlier IGDB ID
+    if external_name not in game.get_aliases():
+        other = GameSelect.by_name_or_alias(external_name)
+        if other and other.get_id() != game.get_id():
+            out += f"\n OTHER GAME HAS {source} NAME AS NAME OR ALIAS: '{other.get_label()}' (id: {other.get_id()})"
+            return out, True
+
+    old_name = game.get_name()
+    game.remove_alias(external_name)
+    game.set_name(external_name)
+    game.add_alias(old_name)
+    out += f"\n- Replaced name with {source} name and added old name as alias\n"
+    return out, False
+
+
 def merge_aliases(source: Game, target: Game) -> list[str]:
     """
     Sources name and aliases that target doesn't already have (as name or alias)
@@ -203,6 +232,22 @@ def merge_games(source: Game, target: Game) -> int:
         )
         source.delete_instance()
     return len(activities)
+
+
+def sync_activities_hidden(game: Game) -> int:
+    """
+    Sets hidden state of all of games activities to match the game.
+    Returns how many activities were changed.
+    """
+    changed = 0
+    for activity in Activity.select().where(Activity.game == game):
+        activity = cast(Activity, activity)
+        if activity.get_hidden() == game.get_hidden():
+            continue
+        activity.set_hidden(game.get_hidden())
+        activity.save()
+        changed += 1
+    return changed
 
 
 def find_overlapping_groups() -> list[list[Activity]]:

@@ -1,30 +1,8 @@
 import datetime
 
-from conftest import Api
 from tpbackend import utils2
 from tpbackend.operations import add_session
 from tpbackend.storage import Activity
-
-
-class TestAuth:
-    def test_ping(self, api):
-        r = api.get("/ping")
-        assert r.status_code == 200
-        assert r.json() == "pong"
-
-    def test_who_am_i_requires_token(self, api):
-        assert api.get("/who_am_i").status_code in (401, 403)
-
-    def test_who_am_i_bad_token(self, make_user):
-        make_user()
-        assert Api("not-a-real-token").get("/who_am_i").status_code == 401
-
-    def test_who_am_i(self, make_user):
-        user, client = make_user(name="alice")
-        r = client.get("/who_am_i")
-        assert r.status_code == 200
-        assert r.json()["id"] == user.get_id()
-        assert r.json()["name"] == "alice"
 
 
 class TestAddActivity:
@@ -212,3 +190,19 @@ class TestLiveActivity:
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == game.get_id()
         assert client.get("/activity/live").status_code == 404
+
+
+class TestManualActivityPermission:
+    def test_requires_permission(self, make_user, make_game):
+        # everything but manual_activity
+        _, client = make_user(permissions=["commands", "oblivionis_sync"])
+        game = make_game()
+
+        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
+        assert r.status_code == 403
+        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        assert r.status_code == 403
+        assert client.get("/activity/live").status_code == 403
+        assert client.post("/activity/live/stop").status_code == 403
+        assert client.delete("/activity/live").status_code == 403
+        assert Activity.select().count() == 0

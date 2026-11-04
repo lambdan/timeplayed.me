@@ -122,51 +122,6 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Do a fetch, and cache it locally.
- * If the request is made again within maxAge, the cached response will be returned.
- * @param url URL to fetch
- * @param maxAge Maximum age of the cache in milliseconds
- * @returns Response
- */
-export async function cacheFetch(
-  url: string,
-  maxAge: number,
-): Promise<Response> {
-  //return fetch(url);
-  interface CacheEntry {
-    timestamp: number;
-    body: string;
-    headers?: Record<string, string>;
-  }
-  const cacheKey = `fetch2:${url}`;
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached) as CacheEntry;
-      const age = Date.now() - parsed.timestamp;
-      if (age < maxAge) {
-        // hit cache
-        return new Response(parsed.body, {
-          headers: parsed.headers || { "Content-Type": "application/json" },
-        });
-      }
-    } catch {}
-  }
-  const res = await fetch(url);
-  const body = await res.clone().text();
-  const headers: Record<string, string> = {};
-  res.headers.forEach((value, key) => {
-    headers[key] = value;
-  });
-  const entry: CacheEntry = { timestamp: Date.now(), body, headers };
-  try {
-    // store
-    sessionStorage.setItem(cacheKey, JSON.stringify(entry)); // store
-  } catch (err) {}
-  return res;
-}
-
 export function iso8601Date(date: Date | number, includeTime = false): string {
   if (typeof date === "number") {
     date = new Date(date);

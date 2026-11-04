@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import type { GameCoverData, SGDBGrid } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
+import { COVER_MAX_AGE, getCached, setCached } from "../../utils.cache";
 
 const props = withDefaults(
   defineProps<{
@@ -30,11 +31,7 @@ async function getGameCoverData(gameId: number): Promise<GameCoverData> {
 
   async function test(gameId: number): Promise<GameCoverData | undefined> {
     function getFromSessionStorage() {
-      const stored = sessionStorage.getItem(key);
-      if (stored) {
-        return JSON.parse(stored) as GameCoverData;
-      }
-      return null;
+      return getCached<GameCoverData>(key, COVER_MAX_AGE);
     }
 
     function fromGrid(grid: SGDBGrid): GameCoverData {
@@ -145,7 +142,7 @@ async function getGameCoverData(gameId: number): Promise<GameCoverData> {
   }
   const coverData = await test(gameId);
   if (coverData) {
-    sessionStorage.setItem(key, JSON.stringify(coverData));
+    setCached(key, coverData);
     return coverData;
   }
   // fallback to placeholder

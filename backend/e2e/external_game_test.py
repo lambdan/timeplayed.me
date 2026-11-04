@@ -1,4 +1,4 @@
-from tpbackend.discord.commands.external_game import adopt_name
+from tpbackend.operations import adopt_name
 from tpbackend.storage import Game
 
 
@@ -14,6 +14,14 @@ class TestAdoptName:
         assert "Replaced name with IGDB name" in out
         assert game.get_name() == "Grand Theft Auto: Vice City"
         assert "GTA VC" in game.get_aliases()
+
+    def test_name_is_alias_swaps(self, make_game):
+        # eg set a wrong IGDB ID and then the right one again
+        game = make_game("Wrong Game", aliases=["Vice City"])
+        out, conflict = adopt_name(game, "Vice City", "IGDB")
+        assert not conflict
+        assert game.get_name() == "Vice City"
+        assert game.get_aliases() == ["Wrong Game"]
 
     def test_other_game_has_the_name(self, make_game):
         make_game("Grand Theft Auto: Vice City")
