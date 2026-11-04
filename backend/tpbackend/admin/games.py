@@ -19,12 +19,16 @@ from tpbackend.admin.models import (
 from tpbackend.api.auth import AdminUser
 from tpbackend.api.params import limit, offset, query_search
 from tpbackend.api.responses import bad_request, not_found, service_unavailable
-from tpbackend.discord.commands.external_game import adopt_name
 from tpbackend.game.query import GameQuery
 from tpbackend.game.select import GameSelect
 from tpbackend.igdb import controller as igdb
 from tpbackend.igdb.models import IGDB_SearchResult
-from tpbackend.operations import merge_aliases, merge_games, sync_activities_hidden
+from tpbackend.operations import (
+    adopt_name,
+    merge_aliases,
+    merge_games,
+    sync_activities_hidden,
+)
 from tpbackend.sgdb import controller as sgdb
 from tpbackend.sgdb.models import SGDB_Game
 from tpbackend.storage import Game, LiveActivity

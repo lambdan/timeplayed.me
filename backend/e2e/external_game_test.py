@@ -1,4 +1,4 @@
-from tpbackend.discord.commands.external_game import adopt_name
+from tpbackend.operations import adopt_name
 from tpbackend.storage import Game
 
 
