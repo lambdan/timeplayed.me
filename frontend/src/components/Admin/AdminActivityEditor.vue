@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   AdminAPI,
   type AdminActivityDetails,
@@ -10,6 +10,7 @@ import type { Platform } from "../../api.models";
 import { formatDate, formatDuration } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
+import AdminUnsaved from "./AdminUnsaved.vue";
 
 const props = defineProps<{ activityId: number }>();
 const emit = defineEmits<{ close: []; changed: []; deleted: [] }>();
@@ -56,29 +57,49 @@ function setActivity(a: AdminActivityDetails) {
   };
 }
 
-async function save() {
-  if (!activity.value) return;
+/** fields in the form that differ from the saved activity, this is what save sends */
+const patch = computed(() => {
+  const changed: AdminActivityPatch = {};
   const a = activity.value;
-  // only send what changed
-  const patch: AdminActivityPatch = {};
+  if (!a) return changed;
   const gameId = parseInt(form.value.game_id);
-  if (gameId !== a.game_id) patch.game_id = gameId;
+  if (gameId !== a.game_id) changed.game_id = gameId;
   const userId = parseInt(form.value.user_id);
-  if (userId !== a.user_id) patch.user_id = userId;
+  if (userId !== a.user_id) changed.user_id = userId;
   if (form.value.platform_id !== a.platform_id)
-    patch.platform_id = form.value.platform_id;
+    changed.platform_id = form.value.platform_id;
   const seconds = parseDuration(form.value.duration);
-  if (seconds !== a.seconds) patch.seconds = seconds;
+  if (seconds !== a.seconds) changed.seconds = seconds;
   const ended = new Date(form.value.ended).getTime();
   // the input has no milliseconds
   if (Math.floor(ended / 1000) !== Math.floor(a.ended / 1000))
-    patch.ended = ended;
-  if (form.value.hidden !== a.hidden) patch.hidden = form.value.hidden;
+    changed.ended = ended;
+  if (form.value.hidden !== a.hidden) changed.hidden = form.value.hidden;
+  return changed;
+});
 
+const FIELD_LABELS: Record<keyof AdminActivityPatch, string> = {
+  game_id: "game",
+  user_id: "user",
+  platform_id: "platform",
+  seconds: "duration",
+  ended: "ended",
+  hidden: "hidden",
+};
+
+const unsavedLabels = computed(() =>
+  (Object.keys(patch.value) as (keyof AdminActivityPatch)[]).map(
+    (field) => FIELD_LABELS[field],
+  ),
+);
+
+async function save() {
+  if (!activity.value) return;
+  const id = activity.value.id;
   try {
     error.value = "";
     message.value = "";
-    setActivity(await AdminAPI.patchActivity(a.id, patch));
+    setActivity(await AdminAPI.patchActivity(id, patch.value));
     message.value = "Saved";
     emit("changed");
   } catch (e: any) {
@@ -128,7 +149,7 @@ onMounted(async () => {
         <AdminSectionTabs
           v-model="section"
           :tabs="[
-            { id: 'details', label: 'Details' },
+            { id: 'details', label: 'Details', unsaved: unsavedLabels.length },
             { id: 'history', label: `History (${activity.history.length})` },
           ]"
         />
@@ -165,6 +186,7 @@ onMounted(async () => {
               <input
                 v-model="form.game_id"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'game_id' in patch }"
                 type="number"
               />
             </div>
@@ -173,6 +195,7 @@ onMounted(async () => {
               <input
                 v-model="form.user_id"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'user_id' in patch }"
                 type="number"
               />
             </div>
@@ -181,6 +204,7 @@ onMounted(async () => {
               <select
                 v-model="form.platform_id"
                 class="form-select form-select-sm"
+                :class="{ 'border-warning': 'platform_id' in patch }"
               >
                 <option v-for="p in platforms" :key="p.id" :value="p.id">
                   {{ p.display_name }} ({{ p.abbreviation }})
@@ -192,6 +216,7 @@ onMounted(async () => {
               <input
                 v-model="form.duration"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'seconds' in patch }"
               />
             </div>
             <div class="col-6 col-md-5">
@@ -199,6 +224,7 @@ onMounted(async () => {
               <input
                 v-model="form.ended"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'ended' in patch }"
                 type="datetime-local"
                 step="1"
               />
@@ -209,6 +235,7 @@ onMounted(async () => {
                   id="activity-hidden"
                   v-model="form.hidden"
                   class="form-check-input"
+                  :class="{ 'border-warning': 'hidden' in patch }"
                   type="checkbox"
                 />
                 <label class="form-check-label" for="activity-hidden"
@@ -219,6 +246,7 @@ onMounted(async () => {
           </div>
           <div class="d-flex flex-wrap gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
+            <AdminUnsaved :labels="unsavedLabels" />
             <button
               class="btn btn-outline-danger btn-sm"
               @click="deleteActivity"

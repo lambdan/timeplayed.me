@@ -11,6 +11,7 @@ import {
 import { formatDate } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
+import AdminUnsaved from "./AdminUnsaved.vue";
 
 const PAGE_SIZE = 100;
 
@@ -25,6 +26,16 @@ const error = ref("");
 
 const selected = ref<AdminUserDetails>();
 const permissions = ref<string[]>([]);
+/** ticked or unticked, but not saved */
+function permissionChanged(name: string) {
+  const saved = selected.value?.permissions.includes(name) ?? false;
+  return permissions.value.includes(name) !== saved;
+}
+const unsavedPermissions = computed(() =>
+  allPermissions.value
+    .filter((p) => permissionChanged(p.name))
+    .map((p) => (permissions.value.includes(p.name) ? "+" : "−") + p.name),
+);
 const discordHistory = ref<AdminDiscordHistory[]>([]);
 // only the newest page is fetched, a full page means there's more
 const discordHistoryCount = computed(() =>
@@ -172,6 +183,11 @@ onMounted(async () => {
           v-model="section"
           :tabs="[
             { id: 'details', label: 'Details' },
+            {
+              id: 'permissions',
+              label: 'Permissions',
+              unsaved: unsavedPermissions.length,
+            },
             { id: 'history', label: `History (${selected.history.length})` },
             {
               id: 'discord',
@@ -196,36 +212,12 @@ onMounted(async () => {
               >
             </dd>
           </dl>
-          <div class="d-flex gap-2 mb-3">
+          <div class="d-flex flex-wrap gap-2 mb-3">
             <a
               class="btn btn-outline-secondary btn-sm"
               :href="`/user/${selected.id}`"
               >User page</a
             >
-          </div>
-
-          <h6>Permissions</h6>
-          <div class="mb-2">
-            <div v-for="p in allPermissions" :key="p.name" class="form-check">
-              <input
-                :id="`perm-${p.name}`"
-                v-model="permissions"
-                class="form-check-input"
-                type="checkbox"
-                :value="p.name"
-              />
-              <label class="form-check-label" :for="`perm-${p.name}`">
-                {{ p.name }}
-                <span class="text-body-secondary small">
-                  - {{ p.description }}</span
-                >
-              </label>
-            </div>
-          </div>
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-            <button class="btn btn-primary btn-sm" @click="savePermissions">
-              Save permissions
-            </button>
             <button
               class="btn btn-outline-secondary btn-sm"
               @click="generateToken"
@@ -239,7 +231,6 @@ onMounted(async () => {
                   : "Delete user"
               }}
             </button>
-            <span v-if="message" class="text-success small">{{ message }}</span>
           </div>
           <div v-if="generatedToken" class="alert alert-info small">
             <input
@@ -251,6 +242,34 @@ onMounted(async () => {
             Only shown once. Use it on the
             <a href="/authenticate" target="_blank">Authenticate</a> page in a
             private window, logging in here would replace your own session.
+          </div>
+        </template>
+
+        <template v-else-if="section === 'permissions'">
+          <div class="mb-2">
+            <div v-for="p in allPermissions" :key="p.name" class="form-check">
+              <input
+                :id="`perm-${p.name}`"
+                v-model="permissions"
+                class="form-check-input"
+                type="checkbox"
+                :value="p.name"
+                :class="{ 'border-warning': permissionChanged(p.name) }"
+              />
+              <label class="form-check-label" :for="`perm-${p.name}`">
+                {{ p.name }}
+                <span class="text-body-secondary small">
+                  - {{ p.description }}</span
+                >
+              </label>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <button class="btn btn-primary btn-sm" @click="savePermissions">
+              Save permissions
+            </button>
+            <AdminUnsaved :labels="unsavedPermissions" />
+            <span v-if="message" class="text-success small">{{ message }}</span>
           </div>
         </template>
 

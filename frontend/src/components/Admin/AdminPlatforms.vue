@@ -8,6 +8,7 @@ import {
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
+import AdminUnsaved from "./AdminUnsaved.vue";
 
 const platforms = ref<AdminPlatform[]>([]);
 const newAbbreviation = ref("");
@@ -72,21 +73,42 @@ function replace(updated: AdminPlatform) {
   );
 }
 
+/** fields in the form that differ from the saved platform, this is what save sends */
+const patch = computed(() => {
+  const changed: AdminPlatformPatch = {};
+  const p = selected.value;
+  if (!p) return changed;
+  if (form.value.abbreviation !== p.abbreviation)
+    changed.abbreviation = form.value.abbreviation;
+  if ((form.value.name || null) !== p.name) changed.name = form.value.name;
+  if (preview.value?.color_primary !== p.color_primary)
+    changed.color_primary = form.value.color_primary || null;
+  if (preview.value?.color_secondary !== p.color_secondary)
+    changed.color_secondary = form.value.color_secondary || null;
+  if ((form.value.icon || null) !== p.icon) changed.icon = form.value.icon;
+  return changed;
+});
+
+const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
+  abbreviation: "abbreviation",
+  name: "name",
+  color_primary: "primary color",
+  color_secondary: "secondary color",
+  icon: "icon",
+};
+
+const unsavedLabels = computed(() =>
+  (Object.keys(patch.value) as (keyof AdminPlatformPatch)[]).map(
+    (field) => FIELD_LABELS[field],
+  ),
+);
+
 async function save() {
   const p = selected.value;
   if (!p) return;
-  const patch: AdminPlatformPatch = {};
-  if (form.value.abbreviation !== p.abbreviation)
-    patch.abbreviation = form.value.abbreviation;
-  if ((form.value.name || null) !== p.name) patch.name = form.value.name;
-  if (preview.value?.color_primary !== p.color_primary)
-    patch.color_primary = form.value.color_primary || null;
-  if (preview.value?.color_secondary !== p.color_secondary)
-    patch.color_secondary = form.value.color_secondary || null;
-  if ((form.value.icon || null) !== p.icon) patch.icon = form.value.icon;
   try {
     error.value = "";
-    const updated = await AdminAPI.patchPlatform(p.id, patch);
+    const updated = await AdminAPI.patchPlatform(p.id, patch.value);
     replace(updated);
     select(updated);
     message.value = "Saved";
@@ -145,7 +167,7 @@ onMounted(fetchPlatforms);
         <AdminSectionTabs
           v-model="section"
           :tabs="[
-            { id: 'details', label: 'Details' },
+            { id: 'details', label: 'Details', unsaved: unsavedLabels.length },
             { id: 'history', label: `History (${selected.history.length})` },
           ]"
         />
@@ -162,11 +184,16 @@ onMounted(fetchPlatforms);
               <input
                 v-model="form.abbreviation"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'abbreviation' in patch }"
               />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small mb-0">Name</label>
-              <input v-model="form.name" class="form-control form-control-sm" />
+              <input
+                v-model="form.name"
+                class="form-control form-control-sm"
+                :class="{ 'border-warning': 'name' in patch }"
+              />
             </div>
             <div class="col-12 col-md-6">
               <label class="form-label small mb-0">
@@ -175,7 +202,11 @@ onMounted(fetchPlatforms);
                 >
                 name without <code>bi-</code>)
               </label>
-              <input v-model="form.icon" class="form-control form-control-sm" />
+              <input
+                v-model="form.icon"
+                class="form-control form-control-sm"
+                :class="{ 'border-warning': 'icon' in patch }"
+              />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small mb-0">Primary color</label>
@@ -183,6 +214,7 @@ onMounted(fetchPlatforms);
                 <input
                   v-model="form.color_primary"
                   class="form-control form-control-color"
+                  :class="{ 'border-warning': 'color_primary' in patch }"
                   type="color"
                 />
                 <button
@@ -199,6 +231,7 @@ onMounted(fetchPlatforms);
                 <input
                   v-model="form.color_secondary"
                   class="form-control form-control-color"
+                  :class="{ 'border-warning': 'color_secondary' in patch }"
                   type="color"
                 />
                 <button
@@ -212,6 +245,7 @@ onMounted(fetchPlatforms);
           </div>
           <div class="d-flex flex-wrap gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
+            <AdminUnsaved :labels="unsavedLabels" />
             <button
               class="btn btn-outline-danger btn-sm"
               @click="deletePlatform"

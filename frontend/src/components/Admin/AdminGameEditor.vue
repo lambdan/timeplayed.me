@@ -10,6 +10,7 @@ import {
 import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
+import AdminUnsaved from "./AdminUnsaved.vue";
 
 const props = defineProps<{ gameId: number }>();
 const emit = defineEmits<{
@@ -301,7 +302,11 @@ onMounted(async () => {
         <AdminSectionTabs
           v-model="section"
           :tabs="[
-            { id: 'details', label: 'Details' },
+            {
+              id: 'details',
+              label: 'Details',
+              unsaved: unsavedLabels.length,
+            },
             { id: 'history', label: `History (${game.history.length})` },
           ]"
         />
@@ -397,13 +402,7 @@ onMounted(async () => {
           </div>
           <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
-            <span
-              v-if="unsavedLabels.length"
-              class="text-warning-emphasis small"
-            >
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              Unsaved: {{ unsavedLabels.join(", ") }}
-            </span>
+            <AdminUnsaved :labels="unsavedLabels" />
           </div>
 
           <h6>IGDB</h6>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-defineProps<{ tabs: { id: string; label: string }[] }>();
+defineProps<{
+  // unsaved: how many unsaved changes are on that tab, so they're noticed from other tabs
+  tabs: { id: string; label: string; unsaved?: number }[];
+}>();
 const section = defineModel<string>({ required: true });
 </script>
 
@@ -11,7 +14,10 @@ const section = defineModel<string>({ required: true });
         :class="{ active: section === t.id }"
         href="#"
         @click.prevent="section = t.id"
-        >{{ t.label }}</a
+        >{{ t.label }}
+        <span v-if="t.unsaved" class="text-warning-emphasis"
+          >({{ t.unsaved }} unsaved)</span
+        ></a
       >
     </li>
   </ul>
