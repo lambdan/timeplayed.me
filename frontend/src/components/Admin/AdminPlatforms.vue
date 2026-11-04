@@ -14,6 +14,7 @@ import {
   useUnsavedChanges,
 } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
+import { clearCachedPlatform } from "../../utils.cache";
 
 const platforms = ref<AdminPlatform[]>([]);
 const newAbbreviation = ref("");
@@ -124,6 +125,8 @@ async function save() {
   try {
     error.value = "";
     const updated = await AdminAPI.patchPlatform(p.id, patch.value);
+    // so public pages in this tab show the change
+    clearCachedPlatform(updated.id);
     replace(updated);
     select(updated);
     message.value = "Saved";

@@ -13,6 +13,7 @@ import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
+import { clearCachedGame } from "../../utils.cache";
 
 const props = defineProps<{ gameId: number }>();
 const emit = defineEmits<{
@@ -69,6 +70,12 @@ function setGame(g: AdminGameDetails) {
   sgdbId.value = g.sgdb_id?.toString() ?? "";
 }
 
+/** so public pages in this tab show the change (child games show the parents cover) */
+function forgetCachedGame(g: AdminGameDetails) {
+  clearCachedGame(g.id);
+  g.children_ids.forEach(clearCachedGame);
+}
+
 /** runs an API call that returns the updated game */
 async function run(
   call: () => Promise<AdminGameDetails>,
@@ -77,7 +84,9 @@ async function run(
   try {
     error.value = "";
     message.value = "";
-    setGame(await call());
+    const updated = await call();
+    setGame(updated);
+    forgetCachedGame(updated);
     message.value = successMessage;
     emit("changed");
   } catch (e: any) {
@@ -242,6 +251,8 @@ async function merge() {
   try {
     error.value = "";
     await AdminAPI.mergeGame(props.gameId, into);
+    if (game.value) forgetCachedGame(game.value);
+    clearCachedGame(into);
     emit("changed");
     emit("select", into);
   } catch (e: any) {
