@@ -26,13 +26,17 @@ def get_discord_user(id: int | str) -> discord.User | None:
     return bot.get_user(int(id))
 
 
+def default_avatar_url(id: int | str) -> str:
+    return f"https://cdn.discordapp.com/embed/avatars/{int(id) % 5}.png"  # same as default avatar url...
+
+
 def avatar_from_discord_user_id(id: int | str) -> str:
     user = get_discord_user(id)
     if user and user.display_avatar:
         return str(user.display_avatar.url)
     if user and user.default_avatar:
         return str(user.default_avatar.url)
-    return f"https://cdn.discordapp.com/embed/avatars/{int(id) % 5}.png"  # same as default avatar url...
+    return default_avatar_url(id)
 
 
 def user_from_message(message: discord.Message) -> User | None:

@@ -69,10 +69,22 @@ class TestEvolutions:
             "CREATE TABLE evolutions (id integer PRIMARY KEY, applied timestamptz NOT NULL DEFAULT now())"
         )
         scratch.execute_sql("INSERT INTO evolutions (id) VALUES (1)")
+        scratch.execute_sql(
+            "INSERT INTO \"user\" (id, permissions) VALUES (1, '{commands}'), (2, '{commands,show_name}'), (3, NULL)"
+        )
 
         evolutions.apply(scratch_db, **connect_params())
 
         assert "sgdb_grid_id" not in [c.name for c in scratch.get_columns("game")]
+        # 4.sql gave existing users show_avatar and show_name, once
+        permissions = scratch.execute_sql(
+            'SELECT permissions FROM "user" ORDER BY id'
+        ).fetchall()
+        assert [p[0] for p in permissions] == [
+            ["commands", "show_avatar", "show_name"],
+            ["commands", "show_name", "show_avatar"],
+            ["show_avatar", "show_name"],
+        ]
         newest = max(evolutions.numbered(evolutions.EVOLUTIONS_DIR))
         assert (
             scratch.execute_sql("SELECT max(id) FROM evolutions").fetchone()[0]
