@@ -148,15 +148,16 @@ def adopt_name(game: Game, external_name: str, source: str) -> tuple[str, bool]:
     out = "⚠️ Name mismatch!"
     out += f"\n- Our name: `{game.get_name()}`"
     out += f"\n- {source} name: `{external_name}`"
-    if external_name in game.get_aliases():
-        return out + "\n", False
 
-    other = GameSelect.by_name_or_alias(external_name)
-    if other and other.get_id() != game.get_id():
-        out += f"\n OTHER GAME HAS {source} NAME AS NAME OR ALIAS: '{other.get_label()}' (id: {other.get_id()})"
-        return out, True
+    # an alias of this game is fine, eg going back to an earlier IGDB ID
+    if external_name not in game.get_aliases():
+        other = GameSelect.by_name_or_alias(external_name)
+        if other and other.get_id() != game.get_id():
+            out += f"\n OTHER GAME HAS {source} NAME AS NAME OR ALIAS: '{other.get_label()}' (id: {other.get_id()})"
+            return out, True
 
     old_name = game.get_name()
+    game.remove_alias(external_name)
     game.set_name(external_name)
     game.add_alias(old_name)
     out += f"\n- Replaced name with {source} name and added old name as alias\n"

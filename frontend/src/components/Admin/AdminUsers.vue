@@ -108,6 +108,10 @@ async function addUser() {
   }
 }
 
+function revertPermissions() {
+  permissions.value = [...(selected.value?.permissions ?? [])];
+}
+
 async function savePermissions() {
   if (!selected.value) return;
   try {
@@ -268,7 +272,10 @@ onMounted(async () => {
             <button class="btn btn-primary btn-sm" @click="savePermissions">
               Save permissions
             </button>
-            <AdminUnsaved :labels="unsavedPermissions" />
+            <AdminUnsaved
+              :labels="unsavedPermissions"
+              @revert="revertPermissions"
+            />
             <span v-if="message" class="text-success small">{{ message }}</span>
           </div>
         </template>

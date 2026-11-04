@@ -92,6 +92,10 @@ const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
 
+function revert() {
+  if (activity.value) setActivity(activity.value);
+}
+
 async function save() {
   if (!activity.value) return;
   const id = activity.value.id;
@@ -245,7 +249,7 @@ onMounted(async () => {
           </div>
           <div class="d-flex flex-wrap gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
-            <AdminUnsaved :labels="unsavedLabels" />
+            <AdminUnsaved :labels="unsavedLabels" @revert="revert" />
             <button
               class="btn btn-outline-danger btn-sm"
               @click="deleteActivity"

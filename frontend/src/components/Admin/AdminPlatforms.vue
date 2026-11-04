@@ -59,6 +59,11 @@ function select(p?: AdminPlatform) {
   if (!p) return;
   // the editor is above the list
   window.scrollTo({ top: 0, behavior: "smooth" });
+  resetForm(p);
+}
+
+/** form back to the saved values */
+function resetForm(p: AdminPlatform) {
   form.value = {
     abbreviation: p.abbreviation,
     name: p.name ?? "",
@@ -101,6 +106,10 @@ const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
 const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
+
+function revert() {
+  if (selected.value) resetForm(selected.value);
+}
 
 async function save() {
   const p = selected.value;
@@ -244,7 +253,7 @@ onMounted(fetchPlatforms);
           </div>
           <div class="d-flex flex-wrap gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
-            <AdminUnsaved :labels="unsavedLabels" />
+            <AdminUnsaved :labels="unsavedLabels" @revert="revert" />
             <button
               class="btn btn-outline-danger btn-sm"
               @click="deletePlatform"

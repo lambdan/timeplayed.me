@@ -126,14 +126,25 @@ const unsavedLabels = computed(() => {
   return labels;
 });
 
+function revert() {
+  if (!game.value) return;
+  setGame(game.value);
+  keepOldNameAsAlias.value = false;
+}
+
 function save() {
   if (!game.value) return;
   const id = game.value.id;
   const changes = patch.value;
   const alias = aliasToAdd.value;
+  // the new name shouldn't stay an alias too
+  const newName = changes.name;
+  const removeAlias =
+    alias && newName && game.value.aliases.includes(newName) ? newName : null;
   run(async () => {
     // rename first, the old name can't be an alias while it's still the name
     let updated = await AdminAPI.patchGame(id, changes);
+    if (removeAlias) updated = await AdminAPI.removeAlias(id, removeAlias);
     if (alias) updated = await AdminAPI.addAlias(id, alias);
     keepOldNameAsAlias.value = false;
     return updated;
@@ -151,8 +162,8 @@ async function refreshFromIGDB() {
       error.value = "Game not found in IGDB";
       return;
     }
-    // same as setting the IGDB ID: if the IGDB name is an alias, we keep our name
-    if (info.name !== g.name && !g.aliases.includes(info.name)) {
+    // same as setting the IGDB ID: if the IGDB name is an alias, they swap on save
+    if (info.name !== g.name) {
       form.value.name = info.name;
       keepOldNameAsAlias.value = true;
     }
@@ -401,7 +412,7 @@ onMounted(async () => {
           </div>
           <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
             <button class="btn btn-primary btn-sm" @click="save">Save</button>
-            <AdminUnsaved :labels="unsavedLabels" />
+            <AdminUnsaved :labels="unsavedLabels" @revert="revert" />
           </div>
 
           <h6>IGDB</h6>
