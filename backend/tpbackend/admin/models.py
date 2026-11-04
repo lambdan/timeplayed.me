@@ -42,8 +42,10 @@ class Admin_User(API_AuthenticatedUser):
 
     @classmethod
     def from_user(cls, user: User):
+        # admins see the real name, even if it's hidden on the site
         return cls(
-            **API_AuthenticatedUser.from_user(user).model_dump(),
+            **API_AuthenticatedUser.from_user(user).model_dump()
+            | {"name": user.get_name(), "display_name": user.get_display_name()},
             activity_count=activity_count(user=user),
         )
 

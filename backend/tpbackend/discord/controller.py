@@ -1,9 +1,14 @@
-from .bot import bot, avatar_from_discord_user_id
+from .bot import bot, avatar_from_discord_user_id, default_avatar_url
 from tpbackend.cache import cache_set, cache_get
+from tpbackend.permissions import Permission
+from tpbackend.storage import User
 
 
 def get_avatar_url(discord_user_id: str | int) -> str:
     discord_user_id = int(discord_user_id)
+    user = User.get_or_none(User.discord_id == str(discord_user_id))
+    if user and not user.has_permission(Permission.SHOW_AVATAR):
+        return default_avatar_url(discord_user_id)
     cache_key = f"get_discord_avatar_url:{discord_user_id}"
     cached = cache_get(cache_key)
     if cached:

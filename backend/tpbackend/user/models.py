@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
+from tpbackend.permissions import Permission
 
 
 class UserTotals(BaseTotals):
@@ -19,11 +20,16 @@ class API_User(BaseModel):
 
     @classmethod
     def from_user(cls, user):
+        name = user.name
+        display_name = user.get_display_name()
+        if not user.has_permission(Permission.SHOW_NAME):
+            name = f"User {user.id}"
+            display_name = name
         return cls(
             id=user.id,
             discord_id=user.discord_id,
-            name=user.name,
-            display_name=user.get_display_name(),
+            name=name,
+            display_name=display_name,
             default_platform_id=user.default_platform_id,
             created=dt_to_ts(user.created),
             updated=dt_to_ts(user.updated),
@@ -47,13 +53,7 @@ class API_UserWithStats(API_User):
     @classmethod
     def from_user(cls, user):
         return cls(
-            id=user.id,
-            discord_id=user.discord_id,
-            name=user.name,
-            display_name=user.get_display_name(),
-            default_platform_id=user.default_platform_id,
-            created=dt_to_ts(user.created),
-            updated=dt_to_ts(user.updated),
+            **API_User.from_user(user).model_dump(),
             stats=UserTotals(
                 seconds=user.total_seconds,
                 activity_count=user.activity_count,
