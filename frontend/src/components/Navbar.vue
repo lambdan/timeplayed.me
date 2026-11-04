@@ -56,7 +56,7 @@ const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
           </li>
 
           <li v-if="isAdmin" class="nav-item">
-            <a class="nav-link" href="/admin"
+            <a class="nav-link bg-warning text-dark rounded px-2" href="/admin"
               ><i class="bi bi-shield-fill-exclamation"></i> Admin</a
             >
           </li>
