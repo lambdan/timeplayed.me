@@ -212,3 +212,19 @@ class TestLiveActivity:
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == game.get_id()
         assert client.get("/activity/live").status_code == 404
+
+
+class TestManualActivityPermission:
+    def test_requires_permission(self, make_user, make_game):
+        # everything but manual_activity
+        _, client = make_user(permissions=["commands", "oblivionis_sync"])
+        game = make_game()
+
+        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
+        assert r.status_code == 403
+        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        assert r.status_code == 403
+        assert client.get("/activity/live").status_code == 403
+        assert client.post("/activity/live/stop").status_code == 403
+        assert client.delete("/activity/live").status_code == 403
+        assert Activity.select().count() == 0
