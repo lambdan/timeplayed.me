@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   AdminAPI,
   type AdminGameDetails,
@@ -81,22 +81,44 @@ async function run(
   }
 }
 
+/** fields in the form that differ from the saved game, this is what save sends */
+const patch = computed(() => {
+  const changed: AdminGamePatch = {};
+  const g = game.value;
+  if (!g) return changed;
+  if (form.value.name !== g.name) changed.name = form.value.name;
+  const year = toNumberOrNull(form.value.release_year);
+  if (year !== g.release_year) changed.release_year = year;
+  const imageUrl = form.value.image_url.trim() || null;
+  if (imageUrl !== g.image_url) changed.image_url = imageUrl;
+  const steamId = toNumberOrNull(form.value.steam_id);
+  if (steamId !== g.steam_id) changed.steam_id = steamId;
+  const parentId = toNumberOrNull(form.value.parent_id);
+  if (parentId !== g.parent_id) changed.parent_id = parentId;
+  if (form.value.hidden !== g.hidden) changed.hidden = form.value.hidden;
+  return changed;
+});
+
+const FIELD_LABELS: Record<keyof AdminGamePatch, string> = {
+  name: "name",
+  release_year: "release year",
+  image_url: "image URL",
+  steam_id: "Steam ID",
+  parent_id: "parent",
+  hidden: "hidden",
+};
+
+const unsavedLabels = computed(() =>
+  (Object.keys(patch.value) as (keyof AdminGamePatch)[]).map(
+    (field) => FIELD_LABELS[field],
+  ),
+);
+
 function save() {
   if (!game.value) return;
-  const g = game.value;
-  // only send what changed
-  const patch: AdminGamePatch = {};
-  if (form.value.name !== g.name) patch.name = form.value.name;
-  const year = toNumberOrNull(form.value.release_year);
-  if (year !== g.release_year) patch.release_year = year;
-  const imageUrl = form.value.image_url.trim() || null;
-  if (imageUrl !== g.image_url) patch.image_url = imageUrl;
-  const steamId = toNumberOrNull(form.value.steam_id);
-  if (steamId !== g.steam_id) patch.steam_id = steamId;
-  const parentId = toNumberOrNull(form.value.parent_id);
-  if (parentId !== g.parent_id) patch.parent_id = parentId;
-  if (form.value.hidden !== g.hidden) patch.hidden = form.value.hidden;
-  run(() => AdminAPI.patchGame(g.id, patch), "Saved");
+  const id = game.value.id;
+  const changes = patch.value;
+  run(() => AdminAPI.patchGame(id, changes), "Saved");
 }
 
 function setIGDB(id: number | null) {
@@ -270,13 +292,18 @@ onMounted(async () => {
           <div class="row g-2 mb-2">
             <div class="col-12 col-md-6">
               <label class="form-label small mb-0">Name</label>
-              <input v-model="form.name" class="form-control form-control-sm" />
+              <input
+                v-model="form.name"
+                class="form-control form-control-sm"
+                :class="{ 'border-warning': 'name' in patch }"
+              />
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small mb-0">Release year</label>
               <input
                 v-model="form.release_year"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'release_year' in patch }"
                 type="number"
               />
             </div>
@@ -285,6 +312,7 @@ onMounted(async () => {
               <input
                 v-model="form.parent_id"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'parent_id' in patch }"
                 type="number"
               />
             </div>
@@ -296,6 +324,7 @@ onMounted(async () => {
               <input
                 v-model="form.image_url"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'image_url' in patch }"
               />
             </div>
             <div class="col-6 col-md-3">
@@ -303,6 +332,7 @@ onMounted(async () => {
               <input
                 v-model="form.steam_id"
                 class="form-control form-control-sm"
+                :class="{ 'border-warning': 'steam_id' in patch }"
                 type="number"
               />
             </div>
@@ -312,15 +342,23 @@ onMounted(async () => {
                   id="game-hidden"
                   v-model="form.hidden"
                   class="form-check-input"
+                  :class="{ 'border-warning': 'hidden' in patch }"
                   type="checkbox"
                 />
                 <label class="form-check-label" for="game-hidden">Hidden</label>
               </div>
             </div>
           </div>
-          <button class="btn btn-primary btn-sm mb-3" @click="save">
-            Save
-          </button>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <button class="btn btn-primary btn-sm" @click="save">Save</button>
+            <span
+              v-if="unsavedLabels.length"
+              class="text-warning-emphasis small"
+            >
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Unsaved: {{ unsavedLabels.join(", ") }}
+            </span>
+          </div>
 
           <h6>IGDB</h6>
           <div class="input-group input-group-sm mb-2">
