@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import {
   AdminAPI,
   type AdminDiscordHistory,
+  type AdminPermission,
   type AdminUser,
   type AdminUserDetails,
 } from "../../admin.client";
@@ -19,7 +20,7 @@ const router = useRouter();
 const users = ref<AdminUser[]>([]);
 const hasMore = ref(false);
 const search = ref("");
-const allPermissions = ref<string[]>([]);
+const allPermissions = ref<AdminPermission[]>([]);
 const error = ref("");
 
 const selected = ref<AdminUserDetails>();
@@ -205,19 +206,20 @@ onMounted(async () => {
 
           <h6>Permissions</h6>
           <div class="mb-2">
-            <div
-              v-for="p in allPermissions"
-              :key="p"
-              class="form-check form-check-inline"
-            >
+            <div v-for="p in allPermissions" :key="p.name" class="form-check">
               <input
-                :id="`perm-${p}`"
+                :id="`perm-${p.name}`"
                 v-model="permissions"
                 class="form-check-input"
                 type="checkbox"
-                :value="p"
+                :value="p.name"
               />
-              <label class="form-check-label" :for="`perm-${p}`">{{ p }}</label>
+              <label class="form-check-label" :for="`perm-${p.name}`">
+                {{ p.name }}
+                <span class="text-body-secondary small">
+                  - {{ p.description }}</span
+                >
+              </label>
             </div>
           </div>
           <div class="d-flex flex-wrap align-items-center gap-2 mb-3">

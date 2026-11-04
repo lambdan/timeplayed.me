@@ -8,6 +8,7 @@ import type {
 } from "./api.models.ts";
 import { useApiToken } from "./composables/useApiToken.ts";
 
+export type AdminPermission = { name: string; description: string };
 export type AdminUser = AuthenticatedUser & { activity_count: number };
 export type AdminUserDetails = AdminUser & { history: string[] };
 
@@ -110,7 +111,7 @@ export class AdminAPI {
   /////////////// USERS //////////////////
 
   static getPermissions() {
-    return request<string[]>("GET", "/permissions");
+    return request<AdminPermission[]>("GET", "/permissions");
   }
 
   static getUsers(query: { search?: string; offset?: number; limit?: number }) {

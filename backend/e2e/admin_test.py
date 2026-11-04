@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from conftest import Api
-from tpbackend.permissions import DEFAULT_PERMISSIONS
+from tpbackend.permissions import DEFAULT_PERMISSIONS, DESCRIPTIONS, Permission
 from tpbackend.storage import Activity, DiscordHistory, Game, Platform, User
 
 UTC = datetime.timezone.utc
@@ -48,6 +48,13 @@ class TestAdminUsers:
         assert r.status_code == 200, r.text
         assert [u["name"] for u in r.json()] == ["admin", "bob"]
         assert r.json()[0]["permissions"] == ["commands", "admin"]
+
+    def test_permissions_have_descriptions(self, admin):
+        _, client = admin
+        r = client.get("/admin/permissions")
+        assert r.status_code == 200, r.text
+        admin_permission = next(p for p in r.json() if p["name"] == "admin")
+        assert admin_permission["description"] == DESCRIPTIONS[Permission.ADMIN]
 
     def test_add(self, admin):
         _, client = admin
