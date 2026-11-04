@@ -79,6 +79,12 @@ class Api:
     def post(self, path: str, **kwargs) -> requests.Response:
         return self.session.post(API_URL + path, **kwargs)
 
+    def put(self, path: str, **kwargs) -> requests.Response:
+        return self.session.put(API_URL + path, **kwargs)
+
+    def patch(self, path: str, **kwargs) -> requests.Response:
+        return self.session.patch(API_URL + path, **kwargs)
+
     def delete(self, path: str, **kwargs) -> requests.Response:
         return self.session.delete(API_URL + path, **kwargs)
 

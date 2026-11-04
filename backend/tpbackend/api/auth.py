@@ -4,7 +4,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from tpbackend.__version__ import __version__
 from tpbackend.storage import User
-from tpbackend.api.responses import unauthorized
+from tpbackend.api.responses import forbidden, unauthorized
+from tpbackend.permissions import PERMISSION_ADMIN
 from tpbackend.user.tokens import lookup_user
 import logging
 
@@ -24,3 +25,12 @@ def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)) 
 
 
 AuthenticatedUser = Annotated[User, Depends(authenticate)]
+
+
+def authenticate_admin(user: AuthenticatedUser) -> User:
+    if user.has_permission(PERMISSION_ADMIN):
+        return user
+    return forbidden("Admin permission required")
+
+
+AdminUser = Annotated[User, Depends(authenticate_admin)]
