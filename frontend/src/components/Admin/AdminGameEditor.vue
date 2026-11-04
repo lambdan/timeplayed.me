@@ -45,8 +45,10 @@ const moveArmed = ref(false);
 const deleteArmed = ref(false);
 const section = ref("details");
 
-function toNumberOrNull(s: string): number | null {
-  return s.trim() === "" ? null : parseInt(s);
+function toNumberOrNull(value: string | number): number | null {
+  // v-model on a number input gives a number once it has been edited
+  if (typeof value === "number") return value;
+  return value.trim() === "" ? null : parseInt(value);
 }
 
 function setGame(g: AdminGameDetails) {
