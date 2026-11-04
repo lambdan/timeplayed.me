@@ -35,6 +35,8 @@ const deleteArmed = ref(false);
 const message = ref("");
 const section = ref("details");
 const newUser = ref({ name: "", display_name: "" });
+// only shown once, like !token in Discord
+const generatedToken = ref("");
 
 async function fetchUsers(append = false) {
   try {
@@ -56,6 +58,7 @@ async function loadSelected() {
   const id = parseInt(route.query.id as string);
   deleteArmed.value = false;
   message.value = "";
+  generatedToken.value = "";
   if (!id) {
     selected.value = undefined;
     return;
@@ -103,6 +106,19 @@ async function savePermissions() {
     );
     message.value = "Permissions saved";
     fetchUsers();
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
+
+async function generateToken() {
+  if (!selected.value) return;
+  try {
+    error.value = "";
+    const id = selected.value.id;
+    generatedToken.value = (await AdminAPI.generateToken(id)).token;
+    // history has the new token in it
+    selected.value = await AdminAPI.getUser(id);
   } catch (e: any) {
     error.value = e.message;
   }
@@ -208,6 +224,12 @@ onMounted(async () => {
             <button class="btn btn-primary btn-sm" @click="savePermissions">
               Save permissions
             </button>
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              @click="generateToken"
+            >
+              Generate token
+            </button>
             <button class="btn btn-outline-danger btn-sm" @click="deleteUser">
               {{
                 deleteArmed
@@ -216,6 +238,17 @@ onMounted(async () => {
               }}
             </button>
             <span v-if="message" class="text-success small">{{ message }}</span>
+          </div>
+          <div v-if="generatedToken" class="alert alert-info small">
+            <input
+              class="form-control form-control-sm font-monospace mb-2"
+              :value="generatedToken"
+              readonly
+              @focus="($event.target as HTMLInputElement).select()"
+            />
+            Only shown once. Use it on the
+            <a href="/authenticate" target="_blank">Authenticate</a> page in a
+            private window, logging in here would replace your own session.
           </div>
         </template>
 

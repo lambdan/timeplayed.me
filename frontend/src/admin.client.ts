@@ -133,6 +133,10 @@ export class AdminAPI {
     });
   }
 
+  static generateToken(id: number) {
+    return request<{ token: string }>("POST", `/user/${id}/token`);
+  }
+
   static deleteUser(id: number) {
     return request<string>("DELETE", `/user/${id}`);
   }

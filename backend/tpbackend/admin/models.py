@@ -119,6 +119,10 @@ class Admin_PostUser(BaseModel):
     display_name: str | None = None
 
 
+class Admin_Token(BaseModel):
+    token: str
+
+
 class Admin_SetPermissions(BaseModel):
     permissions: list[str]
 

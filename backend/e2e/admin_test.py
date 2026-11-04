@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 
+from conftest import Api
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage import Activity, DiscordHistory, Game, Platform, User
 
@@ -62,6 +63,20 @@ class TestAdminUsers:
     def test_add_empty_name(self, admin):
         _, client = admin
         assert client.post("/admin/user", json={"name": " "}).status_code == 400
+
+    def test_token(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob")
+        r = client.post(f"/admin/user/{bob.get_id()}/token")
+        assert r.status_code == 200, r.text
+        token = r.json()["token"]
+        # the token works as bob
+        r = Api(token).get("/who_am_i")
+        assert r.status_code == 200
+        assert r.json()["id"] == bob.get_id()
+        history = User.get_by_id(bob.get_id()).get_history()
+        assert any(f"Token {token[:4]}...{token[-4:]}" in h for h in history)
+        assert not any(token in h for h in history)
 
     def test_set_permissions(self, admin, make_user):
         _, client = admin
