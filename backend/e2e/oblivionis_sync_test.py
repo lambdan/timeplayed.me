@@ -2,7 +2,7 @@ import time
 
 import tpbackend.oblivionis.storage as oblivionis
 from tpbackend.storage import Activity, Game, User
-from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
+from tpbackend.permissions import Permission
 
 
 def wait_for(condition, timeout=10.0):
@@ -58,5 +58,5 @@ class TestOblivionisSync:
 
         wait_for(lambda: oblivionis.Activity.select().count() == 0)
 
-        assert not User.get().has_permission(PERMISSION_OBLIVIONIS_SYNC)
+        assert not User.get().has_permission(Permission.OBLIVIONIS_SYNC)
         assert Activity.select().count() == 0

@@ -14,7 +14,7 @@ from tpbackend.admin.models import (
 from tpbackend.api.auth import AdminUser
 from tpbackend.api.params import limit, offset, query_search
 from tpbackend.api.responses import bad_request, not_found
-from tpbackend.permissions import ALL_PERMISSIONS, PERMISSION_ADMIN
+from tpbackend.permissions import ALL_PERMISSIONS, Permission
 from tpbackend.storage import DiscordHistory, User, User_or_none
 from tpbackend.user.query import UserQuery
 from tpbackend.user.tokens import generate_token
@@ -74,7 +74,7 @@ def set_permissions(
     for permission in data.permissions:
         if permission not in ALL_PERMISSIONS:
             return bad_request(f"Invalid permission '{permission}'")
-    if user.get_id() == admin.get_id() and PERMISSION_ADMIN not in data.permissions:
+    if user.get_id() == admin.get_id() and Permission.ADMIN not in data.permissions:
         return bad_request("You can't remove your own admin permission")
 
     for permission in list(user.get_permissions()):

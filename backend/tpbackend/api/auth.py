@@ -5,7 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tpbackend.__version__ import __version__
 from tpbackend.storage import User
 from tpbackend.api.responses import forbidden, unauthorized
-from tpbackend.permissions import PERMISSION_ADMIN, PERMISSION_MANUAL_ACTIVITY
+from tpbackend.permissions import Permission
 from tpbackend.user.tokens import lookup_user
 import logging
 
@@ -28,7 +28,7 @@ AuthenticatedUser = Annotated[User, Depends(authenticate)]
 
 
 def authenticate_admin(user: AuthenticatedUser) -> User:
-    if user.has_permission(PERMISSION_ADMIN):
+    if user.has_permission(Permission.ADMIN):
         return user
     return forbidden("Admin permission required")
 
@@ -38,7 +38,7 @@ AdminUser = Annotated[User, Depends(authenticate_admin)]
 
 def authenticate_manual_activity(user: AuthenticatedUser) -> User:
     # same permission as the manual activity commands in Discord
-    if user.has_permission(PERMISSION_MANUAL_ACTIVITY):
+    if user.has_permission(Permission.MANUAL_ACTIVITY):
         return user
     return forbidden("Manual activity permission required")
 

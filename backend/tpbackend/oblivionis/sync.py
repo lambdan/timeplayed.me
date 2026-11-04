@@ -8,7 +8,7 @@ from tpbackend.discord import bot
 from tpbackend.game.select import GameSelect
 from tpbackend.globals import MINIMUM_SESSION_LENGTH
 from tpbackend.oblivionis import storage
-from tpbackend.permissions import PERMISSION_OBLIVIONIS_SYNC
+from tpbackend.permissions import Permission
 from tpbackend.storage import User, Platform, Game
 
 logger = logging.getLogger("oblivionis-sync")
@@ -74,7 +74,7 @@ def parseActivity(activity: PassedActivity) -> bool:
                 e,
             )
 
-        if not user.has_permission(PERMISSION_OBLIVIONIS_SYNC):
+        if not user.has_permission(Permission.OBLIVIONIS_SYNC):
             logger.warning(
                 "User '%s' (id: %s) does not have permission to sync, skipping",
                 user.name,

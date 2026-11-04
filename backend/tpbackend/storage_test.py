@@ -1,4 +1,4 @@
-from tpbackend.permissions import DEFAULT_PERMISSIONS
+from tpbackend.permissions import DEFAULT_PERMISSIONS, DESCRIPTIONS, Permission
 from tpbackend.storage import Game, Platform, User
 
 
@@ -24,6 +24,17 @@ class TestDefaultPermissions:
         assert permissions == DEFAULT_PERMISSIONS
         permissions.append("admin")
         assert "admin" not in DEFAULT_PERMISSIONS
+
+
+class TestPermissions:
+    def test_all_have_descriptions(self):
+        assert set(DESCRIPTIONS.keys()) == set(Permission)
+
+    def test_matches_stored_strings(self):
+        # stored as plain strings, has_permission checks the enum is in that list
+        stored = ["admin"]
+        assert Permission.ADMIN in stored
+        assert Permission.COMMANDS not in stored
 
 
 class TestGameLabel:

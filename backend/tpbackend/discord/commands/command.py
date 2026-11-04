@@ -1,5 +1,5 @@
 from tpbackend.storage import User
-from tpbackend.permissions import PERMISSION_COMMANDS, PERMISSION_ADMIN
+from tpbackend.permissions import Permission
 from abc import ABC, abstractmethod
 import logging
 
@@ -23,10 +23,10 @@ class Command(ABC):
         self.logger = logging.getLogger(f"command.{self.names[0]}")
 
     def can_execute(self, user: User, msg: str) -> bool:
-        return user.has_permission(PERMISSION_COMMANDS)
+        return user.has_permission(Permission.COMMANDS)
 
     def is_admin(self, user: User) -> bool:
-        return user.has_permission(PERMISSION_ADMIN)
+        return user.has_permission(Permission.ADMIN)
 
     def get_help_message(self) -> str:
         msg = "# " + self.names[0] + "\n"
