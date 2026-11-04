@@ -7,6 +7,7 @@ import {
   type IGDBSearchResult,
   type SGDBSearchResult,
 } from "../../admin.client";
+import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 
@@ -108,17 +109,62 @@ const FIELD_LABELS: Record<keyof AdminGamePatch, string> = {
   hidden: "hidden",
 };
 
-const unsavedLabels = computed(() =>
-  (Object.keys(patch.value) as (keyof AdminGamePatch)[]).map(
+// set when refreshing from IGDB renames the game, so the old name still matches
+const keepOldNameAsAlias = ref(false);
+const aliasToAdd = computed(() => {
+  const g = game.value;
+  if (!g || !keepOldNameAsAlias.value || !("name" in patch.value)) return null;
+  if (g.aliases.includes(g.name)) return null;
+  return g.name;
+});
+
+const unsavedLabels = computed(() => {
+  const labels = (Object.keys(patch.value) as (keyof AdminGamePatch)[]).map(
     (field) => FIELD_LABELS[field],
-  ),
-);
+  );
+  if (aliasToAdd.value) labels.push(`alias "${aliasToAdd.value}"`);
+  return labels;
+});
 
 function save() {
   if (!game.value) return;
   const id = game.value.id;
   const changes = patch.value;
-  run(() => AdminAPI.patchGame(id, changes), "Saved");
+  const alias = aliasToAdd.value;
+  run(async () => {
+    // rename first, the old name can't be an alias while it's still the name
+    let updated = await AdminAPI.patchGame(id, changes);
+    if (alias) updated = await AdminAPI.addAlias(id, alias);
+    keepOldNameAsAlias.value = false;
+    return updated;
+  }, "Saved");
+}
+
+async function refreshFromIGDB() {
+  const g = game.value;
+  if (!g?.igdb_id) return;
+  try {
+    error.value = "";
+    message.value = "";
+    const info = await TimeplayedAPI.getIGDBGameInfo(g.igdb_id);
+    if (!info) {
+      error.value = "Game not found in IGDB";
+      return;
+    }
+    // same as setting the IGDB ID: if the IGDB name is an alias, we keep our name
+    if (info.name !== g.name && !g.aliases.includes(info.name)) {
+      form.value.name = info.name;
+      keepOldNameAsAlias.value = true;
+    }
+    if (info.first_release_date) {
+      form.value.release_year = year(info.first_release_date).toString();
+    }
+    if (unsavedLabels.value.length === 0) {
+      message.value = "Already matches IGDB";
+    }
+  } catch (e: any) {
+    error.value = e.message ?? e.detail ?? "Failed to fetch from IGDB";
+  }
 }
 
 function setIGDB(id: number | null) {
@@ -373,6 +419,14 @@ onMounted(async () => {
               @click="setIGDB(toNumberOrNull(igdbId))"
             >
               Set
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              :disabled="!game.igdb_id"
+              title="Fill in name and release year from IGDB"
+              @click="refreshFromIGDB"
+            >
+              Refresh from IGDB
             </button>
           </div>
           <div class="input-group input-group-sm mb-2">
