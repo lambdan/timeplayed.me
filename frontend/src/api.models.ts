@@ -3,6 +3,7 @@ import type { components, paths } from "./api.schema";
 export type Totals = components["schemas"]["Total"];
 
 export type User = components["schemas"]["API_User"];
+export type AuthenticatedUser = components["schemas"]["API_AuthenticatedUser"];
 export type UserWithStats = components["schemas"]["API_UserWithStats"];
 
 export type Activity = components["schemas"]["API_Activity"];

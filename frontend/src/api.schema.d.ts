@@ -671,6 +671,31 @@ export interface components {
             /** Updated */
             updated: number;
         };
+        /** API_AuthenticatedUser */
+        API_AuthenticatedUser: {
+            /** Id */
+            id: number;
+            /** Discord Id */
+            discord_id: string | null;
+            /**
+             * Name
+             * @default Discord username typically
+             */
+            name: string;
+            /**
+             * Display Name
+             * @default Discord display name
+             */
+            display_name: string;
+            /** Default Platform Id */
+            default_platform_id: number;
+            /** Created */
+            created: number;
+            /** Updated */
+            updated: number;
+            /** Permissions */
+            permissions: string[];
+        };
         /** API_Game */
         API_Game: {
             /** Id */
@@ -1427,7 +1452,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["API_User"];
+                    "application/json": components["schemas"]["API_AuthenticatedUser"];
                 };
             };
         };
