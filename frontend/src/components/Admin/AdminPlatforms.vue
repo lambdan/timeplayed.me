@@ -9,6 +9,10 @@ import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import {
+  confirmDiscard,
+  useUnsavedChanges,
+} from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
 
 const platforms = ref<AdminPlatform[]>([]);
@@ -53,6 +57,8 @@ async function fetchPlatforms() {
 }
 
 function select(p?: AdminPlatform) {
+  // another platform (or closing) throws away what's in the form
+  if (p?.id !== selectedId.value && !confirmDiscard()) return;
   selectedId.value = p?.id;
   deleteArmed.value = false;
   message.value = "";
@@ -106,6 +112,7 @@ const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
 const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
+useUnsavedChanges(() => unsavedLabels.value.length > 0);
 
 function revert() {
   if (selected.value) resetForm(selected.value);

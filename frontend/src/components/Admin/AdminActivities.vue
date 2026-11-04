@@ -50,13 +50,14 @@ async function fetchActivities(append = false) {
 }
 
 function updateQuery(id?: number) {
-  router.replace({ query: { tab: "activities", ...filterQuery(), id } });
+  return router.replace({ query: { tab: "activities", ...filterQuery(), id } });
 }
 
-function select(id?: number) {
-  updateQuery(id);
+async function select(id?: number) {
+  // cancelled if there are unsaved changes the user wants to keep
+  const failure = await updateQuery(id);
   // the editor is above the list
-  if (id) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!failure && id) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function applyFilters() {

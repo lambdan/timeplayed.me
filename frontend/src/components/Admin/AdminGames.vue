@@ -39,10 +39,11 @@ async function fetchGames(append = false) {
   }
 }
 
-function select(id?: number) {
-  router.replace({ query: { tab: "games", id } });
+async function select(id?: number) {
+  // cancelled if there are unsaved changes the user wants to keep
+  const failure = await router.replace({ query: { tab: "games", id } });
   // the editor is above the list
-  if (id) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!failure && id) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function addGame() {

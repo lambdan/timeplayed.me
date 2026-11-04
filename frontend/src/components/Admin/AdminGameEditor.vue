@@ -11,6 +11,7 @@ import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
 
 const props = defineProps<{ gameId: number }>();
@@ -125,6 +126,7 @@ const unsavedLabels = computed(() => {
   if (aliasToAdd.value) labels.push(`alias "${aliasToAdd.value}"`);
   return labels;
 });
+useUnsavedChanges(() => unsavedLabels.value.length > 0);
 
 function revert() {
   if (!game.value) return;

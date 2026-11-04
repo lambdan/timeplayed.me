@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import {
+  onBeforeRouteLeave,
+  onBeforeRouteUpdate,
+  useRoute,
+  useRouter,
+} from "vue-router";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+import { confirmDiscard } from "../composables/useUnsavedChanges";
 import AdminUsers from "../components/Admin/AdminUsers.vue";
 import AdminGames from "../components/Admin/AdminGames.vue";
 import AdminActivities from "../components/Admin/AdminActivities.vue";
@@ -28,6 +34,14 @@ const tab = computed(() => {
 function selectTab(id: string) {
   router.replace({ query: { tab: id } });
 }
+
+// opening another editor or tab throws away what's in the current editor
+onBeforeRouteUpdate((to, from) => {
+  const editorChanges =
+    to.query.tab !== from.query.tab || to.query.id !== from.query.id;
+  if (editorChanges) return confirmDiscard();
+});
+onBeforeRouteLeave(() => confirmDiscard());
 </script>
 
 <template>

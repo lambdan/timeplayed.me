@@ -11,6 +11,7 @@ import { formatDate, formatDuration } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
 
 const props = defineProps<{ activityId: number }>();
@@ -91,6 +92,7 @@ const FIELD_LABELS: Record<keyof AdminActivityPatch, string> = {
 const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
+useUnsavedChanges(() => unsavedLabels.value.length > 0);
 
 function revert() {
   if (activity.value) setActivity(activity.value);

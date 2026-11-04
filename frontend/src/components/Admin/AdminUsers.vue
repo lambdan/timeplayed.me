@@ -12,6 +12,7 @@ import { formatDate } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 
 const PAGE_SIZE = 100;
 
@@ -36,6 +37,7 @@ const unsavedPermissions = computed(() =>
     .filter((p) => permissionChanged(p.name))
     .map((p) => (permissions.value.includes(p.name) ? "+" : "−") + p.name),
 );
+useUnsavedChanges(() => unsavedPermissions.value.length > 0);
 const discordHistory = ref<AdminDiscordHistory[]>([]);
 // only the newest page is fetched, a full page means there's more
 const discordHistoryCount = computed(() =>
@@ -85,10 +87,11 @@ async function loadSelected() {
   }
 }
 
-function select(id?: number) {
-  router.replace({ query: { tab: "users", id } });
+async function select(id?: number) {
+  // cancelled if there are unsaved changes the user wants to keep
+  const failure = await router.replace({ query: { tab: "users", id } });
   // the editor is above the list
-  if (id) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!failure && id) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function addUser() {
