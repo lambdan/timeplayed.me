@@ -24,7 +24,7 @@ def available() -> bool:
 
 
 def search_game(query: str) -> list[IGDB_SearchResult]:
-    data = f'search "{query}"; fields id,name,first_release_date,url; limit 10;'
+    data = f'search "{query}"; fields id,name,first_release_date,url,cover.image_id; limit 10;'
     res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
     logger.info("Got res: %s", res)
     ret = []

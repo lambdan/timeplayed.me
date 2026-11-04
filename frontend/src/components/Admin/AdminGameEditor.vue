@@ -11,6 +11,7 @@ import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import AdminIGDBResults from "./AdminIGDBResults.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
 import { clearCachedGame } from "../../utils.cache";
@@ -309,7 +310,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card">
+  <div class="card p-0">
     <div class="card-header d-flex align-items-center gap-2">
       <strong class="me-auto">
         <template v-if="game">{{ game.name }} ({{ game.id }})</template>
@@ -317,7 +318,7 @@ onMounted(async () => {
       </strong>
       <button class="btn-close" @click="emit('close')"></button>
     </div>
-    <div class="card-body">
+    <div class="card-body p-2 p-md-3">
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
       <div v-if="message" class="alert alert-success py-2">{{ message }}</div>
 
@@ -463,27 +464,12 @@ onMounted(async () => {
               Search
             </button>
           </div>
-          <ul v-if="igdbResults" class="list-group list-group-flush small mb-2">
-            <li v-if="igdbResults.length === 0" class="list-group-item px-0">
-              No results
-            </li>
-            <li
-              v-for="r in igdbResults"
-              :key="r.id"
-              class="list-group-item px-0 d-flex align-items-center gap-2"
-            >
-              <span class="me-auto">
-                <a :href="r.url" target="_blank">{{ r.name }}</a>
-                ({{ year(r.first_release_date) }}) - {{ r.id }}
-              </span>
-              <button
-                class="btn btn-outline-primary btn-sm"
-                @click="setIGDB(r.id)"
-              >
-                Use
-              </button>
-            </li>
-          </ul>
+          <AdminIGDBResults
+            v-if="igdbResults"
+            :results="igdbResults"
+            class="small mb-2"
+            @use="setIGDB"
+          />
 
           <h6>SGDB</h6>
           <div class="input-group input-group-sm mb-2">

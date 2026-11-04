@@ -32,7 +32,11 @@ export type AdminActivityPatch = Partial<{
   hidden: boolean;
 }>;
 
-export type AdminGame = Game & { hidden: boolean; activity_count: number };
+export type AdminGame = Game & {
+  hidden: boolean;
+  activity_count: number;
+  last_activity: number | null;
+};
 export type AdminGameDetails = AdminGame & { history: string[] };
 export type AdminGamePatch = Partial<{
   name: string;
@@ -43,10 +47,11 @@ export type AdminGamePatch = Partial<{
   hidden: boolean;
 }>;
 export type AdminGameMissing =
-  "igdb" | "sgdb" | "cover" | "release_year" | "activity";
+  "igdb" | "sgdb" | "cover" | "release_year" | "activity" | "not_on_igdb"; // igdb id 0
 
 export type AdminPlatform = Platform & {
   activity_count: number;
+  last_activity: number | null;
   history: string[];
 };
 export type AdminPlatformPatch = Partial<{
@@ -64,6 +69,7 @@ export type IGDBSearchResult = {
   name: string;
   first_release_date: number | null;
   url: string;
+  cover: { id: number; image_id: string } | null;
 };
 export type SGDBSearchResult = {
   id: number;

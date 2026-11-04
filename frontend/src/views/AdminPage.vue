@@ -8,13 +8,16 @@ import {
 } from "vue-router";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
 import { confirmDiscard } from "../composables/useUnsavedChanges";
+import AdminCovers from "../components/Admin/AdminCovers.vue";
 import AdminUsers from "../components/Admin/AdminUsers.vue";
 import AdminGames from "../components/Admin/AdminGames.vue";
 import AdminActivities from "../components/Admin/AdminActivities.vue";
 import AdminPlatforms from "../components/Admin/AdminPlatforms.vue";
 import AdminMaintenance from "../components/Admin/AdminMaintenance.vue";
 
+// covers first, it's what's used the most
 const TABS = [
+  { id: "covers", label: "Covers", icon: "bi-image" },
   { id: "users", label: "Users", icon: "bi-people-fill" },
   { id: "games", label: "Games", icon: "bi-controller" },
   { id: "activities", label: "Activities", icon: "bi-clock-history" },
@@ -28,7 +31,7 @@ const { isAdmin, loadingAuthenticatedUser } = useAuthenticatedUser();
 
 const tab = computed(() => {
   const t = route.query.tab;
-  return TABS.some((x) => x.id === t) ? (t as string) : "users";
+  return TABS.some((x) => x.id === t) ? (t as string) : "covers";
 });
 
 function selectTab(id: string) {
@@ -47,7 +50,7 @@ onBeforeRouteLeave(() => confirmDiscard());
 <template>
   <div class="card p-0">
     <h1 class="card-header">Admin</h1>
-    <div class="card-body">
+    <div class="card-body p-2 p-md-3">
       <div v-if="loadingAuthenticatedUser" class="text-body-secondary">
         Loading...
       </div>
@@ -68,7 +71,8 @@ onBeforeRouteLeave(() => confirmDiscard());
             </a>
           </li>
         </ul>
-        <AdminUsers v-if="tab === 'users'" />
+        <AdminCovers v-if="tab === 'covers'" />
+        <AdminUsers v-else-if="tab === 'users'" />
         <AdminGames v-else-if="tab === 'games'" />
         <AdminActivities v-else-if="tab === 'activities'" />
         <AdminPlatforms v-else-if="tab === 'platforms'" />

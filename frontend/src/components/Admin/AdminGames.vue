@@ -7,6 +7,7 @@ import {
   type AdminGameMissing,
 } from "../../admin.client";
 import AdminGameEditor from "./AdminGameEditor.vue";
+import { iso8601Date } from "../../utils";
 
 const PAGE_SIZE = 100;
 
@@ -140,6 +141,7 @@ onMounted(() => fetchGames());
             <th class="d-none d-md-table-cell">SGDB</th>
             <th class="d-none d-lg-table-cell">Steam</th>
             <th class="d-none d-lg-table-cell">Parent</th>
+            <th class="d-none d-md-table-cell">Last played</th>
             <th class="text-end">Activities</th>
           </tr>
         </thead>
@@ -161,6 +163,9 @@ onMounted(() => fetchGames());
             <td class="d-none d-md-table-cell">{{ g.sgdb_id ?? "-" }}</td>
             <td class="d-none d-lg-table-cell">{{ g.steam_id ?? "-" }}</td>
             <td class="d-none d-lg-table-cell">{{ g.parent_id ?? "-" }}</td>
+            <td class="d-none d-md-table-cell text-nowrap">
+              {{ g.last_activity ? iso8601Date(g.last_activity) : "-" }}
+            </td>
             <td class="text-end">{{ g.activity_count }}</td>
           </tr>
         </tbody>

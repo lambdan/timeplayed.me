@@ -6,6 +6,7 @@ import {
   type AdminPlatformPatch,
 } from "../../admin.client";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
+import { iso8601Date } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
@@ -174,14 +175,14 @@ onMounted(fetchPlatforms);
   <div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <div v-if="selected && preview" class="card mb-3">
+    <div v-if="selected && preview" class="card p-0 mb-3">
       <div class="card-header d-flex align-items-center gap-2">
         <strong class="me-auto"
           >{{ selected.display_name }} ({{ selected.id }})</strong
         >
         <button class="btn-close" @click="select(undefined)"></button>
       </div>
-      <div class="card-body">
+      <div class="card-body p-2 p-md-3">
         <AdminSectionTabs
           v-model="section"
           :tabs="[
@@ -293,6 +294,7 @@ onMounted(fetchPlatforms);
             <th>ID</th>
             <th>Platform</th>
             <th>Abbreviation</th>
+            <th class="d-none d-md-table-cell">Last played</th>
             <th class="text-end">Activities</th>
           </tr>
         </thead>
@@ -307,6 +309,9 @@ onMounted(fetchPlatforms);
             <td>{{ p.id }}</td>
             <td><PlatformBadge :platform="p" /></td>
             <td>{{ p.abbreviation }}</td>
+            <td class="d-none d-md-table-cell text-nowrap">
+              {{ p.last_activity ? iso8601Date(p.last_activity) : "-" }}
+            </td>
             <td class="text-end">{{ p.activity_count }}</td>
           </tr>
         </tbody>

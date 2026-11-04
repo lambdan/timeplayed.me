@@ -141,12 +141,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card">
+  <div class="card p-0">
     <div class="card-header d-flex align-items-center gap-2">
       <strong class="me-auto">Activity {{ activityId }}</strong>
       <button class="btn-close" @click="emit('close')"></button>
     </div>
-    <div class="card-body">
+    <div class="card-body p-2 p-md-3">
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
       <div v-if="message" class="alert alert-success py-2">{{ message }}</div>
 

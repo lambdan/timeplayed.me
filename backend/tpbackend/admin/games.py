@@ -15,6 +15,7 @@ from tpbackend.admin.models import (
     Admin_SetIGDB,
     Admin_SetSGDB,
     activity_count,
+    by_last_activity,
 )
 from tpbackend.api.auth import AdminUser
 from tpbackend.api.params import limit, offset, query_search
@@ -31,13 +32,14 @@ from tpbackend.operations import (
 )
 from tpbackend.sgdb import controller as sgdb
 from tpbackend.sgdb.models import SGDB_Game
-from tpbackend.storage import Game, LiveActivity
+from tpbackend.storage import Activity, Game, LiveActivity
 from tpbackend.utils2 import clamp, ts_to_dt
 
 logger = logging.getLogger("admin-games")
 router = APIRouter()
 
-Missing = Literal["igdb", "sgdb", "cover", "release_year", "activity"]
+# not_on_igdb: igdb id 0 and no cover, looked for on igdb but not there (yet)
+Missing = Literal["igdb", "sgdb", "cover", "release_year", "activity", "not_on_igdb"]
 
 
 def __get_game(game_id: int) -> Game:
@@ -53,7 +55,10 @@ def __is_missing(game: Game, missing: Missing) -> bool:
     if missing == "sgdb":
         return game.get_sgdb_id() is None
     if missing == "cover":
-        return not game.has_cover_art()
+        # games not on igdb are left out, they're a list of their own
+        return not game.has_cover_art() and game.igdb_id != 0
+    if missing == "not_on_igdb":
+        return game.igdb_id == 0 and not game.has_cover_art()
     if missing == "release_year":
         return game.get_release_year() is None
     return activity_count(game=game) == 0
@@ -79,7 +84,7 @@ def get_games(
     limit = clamp(int(limit), 1, 100)
     query = GameQuery.base(include_hidden=True)
     query = GameQuery.search(query, search=search)
-    query = GameQuery.apply_sort(query, "id", "asc")
+    query = by_last_activity(query, Game, Activity.game)
     if missing:
         # some of these are inherited from the parent, so filter in python
         games = [g for g in query if __is_missing(cast(Game, g), missing)]

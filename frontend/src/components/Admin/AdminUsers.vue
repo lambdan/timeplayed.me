@@ -233,7 +233,7 @@ onMounted(async () => {
   <div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <div v-if="selected" class="card mb-3">
+    <div v-if="selected" class="card p-0 mb-3">
       <div class="card-header d-flex align-items-center gap-2">
         <strong class="me-auto">
           {{ selected.display_name }}
@@ -241,7 +241,7 @@ onMounted(async () => {
         </strong>
         <button class="btn-close" @click="select(undefined)"></button>
       </div>
-      <div class="card-body">
+      <div class="card-body p-2 p-md-3">
         <AdminSectionTabs
           v-model="section"
           :tabs="[

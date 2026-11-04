@@ -401,6 +401,62 @@ class TestAdminGames:
         assert Game.get_or_none(Game.id == source.get_id()) is None
         assert Activity.get().get_game() == target
 
+    def test_sorted_by_last_played(self, admin, make_game, make_platform):
+        user, client = admin
+        pc = make_platform()
+        old = make_game("Old")
+        new = make_game("New")
+        hidden = make_game("Hidden", hidden=True)
+        never = make_game("Never played")
+        never_newer = make_game("Never played, newer")
+        add_activity(user, old, pc, ended=datetime.datetime(2025, 1, 1, tzinfo=UTC))
+        add_activity(user, new, pc, ended=datetime.datetime(2026, 1, 1, tzinfo=UTC))
+        # hidden activities count in admin
+        add_activity(
+            user,
+            hidden,
+            pc,
+            ended=datetime.datetime(2025, 6, 1, tzinfo=UTC),
+            hidden=True,
+        )
+
+        r = client.get("/admin/games")
+        assert r.status_code == 200, r.text
+        assert [g["name"] for g in r.json()] == [
+            "New",
+            "Hidden",
+            "Old",
+            "Never played, newer",
+            "Never played",
+        ]
+        assert r.json()[0]["last_activity"] == int(
+            datetime.datetime(2026, 1, 1, tzinfo=UTC).timestamp() * 1000
+        )
+        assert r.json()[-1]["last_activity"] is None
+
+    def test_missing_cover_leaves_out_not_on_igdb(self, admin, make_game):
+        _, client = admin
+        make_game("Has cover", igdb_id=1)
+        missing = make_game("No cover")
+        not_on_igdb = make_game("Not on IGDB", igdb_id=0)
+        # got a cover another way, not listed anymore
+        make_game("Not on IGDB, has image", igdb_id=0, image_url="http://x/a.png")
+
+        r = client.get("/admin/games?missing=cover")
+        assert r.status_code == 200, r.text
+        assert [g["id"] for g in r.json()] == [missing.get_id()]
+
+        r = client.get("/admin/games?missing=not_on_igdb")
+        assert r.status_code == 200, r.text
+        assert [g["id"] for g in r.json()] == [not_on_igdb.get_id()]
+
+    def test_mark_not_on_igdb(self, admin, make_game):
+        _, client = admin
+        game = make_game()
+        r = client.put(f"/admin/game/{game.get_id()}/igdb", json={"igdb_id": 0})
+        assert r.status_code == 200, r.text
+        assert Game.get_by_id(game.get_id()).igdb_id == 0
+
     def test_missing(self, admin, make_game):
         _, client = admin
         make_game("Has IGDB", igdb_id=1)
@@ -411,6 +467,22 @@ class TestAdminGames:
 
 
 class TestAdminPlatforms:
+    def test_sorted_by_last_played(self, admin, make_game, make_platform):
+        user, client = admin
+        game = make_game()
+        old = make_platform("old")
+        new = make_platform("new")
+        make_platform("never")
+        add_activity(user, game, old, ended=datetime.datetime(2025, 1, 1, tzinfo=UTC))
+        add_activity(user, game, new, ended=datetime.datetime(2026, 1, 1, tzinfo=UTC))
+
+        r = client.get("/admin/platforms")
+        assert r.status_code == 200, r.text
+        names = [p["abbreviation"] for p in r.json()]
+        # "unknown" is created for the admins default platform, also never played
+        assert names[:2] == ["new", "old"]
+        assert set(names[2:]) == {"never", "unknown"}
+
     def test_add(self, admin):
         _, client = admin
         r = client.post("/admin/platform", json={"abbreviation": "PS6"})

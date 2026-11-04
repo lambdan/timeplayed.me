@@ -8,11 +8,12 @@ from tpbackend.admin.models import (
     Admin_Platform,
     Admin_PostPlatform,
     activity_count,
+    by_last_activity,
 )
 from tpbackend.api.auth import AdminUser
 from tpbackend.api.responses import bad_request, not_found
 from tpbackend.platform.query import PlatformQuery
-from tpbackend.storage import LiveActivity, Platform, Platform_or_none, User
+from tpbackend.storage import Activity, LiveActivity, Platform, Platform_or_none, User
 
 logger = logging.getLogger("admin-platforms")
 router = APIRouter()
@@ -34,7 +35,7 @@ def __color(color: str | None) -> str | None:
 
 @router.get("/platforms", response_model=list[Admin_Platform])
 def get_platforms() -> list[Admin_Platform]:
-    query = PlatformQuery.apply_sort(PlatformQuery.base(), "id", "asc")
+    query = by_last_activity(PlatformQuery.base(), Platform, Activity.platform)
     return [Admin_Platform.from_platform(p) for p in query]
 
 

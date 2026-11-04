@@ -1,3 +1,4 @@
+from peewee import JOIN, fn
 from pydantic import BaseModel
 
 from tpbackend.activity.models import API_Activity
@@ -14,6 +15,26 @@ def activity_count(**where) -> int:
     for field, value in where.items():
         query = query.where(getattr(Activity, field) == value)
     return query.count()
+
+
+def last_activity(**where) -> int | None:
+    """newest activity (hidden too) matching eg game=game"""
+    query = Activity.select(fn.MAX(Activity.timestamp))
+    for field, value in where.items():
+        query = query.where(getattr(Activity, field) == value)
+    newest = query.scalar()
+    if not newest:
+        return None
+    return dt_to_ts(newest)
+
+
+def by_last_activity(query, model, activity_field):
+    """most recently played first, never played last (newest first)"""
+    return (
+        query.join(Activity, JOIN.LEFT_OUTER, on=(activity_field == model.id))
+        .group_by(model.id)
+        .order_by(fn.MAX(Activity.timestamp).desc(nulls="LAST"), model.id.desc())
+    )
 
 
 class Admin_User(API_AuthenticatedUser):
@@ -79,6 +100,7 @@ class Admin_ActivityDetails(Admin_Activity):
 class Admin_Game(API_Game):
     hidden: bool
     activity_count: int
+    last_activity: int | None
 
     @classmethod
     def from_game(cls, game: Game):
@@ -87,6 +109,7 @@ class Admin_Game(API_Game):
             # own hidden, not inherited from parent, that's what can be toggled
             hidden=bool(game.hidden),
             activity_count=activity_count(game=game),
+            last_activity=last_activity(game=game),
         )
 
 
@@ -103,6 +126,7 @@ class Admin_GameDetails(Admin_Game):
 
 class Admin_Platform(API_Platform):
     activity_count: int
+    last_activity: int | None
     history: list[str]
 
     @classmethod
@@ -110,6 +134,7 @@ class Admin_Platform(API_Platform):
         return cls(
             **API_Platform.from_platform(platform).model_dump(),
             activity_count=activity_count(platform=platform),
+            last_activity=last_activity(platform=platform),
             history=platform.get_history(),
         )
 
