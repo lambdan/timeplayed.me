@@ -205,6 +205,22 @@ def merge_games(source: Game, target: Game) -> int:
     return len(activities)
 
 
+def sync_activities_hidden(game: Game) -> int:
+    """
+    Sets hidden state of all of games activities to match the game.
+    Returns how many activities were changed.
+    """
+    changed = 0
+    for activity in Activity.select().where(Activity.game == game):
+        activity = cast(Activity, activity)
+        if activity.get_hidden() == game.get_hidden():
+            continue
+        activity.set_hidden(game.get_hidden())
+        activity.save()
+        changed += 1
+    return changed
+
+
 def find_overlapping_groups() -> list[list[Activity]]:
     """
     Groups of activities (same user/game/platform) that overlap each other in time.

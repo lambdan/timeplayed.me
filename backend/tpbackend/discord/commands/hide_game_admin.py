@@ -1,7 +1,7 @@
 from tpbackend.game.select import GameSelect
-from tpbackend.storage import User, Game, Activity
+from tpbackend.operations import sync_activities_hidden
+from tpbackend.storage import User
 from .admin_command import AdminCommand
-from typing import cast
 
 
 class HideGameAdminCommand(AdminCommand):
@@ -18,20 +18,5 @@ class HideGameAdminCommand(AdminCommand):
         game.set_hidden(not game.get_hidden())
         game.save()
         state = "hidden" if game.get_hidden() else "visible"
-        affected_activities = self.updateActivities(game)
+        affected_activities = sync_activities_hidden(game)
         return f"Game '{game.get_label()}' is now {state}. {affected_activities} activities updated hidden state."
-
-    def updateActivities(self, game: Game) -> int:
-        """
-        Update hidden state of activities for game
-        """
-        activities = Activity.select().where(Activity.game == game)
-        changed = 0
-        for activity in activities:
-            activity = cast(Activity, activity)
-            if activity.get_hidden() == game.get_hidden():
-                continue
-            activity.set_hidden(game.get_hidden())
-            activity.save()
-            changed += 1
-        return changed
