@@ -9,6 +9,7 @@ import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import { unsavedFieldLabels } from "../../utils.admin";
 
 const platforms = ref<AdminPlatform[]>([]);
 const newAbbreviation = ref("");
@@ -98,9 +99,7 @@ const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
 };
 
 const unsavedLabels = computed(() =>
-  (Object.keys(patch.value) as (keyof AdminPlatformPatch)[]).map(
-    (field) => FIELD_LABELS[field],
-  ),
+  unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
 
 async function save() {

@@ -11,6 +11,7 @@ import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
+import { unsavedFieldLabels } from "../../utils.admin";
 
 const props = defineProps<{ gameId: number }>();
 const emit = defineEmits<{
@@ -120,9 +121,7 @@ const aliasToAdd = computed(() => {
 });
 
 const unsavedLabels = computed(() => {
-  const labels = (Object.keys(patch.value) as (keyof AdminGamePatch)[]).map(
-    (field) => FIELD_LABELS[field],
-  );
+  const labels = unsavedFieldLabels(patch.value, FIELD_LABELS);
   if (aliasToAdd.value) labels.push(`alias "${aliasToAdd.value}"`);
   return labels;
 });
