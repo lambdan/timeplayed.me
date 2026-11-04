@@ -237,8 +237,10 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     discord_id = CharField(unique=True, null=True)
     name = CharField()
     display_name = CharField(null=True)
+    # the id, not the platform: with the object default_platform_id would be the object too
     default_platform = ForeignKeyField(
-        Platform, default=lambda: Platform.get_or_create(abbreviation="unknown")[0]
+        Platform,
+        default=lambda: Platform.get_or_create(abbreviation="unknown")[0].get_id(),
     )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
