@@ -45,6 +45,7 @@ from .commands.games_without_activity_admin import GamesWithoutActivityAdminComm
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
 from .commands.merge_game_admin import MergeGameAdminCommand
+from .commands.merge_overlaps_admin import MergeOverlapsAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
 from .commands.missing_cover_admin import MissingCoverAdminCommand
 from .commands.set_platform_colors_admin import SetPlatformColorsAdminCommand
@@ -120,6 +121,7 @@ ADMIN_COMMANDS = [
     SetGameAdminCommand(),
     MoveGameAdminCommand(),
     MergeGameAdminCommand(),
+    MergeOverlapsAdminCommand(),
     DeleteActivityAdminCommand(),
     # misc
     UptimeAdminCommand(),

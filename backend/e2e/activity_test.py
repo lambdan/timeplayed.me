@@ -1,4 +1,8 @@
+import datetime
+
 from conftest import Api
+from tpbackend import utils2
+from tpbackend.operations import add_session
 from tpbackend.storage import Activity
 
 
@@ -104,6 +108,52 @@ class TestAddActivity:
             f"overlapped activity id {first.json()['id']}" in h
             for h in activity.get_history()
         )
+
+    def test_all_overlapping_activities_are_merged(self, make_user, make_game):
+        user, client = make_user()
+        game = make_game()
+
+        # three short sessions over the last hour, not overlapping each other
+        now = utils2.now()
+        short_ids = []
+        for minutes_ago in [50, 30, 10]:
+            short, err = add_session(
+                user=user,
+                game=game,
+                seconds=60,
+                timestamp=now - datetime.timedelta(minutes=minutes_ago),
+            )
+            assert err is None
+            short_ids.append(short.get_id())
+        assert Activity.select().count() == 3
+
+        # one long session ending now that covers all of them
+        long = client.post(
+            "/activity", json={"game_id": game.get_id(), "seconds": 3600}
+        )
+        assert long.status_code == 200, long.text
+
+        assert Activity.select().count() == 1
+        assert long.json()["seconds"] >= 3600
+        history = Activity.get_by_id(long.json()["id"]).get_history()
+        for short_id in short_ids:
+            assert any(f"overlapped activity id {short_id}" in h for h in history)
+
+    def test_non_overlapping_activity_is_kept(self, make_user, make_game):
+        user, client = make_user()
+        game = make_game()
+
+        _, err = add_session(
+            user=user,
+            game=game,
+            seconds=60,
+            timestamp=utils2.now() - datetime.timedelta(hours=2),
+        )
+        assert err is None
+        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 600})
+        assert r.status_code == 200, r.text
+
+        assert Activity.select().count() == 2
 
 
 class TestDeleteActivity:
