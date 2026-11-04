@@ -5,6 +5,7 @@ import {
   AdminAPI,
   type AdminDiscordHistory,
   type AdminPermission,
+  type AdminTokenInfo,
   type AdminUser,
   type AdminUserDetails,
 } from "../../admin.client";
@@ -13,11 +14,13 @@ import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
+import { useAuthenticatedUser } from "../../composables/useAuthenticatedUser";
 
 const PAGE_SIZE = 100;
 
 const route = useRoute();
 const router = useRouter();
+const { logoutSession } = useAuthenticatedUser();
 
 const users = ref<AdminUser[]>([]);
 const hasMore = ref(false);
@@ -51,6 +54,9 @@ const section = ref("details");
 const newUser = ref({ name: "", display_name: "" });
 // only shown once, like !token in Discord
 const generatedToken = ref("");
+const tokens = ref<AdminTokenInfo[]>([]);
+// a token id or "all", armed revoke buttons need a second click
+const revokeArmed = ref<number | "all">();
 
 async function fetchUsers(append = false) {
   try {
@@ -73,6 +79,8 @@ async function loadSelected() {
   deleteArmed.value = false;
   message.value = "";
   generatedToken.value = "";
+  revokeArmed.value = undefined;
+  tokens.value = [];
   if (!id) {
     selected.value = undefined;
     return;
@@ -82,6 +90,7 @@ async function loadSelected() {
     selected.value = await AdminAPI.getUser(id);
     permissions.value = [...selected.value.permissions];
     discordHistory.value = await AdminAPI.getDiscordHistory(id);
+    tokens.value = await AdminAPI.getTokens(id);
   } catch (e: any) {
     error.value = e.message;
   }
@@ -136,8 +145,55 @@ async function generateToken() {
     error.value = "";
     const id = selected.value.id;
     generatedToken.value = (await AdminAPI.generateToken(id)).token;
-    // history has the new token in it
-    selected.value = await AdminAPI.getUser(id);
+    await reloadTokens(id);
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
+
+/** tokens, and the user since history has a line about it */
+async function reloadTokens(id: number) {
+  tokens.value = await AdminAPI.getTokens(id);
+  selected.value = await AdminAPI.getUser(id);
+}
+
+const ownSessionInAll = computed(() => tokens.value.some((t) => t.current));
+const revokeAllConfirm = computed(() =>
+  ownSessionInAll.value
+    ? "Really revoke all? This logs you out"
+    : `Really revoke all ${tokens.value.length}?`,
+);
+
+function revokeLabel(t: AdminTokenInfo) {
+  if (revokeArmed.value !== t.id) return "Revoke";
+  return t.current ? "Really revoke? This logs you out" : "Really revoke?";
+}
+
+async function revokeToken(tokenId: number | "all") {
+  if (!selected.value) return;
+  if (revokeArmed.value !== tokenId) {
+    revokeArmed.value = tokenId;
+    return;
+  }
+  revokeArmed.value = undefined;
+  const id = selected.value.id;
+  const loggingOut =
+    tokenId === "all"
+      ? ownSessionInAll.value
+      : tokens.value.some((t) => t.id === tokenId && t.current);
+  try {
+    error.value = "";
+    if (tokenId === "all") {
+      await AdminAPI.revokeAllTokens(id);
+    } else {
+      await AdminAPI.revokeToken(id, tokenId);
+    }
+    if (loggingOut) {
+      // this browser's token doesn't work anymore
+      logoutSession();
+      return;
+    }
+    await reloadTokens(id);
   } catch (e: any) {
     error.value = e.message;
   }
@@ -195,6 +251,7 @@ onMounted(async () => {
               label: 'Permissions',
               unsaved: unsavedPermissions.length,
             },
+            { id: 'tokens', label: `Tokens (${tokens.length})` },
             { id: 'history', label: `History (${selected.history.length})` },
             {
               id: 'discord',
@@ -225,18 +282,30 @@ onMounted(async () => {
               :href="`/user/${selected.id}`"
               >User page</a
             >
-            <button
-              class="btn btn-outline-secondary btn-sm"
-              @click="generateToken"
-            >
-              Generate token
-            </button>
             <button class="btn btn-outline-danger btn-sm" @click="deleteUser">
               {{
                 deleteArmed
                   ? `Really delete user and ${selected.activity_count} activities?`
                   : "Delete user"
               }}
+            </button>
+          </div>
+        </template>
+
+        <template v-else-if="section === 'tokens'">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              @click="generateToken"
+            >
+              Generate token
+            </button>
+            <button
+              v-if="tokens.length"
+              class="btn btn-outline-danger btn-sm"
+              @click="revokeToken('all')"
+            >
+              {{ revokeArmed === "all" ? revokeAllConfirm : "Revoke all" }}
             </button>
           </div>
           <div v-if="generatedToken" class="alert alert-info small">
@@ -250,6 +319,41 @@ onMounted(async () => {
             <a href="/authenticate" target="_blank">Authenticate</a> page in a
             private window, logging in here would replace your own session.
           </div>
+          <div class="text-body-secondary small mb-2">
+            Only a hash of each token is stored, so the tokens themselves can't
+            be shown.
+          </div>
+          <div v-if="tokens.length === 0" class="text-body-secondary">
+            No tokens
+          </div>
+          <table v-else class="table table-sm align-middle small">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="t in tokens" :key="t.id">
+                <td>
+                  {{ t.id }}
+                  <span v-if="t.current" class="badge text-bg-info"
+                    >this session</span
+                  >
+                </td>
+                <td class="text-nowrap">{{ formatDate(t.created) }}</td>
+                <td class="text-end">
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    @click="revokeToken(t.id)"
+                  >
+                    {{ revokeLabel(t) }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </template>
 
         <template v-else-if="section === 'permissions'">

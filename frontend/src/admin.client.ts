@@ -9,6 +9,8 @@ import type {
 import { useApiToken } from "./composables/useApiToken.ts";
 
 export type AdminPermission = { name: string; description: string };
+// current: the token this browser is logged in with
+export type AdminTokenInfo = { id: number; created: number; current: boolean };
 export type AdminUser = AuthenticatedUser & { activity_count: number };
 export type AdminUserDetails = AdminUser & { history: string[] };
 
@@ -136,6 +138,18 @@ export class AdminAPI {
 
   static generateToken(id: number) {
     return request<{ token: string }>("POST", `/user/${id}/token`);
+  }
+
+  static getTokens(id: number) {
+    return request<AdminTokenInfo[]>("GET", `/user/${id}/tokens`);
+  }
+
+  static revokeToken(id: number, tokenId: number) {
+    return request<string>("DELETE", `/user/${id}/tokens/${tokenId}`);
+  }
+
+  static revokeAllTokens(id: number) {
+    return request<string>("DELETE", `/user/${id}/tokens`);
   }
 
   static deleteUser(id: number) {

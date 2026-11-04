@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { AdminAPI, type AdminActivity } from "../../admin.client";
 import { useLookups } from "../../composables/useLookups";
@@ -11,6 +11,17 @@ const PAGE_SIZE = 100;
 const route = useRoute();
 const router = useRouter();
 const lookups = useLookups();
+
+// the public api leaves out hidden games, so game names come from the admin api
+const gameNames = reactive(new Map<number, string>());
+const requestedGames = new Set<number>(); // only fetch each once
+function gameName(id: number): string | undefined {
+  if (!requestedGames.has(id)) {
+    requestedGames.add(id);
+    AdminAPI.getGame(id).then((g) => gameNames.set(id, g.name));
+  }
+  return gameNames.get(id);
+}
 
 const activities = ref<AdminActivity[]>([]);
 const hasMore = ref(false);
@@ -176,7 +187,7 @@ onMounted(() => {
             <td class="text-nowrap">{{ formatDate(a.ended) }}</td>
             <td class="text-nowrap">{{ formatDuration(a.seconds, true) }}</td>
             <td>
-              {{ lookups.game(a.game_id)?.name ?? `#${a.game_id}` }}
+              {{ gameName(a.game_id) ?? `#${a.game_id}` }}
               <span v-if="a.hidden" class="badge text-bg-warning">hidden</span>
             </td>
             <td class="d-none d-md-table-cell">

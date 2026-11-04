@@ -9,17 +9,18 @@ from tpbackend.admin.models import (
     Admin_PostUser,
     Admin_SetPermissions,
     Admin_Token,
+    Admin_TokenInfo,
     Admin_User,
     Admin_UserDetails,
 )
-from tpbackend.api.auth import AdminUser
+from tpbackend.api.auth import AdminUser, CurrentToken
 from tpbackend.api.params import limit, offset, query_search
 from tpbackend.api.responses import bad_request, not_found
 from tpbackend.permissions import ALL_PERMISSIONS, DESCRIPTIONS, Permission
-from tpbackend.storage import DiscordHistory, User, User_or_none
+from tpbackend.storage import DiscordHistory, Token, User, User_or_none
 from tpbackend.user.query import UserQuery
 from tpbackend.user.tokens import generate_token
-from tpbackend.utils2 import clamp
+from tpbackend.utils2 import clamp, dt_to_ts
 
 logger = logging.getLogger("admin-users")
 router = APIRouter()
@@ -102,6 +103,42 @@ def create_token(user_id: int, admin: AdminUser) -> Admin_Token:
     user.save()
     logger.info("Token generated for user %s by admin %s", user_id, admin.get_name())
     return Admin_Token(token=token)
+
+
+@router.get("/user/{user_id}/tokens", response_model=list[Admin_TokenInfo])
+def get_tokens(user_id: int, current: CurrentToken) -> list[Admin_TokenInfo]:
+    user = __get_user(user_id)
+    tokens = Token.select().where(Token.user == user).order_by(Token.created.desc())  # type: ignore
+    return [
+        Admin_TokenInfo(
+            id=t.get_id(),
+            created=dt_to_ts(t.get_created()),
+            current=t.get_id() == current.get_id(),
+        )
+        for t in tokens
+    ]
+
+
+@router.delete("/user/{user_id}/tokens/{token_id}")
+def revoke_token(user_id: int, token_id: int, admin: AdminUser):
+    user = __get_user(user_id)
+    token = Token.get_or_none((Token.id == token_id) & (Token.user == user))  # type: ignore
+    if not token:
+        return not_found("Token not found")
+    token.delete_instance()
+    user.add_history(f"Token {token_id} revoked by admin {admin.get_name()}")
+    user.save()
+    return "Revoked"
+
+
+@router.delete("/user/{user_id}/tokens")
+def revoke_all_tokens(user_id: int, admin: AdminUser):
+    """same as !revoke_tokens"""
+    user = __get_user(user_id)
+    count = Token.delete().where(Token.user == user).execute()  # type: ignore
+    user.add_history(f"Revoked {count} tokens (admin {admin.get_name()})")
+    user.save()
+    return f"Revoked {count} tokens"
 
 
 @router.delete("/user/{user_id}")

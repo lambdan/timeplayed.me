@@ -85,6 +85,48 @@ class TestAdminUsers:
         assert any(f"Token {token[:4]}...{token[-4:]}" in h for h in history)
         assert not any(token in h for h in history)
 
+    def test_list_tokens(self, admin, make_user):
+        user, client = admin
+        bob, _ = make_user(name="bob")
+        client.post(f"/admin/user/{bob.get_id()}/token")
+        r = client.get(f"/admin/user/{bob.get_id()}/tokens")
+        assert r.status_code == 200, r.text
+        # make_user gave bob one token, the admin made another
+        assert len(r.json()) == 2
+        assert not any(t["current"] for t in r.json())
+        # the admins own session is marked
+        r = client.get(f"/admin/user/{user.get_id()}/tokens")
+        assert [t["current"] for t in r.json()] == [True]
+
+    def test_revoke_token(self, admin, make_user):
+        _, client = admin
+        bob, bob_client = make_user(name="bob")
+        token_id = client.get(f"/admin/user/{bob.get_id()}/tokens").json()[0]["id"]
+        r = client.delete(f"/admin/user/{bob.get_id()}/tokens/{token_id}")
+        assert r.status_code == 200, r.text
+        assert bob_client.get("/who_am_i").status_code == 401
+        history = User.get_by_id(bob.get_id()).get_history()
+        assert any(f"Token {token_id} revoked by admin admin" in h for h in history)
+
+    def test_revoke_token_of_other_user(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob")
+        alice, alice_client = make_user(name="alice")
+        token_id = client.get(f"/admin/user/{alice.get_id()}/tokens").json()[0]["id"]
+        # the token has to belong to the user in the url
+        r = client.delete(f"/admin/user/{bob.get_id()}/tokens/{token_id}")
+        assert r.status_code == 404
+        assert alice_client.get("/who_am_i").status_code == 200
+
+    def test_revoke_all_tokens(self, admin, make_user):
+        _, client = admin
+        bob, bob_client = make_user(name="bob")
+        client.post(f"/admin/user/{bob.get_id()}/token")
+        r = client.delete(f"/admin/user/{bob.get_id()}/tokens")
+        assert r.status_code == 200, r.text
+        assert r.json() == "Revoked 2 tokens"
+        assert bob_client.get("/who_am_i").status_code == 401
+
     def test_set_permissions(self, admin, make_user):
         _, client = admin
         bob, _ = make_user(name="bob")

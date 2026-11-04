@@ -128,6 +128,14 @@ class Admin_Token(BaseModel):
     token: str
 
 
+class Admin_TokenInfo(BaseModel):
+    """only the hash of a token is stored, so this is all there is to show"""
+
+    id: int
+    created: int
+    current: bool  # the token this request was made with
+
+
 class Admin_SetPermissions(BaseModel):
     permissions: list[str]
 
