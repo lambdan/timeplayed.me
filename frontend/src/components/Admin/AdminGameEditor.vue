@@ -34,6 +34,8 @@ const form = ref({
 const igdbId = ref("");
 const sgdbId = ref("");
 const newAlias = ref("");
+const igdbQuery = ref("");
+const sgdbQuery = ref("");
 const igdbResults = ref<IGDBSearchResult[]>();
 const sgdbResults = ref<SGDBSearchResult[]>();
 
@@ -108,7 +110,7 @@ function setSGDB(id: number | null) {
 async function searchIGDB() {
   try {
     error.value = "";
-    igdbResults.value = await AdminAPI.searchIGDB(form.value.name);
+    igdbResults.value = await AdminAPI.searchIGDB(igdbQuery.value.trim());
   } catch (e: any) {
     error.value = e.message;
   }
@@ -117,7 +119,7 @@ async function searchIGDB() {
 async function searchSGDB() {
   try {
     error.value = "";
-    sgdbResults.value = await AdminAPI.searchSGDB(form.value.name);
+    sgdbResults.value = await AdminAPI.searchSGDB(sgdbQuery.value.trim());
   } catch (e: any) {
     error.value = e.message;
   }
@@ -203,6 +205,9 @@ async function deleteGame() {
 onMounted(async () => {
   try {
     setGame(await AdminAPI.getGame(props.gameId));
+    // only on load, so saving doesn't overwrite what's been typed
+    igdbQuery.value = game.value?.name ?? "";
+    sgdbQuery.value = game.value?.name ?? "";
   } catch (e: any) {
     error.value = e.message;
   }
@@ -329,6 +334,15 @@ onMounted(async () => {
             >
               Set
             </button>
+          </div>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="igdbQuery"
+              class="form-control"
+              type="search"
+              placeholder="Search IGDB"
+              @keydown.enter.prevent="searchIGDB"
+            />
             <button class="btn btn-outline-secondary" @click="searchIGDB">
               Search
             </button>
@@ -369,6 +383,15 @@ onMounted(async () => {
             >
               Set
             </button>
+          </div>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="sgdbQuery"
+              class="form-control"
+              type="search"
+              placeholder="Search SGDB"
+              @keydown.enter.prevent="searchSGDB"
+            />
             <button class="btn btn-outline-secondary" @click="searchSGDB">
               Search
             </button>
