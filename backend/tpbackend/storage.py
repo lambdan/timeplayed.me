@@ -241,7 +241,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         Platform, default=lambda: Platform.get_or_create(abbreviation="unknown")[0]
     )
     pc_platform = CharField(default="win")
-    permissions = ArrayField(TextField, default=lambda: DEFAULT_PERMISSIONS)  # type: ignore
+    permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
 
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)

@@ -32,6 +32,12 @@ class TestEvolutions:
         # 2.sql dropped this
         columns = [c.name for c in tp_db.get_columns("game")]
         assert "sgdb_grid_id" not in columns
+        # 3.sql dropped this, default permissions come from code
+        permissions_default = tp_db.execute_sql(
+            "SELECT column_default FROM information_schema.columns "
+            "WHERE table_name = 'user' AND column_name = 'permissions'"
+        ).fetchone()[0]
+        assert permissions_default is None
 
     def test_running_again_does_nothing(self, db):
         before = tp_db.execute_sql("SELECT count(*) FROM evolutions").fetchone()[0]
@@ -54,7 +60,11 @@ class TestEvolutions:
     def test_continues_from_recorded_evolution(self, scratch_db):
         # an existing database, told once that it's at evolution 1
         scratch = PostgresqlDatabase(scratch_db, **connect_params())
+        # just what the evolutions after 1 touch
         scratch.execute_sql("CREATE TABLE game (id integer, sgdb_grid_id integer)")
+        scratch.execute_sql(
+            "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}')"
+        )
         scratch.execute_sql(
             "CREATE TABLE evolutions (id integer PRIMARY KEY, applied timestamptz NOT NULL DEFAULT now())"
         )
