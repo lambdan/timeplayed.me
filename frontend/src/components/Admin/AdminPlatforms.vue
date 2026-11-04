@@ -112,7 +112,7 @@ const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
 const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
-useUnsavedChanges(() => unsavedLabels.value.length > 0);
+useUnsavedChanges("platform", () => unsavedLabels.value);
 
 function revert() {
   if (selected.value) resetForm(selected.value);

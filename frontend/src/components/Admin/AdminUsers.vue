@@ -40,7 +40,7 @@ const unsavedPermissions = computed(() =>
     .filter((p) => permissionChanged(p.name))
     .map((p) => (permissions.value.includes(p.name) ? "+" : "−") + p.name),
 );
-useUnsavedChanges(() => unsavedPermissions.value.length > 0);
+useUnsavedChanges("permissions", () => unsavedPermissions.value);
 const discordHistory = ref<AdminDiscordHistory[]>([]);
 // only the newest page is fetched, a full page means there's more
 const discordHistoryCount = computed(() =>

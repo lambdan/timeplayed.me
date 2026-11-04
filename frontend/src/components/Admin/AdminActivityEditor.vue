@@ -92,7 +92,7 @@ const FIELD_LABELS: Record<keyof AdminActivityPatch, string> = {
 const unsavedLabels = computed(() =>
   unsavedFieldLabels(patch.value, FIELD_LABELS),
 );
-useUnsavedChanges(() => unsavedLabels.value.length > 0);
+useUnsavedChanges("activity", () => unsavedLabels.value);
 
 function revert() {
   if (activity.value) setActivity(activity.value);

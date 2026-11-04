@@ -126,7 +126,7 @@ const unsavedLabels = computed(() => {
   if (aliasToAdd.value) labels.push(`alias "${aliasToAdd.value}"`);
   return labels;
 });
-useUnsavedChanges(() => unsavedLabels.value.length > 0);
+useUnsavedChanges("game", () => unsavedLabels.value);
 
 function revert() {
   if (!game.value) return;
