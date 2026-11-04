@@ -33,31 +33,35 @@ Use the stop command when you are done playing to save the activity.
         super().__init__(names=names, description=d, help=h)
 
     def execute(self, user: User, msg: str) -> str:
-        try:
-            splitted = msg.split(" ")
-            game_id = splitted[0].strip()
-            game = GameSelect.by_id(int(game_id))
+        query = msg.strip()
+        if query == "":
+            return "You need to provide game ID or game name, see `!help start`"
+
+        # only the whole thing being a number is an id, names can start with one ("007 First Light")
+        if query.isdigit():
+            game = GameSelect.by_id(int(query))
             if not game:
-                return f"Error: Game with id {game_id} not found."
+                return f"Error: Game with id {query} not found."
             return self.start(user=user, game=game)
-        except Exception as e:
-            # user probably did "!start Game Name""
-            search_results = (
-                GameQuery.search(GameQuery.base(), search=msg).limit(10).execute()
-            )
-            if len(search_results) == 1:
-                # one game found... could it be the one?
-                return self.start(user=user, game=search_results[0])
-            elif len(search_results) > 0:
-                msg = "Not sure what game you are referring to. Is it one of these?\n"
-                for g in search_results:
-                    msg += f"- {md_game_link(g)} ({g.id})\n"
-                msg += "If so, use the game ID (the number) in the command"
-                return msg
-            elif len(search_results) == 0:
-                return "Error: unknown game"
-            else:
-                raise e
+
+        # exact name or alias, even if the search would find more games ("Halo", "Halo 2", ...)
+        game = GameSelect.by_name_or_alias(query)
+        if game:
+            return self.start(user=user, game=game)
+
+        search_results = (
+            GameQuery.search(GameQuery.base(), search=query).limit(10).execute()
+        )
+        if len(search_results) == 1:
+            # one game found... could it be the one?
+            return self.start(user=user, game=search_results[0])
+        if len(search_results) == 0:
+            return "Error: unknown game"
+        reply = "Not sure what game you are referring to. Is it one of these?\n"
+        for g in search_results:
+            reply += f"- {md_game_link(g)} ({g.id})\n"
+        reply += "If so, use the game ID (the number) in the command"
+        return reply
 
     def start(self, user: User, game: Game) -> str:
 
