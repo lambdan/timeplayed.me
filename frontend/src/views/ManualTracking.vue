@@ -4,11 +4,11 @@ import { formatDuration, sleep } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
 import type {
+  AuthenticatedUser,
   Game,
   LiveActivity,
   LiveActivityPost,
   Platform,
-  User,
 } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 
@@ -25,7 +25,11 @@ const PREVIOUS_GAMES_KEY = "mt-previousGames";
 const { token, clearApiToken } = useApiToken();
 const loading = ref(false);
 const liveActivity = ref<LiveActivity | null>(null);
-const user = ref<User>();
+const user = ref<AuthenticatedUser>();
+// the backend checks this too, this is just so we don't show controls that won't work
+const canTrack = computed(
+  () => !!user.value?.permissions.includes("manual_activity"),
+);
 const game = ref<Game>();
 const platform = ref<Platform>();
 
@@ -376,7 +380,7 @@ onMounted(async () => {
 
   loading.value = true;
   await getUser();
-  if (user.value) {
+  if (canTrack.value) {
     await getLiveActivity();
     await getPlatforms();
   }
@@ -443,7 +447,7 @@ watch(token, (nextToken) => {
     loading.value = true;
     getUser()
       .then(async () => {
-        if (user.value) {
+        if (canTrack.value) {
           await getLiveActivity();
           await getPlatforms();
         }
@@ -463,7 +467,11 @@ watch(token, (nextToken) => {
         {{ error }}
       </div>
 
-      <div v-if="user">
+      <div v-if="user && !canTrack" class="alert alert-secondary mb-0">
+        You don't have permission to use manual tracking.
+      </div>
+
+      <div v-if="canTrack">
         <div v-if="loading">Checking for live activity...</div>
 
         <div v-if="!loading">
