@@ -1,14 +1,8 @@
 from fastapi import APIRouter
 
-from tpbackend.cache import get_cache_stats
 from tpbackend.storage import Game, Platform, User
 
 router = APIRouter()
-
-
-@router.get("/cache_stats", response_model=str)
-def cache_stats() -> str:
-    return get_cache_stats()
 
 
 @router.post("/refresh_search")

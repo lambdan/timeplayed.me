@@ -8,7 +8,6 @@ from .commands.delete_activity import DeleteActivityCommand
 from .commands.delete_game_admin import DeleteGameAdminCommand
 from .commands.delete_platform_admin import DeletePlatformAdminCommand
 from .commands.get_activity import GetActivityCommand
-from .commands.get_cache_stats_admin import GetCacheStatsAdminCommand
 from .commands.get_game import GetGameCommand
 from .commands.last import LastActivityCommand
 from .commands.permission_add_admin import AddPermissionAdminCommand
@@ -127,7 +126,6 @@ ADMIN_COMMANDS = [
     UptimeAdminCommand(),
     MissingCoverAdminCommand(),
     MissingGRYAdminCommand(),
-    GetCacheStatsAdminCommand(),
     RefreshSearchAdminCommand(),
 ]
 

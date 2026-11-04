@@ -12,8 +12,6 @@ __CACHE_ENABLED = os.environ.get("CACHE_ENABLED", "true").lower() == "true"
 __CACHE_DEFAULT_EX = int(os.environ.get("CACHE_DEFAULT_EX", 10))
 __CACHE_LOG_ENABLED = os.environ.get("CACHE_LOG_ENABLED", "false").lower() == "true"
 
-__STATS = {}
-
 
 def __log(message: str):
     if not __CACHE_LOG_ENABLED:
@@ -33,45 +31,14 @@ def __error(message: str):
     logger.error(message)
 
 
-def get_cache_stats() -> str:
-    hits = sum(s["hit"] for s in __STATS.values())
-    misses = sum(s["miss"] for s in __STATS.values())
-    total = hits + misses
-    hit_rate = 0
-    if total > 0:
-        hit_rate = hits / total * 100
-    stats = f"Cache stats: {total} total, {hits} hits, {misses} misses, hit rate: **{hit_rate:.2f}%**\n"
-    # sort origins by count desc
-    sorted_stats = sorted(
-        __STATS.items(), key=lambda x: x[1]["hit"] + x[1]["miss"], reverse=True
-    )
-    for src, s in sorted_stats:
-        src_total = s["hit"] + s["miss"]
-        src_hit_rate = 0
-        if src_total > 0:
-            src_hit_rate = s["hit"] / src_total * 100
-        stats += f"- {src}: {src_total} total, {s['hit']} hit, {s['miss']} miss, hit rate: **{src_hit_rate:.2f}%**\n"
-    return stats
-
-
 def cache_get(key: str):
     if __CACHE_ENABLED:
-        src = "unknown"
-        if ":" in key:
-            src = key.split(":")[0]
-        if src not in __STATS:
-            __STATS[src] = {
-                "hit": 0,
-                "miss": 0,
-            }
         try:
             cached = __REDIS_CLIENT.get(key)
             if cached:
                 __log(f"Hit: {key}")
-                __STATS[src]["hit"] += 1
                 return cached
             __warn(f"Miss: {key}")
-            __STATS[src]["miss"] += 1
         except Exception as e:
             __error(f"Exception caught getting cache for key {key}: {e}")
     return None

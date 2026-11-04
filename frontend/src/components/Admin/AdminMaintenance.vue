@@ -8,7 +8,6 @@ const error = ref("");
 const overlaps = ref<AdminOverlapGroup[]>();
 const overlapsMessage = ref("");
 const refreshMessage = ref("");
-const cacheStats = ref("");
 
 async function call<T>(fn: () => Promise<T>): Promise<T | undefined> {
   try {
@@ -35,10 +34,6 @@ async function mergeOverlaps() {
 async function refreshSearch() {
   refreshMessage.value = "Refreshing...";
   refreshMessage.value = (await call(() => AdminAPI.refreshSearch())) ?? "";
-}
-
-async function loadCacheStats() {
-  cacheStats.value = (await call(() => AdminAPI.getCacheStats())) ?? "";
 }
 </script>
 
@@ -105,11 +100,5 @@ async function loadCacheStats() {
       </button>
       <span v-if="refreshMessage" class="small">{{ refreshMessage }}</span>
     </div>
-
-    <h5>Cache</h5>
-    <button class="btn btn-outline-primary btn-sm mb-2" @click="loadCacheStats">
-      Load cache stats
-    </button>
-    <pre v-if="cacheStats" class="small">{{ cacheStats }}</pre>
   </div>
 </template>

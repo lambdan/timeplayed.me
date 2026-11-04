@@ -302,10 +302,6 @@ export class AdminAPI {
 
   /////////////// MISC //////////////////
 
-  static getCacheStats() {
-    return request<string>("GET", "/cache_stats");
-  }
-
   static refreshSearch() {
     return request<string>("POST", "/refresh_search");
   }
