@@ -7,6 +7,7 @@ import {
 } from "../../admin.client";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminHistory from "./AdminHistory.vue";
+import AdminSectionTabs from "./AdminSectionTabs.vue";
 
 const platforms = ref<AdminPlatform[]>([]);
 const newAbbreviation = ref("");
@@ -18,6 +19,7 @@ const selected = computed(() =>
   platforms.value.find((p) => p.id === selectedId.value),
 );
 const deleteArmed = ref(false);
+const section = ref("details");
 const form = ref({
   abbreviation: "",
   name: "",
@@ -138,73 +140,85 @@ onMounted(fetchPlatforms);
         <button class="btn-close" @click="select(undefined)"></button>
       </div>
       <div class="card-body">
-        <div v-if="message" class="alert alert-success py-2">
-          {{ message }}
-        </div>
-        <div class="mb-3">
-          <PlatformBadge :platform="preview" />
-        </div>
-        <div class="row g-2 mb-2">
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Abbreviation</label>
-            <input
-              v-model="form.abbreviation"
-              class="form-control form-control-sm"
-            />
+        <AdminSectionTabs
+          v-model="section"
+          :tabs="[
+            { id: 'details', label: 'Details' },
+            { id: 'history', label: `History (${selected.history.length})` },
+          ]"
+        />
+        <template v-if="section === 'details'">
+          <div v-if="message" class="alert alert-success py-2">
+            {{ message }}
           </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Name</label>
-            <input v-model="form.name" class="form-control form-control-sm" />
+          <div class="mb-3">
+            <PlatformBadge :platform="preview" />
           </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label small mb-0">
-              Icon (<a href="https://icons.getbootstrap.com/" target="_blank"
-                >Bootstrap icon</a
-              >
-              name without <code>bi-</code>)
-            </label>
-            <input v-model="form.icon" class="form-control form-control-sm" />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Primary color</label>
-            <div class="input-group input-group-sm">
+          <div class="row g-2 mb-2">
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Abbreviation</label>
               <input
-                v-model="form.color_primary"
-                class="form-control form-control-color"
-                type="color"
+                v-model="form.abbreviation"
+                class="form-control form-control-sm"
               />
-              <button
-                class="btn btn-outline-secondary"
-                @click="form.color_primary = ''"
-              >
-                Clear
-              </button>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Name</label>
+              <input v-model="form.name" class="form-control form-control-sm" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0">
+                Icon (<a href="https://icons.getbootstrap.com/" target="_blank"
+                  >Bootstrap icon</a
+                >
+                name without <code>bi-</code>)
+              </label>
+              <input v-model="form.icon" class="form-control form-control-sm" />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Primary color</label>
+              <div class="input-group input-group-sm">
+                <input
+                  v-model="form.color_primary"
+                  class="form-control form-control-color"
+                  type="color"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  @click="form.color_primary = ''"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Secondary color</label>
+              <div class="input-group input-group-sm">
+                <input
+                  v-model="form.color_secondary"
+                  class="form-control form-control-color"
+                  type="color"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  @click="form.color_secondary = ''"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
           </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Secondary color</label>
-            <div class="input-group input-group-sm">
-              <input
-                v-model="form.color_secondary"
-                class="form-control form-control-color"
-                type="color"
-              />
-              <button
-                class="btn btn-outline-secondary"
-                @click="form.color_secondary = ''"
-              >
-                Clear
-              </button>
-            </div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-primary btn-sm" @click="save">Save</button>
+            <button
+              class="btn btn-outline-danger btn-sm"
+              @click="deletePlatform"
+            >
+              {{ deleteArmed ? "Really delete?" : "Delete platform" }}
+            </button>
           </div>
-        </div>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <button class="btn btn-primary btn-sm" @click="save">Save</button>
-          <button class="btn btn-outline-danger btn-sm" @click="deletePlatform">
-            {{ deleteArmed ? "Really delete?" : "Delete platform" }}
-          </button>
-        </div>
-        <AdminHistory :history="selected.history" />
+        </template>
+        <AdminHistory v-else :history="selected.history" />
       </div>
     </div>
 

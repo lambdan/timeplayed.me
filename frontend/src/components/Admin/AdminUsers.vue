@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   AdminAPI,
@@ -9,6 +9,7 @@ import {
 } from "../../admin.client";
 import { formatDate } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
+import AdminSectionTabs from "./AdminSectionTabs.vue";
 
 const PAGE_SIZE = 100;
 
@@ -24,8 +25,15 @@ const error = ref("");
 const selected = ref<AdminUserDetails>();
 const permissions = ref<string[]>([]);
 const discordHistory = ref<AdminDiscordHistory[]>([]);
+// only the newest page is fetched, a full page means there's more
+const discordHistoryCount = computed(() =>
+  discordHistory.value.length === PAGE_SIZE
+    ? `${PAGE_SIZE}+`
+    : discordHistory.value.length,
+);
 const deleteArmed = ref(false);
 const message = ref("");
+const section = ref("details");
 
 async function fetchUsers(append = false) {
   try {
@@ -123,82 +131,105 @@ onMounted(async () => {
         <button class="btn-close" @click="select(undefined)"></button>
       </div>
       <div class="card-body">
-        <dl class="row mb-3">
-          <dt class="col-sm-3">ID</dt>
-          <dd class="col-sm-9">{{ selected.id }}</dd>
-          <dt class="col-sm-3">Discord ID</dt>
-          <dd class="col-sm-9">{{ selected.discord_id ?? "-" }}</dd>
-          <dt class="col-sm-3">Created</dt>
-          <dd class="col-sm-9">{{ formatDate(selected.created) }}</dd>
-          <dt class="col-sm-3">Activities</dt>
-          <dd class="col-sm-9">
-            {{ selected.activity_count }}
-            <a :href="`/admin?tab=activities&user=${selected.id}`">(manage)</a>
-          </dd>
-        </dl>
-        <div class="d-flex gap-2 mb-3">
-          <a
-            class="btn btn-outline-secondary btn-sm"
-            :href="`/user/${selected.id}`"
-            >User page</a
-          >
-        </div>
+        <AdminSectionTabs
+          v-model="section"
+          :tabs="[
+            { id: 'details', label: 'Details' },
+            { id: 'history', label: `History (${selected.history.length})` },
+            {
+              id: 'discord',
+              label: `Discord history (${discordHistoryCount})`,
+            },
+          ]"
+        />
 
-        <h6>Permissions</h6>
-        <div class="mb-2">
-          <div
-            v-for="p in allPermissions"
-            :key="p"
-            class="form-check form-check-inline"
-          >
-            <input
-              :id="`perm-${p}`"
-              v-model="permissions"
-              class="form-check-input"
-              type="checkbox"
-              :value="p"
-            />
-            <label class="form-check-label" :for="`perm-${p}`">{{ p }}</label>
+        <template v-if="section === 'details'">
+          <dl class="row mb-3">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">{{ selected.id }}</dd>
+            <dt class="col-sm-3">Discord ID</dt>
+            <dd class="col-sm-9">{{ selected.discord_id ?? "-" }}</dd>
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">{{ formatDate(selected.created) }}</dd>
+            <dt class="col-sm-3">Activities</dt>
+            <dd class="col-sm-9">
+              {{ selected.activity_count }}
+              <a :href="`/admin?tab=activities&user=${selected.id}`"
+                >(manage)</a
+              >
+            </dd>
+          </dl>
+          <div class="d-flex gap-2 mb-3">
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/user/${selected.id}`"
+              >User page</a
+            >
           </div>
-        </div>
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-          <button class="btn btn-primary btn-sm" @click="savePermissions">
-            Save permissions
-          </button>
-          <button class="btn btn-outline-danger btn-sm" @click="deleteUser">
-            {{
-              deleteArmed
-                ? `Really delete user and ${selected.activity_count} activities?`
-                : "Delete user"
-            }}
-          </button>
-          <span v-if="message" class="text-success small">{{ message }}</span>
-        </div>
 
-        <AdminHistory :history="selected.history" class="mb-3" />
+          <h6>Permissions</h6>
+          <div class="mb-2">
+            <div
+              v-for="p in allPermissions"
+              :key="p"
+              class="form-check form-check-inline"
+            >
+              <input
+                :id="`perm-${p}`"
+                v-model="permissions"
+                class="form-check-input"
+                type="checkbox"
+                :value="p"
+              />
+              <label class="form-check-label" :for="`perm-${p}`">{{ p }}</label>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <button class="btn btn-primary btn-sm" @click="savePermissions">
+              Save permissions
+            </button>
+            <button class="btn btn-outline-danger btn-sm" @click="deleteUser">
+              {{
+                deleteArmed
+                  ? `Really delete user and ${selected.activity_count} activities?`
+                  : "Delete user"
+              }}
+            </button>
+            <span v-if="message" class="text-success small">{{ message }}</span>
+          </div>
+        </template>
 
-        <h6>Discord history (last 30 days)</h6>
-        <div v-if="discordHistory.length === 0" class="text-body-secondary">
-          No Discord history
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table table-sm small">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Event</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="e in discordHistory" :key="e.id">
-                <td class="text-nowrap">{{ formatDate(e.timestamp) }}</td>
-                <td class="text-nowrap">{{ e.event }}</td>
-                <td class="font-monospace text-break">{{ e.message }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <AdminHistory
+          v-else-if="section === 'history'"
+          :history="selected.history"
+        />
+
+        <template v-else-if="section === 'discord'">
+          <div class="text-body-secondary small mb-2">
+            Last 30 days, newest first
+          </div>
+          <div v-if="discordHistory.length === 0" class="text-body-secondary">
+            No Discord history
+          </div>
+          <div v-else class="table-responsive">
+            <table class="table table-sm small">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Event</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="e in discordHistory" :key="e.id">
+                  <td class="text-nowrap">{{ formatDate(e.timestamp) }}</td>
+                  <td class="text-nowrap">{{ e.event }}</td>
+                  <td class="font-monospace text-break">{{ e.message }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
     </div>
 

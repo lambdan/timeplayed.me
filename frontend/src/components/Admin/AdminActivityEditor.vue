@@ -9,6 +9,7 @@ import { TimeplayedAPI } from "../../api.client";
 import type { Platform } from "../../api.models";
 import { formatDate, formatDuration } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
+import AdminSectionTabs from "./AdminSectionTabs.vue";
 
 const props = defineProps<{ activityId: number }>();
 const emit = defineEmits<{ close: []; changed: []; deleted: [] }>();
@@ -18,6 +19,7 @@ const platforms = ref<Platform[]>([]);
 const error = ref("");
 const message = ref("");
 const deleteArmed = ref(false);
+const section = ref("details");
 
 const form = ref({
   game_id: "",
@@ -123,98 +125,110 @@ onMounted(async () => {
       <div v-if="message" class="alert alert-success py-2">{{ message }}</div>
 
       <template v-if="activity">
-        <dl class="row mb-3 small">
-          <dt class="col-sm-3">Started</dt>
-          <dd class="col-sm-9">{{ formatDate(activity.started) }}</dd>
-          <dt class="col-sm-3">Ended</dt>
-          <dd class="col-sm-9">{{ formatDate(activity.ended) }}</dd>
-          <dt class="col-sm-3">Created</dt>
-          <dd class="col-sm-9">{{ formatDate(activity.created) }}</dd>
-        </dl>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <a
-            class="btn btn-outline-secondary btn-sm"
-            :href="`/activity/${activity.id}`"
-            >Activity page</a
-          >
-          <a
-            class="btn btn-outline-secondary btn-sm"
-            :href="`/admin?tab=games&id=${activity.game_id}`"
-            >Edit game</a
-          >
-          <a
-            class="btn btn-outline-secondary btn-sm"
-            :href="`/admin?tab=users&id=${activity.user_id}`"
-            >Edit user</a
-          >
-        </div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Game ID</label>
-            <input
-              v-model="form.game_id"
-              class="form-control form-control-sm"
-              type="number"
-            />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">User ID</label>
-            <input
-              v-model="form.user_id"
-              class="form-control form-control-sm"
-              type="number"
-            />
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label small mb-0">Platform</label>
-            <select
-              v-model="form.platform_id"
-              class="form-select form-select-sm"
+        <AdminSectionTabs
+          v-model="section"
+          :tabs="[
+            { id: 'details', label: 'Details' },
+            { id: 'history', label: `History (${activity.history.length})` },
+          ]"
+        />
+        <template v-if="section === 'details'">
+          <dl class="row mb-3 small">
+            <dt class="col-sm-3">Started</dt>
+            <dd class="col-sm-9">{{ formatDate(activity.started) }}</dd>
+            <dt class="col-sm-3">Ended</dt>
+            <dd class="col-sm-9">{{ formatDate(activity.ended) }}</dd>
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">{{ formatDate(activity.created) }}</dd>
+          </dl>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/activity/${activity.id}`"
+              >Activity page</a
             >
-              <option v-for="p in platforms" :key="p.id" :value="p.id">
-                {{ p.display_name }} ({{ p.abbreviation }})
-              </option>
-            </select>
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/admin?tab=games&id=${activity.game_id}`"
+              >Edit game</a
+            >
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/admin?tab=users&id=${activity.user_id}`"
+              >Edit user</a
+            >
           </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Duration (HH:MM:SS)</label>
-            <input
-              v-model="form.duration"
-              class="form-control form-control-sm"
-            />
-          </div>
-          <div class="col-6 col-md-5">
-            <label class="form-label small mb-0">Ended (local time)</label>
-            <input
-              v-model="form.ended"
-              class="form-control form-control-sm"
-              type="datetime-local"
-              step="1"
-            />
-          </div>
-          <div class="col-12 col-md-4 d-flex align-items-end">
-            <div class="form-check">
+
+          <div class="row g-2 mb-2">
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Game ID</label>
               <input
-                id="activity-hidden"
-                v-model="form.hidden"
-                class="form-check-input"
-                type="checkbox"
+                v-model="form.game_id"
+                class="form-control form-control-sm"
+                type="number"
               />
-              <label class="form-check-label" for="activity-hidden"
-                >Hidden</label
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">User ID</label>
+              <input
+                v-model="form.user_id"
+                class="form-control form-control-sm"
+                type="number"
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0">Platform</label>
+              <select
+                v-model="form.platform_id"
+                class="form-select form-select-sm"
               >
+                <option v-for="p in platforms" :key="p.id" :value="p.id">
+                  {{ p.display_name }} ({{ p.abbreviation }})
+                </option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Duration (HH:MM:SS)</label>
+              <input
+                v-model="form.duration"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col-6 col-md-5">
+              <label class="form-label small mb-0">Ended (local time)</label>
+              <input
+                v-model="form.ended"
+                class="form-control form-control-sm"
+                type="datetime-local"
+                step="1"
+              />
+            </div>
+            <div class="col-12 col-md-4 d-flex align-items-end">
+              <div class="form-check">
+                <input
+                  id="activity-hidden"
+                  v-model="form.hidden"
+                  class="form-check-input"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="activity-hidden"
+                  >Hidden</label
+                >
+              </div>
             </div>
           </div>
-        </div>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <button class="btn btn-primary btn-sm" @click="save">Save</button>
-          <button class="btn btn-outline-danger btn-sm" @click="deleteActivity">
-            {{ deleteArmed ? "Really delete?" : "Delete activity" }}
-          </button>
-        </div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-primary btn-sm" @click="save">Save</button>
+            <button
+              class="btn btn-outline-danger btn-sm"
+              @click="deleteActivity"
+            >
+              {{ deleteArmed ? "Really delete?" : "Delete activity" }}
+            </button>
+          </div>
+        </template>
 
-        <AdminHistory :history="activity.history" />
+        <AdminHistory v-else :history="activity.history" />
       </template>
     </div>
   </div>

@@ -8,6 +8,7 @@ import {
   type SGDBSearchResult,
 } from "../../admin.client";
 import AdminHistory from "./AdminHistory.vue";
+import AdminSectionTabs from "./AdminSectionTabs.vue";
 
 const props = defineProps<{ gameId: number }>();
 const emit = defineEmits<{
@@ -40,6 +41,7 @@ const targetId = ref("");
 const mergePreview = ref<{ activity_count: number; new_aliases: string[] }>();
 const moveArmed = ref(false);
 const deleteArmed = ref(false);
+const section = ref("details");
 
 function toNumberOrNull(s: string): number | null {
   return s.trim() === "" ? null : parseInt(s);
@@ -221,246 +223,261 @@ onMounted(async () => {
       <div v-if="message" class="alert alert-success py-2">{{ message }}</div>
 
       <template v-if="game">
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <a class="btn btn-outline-secondary btn-sm" :href="`/game/${game.id}`"
-            >Game page</a
-          >
-          <a
-            class="btn btn-outline-secondary btn-sm"
-            :href="`/admin?tab=activities&game=${game.id}`"
-            >Activities ({{ game.activity_count }})</a
-          >
-          <a
-            v-if="game.parent_id"
-            class="btn btn-outline-secondary btn-sm"
-            href="#"
-            @click.prevent="emit('select', game.parent_id)"
-            >Parent ({{ game.parent_id }})</a
-          >
-          <a
-            v-for="c in game.children_ids"
-            :key="c"
-            class="btn btn-outline-secondary btn-sm"
-            href="#"
-            @click.prevent="emit('select', c)"
-            >Child ({{ c }})</a
-          >
-        </div>
+        <AdminSectionTabs
+          v-model="section"
+          :tabs="[
+            { id: 'details', label: 'Details' },
+            { id: 'history', label: `History (${game.history.length})` },
+          ]"
+        />
+        <template v-if="section === 'details'">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/game/${game.id}`"
+              >Game page</a
+            >
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              :href="`/admin?tab=activities&game=${game.id}`"
+              >Activities ({{ game.activity_count }})</a
+            >
+            <a
+              v-if="game.parent_id"
+              class="btn btn-outline-secondary btn-sm"
+              href="#"
+              @click.prevent="emit('select', game.parent_id)"
+              >Parent ({{ game.parent_id }})</a
+            >
+            <a
+              v-for="c in game.children_ids"
+              :key="c"
+              class="btn btn-outline-secondary btn-sm"
+              href="#"
+              @click.prevent="emit('select', c)"
+              >Child ({{ c }})</a
+            >
+          </div>
 
-        <h6>Details</h6>
-        <div class="row g-2 mb-2">
-          <div class="col-12 col-md-6">
-            <label class="form-label small mb-0">Name</label>
-            <input v-model="form.name" class="form-control form-control-sm" />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Release year</label>
-            <input
-              v-model="form.release_year"
-              class="form-control form-control-sm"
-              type="number"
-            />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Parent game ID</label>
-            <input
-              v-model="form.parent_id"
-              class="form-control form-control-sm"
-              type="number"
-            />
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label small mb-0">
-              Image URL (overrides SGDB/IGDB cover, <code>-</code> disables
-              cover)
-            </label>
-            <input
-              v-model="form.image_url"
-              class="form-control form-control-sm"
-            />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-0">Steam ID</label>
-            <input
-              v-model="form.steam_id"
-              class="form-control form-control-sm"
-              type="number"
-            />
-          </div>
-          <div class="col-6 col-md-3 d-flex align-items-end">
-            <div class="form-check">
+          <h6>Details</h6>
+          <div class="row g-2 mb-2">
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0">Name</label>
+              <input v-model="form.name" class="form-control form-control-sm" />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Release year</label>
               <input
-                id="game-hidden"
-                v-model="form.hidden"
-                class="form-check-input"
-                type="checkbox"
+                v-model="form.release_year"
+                class="form-control form-control-sm"
+                type="number"
               />
-              <label class="form-check-label" for="game-hidden">Hidden</label>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Parent game ID</label>
+              <input
+                v-model="form.parent_id"
+                class="form-control form-control-sm"
+                type="number"
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0">
+                Image URL (overrides SGDB/IGDB cover, <code>-</code> disables
+                cover)
+              </label>
+              <input
+                v-model="form.image_url"
+                class="form-control form-control-sm"
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Steam ID</label>
+              <input
+                v-model="form.steam_id"
+                class="form-control form-control-sm"
+                type="number"
+              />
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <div class="form-check">
+                <input
+                  id="game-hidden"
+                  v-model="form.hidden"
+                  class="form-check-input"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="game-hidden">Hidden</label>
+              </div>
             </div>
           </div>
-        </div>
-        <button class="btn btn-primary btn-sm mb-3" @click="save">Save</button>
+          <button class="btn btn-primary btn-sm mb-3" @click="save">
+            Save
+          </button>
 
-        <h6>IGDB</h6>
-        <div class="input-group input-group-sm mb-2">
-          <input
-            v-model="igdbId"
-            class="form-control"
-            type="number"
-            placeholder="IGDB ID"
-          />
-          <button
-            class="btn btn-outline-primary"
-            @click="setIGDB(toNumberOrNull(igdbId))"
-          >
-            Set
-          </button>
-          <button class="btn btn-outline-secondary" @click="searchIGDB">
-            Search
-          </button>
-        </div>
-        <ul v-if="igdbResults" class="list-group list-group-flush small mb-2">
-          <li v-if="igdbResults.length === 0" class="list-group-item px-0">
-            No results
-          </li>
-          <li
-            v-for="r in igdbResults"
-            :key="r.id"
-            class="list-group-item px-0 d-flex align-items-center gap-2"
-          >
-            <span class="me-auto">
-              <a :href="r.url" target="_blank">{{ r.name }}</a>
-              ({{ year(r.first_release_date) }}) - {{ r.id }}
-            </span>
+          <h6>IGDB</h6>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="igdbId"
+              class="form-control"
+              type="number"
+              placeholder="IGDB ID"
+            />
             <button
-              class="btn btn-outline-primary btn-sm"
-              @click="setIGDB(r.id)"
+              class="btn btn-outline-primary"
+              @click="setIGDB(toNumberOrNull(igdbId))"
             >
-              Use
+              Set
             </button>
-          </li>
-        </ul>
-
-        <h6>SGDB</h6>
-        <div class="input-group input-group-sm mb-2">
-          <input
-            v-model="sgdbId"
-            class="form-control"
-            type="number"
-            placeholder="SGDB ID (0 = not in SGDB)"
-          />
-          <button
-            class="btn btn-outline-primary"
-            @click="setSGDB(toNumberOrNull(sgdbId))"
-          >
-            Set
-          </button>
-          <button class="btn btn-outline-secondary" @click="searchSGDB">
-            Search
-          </button>
-        </div>
-        <ul v-if="sgdbResults" class="list-group list-group-flush small mb-2">
-          <li v-if="sgdbResults.length === 0" class="list-group-item px-0">
-            No results
-          </li>
-          <li
-            v-for="r in sgdbResults"
-            :key="r.id"
-            class="list-group-item px-0 d-flex align-items-center gap-2"
-          >
-            <span class="me-auto">
-              <a
-                :href="`https://www.steamgriddb.com/game/${r.id}`"
-                target="_blank"
-                >{{ r.name }}</a
-              >
-              ({{ year(r.release_date) }}) - {{ r.id }}
-              <i v-if="r.verified" class="bi bi-patch-check-fill"></i>
-            </span>
-            <button
-              class="btn btn-outline-primary btn-sm"
-              @click="setSGDB(r.id)"
-            >
-              Use
-            </button>
-          </li>
-        </ul>
-
-        <h6 class="mt-3">Aliases</h6>
-        <div class="d-flex flex-wrap gap-1 mb-2">
-          <span v-if="game.aliases.length === 0" class="text-body-secondary"
-            >No aliases</span
-          >
-          <span
-            v-for="a in game.aliases"
-            :key="a"
-            class="badge text-bg-secondary d-inline-flex align-items-center gap-1"
-          >
-            {{ a }}
-            <button
-              class="btn-close btn-close-white"
-              aria-label="Remove alias"
-              @click="removeAlias(a)"
-            ></button>
-          </span>
-        </div>
-        <div class="input-group input-group-sm mb-3">
-          <input
-            v-model="newAlias"
-            class="form-control"
-            placeholder="New alias (case sensitive)"
-            @keydown.enter.prevent="addAlias"
-          />
-          <button class="btn btn-outline-primary" @click="addAlias">Add</button>
-        </div>
-
-        <h6>Merge / move activities</h6>
-        <div class="input-group input-group-sm mb-2">
-          <input
-            v-model="targetId"
-            class="form-control"
-            type="number"
-            placeholder="Target game ID"
-          />
-          <button
-            class="btn btn-outline-danger"
-            :disabled="!targetId"
-            @click="previewMerge"
-          >
-            Merge into
-          </button>
-          <button
-            class="btn btn-outline-danger"
-            :disabled="!targetId"
-            @click="moveActivities"
-          >
-            {{ moveArmed ? "Really move all?" : "Move activities" }}
-          </button>
-        </div>
-        <div v-if="mergePreview" class="alert alert-warning small">
-          {{ mergePreview.activity_count }} activities will be moved to game
-          {{ targetId
-          }}<template v-if="mergePreview.new_aliases.length"
-            >, {{ mergePreview.new_aliases.join(", ") }} added as
-            alias</template
-          >, and this game is deleted.
-          <div class="mt-2">
-            <button class="btn btn-danger btn-sm" @click="merge">
-              Confirm merge
+            <button class="btn btn-outline-secondary" @click="searchIGDB">
+              Search
             </button>
           </div>
-        </div>
+          <ul v-if="igdbResults" class="list-group list-group-flush small mb-2">
+            <li v-if="igdbResults.length === 0" class="list-group-item px-0">
+              No results
+            </li>
+            <li
+              v-for="r in igdbResults"
+              :key="r.id"
+              class="list-group-item px-0 d-flex align-items-center gap-2"
+            >
+              <span class="me-auto">
+                <a :href="r.url" target="_blank">{{ r.name }}</a>
+                ({{ year(r.first_release_date) }}) - {{ r.id }}
+              </span>
+              <button
+                class="btn btn-outline-primary btn-sm"
+                @click="setIGDB(r.id)"
+              >
+                Use
+              </button>
+            </li>
+          </ul>
 
-        <div class="mb-3">
-          <button class="btn btn-outline-danger btn-sm" @click="deleteGame">
-            {{ deleteArmed ? "Really delete?" : "Delete game" }}
-          </button>
-          <span class="text-body-secondary small ms-2"
-            >Only games without activities can be deleted</span
-          >
-        </div>
+          <h6>SGDB</h6>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="sgdbId"
+              class="form-control"
+              type="number"
+              placeholder="SGDB ID (0 = not in SGDB)"
+            />
+            <button
+              class="btn btn-outline-primary"
+              @click="setSGDB(toNumberOrNull(sgdbId))"
+            >
+              Set
+            </button>
+            <button class="btn btn-outline-secondary" @click="searchSGDB">
+              Search
+            </button>
+          </div>
+          <ul v-if="sgdbResults" class="list-group list-group-flush small mb-2">
+            <li v-if="sgdbResults.length === 0" class="list-group-item px-0">
+              No results
+            </li>
+            <li
+              v-for="r in sgdbResults"
+              :key="r.id"
+              class="list-group-item px-0 d-flex align-items-center gap-2"
+            >
+              <span class="me-auto">
+                <a
+                  :href="`https://www.steamgriddb.com/game/${r.id}`"
+                  target="_blank"
+                  >{{ r.name }}</a
+                >
+                ({{ year(r.release_date) }}) - {{ r.id }}
+                <i v-if="r.verified" class="bi bi-patch-check-fill"></i>
+              </span>
+              <button
+                class="btn btn-outline-primary btn-sm"
+                @click="setSGDB(r.id)"
+              >
+                Use
+              </button>
+            </li>
+          </ul>
 
-        <AdminHistory :history="game.history" />
+          <h6 class="mt-3">Aliases</h6>
+          <div class="d-flex flex-wrap gap-1 mb-2">
+            <span v-if="game.aliases.length === 0" class="text-body-secondary"
+              >No aliases</span
+            >
+            <span
+              v-for="a in game.aliases"
+              :key="a"
+              class="badge text-bg-secondary d-inline-flex align-items-center gap-1"
+            >
+              {{ a }}
+              <button
+                class="btn-close btn-close-white"
+                aria-label="Remove alias"
+                @click="removeAlias(a)"
+              ></button>
+            </span>
+          </div>
+          <div class="input-group input-group-sm mb-3">
+            <input
+              v-model="newAlias"
+              class="form-control"
+              placeholder="New alias (case sensitive)"
+              @keydown.enter.prevent="addAlias"
+            />
+            <button class="btn btn-outline-primary" @click="addAlias">
+              Add
+            </button>
+          </div>
+
+          <h6>Merge / move activities</h6>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="targetId"
+              class="form-control"
+              type="number"
+              placeholder="Target game ID"
+            />
+            <button
+              class="btn btn-outline-danger"
+              :disabled="!targetId"
+              @click="previewMerge"
+            >
+              Merge into
+            </button>
+            <button
+              class="btn btn-outline-danger"
+              :disabled="!targetId"
+              @click="moveActivities"
+            >
+              {{ moveArmed ? "Really move all?" : "Move activities" }}
+            </button>
+          </div>
+          <div v-if="mergePreview" class="alert alert-warning small">
+            {{ mergePreview.activity_count }} activities will be moved to game
+            {{ targetId
+            }}<template v-if="mergePreview.new_aliases.length"
+              >, {{ mergePreview.new_aliases.join(", ") }} added as
+              alias</template
+            >, and this game is deleted.
+            <div class="mt-2">
+              <button class="btn btn-danger btn-sm" @click="merge">
+                Confirm merge
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <button class="btn btn-outline-danger btn-sm" @click="deleteGame">
+              {{ deleteArmed ? "Really delete?" : "Delete game" }}
+            </button>
+            <span class="text-body-secondary small ms-2"
+              >Only games without activities can be deleted</span
+            >
+          </div>
+        </template>
+
+        <AdminHistory v-else :history="game.history" />
       </template>
     </div>
   </div>
