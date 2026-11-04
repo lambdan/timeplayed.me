@@ -55,6 +55,8 @@ function select(p?: AdminPlatform) {
   deleteArmed.value = false;
   message.value = "";
   if (!p) return;
+  // the editor is above the list
+  window.scrollTo({ top: 0, behavior: "smooth" });
   form.value = {
     abbreviation: p.abbreviation,
     name: p.name ?? "",

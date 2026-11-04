@@ -49,12 +49,18 @@ async function fetchActivities(append = false) {
   }
 }
 
-function select(id?: number) {
+function updateQuery(id?: number) {
   router.replace({ query: { tab: "activities", ...filterQuery(), id } });
 }
 
+function select(id?: number) {
+  updateQuery(id);
+  // the editor is above the list
+  if (id) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function applyFilters() {
-  select(selectedId.value);
+  updateQuery(selectedId.value);
   fetchActivities();
 }
 

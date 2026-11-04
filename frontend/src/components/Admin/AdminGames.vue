@@ -41,6 +41,8 @@ async function fetchGames(append = false) {
 
 function select(id?: number) {
   router.replace({ query: { tab: "games", id } });
+  // the editor is above the list
+  if (id) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function addGame() {
