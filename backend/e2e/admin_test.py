@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 
+from tpbackend.permissions import DEFAULT_PERMISSIONS
 from tpbackend.storage import Activity, DiscordHistory, Game, Platform, User
 
 UTC = datetime.timezone.utc
@@ -46,6 +47,21 @@ class TestAdminUsers:
         assert r.status_code == 200, r.text
         assert [u["name"] for u in r.json()] == ["admin", "bob"]
         assert r.json()[0]["permissions"] == ["commands", "admin"]
+
+    def test_add(self, admin):
+        _, client = admin
+        r = client.post("/admin/user", json={"name": "test", "display_name": "Test"})
+        assert r.status_code == 200, r.text
+        user = User.get_by_id(r.json()["id"])
+        assert user.get_name() == "test"
+        assert user.get_display_name() == "Test"
+        assert user.get_discord_id() is None
+        assert user.get_permissions() == DEFAULT_PERMISSIONS
+        assert any("User added by admin admin" in h for h in r.json()["history"])
+
+    def test_add_empty_name(self, admin):
+        _, client = admin
+        assert client.post("/admin/user", json={"name": " "}).status_code == 400
 
     def test_set_permissions(self, admin, make_user):
         _, client = admin

@@ -117,6 +117,12 @@ export class AdminAPI {
     return request<AdminUser[]>("GET", "/users", { query });
   }
 
+  static addUser(name: string, display_name: string | null) {
+    return request<AdminUserDetails>("POST", "/user", {
+      body: { name, display_name },
+    });
+  }
+
   static getUser(id: number) {
     return request<AdminUserDetails>("GET", `/user/${id}`);
   }

@@ -114,6 +114,11 @@ class Admin_Platform(API_Platform):
         )
 
 
+class Admin_PostUser(BaseModel):
+    name: str
+    display_name: str | None = None
+
+
 class Admin_SetPermissions(BaseModel):
     permissions: list[str]
 

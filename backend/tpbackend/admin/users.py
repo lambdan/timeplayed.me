@@ -5,6 +5,7 @@ from fastapi import APIRouter
 
 from tpbackend.admin.models import (
     Admin_DiscordHistory,
+    Admin_PostUser,
     Admin_SetPermissions,
     Admin_User,
     Admin_UserDetails,
@@ -42,6 +43,20 @@ def get_users(
     query = UserQuery.apply_sort(query, "id", "asc")
     query = query.offset(max(0, int(offset))).limit(clamp(int(limit), 1, 100))
     return [Admin_User.from_user(u) for u in query]
+
+
+@router.post("/user", response_model=Admin_UserDetails)
+def add_user(data: Admin_PostUser, admin: AdminUser) -> Admin_UserDetails:
+    """users without discord, eg for testing"""
+    name = data.name.strip()
+    if not name:
+        return bad_request("Name cannot be empty")
+    display_name = (data.display_name or "").strip() or None
+    user = cast(User, User.create(name=name, display_name=display_name))
+    user.add_history(f"User added by admin {admin.get_name()}")
+    user.save()
+    # reload, a freshly created user has the default platform object in default_platform_id
+    return Admin_UserDetails.from_user(__get_user(user.get_id()))
 
 
 @router.get("/user/{user_id}", response_model=Admin_UserDetails)

@@ -34,6 +34,7 @@ const discordHistoryCount = computed(() =>
 const deleteArmed = ref(false);
 const message = ref("");
 const section = ref("details");
+const newUser = ref({ name: "", display_name: "" });
 
 async function fetchUsers(append = false) {
   try {
@@ -73,6 +74,23 @@ function select(id?: number) {
   router.replace({ query: { tab: "users", id } });
   // the editor is above the list
   if (id) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function addUser() {
+  const name = newUser.value.name.trim();
+  if (!name) return;
+  try {
+    error.value = "";
+    const user = await AdminAPI.addUser(
+      name,
+      newUser.value.display_name.trim() || null,
+    );
+    newUser.value = { name: "", display_name: "" };
+    fetchUsers();
+    select(user.id);
+  } catch (e: any) {
+    error.value = e.message;
+  }
 }
 
 async function savePermissions() {
@@ -235,12 +253,33 @@ onMounted(async () => {
       </div>
     </div>
 
-    <input
-      v-model="search"
-      class="form-control mb-2"
-      type="search"
-      placeholder="Search users"
-    />
+    <div class="row g-2 mb-2">
+      <div class="col-12 col-md-5">
+        <input
+          v-model="search"
+          class="form-control"
+          type="search"
+          placeholder="Search users"
+        />
+      </div>
+      <div class="col-12 col-md-7">
+        <div class="input-group">
+          <input
+            v-model="newUser.name"
+            class="form-control"
+            placeholder="New user name"
+            @keydown.enter.prevent="addUser"
+          />
+          <input
+            v-model="newUser.display_name"
+            class="form-control"
+            placeholder="Display name (optional)"
+            @keydown.enter.prevent="addUser"
+          />
+          <button class="btn btn-outline-primary" @click="addUser">Add</button>
+        </div>
+      </div>
+    </div>
     <div class="table-responsive">
       <table class="table table-hover table-sm align-middle">
         <thead>
