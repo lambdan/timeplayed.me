@@ -24,8 +24,8 @@ def sitemap_urls(api) -> dict[str, str | None]:
 class TestSitemap:
     def test_static_pages(self, api):
         urls = sitemap_urls(api)
-        assert "http://localhost/" in urls
-        assert "http://localhost/help" in urls
+        assert "http://timeplayed.test/" in urls
+        assert "http://timeplayed.test/help" in urls
 
     def test_pages_with_playtime(self, api, make_user, make_game, make_platform):
         user, _ = make_user()
@@ -41,11 +41,13 @@ class TestSitemap:
         )
 
         urls = sitemap_urls(api)
-        assert urls[f"http://localhost/game/{game.get_id()}"] == "2026-03-04"
-        assert urls[f"http://localhost/user/{user.get_id()}"] == "2026-03-04"
-        assert urls[f"http://localhost/platform/{platform.get_id()}"] == "2026-03-04"
+        assert urls[f"http://timeplayed.test/game/{game.get_id()}"] == "2026-03-04"
+        assert urls[f"http://timeplayed.test/user/{user.get_id()}"] == "2026-03-04"
+        assert (
+            urls[f"http://timeplayed.test/platform/{platform.get_id()}"] == "2026-03-04"
+        )
         game_urls = [u for u in urls if "/game/" in u]
-        assert game_urls == [f"http://localhost/game/{game.get_id()}"]
+        assert game_urls == [f"http://timeplayed.test/game/{game.get_id()}"]
 
     def test_hidden_excluded(self, api, make_user, make_game, make_platform):
         user, _ = make_user()

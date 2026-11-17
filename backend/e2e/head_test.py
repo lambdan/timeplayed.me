@@ -34,7 +34,7 @@ class TestHead:
             "2.0 hours played by 1 player." in r.text
         )
         assert (
-            f'<link rel="canonical" href="http://localhost/game/{game.get_id()}" />'
+            f'<link rel="canonical" href="http://timeplayed.test/game/{game.get_id()}" />'
             in r.text
         )
         assert '<meta property="og:title"' in r.text
@@ -75,12 +75,16 @@ class TestHead:
 
     def test_empty_for_defaults(self, api, make_game):
         hidden = make_game("Hidden", hidden=True)
+        child_of_hidden = make_game("Child", parent=hidden)
         for path in [
             "",
             "help",
             "game/999",
             "game/abc",
+            "game/²",
+            "game/99999999999999999999",
             f"game/{hidden.get_id()}",
+            f"game/{child_of_hidden.get_id()}",
             "user/999",
             "platform/999",
             "user/1/recap/2025",

@@ -1,9 +1,9 @@
-from tpbackend.globals import TIMEPLAYED_URL
+from tpbackend.globals import timeplayed_url
 from tpbackend.storage import Game
 
 
 def game_url(game_id) -> str:
-    return f"{TIMEPLAYED_URL}/game/{game_id}"
+    return f"{timeplayed_url()}/game/{game_id}"
 
 
 def md_game_link(game: int | Game) -> str:

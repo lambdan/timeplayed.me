@@ -10,13 +10,12 @@ from html import escape
 
 from fastapi import APIRouter, Response
 
-from tpbackend.game.models import API_GameWithStats
 from tpbackend.game.query import GameStatsQuery
 from tpbackend.game.utils import game_url
+from tpbackend.globals import FALLBACK_URL, timeplayed_url
 from tpbackend.platform.models import API_PlatformWithStats
 from tpbackend.platform.query import PlatformStatsQuery
 from tpbackend.platform.utils import platform_url
-from tpbackend.storage import Game
 from tpbackend.user.models import API_UserWithStats
 from tpbackend.user.query import UserStatsQuery
 from tpbackend.user.utils import user_url
@@ -49,33 +48,47 @@ def head_tags(title: str, description: str, url: str) -> str:
     title = escape(f"{title} - Timeplayed.me")
     description = escape(description)
     url = escape(url)
-    return "\n".join(
-        [
-            f"<title>{title}</title>",
-            f'<meta name="description" content="{description}" />',
-            f'<link rel="canonical" href="{url}" />',
-            '<meta property="og:site_name" content="Timeplayed.me" />',
-            '<meta property="og:type" content="website" />',
-            f'<meta property="og:title" content="{title}" />',
-            f'<meta property="og:description" content="{description}" />',
-            f'<meta property="og:url" content="{url}" />',
-        ]
-    )
+    tags = [
+        f"<title>{title}</title>",
+        f'<meta name="description" content="{description}" />',
+        '<meta property="og:site_name" content="Timeplayed.me" />',
+        '<meta property="og:type" content="website" />',
+        f'<meta property="og:title" content="{title}" />',
+        f'<meta property="og:description" content="{description}" />',
+    ]
+    # Without TIMEPLAYED_URL the url would be on localhost, which is worse than none
+    if timeplayed_url() != FALLBACK_URL:
+        tags.append(f'<link rel="canonical" href="{url}" />')
+        tags.append(f'<meta property="og:url" content="{url}" />')
+    return "\n".join(tags)
+
+
+# Postgres integer, larger ids can't exist and make the query fail
+MAX_ID = 2**31 - 1
+
+
+def parse_id(value: str) -> int | None:
+    if not value.isascii() or not value.isdigit():
+        return None
+    id = int(value)
+    if id > MAX_ID:
+        return None
+    return id
 
 
 def game_head(game_id: int) -> str:
-    game = Game.get_or_none(Game.id == game_id)
+    query = GameStatsQuery.apply_ids(GameStatsQuery.base(), [game_id])
+    game = query.get_or_none()
+    # base() leaves out hidden games, get_hidden() also checks the parents
     if game is None or game.get_hidden():
         return ""
-    query = GameStatsQuery.apply_ids(GameStatsQuery.base(), [game_id])
-    stats = API_GameWithStats.from_game(query.get()).stats
 
     name = game.name
     if game.release_year:
         name += f" ({game.release_year})"
     description = (
-        f"{name}: {format_playtime(stats.seconds)} played by "
-        f"{plural(stats.user_count, 'player')}. "
+        f"{name}: {format_playtime(int(game.total_seconds))} played by "
+        f"{plural(game.user_count, 'player')}. "
         "Top players, recent sessions and playtime history."
     )
     return head_tags(f"{name} playtime", description, game_url(game_id))
@@ -130,6 +143,8 @@ def head(path: str) -> Response:
     """
     html = ""
     parts = path.strip("/").split("/")
-    if len(parts) == 2 and parts[0] in PAGES and parts[1].isdigit():
-        html = PAGES[parts[0]](int(parts[1]))
+    if len(parts) == 2 and parts[0] in PAGES:
+        id = parse_id(parts[1])
+        if id is not None:
+            html = PAGES[parts[0]](id)
     return Response(content=html, media_type="text/html")

@@ -1,4 +1,4 @@
-from tpbackend.globals import TIMEPLAYED_URL
+from tpbackend.globals import timeplayed_url
 from tpbackend.storage import Platform, Game, User, Activity
 from tpbackend.activity.query import ActivityQuery
 from typing import cast
@@ -12,7 +12,7 @@ def display_name(platform: int | Platform) -> str:
 
 
 def platform_url(platform_id) -> str:
-    return f"{TIMEPLAYED_URL}/platform/{platform_id}"
+    return f"{timeplayed_url()}/platform/{platform_id}"
 
 
 def md_platform_link(platform: int | Platform) -> str:

@@ -34,7 +34,7 @@ services:
       OBLIVIONIS_DB: oblivionis
       TIMEPLAYED_DB: storage_v2
       CACHE_ENABLED: "false"
-      TIMEPLAYED_URL: http://localhost
+      TIMEPLAYED_URL: http://timeplayed.test
     ports:
       - "${E2E_API_PORT:-58000}:8000"
     depends_on:
