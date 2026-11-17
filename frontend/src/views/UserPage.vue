@@ -9,7 +9,11 @@ import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import { updateDocumentTitle } from "../utils";
+import {
+  formatDuration,
+  updateDocumentDescription,
+  updateDocumentTitle,
+} from "../utils";
 
 const route = useRoute();
 const user = ref<UserWithStats>();
@@ -22,7 +26,10 @@ const topReady = ref(false);
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
   user.value = await TimeplayedAPI.getUserStats(userId);
-  updateDocumentTitle(user.value.display_name);
+  updateDocumentTitle(`${user.value.display_name} playtime`);
+  updateDocumentDescription(
+    `${user.value.display_name}: ${formatDuration(user.value.stats.seconds)} played across ${user.value.stats.game_count} ${user.value.stats.game_count === 1 ? "game" : "games"}. Top games, platforms and recent activity.`,
+  );
 });
 </script>
 

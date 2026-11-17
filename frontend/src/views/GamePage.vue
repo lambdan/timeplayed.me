@@ -10,7 +10,11 @@ import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import { updateDocumentTitle } from "../utils";
+import {
+  formatDuration,
+  updateDocumentDescription,
+  updateDocumentTitle,
+} from "../utils";
 
 const route = useRoute();
 const game = ref<GameWithStats>();
@@ -29,7 +33,10 @@ onMounted(async () => {
     if (game.value.release_year) {
       title += ` (${game.value.release_year})`;
     }
-    updateDocumentTitle(title);
+    updateDocumentTitle(`${title} playtime`);
+    updateDocumentDescription(
+      `${title}: ${formatDuration(game.value.stats.seconds)} played by ${game.value.stats.user_count} ${game.value.stats.user_count === 1 ? "player" : "players"}. Top players, recent sessions and playtime history.`,
+    );
   }
 });
 </script>

@@ -157,3 +157,16 @@ export function getRecapYear(): number | null {
 export function updateDocumentTitle(title: string): void {
   document.title = `${title} - Timeplayed.me`;
 }
+
+const defaultDescription = document
+  .querySelector('meta[name="description"]')
+  ?.getAttribute("content");
+
+/** Update <meta name="description">, or reset it to the default from index.html */
+export function updateDocumentDescription(description?: string): void {
+  const meta = document.querySelector('meta[name="description"]');
+  const content = description ?? defaultDescription;
+  if (meta && content) {
+    meta.setAttribute("content", content);
+  }
+}

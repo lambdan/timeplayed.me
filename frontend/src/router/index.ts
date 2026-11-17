@@ -17,7 +17,7 @@ import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
 import AuthenticatePage from "../views/AuthenticatePage.vue";
 import AdminPage from "../views/AdminPage.vue";
-import { updateDocumentTitle } from "../utils.ts";
+import { updateDocumentDescription, updateDocumentTitle } from "../utils.ts";
 
 const routes: RouteRecordRaw[] = [
   // Static pages
@@ -93,12 +93,11 @@ export const router = createRouter({
 });
 
 router.afterEach((to) => {
-  // Update <title> if page itself hasn't already
+  // Pages with their own description set it after loading
+  updateDocumentDescription();
+
+  // Pages with a more specific title (e.g. game name) set it after loading
   if (typeof to.meta?.title === "string") {
-    // Default title in index.html
-    if (document.title === "Timeplayed.me - Playtime Tracker") {
-      updateDocumentTitle(to.meta.title);
-      //document.title = `${to.meta.title} - Timeplayed.me`;
-    }
+    updateDocumentTitle(to.meta.title);
   }
 });

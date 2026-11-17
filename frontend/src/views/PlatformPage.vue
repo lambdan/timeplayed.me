@@ -11,7 +11,11 @@ import RecentActivityCard from "../components/RecentActivityCard.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import CalendarBasic from "../components/CalendarBasic.vue";
-import { formatDuration, updateDocumentTitle } from "../utils";
+import {
+  formatDuration,
+  updateDocumentDescription,
+  updateDocumentTitle,
+} from "../utils";
 
 const route = useRoute();
 const platform = ref<PlatformWithStats>();
@@ -24,7 +28,10 @@ const topReady = ref(false);
 onMounted(async () => {
   const platformId = parseInt(route.params.id as string);
   platform.value = await TimeplayedAPI.getPlatformStats(platformId);
-  updateDocumentTitle(platform.value.display_name);
+  updateDocumentTitle(`${platform.value.display_name} playtime`);
+  updateDocumentDescription(
+    `${platform.value.display_name}: ${formatDuration(platform.value.stats.seconds)} played across ${platform.value.stats.game_count} ${platform.value.stats.game_count === 1 ? "game" : "games"} by ${platform.value.stats.user_count} ${platform.value.stats.user_count === 1 ? "player" : "players"}. Top games, top players and recent activity.`,
+  );
 });
 </script>
 
