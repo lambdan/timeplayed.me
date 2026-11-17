@@ -35,6 +35,22 @@
 
       <hr />
 
+      <a name="consoles"></a>
+      <h2>Can I track games played on consoles?</h2>
+      <p>
+        Yes, on consoles that can show your activity in Discord, such as
+        PlayStation and Xbox. For this to work, your PlayStation Network or Xbox
+        Live account needs to be connected to Discord, with it displayed as your
+        status. You can do that in Discord under User Settings → Connections:
+      </p>
+      <img
+        src="/images/psn_connection.png"
+        class="img-fluid mb-2"
+        style="max-width: 500px"
+      />
+
+      <hr />
+
       <a name="manual-tracking"></a>
       <h2>
         I am playing a game on a platform that does not show up on Discord. How

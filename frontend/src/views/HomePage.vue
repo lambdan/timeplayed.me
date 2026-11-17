@@ -24,7 +24,8 @@ const topReady = ref(false);
         <div class="card-body text-start">
           <p class="lead">
             This is a thing that automatically tracks your playtime across games
-            using Discord.
+            using Discord, on both PC and
+            <a href="/help#consoles">supported consoles</a> (e.g. PS5).
           </p>
           <p>
             All you need to do is join the Discord server and you will be
