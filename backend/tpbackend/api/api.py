@@ -14,6 +14,7 @@ from tpbackend.activity.routes import router as activity_router
 from tpbackend.admin.routes import router as admin_router
 from .misc import misc_router
 from .sitemap import sitemap_router
+from .head import head_router
 import logging
 
 logger = logging.getLogger("api")
@@ -29,6 +30,7 @@ def create_app():
 
     api_router.include_router(misc_router)
     api_router.include_router(sitemap_router)
+    api_router.include_router(head_router)
     api_router.include_router(user_router)
     api_router.include_router(activity_router)
     api_router.include_router(game_router)

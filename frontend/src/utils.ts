@@ -158,9 +158,10 @@ export function updateDocumentTitle(title: string): void {
   document.title = `${title} - Timeplayed.me`;
 }
 
-const defaultDescription = document
-  .querySelector('meta[name="description"]')
-  ?.getAttribute("content");
+// Same as in index.html. Not read from the page, because in production the page
+// can be served with a page specific description
+const defaultDescription =
+  "Playtime tracker for PC and console games, using Discord. Total playtime, top games and top players for every tracked game.";
 
 /** Update <meta name="description">, or reset it to the default from index.html */
 export function updateDocumentDescription(description?: string): void {
