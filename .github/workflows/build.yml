@@ -1,8 +1,10 @@
 name: Build
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "backend@*"
+      - "frontend@*"
 
 env:
   IMAGE_NAME: ${{ github.repository }}
@@ -22,10 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Check release tag version matches project version
+      - name: Check tag version matches project version
         id: release
         run: |
-          TAG="${{ github.event.release.tag_name }}"
+          TAG="${{ github.ref_name }}"
           make check-version TAG="$TAG"
 
           case "$TAG" in
