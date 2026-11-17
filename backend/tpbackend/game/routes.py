@@ -1,6 +1,5 @@
 from fastapi.responses import RedirectResponse
 from tpbackend.activity.query import ActivityQuery
-from tpbackend.discord.routes import redirect_discord_avatar
 from tpbackend.game.models import API_GameWithStats
 from tpbackend.game.query import GameStatsQuery
 from tpbackend.igdb.controller import get_or_create_game

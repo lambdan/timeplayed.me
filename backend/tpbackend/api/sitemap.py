@@ -44,7 +44,7 @@ def __url_entry(url: str, lastmod: datetime.datetime | None = None) -> str:
     return entry + "</url>"
 
 
-@sitemap_router.get("/sitemap.xml", tags=["misc"], response_class=Response)
+@sitemap_router.get("/sitemap.xml", response_class=Response, include_in_schema=False)
 def sitemap() -> Response:
     """
     Sitemap for search engines, with every game, user and platform that has playtime

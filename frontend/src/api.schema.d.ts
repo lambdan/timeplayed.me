@@ -554,26 +554,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/discord/{discord_user_id}/avatar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Redirect Discord Avatar
-         * @description Redirects to URL for Discord avatar
-         */
-        get: operations["redirect_discord_avatar_discord__discord_user_id__avatar_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/sgdb/{sgdb_game_id}/grids/best": {
         parameters: {
             query?: never;
@@ -2362,37 +2342,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaytimeChart"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    redirect_discord_avatar_discord__discord_user_id__avatar_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                discord_user_id: string | number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
