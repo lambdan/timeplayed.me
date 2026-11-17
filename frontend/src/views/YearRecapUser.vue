@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration, getRecapYear, updateDocumentTitle } from "../utils";
+import { formatDuration, getRecapYear } from "../utils";
+import { usePageTitle } from "../composables/usePageTitle";
 import {
   loadRecap,
   percentChange,
@@ -23,6 +24,7 @@ import RecapActivityLengths from "../components/Recap/RecapActivityLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
 
 const route = useRoute();
+const setTitle = usePageTitle();
 const year = parseInt(route.params.year as string);
 const userId = parseInt(route.params.id as string);
 
@@ -51,7 +53,7 @@ const oldestGame = computed(() =>
 );
 
 onMounted(async () => {
-  updateDocumentTitle(`${year} Recap`);
+  setTitle(`${year} Recap`);
   if (!available) return;
   try {
     const [u, r] = await Promise.all([
@@ -60,7 +62,7 @@ onMounted(async () => {
     ]);
     user.value = u;
     recap.value = r;
-    updateDocumentTitle(`${u.name} - ${year} Recap`);
+    setTitle(`${u.name} - ${year} Recap`);
   } catch (e) {
     console.error(e);
     failed.value = true;

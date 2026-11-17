@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, START_LOCATION } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import UserPage from "../views/UserPage.vue";
@@ -92,13 +92,19 @@ export const router = createRouter({
   routes,
 });
 
-router.afterEach((to) => {
-  // Update <title> if page itself hasn't already
+router.afterEach((to, from) => {
+  // The server sends page specific <head> tags for the first page (see index.html).
+  // After navigating to another page they would describe the wrong page, so remove them
+  if (from !== START_LOCATION && from.path !== to.path) {
+    document
+      .querySelectorAll(
+        'meta[name="description"], link[rel="canonical"], meta[property^="og:"]',
+      )
+      .forEach((el) => el.remove());
+  }
+
+  // Pages with a more specific title (e.g. game name) set it after loading
   if (typeof to.meta?.title === "string") {
-    // Default title in index.html
-    if (document.title === "Timeplayed.me - Playtime Tracker") {
-      updateDocumentTitle(to.meta.title);
-      //document.title = `${to.meta.title} - Timeplayed.me`;
-    }
+    updateDocumentTitle(to.meta.title);
   }
 });

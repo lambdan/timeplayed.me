@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin
+Disallow: /authenticate
+
+Sitemap: https://timeplayed.me/sitemap.xml

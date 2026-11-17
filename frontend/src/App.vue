@@ -28,7 +28,8 @@ onMounted(() => {
 <template>
   <Navbar />
   <main class="">
-    <router-view />
+    <!-- key: remount when going between pages of the same type, e.g. game to game -->
+    <router-view :key="$route.path" />
   </main>
   <Footer class="mt-2"></Footer>
 </template>

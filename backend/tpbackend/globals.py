@@ -8,7 +8,18 @@ if DEBUG:
     print("⚠️⚠️⚠️ Running in DEBUG mode ⚠️⚠️⚠️")
 
 
-TIMEPLAYED_URL = os.environ.get("TIMEPLAYED_URL", "http://localhost").rstrip("/")
+FALLBACK_URL = "http://localhost"
+
+
+def timeplayed_url() -> str:
+    url = os.environ.get("TIMEPLAYED_URL", "").rstrip("/")
+    if url:
+        return url
+    logging.getLogger("globals").warning(
+        f"TIMEPLAYED_URL not set, using {FALLBACK_URL}"
+    )
+    return FALLBACK_URL
+
 
 MINIMUM_SESSION_LENGTH = int(os.environ.get("MINIMUM_SESSION_LENGTH", "0"))
 

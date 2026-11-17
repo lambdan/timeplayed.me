@@ -1,9 +1,9 @@
-from tpbackend.globals import TIMEPLAYED_URL
+from tpbackend.globals import timeplayed_url
 from tpbackend.storage import User
 
 
 def user_url(user_id) -> str:
-    return f"{TIMEPLAYED_URL}/user/{user_id}"
+    return f"{timeplayed_url()}/user/{user_id}"
 
 
 def md_user_link(user: int | User) -> str:
