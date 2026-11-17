@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, START_LOCATION } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import UserPage from "../views/UserPage.vue";
@@ -17,7 +17,7 @@ import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
 import AuthenticatePage from "../views/AuthenticatePage.vue";
 import AdminPage from "../views/AdminPage.vue";
-import { updateDocumentDescription, updateDocumentTitle } from "../utils.ts";
+import { updateDocumentTitle } from "../utils.ts";
 
 const routes: RouteRecordRaw[] = [
   // Static pages
@@ -92,9 +92,16 @@ export const router = createRouter({
   routes,
 });
 
-router.afterEach((to) => {
-  // Pages with their own description set it after loading
-  updateDocumentDescription();
+router.afterEach((to, from) => {
+  // The server sends page specific <head> tags for the first page (see index.html).
+  // After navigating to another page they would describe the wrong page, so remove them
+  if (from !== START_LOCATION && from.path !== to.path) {
+    document
+      .querySelectorAll(
+        'meta[name="description"], link[rel="canonical"], meta[property^="og:"]',
+      )
+      .forEach((el) => el.remove());
+  }
 
   // Pages with a more specific title (e.g. game name) set it after loading
   if (typeof to.meta?.title === "string") {

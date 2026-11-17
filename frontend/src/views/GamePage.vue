@@ -10,13 +10,10 @@ import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import {
-  formatDuration,
-  updateDocumentDescription,
-  updateDocumentTitle,
-} from "../utils";
+import { usePageTitle } from "../composables/usePageTitle";
 
 const route = useRoute();
+const setTitle = usePageTitle();
 const game = ref<GameWithStats>();
 // date range for the top lists next to recent activity, set by their picker
 const topAfter = ref<Date>();
@@ -33,10 +30,7 @@ onMounted(async () => {
     if (game.value.release_year) {
       title += ` (${game.value.release_year})`;
     }
-    updateDocumentTitle(`${title} playtime`);
-    updateDocumentDescription(
-      `${title}: ${formatDuration(game.value.stats.seconds)} played by ${game.value.stats.user_count} ${game.value.stats.user_count === 1 ? "player" : "players"}. Top players, recent sessions and playtime history.`,
-    );
+    setTitle(`${title} playtime`);
   }
 });
 </script>

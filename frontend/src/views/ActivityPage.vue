@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration, updateDocumentTitle } from "../utils";
+import { formatDuration } from "../utils";
+import { usePageTitle } from "../composables/usePageTitle";
 import { heatBadgeStyle } from "../utils.heat";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
@@ -11,6 +12,7 @@ import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "../components/CalendarBasic.vue";
 
 const route = useRoute();
+const setTitle = usePageTitle();
 const { token } = useApiToken();
 const { authenticatedUser } = useAuthenticatedUser();
 const activity = ref<Activity>();
@@ -71,7 +73,7 @@ onMounted(async () => {
         activity.value.platform_id,
       );
 
-      updateDocumentTitle(`Activity ${activity.value.id}`);
+      setTitle(`Activity ${activity.value.id}`);
     }
   } catch (e: any) {
     error.value = e.detail || JSON.stringify(e) || "Error";
