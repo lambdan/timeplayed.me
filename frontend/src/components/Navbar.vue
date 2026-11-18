@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+import DiscordAvatar from "./DiscordAvatar.vue";
 
 const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-lg">
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border rounded px-3">
     <div class="container">
       <a href="/" class="navbar-brand">timeplayed.me</a>
       <button
@@ -68,23 +69,54 @@ const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
           </li>
         </ul>
 
-        <div
-          v-if="authenticatedUser"
-          class="ms-lg-auto mt-3 mt-lg-0 d-flex align-items-center gap-2"
-        >
-          <small class="navbar-text text-body-secondary">
-            Authenticated as
-            <a
-              class="text-decoration-none"
-              :href="'/user/' + authenticatedUser.id"
+        <!-- a navbar-nav dropdown: on phones the menu opens inline in the collapsed navbar -->
+        <ul v-if="authenticatedUser" class="navbar-nav ms-lg-auto">
+          <li class="nav-item dropdown">
+            <button
+              class="nav-link d-flex align-items-center gap-2 rounded-pill py-lg-0"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              :aria-label="authenticatedUser.display_name"
             >
-              {{ authenticatedUser.display_name }}
-            </a>
-          </small>
-          <button class="btn btn-outline-danger btn-sm" @click="logoutSession">
-            Logout
-          </button>
-        </div>
+              <DiscordAvatar
+                :user="authenticatedUser"
+                :link="false"
+                :maxWidth="36"
+                :classes="['rounded-circle']"
+              />
+              <!-- in the collapsed menu on phones the avatar alone would look lost -->
+              <span class="d-lg-none">{{
+                authenticatedUser.display_name
+              }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-lg-end">
+              <li>
+                <a
+                  class="dropdown-item"
+                  :href="'/user/' + authenticatedUser.id"
+                >
+                  <i class="bi bi-person"></i>
+                  {{ authenticatedUser.display_name }}
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/settings">
+                  <i class="bi bi-gear"></i> Settings
+                </a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <button
+                  class="dropdown-item text-danger"
+                  @click="logoutSession"
+                >
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+              </li>
+            </ul>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>

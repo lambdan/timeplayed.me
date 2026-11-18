@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Settings */
+        put: operations["update_settings_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activity": {
         parameters: {
             query?: never;
@@ -675,6 +692,11 @@ export interface components {
             updated: number;
             /** Permissions */
             permissions: string[];
+            /**
+             * Pc Platform
+             * @description What PC activity counts as (win/mac/linux)
+             */
+            pc_platform: string;
         };
         /** API_Game */
         API_Game: {
@@ -835,6 +857,22 @@ export interface components {
              * @description ID of platform that was played on. Will default to user's default platform if not provided
              */
             platform_id?: number | null;
+        };
+        /**
+         * API_PutSettings
+         * @description leave out what shouldn't change
+         */
+        API_PutSettings: {
+            /**
+             * Default Platform Id
+             * @description Platform used when adding activity without one
+             */
+            default_platform_id?: number | null;
+            /**
+             * Pc Platform
+             * @description What PC activity counts as
+             */
+            pc_platform?: ("win" | "mac" | "linux") | null;
         };
         /** API_User */
         API_User: {
@@ -1439,6 +1477,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_AuthenticatedUser"];
+                };
+            };
+        };
+    };
+    update_settings_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["API_PutSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_AuthenticatedUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

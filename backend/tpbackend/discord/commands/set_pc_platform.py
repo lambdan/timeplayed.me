@@ -1,7 +1,6 @@
 from tpbackend.storage import User
+from tpbackend.user.models import PC_PLATFORMS
 from .command import Command
-
-VALID = ["win", "mac", "linux"]
 
 
 class SetPCPlatformCommand(Command):
@@ -11,7 +10,7 @@ class SetPCPlatformCommand(Command):
         h = f"""
 Set which PC platform your PC activities should count towards.
 
-Valid options are: `{', '.join(VALID)}`
+Valid options are: `{', '.join(PC_PLATFORMS)}`
 
 Check your current PC platform```
 !pcplatform
@@ -34,7 +33,7 @@ Set your PC platform to mac```
         return f"Your current PC platform is **{user.pc_platform}**."  # type: ignore
 
     def update(self, user: User, new_os: str) -> str:
-        if new_os not in VALID:
+        if new_os not in PC_PLATFORMS:
             return f"Invalid. See `!help {self.names[0]}` for help"
 
         user.set_pc_platform(new_os)

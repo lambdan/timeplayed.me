@@ -1,0 +1,102 @@
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { Platform } from "../api.models";
+import { TimeplayedAPI } from "../api.client";
+import { useApiToken } from "../composables/useApiToken";
+import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+
+// same as PCPlatform in the backend (user/models.py)
+const PC_PLATFORMS = ["win", "mac", "linux"] as const;
+type PCPlatform = (typeof PC_PLATFORMS)[number];
+
+const { token } = useApiToken();
+const {
+  authenticatedUser,
+  loadingAuthenticatedUser,
+  refreshAuthenticatedUser,
+} = useAuthenticatedUser();
+
+const platforms = ref<Platform[]>([]);
+const pcPlatform = ref<PCPlatform>();
+const saving = ref(false);
+const saved = ref(false);
+const error = ref("");
+
+// the users current settings, also when they log in on this page
+watch(
+  authenticatedUser,
+  (user) => {
+    pcPlatform.value = user?.pc_platform as PCPlatform | undefined;
+  },
+  { immediate: true },
+);
+
+function pcPlatformName(abbreviation: string) {
+  const platform = platforms.value.find((p) => p.abbreviation === abbreviation);
+  return platform?.display_name ?? abbreviation;
+}
+
+async function save() {
+  if (!token.value) return;
+  saving.value = true;
+  saved.value = false;
+  error.value = "";
+  try {
+    await TimeplayedAPI.updateSettings(token.value, {
+      pc_platform: pcPlatform.value,
+    });
+    await refreshAuthenticatedUser();
+    saved.value = true;
+  } catch (e: any) {
+    error.value = e?.detail || "Saving failed";
+  } finally {
+    saving.value = false;
+  }
+}
+
+onMounted(async () => {
+  let offset = 0;
+  while (true) {
+    const incoming = await TimeplayedAPI.getPlatforms({ offset, limit: 100 });
+    platforms.value.push(...incoming);
+    if (incoming.length < 100) break;
+    offset += 100;
+  }
+  platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
+});
+</script>
+
+<template>
+  <div class="card p-0 mx-auto mt-4" style="max-width: 600px">
+    <h1 class="card-header">Settings</h1>
+    <div class="card-body">
+      <div v-if="loadingAuthenticatedUser" class="text-center">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+      </div>
+      <p v-else-if="!authenticatedUser" class="mb-0">
+        <a href="/authenticate">Authenticate</a> to change your settings.
+      </p>
+      <form v-else @submit.prevent="save">
+        <div class="mb-3">
+          <label for="pc-platform" class="form-label"
+            >Discord PC platform</label
+          >
+          <select id="pc-platform" v-model="pcPlatform" class="form-select">
+            <option v-for="p in PC_PLATFORMS" :key="p" :value="p">
+              {{ pcPlatformName(p) }}
+            </option>
+          </select>
+          <div class="form-text">Count Discord PC activity under this OS.</div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            Save
+          </button>
+          <span v-if="saved" class="text-success">Saved</span>
+          <span v-if="error" class="text-danger">{{ error }}</span>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>

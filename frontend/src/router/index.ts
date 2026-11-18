@@ -17,6 +17,7 @@ import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
 import AuthenticatePage from "../views/AuthenticatePage.vue";
 import AdminPage from "../views/AdminPage.vue";
+import SettingsPage from "../views/SettingsPage.vue";
 import { updateDocumentTitle } from "../utils.ts";
 
 const routes: RouteRecordRaw[] = [
@@ -46,6 +47,7 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Manual Tracking" },
   },
   { path: "/admin", component: AdminPage, meta: { title: "Admin" } },
+  { path: "/settings", component: SettingsPage, meta: { title: "Settings" } },
 
   // Dynamic pages
 

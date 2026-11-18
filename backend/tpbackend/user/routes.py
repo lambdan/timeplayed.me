@@ -1,8 +1,10 @@
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.user.query import UserStatsQuery, UserQuery
+from tpbackend.storage import Platform_or_none
 from tpbackend.user.models import (
     API_AuthenticatedUser,
+    API_PutSettings,
     API_UserWithStats,
     API_User,
 )
@@ -250,4 +252,26 @@ def get_users(
     response_model=API_AuthenticatedUser,
 )
 def who_am_i(user: AuthenticatedUser) -> API_AuthenticatedUser:
+    return API_AuthenticatedUser.from_user(user)
+
+
+@router.put(
+    "/settings",
+    tags=["users", "authenticated"],
+    response_model=API_AuthenticatedUser,
+)
+def update_settings(
+    user: AuthenticatedUser, data: API_PutSettings
+) -> API_AuthenticatedUser:
+    if data.default_platform_id is not None:
+        platform = Platform_or_none(data.default_platform_id)
+        if not platform:
+            return bad_request("Platform not found")
+        if platform.get_id() != user.get_default_platform().get_id():
+            user.set_default_platform(platform)
+
+    if data.pc_platform is not None and data.pc_platform != user.get_pc_platform():
+        user.set_pc_platform(data.pc_platform)
+
+    user.save()
     return API_AuthenticatedUser.from_user(user)

@@ -1,7 +1,12 @@
+from typing import Literal, get_args
+
 from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
 from tpbackend.permissions import Permission
+
+PCPlatform = Literal["win", "mac", "linux"]
+PC_PLATFORMS: list[str] = list(get_args(PCPlatform))
 
 
 class UserTotals(BaseTotals):
@@ -38,13 +43,27 @@ class API_User(BaseModel):
 
 class API_AuthenticatedUser(API_User):
     permissions: list[str]
+    pc_platform: str = Field(description="What PC activity counts as (win/mac/linux)")
 
     @classmethod
     def from_user(cls, user):
         return cls(
             **API_User.from_user(user).model_dump(),
             permissions=user.get_permissions(),
+            pc_platform=user.get_pc_platform(),
         )
+
+
+class API_PutSettings(BaseModel):
+    """leave out what shouldn't change"""
+
+    default_platform_id: int | None = Field(
+        default=None,
+        description="Platform used when adding activity without one",
+    )
+    pc_platform: PCPlatform | None = Field(
+        default=None, description="What PC activity counts as"
+    )
 
 
 class API_UserWithStats(API_User):
