@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { formatDuration, sleep } from "../utils";
+import { computed, onUnmounted, ref, watch } from "vue";
+import { formatDuration } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import { useApiToken } from "../composables/useApiToken";
-import type {
-  AuthenticatedUser,
-  Game,
-  LiveActivity,
-  LiveActivityPost,
-  Platform,
-} from "../api.models";
+import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+import type { Game, LiveActivity, Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+
+// shorter sessions are aborted instead of saved, the backend wants at least this (MINIMUM_SESSION_LENGTH)
+const MIN_SECONDS = 30;
+
+// remembered between visits
+const LAST_GAME_KEY = "mt-last-game";
+const LAST_PLATFORM_KEY = "mt-last-platform";
+const PREVIOUS_GAMES_KEY = "mt-previousGames";
+const MODE_KEY = "mt-mode";
+const MAX_PREVIOUS_GAMES = 10;
 
 interface PreviousGame {
   gameId: number;
@@ -18,821 +23,511 @@ interface PreviousGame {
   date: number;
 }
 
-const LAST_GAME_KEY = "mt-last-game";
-const LAST_PLATFORM_KEY = "mt-last-platform";
-const PREVIOUS_GAMES_KEY = "mt-previousGames";
+// start a session now, or add time already played
+type Mode = "start" | "add";
 
-const { token, clearApiToken } = useApiToken();
-const loading = ref(false);
-const liveActivity = ref<LiveActivity | null>(null);
-const user = ref<AuthenticatedUser>();
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // only a convenience
+  }
+}
+
+function readPreviousGames(): PreviousGame[] {
+  try {
+    const parsed = JSON.parse(readStorage(PREVIOUS_GAMES_KEY) ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((pg) => pg.gameId && pg.platformId)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+const { token } = useApiToken();
+const { authenticatedUser, loadingAuthenticatedUser } = useAuthenticatedUser();
 // the backend checks this too, this is just so we don't show controls that won't work
 const canTrack = computed(
-  () => !!user.value?.permissions.includes("manual_activity"),
+  () => !!authenticatedUser.value?.permissions.includes("manual_activity"),
 );
-const game = ref<Game>();
-const platform = ref<Platform>();
+
+const loading = ref(true);
+const busy = ref(false);
+const error = ref("");
+const mode = ref<Mode>(readStorage(MODE_KEY) === "add" ? "add" : "start");
+watch(mode, (m) => writeStorage(MODE_KEY, m));
 
 const platforms = ref<Platform[]>([]);
-const error = ref("");
-const searchGameResults = ref<Game[]>([]);
-const durationText = ref("...");
-const previousGames = ref<PreviousGame[]>([]);
-const sortedPreviousGames = computed(() =>
-  [...previousGames.value].sort((a, b) => b.date - a.date),
+const platformId = ref<number>();
+const platform = computed(() =>
+  platforms.value.find((p) => p.id === platformId.value),
 );
-const cachedGames = ref<Record<number, Game>>({});
-const cachedPlatforms = ref<Record<number, Platform>>({});
+const game = ref<Game>();
+const liveActivity = ref<LiveActivity | null>(null);
 
-async function addByIGDB() {
-  const igdbId = prompt("Enter IGDB ID:");
-  if (!igdbId || isNaN(+igdbId) || +igdbId <= 0) {
-    return;
-  }
-  try {
-    const igdbGame = await TimeplayedAPI.getGameByIGDB(+igdbId);
-    setGame(igdbGame);
-  } catch (err: any) {
-    error.value = "Could not get game by IGDB ID, probably invalid ID?";
-  }
-}
-
-/** in seconds */
-function getDuration(): number {
-  if (!liveActivity.value) {
-    return 0;
-  }
-  return (Date.now() - liveActivity.value.started) / 1000;
-}
-
-function updateDurationText() {
-  if (!liveActivity.value) {
-    return (durationText.value = "...");
-  }
-  durationText.value = formatDuration(getDuration(), true);
-}
-
-function logout() {
-  clearApiToken();
-  user.value = undefined;
-}
-
-function setGame(g: Game) {
-  game.value = g;
-  console.log("Game set to", g.name);
-  searchGameResults.value = [];
-  const input = document.getElementById(
-    "search-game-input",
-  ) as HTMLInputElement;
-  if (input) {
-    input.value = g.name;
-  }
-}
-
-let searchTimeout: number | null = null;
-let lastSearchQuery = "";
-let durationInterval: number | null = null;
-async function searchGame(query: string) {
-  if (query === lastSearchQuery) {
-    return;
-  }
-  lastSearchQuery = query;
-
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
-  }
-
-  searchTimeout = window.setTimeout(async () => {
-    if (!token.value) {
-      return;
+// games by id, for the previous games list and the live activity
+const games = ref<Record<number, Game>>({});
+async function getGame(id: number): Promise<Game | undefined> {
+  if (!games.value[id]) {
+    try {
+      games.value[id] = await TimeplayedAPI.getGame(id);
+    } catch (err) {
+      console.error("Error getting game", id, err);
+      return undefined;
     }
+  }
+  return games.value[id];
+}
+
+async function getAllPlatforms(): Promise<Platform[]> {
+  const all: Platform[] = [];
+  while (true) {
+    const page = await TimeplayedAPI.getPlatforms({
+      offset: all.length,
+      limit: 100,
+    });
+    all.push(...page);
+    if (page.length < 100) break;
+  }
+  return all.sort((a, b) => a.display_name.localeCompare(b.display_name));
+}
+
+// "Add played time"
+const addHours = ref<number | string>("");
+const addMinutes = ref<number | string>("");
+const addSeconds = computed(
+  () =>
+    (Number(addHours.value) || 0) * 3600 + (Number(addMinutes.value) || 0) * 60,
+);
+
+// game search
+const searchText = ref("");
+const searchResults = ref<Game[]>([]);
+let searchTimeout: number | undefined;
+watch(searchText, (text) => {
+  window.clearTimeout(searchTimeout);
+  // the selected game's name was put in the field, nothing to search for
+  if (text === game.value?.name) {
+    searchResults.value = [];
+    return;
+  }
+  // typing something else means that game isn't the one anymore
+  game.value = undefined;
+  if (!text.trim()) {
+    searchResults.value = [];
+    return;
+  }
+  searchTimeout = window.setTimeout(async () => {
     try {
       const results = await TimeplayedAPI.getGames({
-        search: query,
+        search: text,
         limit: 10,
         order: "desc",
         sort: "updated",
       });
-      for (const result of results) {
-        cachedGames.value[result.id] = result;
+      for (const g of results) {
+        games.value[g.id] = g;
       }
-      searchGameResults.value = results;
-    } catch (err: any) {
-      error.value =
-        err.message || "An error occurred while searching for games.";
+      searchResults.value = results;
+    } catch {
+      error.value = "Searching for games failed";
     }
-  }, 300); // Debounce for 300ms
+  }, 300);
+});
+
+function selectGame(g: Game) {
+  game.value = g;
+  searchText.value = g.name;
+  searchResults.value = [];
 }
 
-async function getGame(id: number | string): Promise<Game | null> {
-  id = +id;
-  if (cachedGames.value[id]) {
-    return cachedGames.value[id];
-  }
+async function addByIGDB() {
+  const igdbId = Number(prompt("Enter IGDB ID:"));
+  if (!igdbId || igdbId <= 0) return;
   try {
-    const g = await TimeplayedAPI.getGame(id);
-    cachedGames.value[id] = g;
-    return g;
-  } catch (err) {
-    console.error("Error getting game", id, err);
-    return null;
+    selectGame(await TimeplayedAPI.getGameByIGDB(igdbId));
+  } catch {
+    error.value = "Could not get game by IGDB ID, probably invalid ID?";
   }
 }
 
-function getGameSync(id: number | string): Game | null {
-  return cachedGames.value[+id] || null;
+// previous games, most recent first
+const previousGames = ref<PreviousGame[]>(readPreviousGames());
+const sortedPreviousGames = computed(() =>
+  [...previousGames.value].sort((a, b) => b.date - a.date),
+);
+
+/** preselected next time, and in previous games */
+function remember(gameId: number, platformId: number) {
+  writeStorage(LAST_GAME_KEY, gameId.toString());
+  writeStorage(LAST_PLATFORM_KEY, platformId.toString());
+  const others = previousGames.value.filter(
+    (pg) => pg.gameId !== gameId || pg.platformId !== platformId,
+  );
+  previousGames.value = [{ gameId, platformId, date: Date.now() }, ...others]
+    .sort((a, b) => b.date - a.date)
+    .slice(0, MAX_PREVIOUS_GAMES);
+  writeStorage(PREVIOUS_GAMES_KEY, JSON.stringify(previousGames.value));
 }
 
-function getPlatformSync(id: number | string): Platform | null {
-  return cachedPlatforms.value[+id] || null;
+async function selectPreviousGame(pg: PreviousGame) {
+  const g = await getGame(pg.gameId);
+  if (!g) return;
+  selectGame(g);
+  platformId.value = pg.platformId;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-async function getPlatform(id: number | string): Promise<Platform | null> {
-  id = +id;
-  if (cachedPlatforms.value[id]) {
-    return cachedPlatforms.value[id];
-  }
-  try {
-    const p = await TimeplayedAPI.getPlatform(id);
-    cachedPlatforms.value[id] = p;
-    return p;
-  } catch (err) {
-    console.error("Error getting platform", id, err);
-    return null;
-  }
+function errorMessage(err: any, fallback: string): string {
+  return typeof err?.detail === "string" ? err.detail : fallback;
 }
 
-async function getUser() {
-  if (!token.value) {
-    return;
-  }
-  try {
-    user.value = await TimeplayedAPI.whoAmI(token.value);
-  } catch (err: any) {
-    error.value = "Authorization failed";
-    logout();
-  }
-}
+// elapsed time of the live activity
+const now = ref(Date.now());
+const timer = window.setInterval(() => (now.value = Date.now()), 1000);
+onUnmounted(() => {
+  window.clearInterval(timer);
+  window.clearTimeout(searchTimeout);
+});
+const elapsedSeconds = computed(() =>
+  liveActivity.value ? (now.value - liveActivity.value.started) / 1000 : 0,
+);
 
-function applyGamePlatform(g: Game, p: Platform) {
-  platform.value = p;
-  setGame(g);
-}
-
-function selectPreviousGame(previousGame: PreviousGame) {
-  const gameInfo = getGameSync(previousGame.gameId);
-  const platformInfo = getPlatformSync(previousGame.platformId);
-
-  if (!gameInfo || !platformInfo) {
-    return;
-  }
-
-  applyGamePlatform(gameInfo, platformInfo);
-
-  const startHeader = document.getElementById("start-playing-card-header");
-  if (startHeader) {
-    startHeader.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  } else {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-}
-
-async function getLiveActivity() {
-  if (!token.value) {
-    return;
-  }
-  try {
-    liveActivity.value = await TimeplayedAPI.getLiveActivity(token.value);
-    if (!liveActivity.value) {
-      return;
-    }
-    const _game = await getGame(liveActivity.value.game_id);
-    const _platform = await getPlatform(liveActivity.value.platform_id);
-    if (!_game || !_platform) {
-      throw new Error(
-        "Failed to fetch game or platform for running live activity",
-      );
-    }
-    applyGamePlatform(_game, _platform);
-  } catch (err: any) {
-    error.value = err.message || "An error occurred while fetching data.";
-  }
-}
-
-async function startLiveActivity() {
+async function start() {
+  if (!token.value || !game.value || !platform.value) return;
   error.value = "";
-  if (!token.value || !game.value || !platform.value) {
-    error.value = "Token, game, or platform is missing";
-    return;
-  }
-  const postData: LiveActivityPost = {
-    game_id: game.value.id,
-    platform_id: platform.value.id,
-  };
-  const button = document.getElementById("start-live-activity-button");
-  if (button) {
-    button.setAttribute("disabled", "true");
-    button.textContent = "Starting...";
-  }
+  busy.value = true;
   try {
-    const r = await TimeplayedAPI.startLiveActivity(token.value, postData);
-    liveActivity.value = r;
-
-    // update local previous
-    localStorage.setItem(LAST_GAME_KEY, game.value.id.toString());
-    localStorage.setItem(LAST_PLATFORM_KEY, platform.value.id.toString());
-    addPreviousGame(game.value.id, platform.value.id);
-  } catch (err: any) {
-    error.value = err.message || "An error occurred while starting activity.";
-    if (button) {
-      button.removeAttribute("disabled");
-      button.textContent = "Start";
-    }
-  }
-}
-
-async function stopLiveActivity() {
-  if (getDuration() < 30) {
-    abortLiveActivity(true).then(() => {
-      error.value =
-        "Activity was shorter than 30 seconds, it was aborted instead.";
+    liveActivity.value = await TimeplayedAPI.startLiveActivity(token.value, {
+      game_id: game.value.id,
+      platform_id: platform.value.id,
     });
-    return;
-  }
-  if (!token.value) {
-    return;
-  }
-  try {
-    // redirect to created activity
-    const stopButton = document.getElementById("stop-live-activity-button");
-    const abortButton = document.getElementById("abort-live-activity-button");
-    if (stopButton) {
-      stopButton.setAttribute("disabled", "true");
-      stopButton.textContent = "Stopping...";
-    }
-    if (abortButton) {
-      abortButton.setAttribute("disabled", "true");
-    }
-    const resp = await TimeplayedAPI.stopLiveActivity(token.value);
-    if (stopButton && resp) {
-      stopButton.textContent = "Success! Redirecting...";
-      stopButton.classList.remove("btn-primary");
-      stopButton.classList.add("btn-success");
-      await sleep(200);
-      window.location.href = "/activity/" + resp.id;
-    }
-  } catch (err: any) {
-    console.error(err);
-    error.value = err.message || "An error occurred while stopping activity.";
+    remember(game.value.id, platform.value.id);
+  } catch (err) {
+    error.value = errorMessage(err, "Starting failed");
+  } finally {
+    busy.value = false;
   }
 }
 
-let abortClicked = 0;
-async function abortLiveActivity(force = false) {
-  abortClicked++;
-
-  const button = document.getElementById("abort-live-activity-button");
-  if (!force) {
-    if (abortClicked === 1 && button) {
-      button.textContent = "Are you sure? Click again to confirm.";
-      return;
-    }
+async function add() {
+  if (!token.value || !game.value || !platform.value) return;
+  error.value = "";
+  busy.value = true;
+  try {
+    const activity = await TimeplayedAPI.addActivity(token.value, {
+      game_id: game.value.id,
+      platform_id: platform.value.id,
+      seconds: addSeconds.value,
+    });
+    remember(game.value.id, platform.value.id);
+    window.location.href = `/activity/${activity.id}`;
+  } catch (err) {
+    error.value = errorMessage(err, "Adding failed");
+    busy.value = false;
   }
+}
 
-  if (!token.value) {
+async function stop() {
+  if (!token.value) return;
+  if (elapsedSeconds.value < MIN_SECONDS) {
+    await abort();
+    error.value = `Shorter than ${MIN_SECONDS} seconds, so it was aborted instead`;
     return;
   }
-
+  error.value = "";
+  busy.value = true;
   try {
-    if (button) {
-      button.setAttribute("disabled", "true");
-      button.textContent = "Aborting...";
-    }
-    abortClicked = 0;
+    const activity = await TimeplayedAPI.stopLiveActivity(token.value);
+    window.location.href = `/activity/${activity.id}`;
+  } catch (err) {
+    error.value = errorMessage(err, "Stopping failed");
+    busy.value = false;
+  }
+}
+
+// abort needs a second click
+const abortArmed = ref(false);
+async function abort() {
+  if (!token.value) return;
+  busy.value = true;
+  try {
     await TimeplayedAPI.abortLiveActivity(token.value);
     liveActivity.value = null;
-    //await getLiveActivity();
-  } catch (err: any) {
-    error.value = err.message || "An error occurred while aborting activity.";
+  } catch (err) {
+    error.value = errorMessage(err, "Aborting failed");
+  } finally {
+    busy.value = false;
+    abortArmed.value = false;
   }
 }
 
-async function getPlatforms() {
-  let offset = 0;
-  platforms.value = [];
-  while (true) {
-    const incoming = await TimeplayedAPI.getPlatforms({ offset, limit: 100 });
-    platforms.value.push(...incoming);
-    if (incoming.length < 100) {
-      break;
-    }
-    offset += 100;
-  }
-  platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
-
-  for (const p of platforms.value) {
-    cachedPlatforms.value[p.id] = p;
-  }
-
-  // set platform to live activity platform or user default platform
-  if (liveActivity.value) {
-    platform.value = platforms.value.find(
-      (p) => p.id === liveActivity.value!.platform_id,
-    );
-  } else if (user.value) {
-    platform.value = platforms.value.find(
-      (p) => p.id === user.value!.default_platform_id,
-    );
+function abortClicked() {
+  if (abortArmed.value) {
+    abort();
+  } else {
+    abortArmed.value = true;
   }
 }
 
-function addPreviousGame(gameId: number, platformId: number) {
-  let updated = false;
-  for (const pg of previousGames.value) {
-    if (pg.gameId === gameId && pg.platformId === platformId) {
-      pg.date = Date.now();
-      updated = true;
-    }
-  }
-  if (!updated) {
-    previousGames.value.push({ gameId, platformId, date: Date.now() });
-  }
-
-  while (previousGames.value.length > 10) {
-    // remove oldest
-    previousGames.value.sort((a, b) => a.date - b.date);
-    previousGames.value.shift();
-  }
-
-  localStorage.setItem(PREVIOUS_GAMES_KEY, JSON.stringify(previousGames.value));
-  console.log("Saved previousGames", previousGames.value);
-}
-
-onMounted(async () => {
-  // start updating duration text
-  durationInterval = window.setInterval(() => {
-    updateDurationText();
-  }, 1000);
-  updateDurationText();
-
+async function load() {
+  if (!token.value) return;
   loading.value = true;
-  await getUser();
-  if (canTrack.value) {
-    await getLiveActivity();
-    await getPlatforms();
-  }
-  loading.value = false;
+  try {
+    const [live, allPlatforms] = await Promise.all([
+      TimeplayedAPI.getLiveActivity(token.value),
+      getAllPlatforms(),
+    ]);
+    platforms.value = allPlatforms;
+    liveActivity.value = live ?? null;
 
-  // load last used if not running
-  if (!liveActivity.value) {
-    const lastGameId = localStorage.getItem(LAST_GAME_KEY);
-    const lastPlatformId = localStorage.getItem(LAST_PLATFORM_KEY);
-    if (lastGameId) {
-      const _game = await getGame(lastGameId);
-      if (_game) {
-        setGame(_game);
-      }
+    // the running game, or the last used one
+    const gameId = live?.game_id ?? Number(readStorage(LAST_GAME_KEY));
+    const g = gameId ? await getGame(gameId) : undefined;
+    if (g) {
+      selectGame(g);
     }
-    if (lastPlatformId) {
-      const _platform = await getPlatform(lastPlatformId);
-      if (_platform) {
-        platform.value = _platform;
-      }
+    const lastPlatformId = Number(readStorage(LAST_PLATFORM_KEY)) || undefined;
+    platformId.value = live?.platform_id ?? lastPlatformId;
+
+    for (const pg of previousGames.value) {
+      getGame(pg.gameId);
     }
+  } catch (err) {
+    error.value = errorMessage(err, "Loading failed");
+  } finally {
+    loading.value = false;
   }
+}
 
-  // load in previous games
-  const storedPreviousGames = localStorage.getItem(PREVIOUS_GAMES_KEY);
-  if (storedPreviousGames) {
-    const parsed = JSON.parse(storedPreviousGames) as PreviousGame[];
-    if (Array.isArray(parsed)) {
-      for (const pg of parsed) {
-        if (pg.gameId && pg.platformId) {
-          await getGame(pg.gameId);
-          await getPlatform(pg.platformId);
-        }
-      }
+watch(
+  canTrack,
+  (can) => {
+    if (can) {
+      load();
     }
-    previousGames.value = parsed;
-  }
-});
-
-onUnmounted(() => {
-  if (durationInterval) {
-    clearInterval(durationInterval);
-    durationInterval = null;
-  }
-
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
-    searchTimeout = null;
-  }
-});
-
-watch(token, (nextToken) => {
-  if (!nextToken) {
-    user.value = undefined;
-    liveActivity.value = null;
-    game.value = undefined;
-    platform.value = undefined;
-    searchGameResults.value = [];
-    error.value = "";
-    return;
-  }
-
-  if (!user.value) {
-    loading.value = true;
-    getUser()
-      .then(async () => {
-        if (canTrack.value) {
-          await getLiveActivity();
-          await getPlatforms();
-        }
-      })
-      .finally(() => {
-        loading.value = false;
-      });
-  }
-});
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card p-0 mx-auto mt-4" style="max-width: 600px">
     <h1 class="card-header">Manual tracking</h1>
     <div class="card-body">
-      <div v-if="error" class="alert alert-danger">
-        {{ error }}
-      </div>
+      <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-      <div v-if="user && !canTrack" class="alert alert-secondary mb-0">
+      <div v-if="loadingAuthenticatedUser" class="text-center">
+        <div class="spinner-border" role="status"></div>
+      </div>
+      <p v-else-if="!authenticatedUser" class="mb-0">
+        You need to be <a href="/authenticate">authenticated</a>.
+      </p>
+      <p v-else-if="!canTrack" class="mb-0">
         You don't have permission to use manual tracking.
+      </p>
+      <div v-else-if="loading" class="text-center">
+        <div class="spinner-border" role="status"></div>
       </div>
 
-      <div v-if="canTrack">
-        <div v-if="loading">Checking for live activity...</div>
-
-        <div v-if="!loading">
-          <div v-if="!liveActivity">
-            <div class="card p-0">
-              <h2 class="card-header" id="start-playing-card-header">
-                Start playing
-              </h2>
-              <div class="card-body">
-                <!-- search game -->
-                <div class="input-group manual-field">
-                  <div class="input-group-prepend">
-                    <span class="input-group-text" id="search-game-addon"
-                      ><i class="bi bi-joystick"></i
-                    ></span>
-                  </div>
-                  <input
-                    type="text"
-                    id="search-game-input"
-                    placeholder="Search for a game..."
-                    class="form-control manual-form-control"
-                    @input="
-                      searchGame(
-                        ($event.target && ($event.target as any).value) || '',
-                      )
-                    "
-                  />
-                </div>
-
-                <ul
-                  v-if="searchGameResults.length > 0"
-                  class="dropdown-menu show w-100"
-                  style="max-height: 300px; overflow-y: auto"
-                >
-                  <li
-                    v-for="game in searchGameResults"
-                    :key="game.id"
-                    class="dropdown-item"
-                  >
-                    <a class="text-decoration-none" @click="setGame(game)">
-                      <span class="text-secondary">{{ game.id }}</span
-                      > 
-                      {{ game.name }}
-                      <span v-if="game.release_year" class="text-secondary"
-                        >({{ game.release_year }})</span
-                      ></a
-                    >
-                  </li>
-                </ul>
-
-                <div class="input-group manual-field mt-3">
-                  <div class="input-group-prepend">
-                    <span class="input-group-text" id="search-platform-addon"
-                      ><i class="bi bi-controller"></i
-                    ></span>
-                  </div>
-                  <select
-                    v-model="platform"
-                    class="form-select manual-form-control"
-                    aria-label="Select platform"
-                  >
-                    <option disabled value="">Select a platform</option>
-                    <option v-for="p in platforms" :key="p.id" :value="p">
-                      {{ p.display_name }}
-                    </option>
-                  </select>
-                </div>
-
-                <div
-                  class="btn-group mt-4 w-100 manual-button-row"
-                  role="group"
-                >
-                  <button
-                    @click="startLiveActivity"
-                    class="btn btn-primary"
-                    id="start-live-activity-button"
-                    :disabled="!game || !platform"
-                  >
-                    <i class="bi bi-play-circle"></i>
-                    Start
-                  </button>
-                  <button @click="addByIGDB" class="btn btn-secondary">
-                    <i class="bi bi-plus-circle"></i>
-                    <span class="d-none d-sm-inline">Add game by IGDB ID</span>
-                    <span class="d-inline d-sm-none">Add by IGDB ID</span>
-                  </button>
-                </div>
-                <!-- previous games -->
-                <div class="mt-4" v-if="previousGames.length > 0">
-                  <div
-                    class="d-flex align-items-center justify-content-between mb-3"
-                  >
-                    <h2 class="h5 mb-0">Previous games</h2>
-                    <span class="text-muted small"
-                      >{{ previousGames.length }} recent</span
-                    >
-                  </div>
-
-                  <div class="d-grid gap-2">
-                    <div
-                      v-for="previousGame in sortedPreviousGames"
-                      :key="`${previousGame.gameId}-${previousGame.platformId}-${previousGame.date}`"
-                      class="previous-game-item previous-game-entry"
-                      role="button"
-                      tabindex="0"
-                      @click="selectPreviousGame(previousGame)"
-                      @keydown.enter.prevent="selectPreviousGame(previousGame)"
-                      @keydown.space.prevent="selectPreviousGame(previousGame)"
-                    >
-                      <div
-                        v-if="
-                          getGameSync(previousGame.gameId) &&
-                          getPlatformSync(previousGame.platformId)
-                        "
-                        class="d-flex align-items-center justify-content-between gap-3 w-100"
-                      >
-                        <div
-                          class="d-flex flex-column overflow-hidden min-width-0"
-                        >
-                          <span class="fw-semibold text-truncate">{{
-                            getGameSync(previousGame.gameId)!.name
-                          }}</span>
-                          <small class="text-muted text-truncate">
-                            {{
-                              getPlatformSync(previousGame.platformId)!
-                                .display_name
-                            }}
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <!-- playing right now -->
+      <template v-else-if="liveActivity">
+        <div class="d-flex gap-3 align-items-center mb-4">
+          <GameCover
+            :gameId="liveActivity.game_id"
+            :maxHeight="120"
+            :clickable="false"
+          />
+          <div style="min-width: 0">
+            <a
+              class="d-block h5 mb-1 text-break"
+              :href="`/game/${liveActivity.game_id}`"
+              >{{ games[liveActivity.game_id]?.name ?? "..." }}</a
+            >
+            <a
+              v-if="platform"
+              class="d-block text-body-secondary mb-2"
+              :href="`/platform/${platform.id}`"
+              >{{ platform.display_name }}</a
+            >
+            <div class="fs-2 font-monospace text-success">
+              {{ formatDuration(elapsedSeconds, true) }}
             </div>
           </div>
+        </div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary btn-lg" :disabled="busy" @click="stop">
+            <i class="bi bi-stop-circle"></i> Stop and save
+          </button>
+          <button
+            class="btn btn-outline-danger"
+            :disabled="busy"
+            @click="abortClicked"
+          >
+            <i class="bi bi-x-circle"></i>
+            {{ abortArmed ? "Click again to abort" : "Abort" }}
+          </button>
+        </div>
+      </template>
 
-          <div v-else-if="liveActivity">
-            <div class="card p-0 manual-panel">
-              <h2 class="card-header manual-card-header">Currently playing</h2>
-              <div class="card-body manual-panel-body">
-                <div class="row g-3 align-items-start">
-                  <div class="col-md-2 text-center" v-if="game">
-                    <GameCover :gameId="game.id" :size="128" />
-                  </div>
-                  <span v-else class="col-md-2 text-center"
-                    >Loading game cover...</span
-                  >
+      <!-- start a session, or add one already played -->
+      <template v-else>
+        <div class="btn-group w-100 mb-3" role="group">
+          <input
+            id="mode-start"
+            v-model="mode"
+            type="radio"
+            class="btn-check"
+            value="start"
+          />
+          <label class="btn btn-outline-primary" for="mode-start"
+            ><i class="bi bi-play-circle"></i> Start now</label
+          >
+          <input
+            id="mode-add"
+            v-model="mode"
+            type="radio"
+            class="btn-check"
+            value="add"
+          />
+          <label class="btn btn-outline-primary" for="mode-add"
+            ><i class="bi bi-stopwatch"></i> Add played time</label
+          >
+        </div>
 
-                  <div class="col">
-                    <ul class="mt-2 list-group currently-list">
-                      <li class="list-group-item currently-list-item">
-                        <i class="bi bi-joystick"></i>
-                        <a
-                          class="text-decoration-none"
-                          :href="'/game/' + game.id"
-                          v-if="game"
-                          >{{ game.name }}</a
-                        >
-                        <span v-else>Loading...</span>
-                      </li>
+        <div class="mb-3 position-relative">
+          <label for="game-search" class="form-label">Game</label>
+          <input
+            id="game-search"
+            v-model="searchText"
+            type="search"
+            class="form-control form-control-lg"
+            placeholder="Search for a game..."
+            autocomplete="off"
+          />
+          <div
+            v-if="searchResults.length"
+            class="list-group position-absolute w-100 z-3 shadow overflow-auto"
+            style="max-height: 300px"
+          >
+            <button
+              v-for="g in searchResults"
+              :key="g.id"
+              type="button"
+              class="list-group-item list-group-item-action"
+              @click="selectGame(g)"
+            >
+              {{ g.name }}
+              <span v-if="g.release_year" class="text-body-secondary"
+                >({{ g.release_year }})</span
+              >
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-link btn-sm px-0"
+            @click="addByIGDB"
+          >
+            Add a game by IGDB ID
+          </button>
+        </div>
 
-                      <li class="list-group-item currently-list-item">
-                        <i class="bi bi-controller"></i>
-                        <a
-                          class="text-decoration-none"
-                          :href="'/platform/' + platform.id"
-                          v-if="platform"
-                          >{{ platform.display_name }}</a
-                        >
-                        <span v-else>Loading...</span>
-                      </li>
+        <div class="mb-3">
+          <label for="platform" class="form-label">Platform</label>
+          <select
+            id="platform"
+            v-model="platformId"
+            class="form-select form-select-lg"
+          >
+            <option :value="undefined" disabled>Select a platform</option>
+            <option v-for="p in platforms" :key="p.id" :value="p.id">
+              {{ p.display_name }}
+            </option>
+          </select>
+        </div>
 
-                      <li class="list-group-item currently-list-item">
-                        <i class="bi bi-stopwatch"></i>
-                        <b
-                          ><span id="duration" class="text-success">{{
-                            durationText
-                          }}</span></b
-                        >
-                      </li>
-                    </ul>
-
-                    <div
-                      class="btn-group mt-4 w-100 manual-button-row"
-                      role="group"
-                      aria-label="Live activity controls"
-                    >
-                      <button
-                        @click="stopLiveActivity"
-                        class="btn btn-primary"
-                        id="stop-live-activity-button"
-                      >
-                        <i class="bi bi-stop-circle"></i>
-                        Stop
-                      </button>
-                      <button
-                        @click="abortLiveActivity(false)"
-                        class="btn btn-danger"
-                        id="abort-live-activity-button"
-                      >
-                        <i class="bi bi-x-circle"></i>
-                        Abort
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        <div v-if="mode === 'add'" class="mb-3">
+          <label for="add-hours" class="form-label">Played for</label>
+          <div class="row g-2">
+            <div class="col">
+              <div class="input-group input-group-lg">
+                <input
+                  id="add-hours"
+                  v-model="addHours"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  class="form-control"
+                  aria-label="Hours"
+                />
+                <span class="input-group-text">h</span>
+              </div>
+            </div>
+            <div class="col">
+              <div class="input-group input-group-lg">
+                <input
+                  v-model="addMinutes"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  max="59"
+                  class="form-control"
+                  aria-label="Minutes"
+                />
+                <span class="input-group-text">m</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="!user" class="alert alert-secondary mt-3 mb-0">
-        You need to be
-        <a href="/authenticate" class="alert-link">authenticated</a>.
-      </div>
+        <div class="d-grid">
+          <button
+            v-if="mode === 'start'"
+            class="btn btn-primary btn-lg"
+            :disabled="busy || !game || !platform"
+            @click="start"
+          >
+            <i class="bi bi-play-circle"></i> Start
+          </button>
+          <button
+            v-else
+            class="btn btn-primary btn-lg"
+            :disabled="busy || !game || !platform || addSeconds <= 0"
+            @click="add"
+          >
+            <i class="bi bi-plus-circle"></i> Add
+          </button>
+        </div>
+
+        <template v-if="sortedPreviousGames.length">
+          <h2 class="h6 mt-4">Previous games</h2>
+          <div class="list-group">
+            <button
+              v-for="pg in sortedPreviousGames"
+              :key="`${pg.gameId}-${pg.platformId}`"
+              type="button"
+              class="list-group-item list-group-item-action"
+              @click="selectPreviousGame(pg)"
+            >
+              <div class="fw-semibold text-truncate">
+                {{ games[pg.gameId]?.name ?? "..." }}
+              </div>
+              <small class="text-body-secondary">{{
+                platforms.find((p) => p.id === pg.platformId)?.display_name
+              }}</small>
+            </button>
+          </div>
+        </template>
+      </template>
     </div>
   </div>
 </template>
-
-<style scoped>
-.manual-tracking-card {
-  border-radius: 1rem;
-}
-
-.manual-panel {
-  border: 1px solid var(--bs-border-color-translucent);
-  box-shadow: none;
-  overflow: hidden;
-}
-
-.manual-card-header {
-  background: var(--bs-tertiary-bg);
-  border-bottom: 1px solid var(--bs-border-color-translucent);
-  color: var(--bs-emphasis-color);
-}
-
-.manual-panel-body {
-  padding-top: 1.25rem;
-}
-
-.manual-field {
-  border-radius: 0.9rem;
-  overflow: hidden;
-  border: 1px solid rgba(var(--bs-primary-rgb), 0.22);
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
-  align-items: stretch;
-}
-
-.manual-field .input-group-text {
-  background: var(--bs-tertiary-bg);
-  border: 0;
-  color: var(--bs-secondary-color);
-  padding-inline: 0.9rem;
-  display: flex;
-  align-items: center;
-  min-height: 100%;
-}
-
-.manual-field .form-select {
-  min-height: 3.125rem;
-}
-
-.manual-form-control {
-  border: 0 !important;
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  box-shadow: none !important;
-  min-height: 2.9rem;
-}
-
-.manual-form-control:focus {
-  background: var(--bs-body-bg);
-}
-
-.manual-button-row {
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-
-.manual-button-row > .btn {
-  flex: 1 1 0;
-}
-
-.currently-list {
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-
-.currently-list-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--bs-tertiary-bg);
-  border-color: var(--bs-border-color-translucent);
-}
-
-.currently-list-item > i {
-  color: var(--bs-secondary-color);
-}
-
-.currently-list-item + .currently-list-item {
-  border-top-color: var(--bs-border-color-translucent);
-}
-
-.previous-game-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
-  border-radius: 0.75rem;
-  background: var(--bs-tertiary-bg);
-  color: var(--bs-body-color);
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
-  cursor: pointer;
-}
-
-.previous-game-item:hover {
-  border-color: rgba(var(--bs-primary-rgb), 0.45);
-  background: rgba(var(--bs-primary-rgb), 0.12);
-}
-
-.previous-game-entry:focus-visible {
-  outline: 2px solid rgba(var(--bs-primary-rgb), 0.6);
-  outline-offset: 2px;
-}
-
-.previous-game-item > .d-flex {
-  width: 100%;
-  min-width: 0;
-  flex-wrap: nowrap;
-}
-
-.min-width-0 {
-  min-width: 0;
-}
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 576px) {
-  .previous-game-item {
-    padding: 0.75rem;
-  }
-
-  .previous-game-item > .d-flex {
-    flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
-  }
-
-  .previous-game-item .btn {
-    width: 100%;
-    margin-left: 0;
-  }
-}
-</style>

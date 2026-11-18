@@ -83,10 +83,7 @@ class API_PostActivity(BaseModel):
         description="Steam App ID of the game being played, can be null if game or igdb id is provided",
         default=None,
     )
-    platform_id: int | None = Field(
-        description="ID of platform that was played on. Will default to user's default platform if not provided",
-        default=None,
-    )
+    platform_id: int = Field(description="ID of platform that was played on")
 
 
 class API_PostLiveActivity(BaseModel):
@@ -98,7 +95,4 @@ class API_PostLiveActivity(BaseModel):
         description="IGDB ID of the game being played, can be null if game_id is provided",
         default=None,
     )
-    platform_id: int | None = Field(
-        description="ID of platform that was played on. Will default to user's default platform if not provided",
-        default=None,
-    )
+    platform_id: int = Field(description="ID of platform that was played on")

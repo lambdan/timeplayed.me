@@ -3,12 +3,8 @@ import { formatDuration, getRecapYear } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { UserWithStats } from "../api.models";
 import CalendarBasic from "./CalendarBasic.vue";
-import PlatformBadge from "./Badges/PlatformBadge.vue";
-import { useLookups } from "../composables/useLookups";
 
 defineProps<{ user: UserWithStats }>();
-
-const lookups = useLookups();
 
 const recapYear = getRecapYear();
 </script>
@@ -62,14 +58,6 @@ const recapYear = getRecapYear();
               <tr>
                 <th class="text-nowrap">Platforms</th>
                 <td>{{ user.stats.platform_count }}</td>
-              </tr>
-              <tr v-if="lookups.platform(user.default_platform_id)">
-                <th class="text-nowrap">Default platform</th>
-                <td>
-                  <PlatformBadge
-                    :platform="lookups.platform(user.default_platform_id)!"
-                  />
-                </td>
               </tr>
               <tr v-if="user.stats.first_activity">
                 <th class="text-nowrap">First played</th>

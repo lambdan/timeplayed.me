@@ -50,7 +50,7 @@ AdminUser = Annotated[User, Depends(authenticate_admin)]
 
 
 def authenticate_manual_activity(user: AuthenticatedUser) -> User:
-    # same permission as the manual activity commands in Discord
+    # manual tracking page and API
     if user.has_permission(Permission.MANUAL_ACTIVITY):
         return user
     return forbidden("Manual activity permission required")

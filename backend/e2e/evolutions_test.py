@@ -63,7 +63,7 @@ class TestEvolutions:
         # just what the evolutions after 1 touch
         scratch.execute_sql("CREATE TABLE game (id integer, sgdb_grid_id integer)")
         scratch.execute_sql(
-            "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}')"
+            "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}', default_platform_id integer)"
         )
         scratch.execute_sql(
             "CREATE TABLE evolutions (id integer PRIMARY KEY, applied timestamptz NOT NULL DEFAULT now())"
@@ -76,6 +76,10 @@ class TestEvolutions:
         evolutions.apply(scratch_db, **connect_params())
 
         assert "sgdb_grid_id" not in [c.name for c in scratch.get_columns("game")]
+        # 5.sql dropped the default platform
+        assert "default_platform_id" not in [
+            c.name for c in scratch.get_columns("user")
+        ]
         # 4.sql gave existing users show_avatar and show_name, once
         permissions = scratch.execute_sql(
             'SELECT permissions FROM "user" ORDER BY id'

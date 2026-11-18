@@ -19,7 +19,6 @@ class API_User(BaseModel):
     discord_id: str | None
     name: str = Field("Discord username typically")
     display_name: str = Field("Discord display name")
-    default_platform_id: int
     created: int
     updated: int
 
@@ -35,7 +34,6 @@ class API_User(BaseModel):
             discord_id=user.discord_id,
             name=name,
             display_name=display_name,
-            default_platform_id=user.default_platform_id,
             created=dt_to_ts(user.created),
             updated=dt_to_ts(user.updated),
         )
@@ -57,10 +55,6 @@ class API_AuthenticatedUser(API_User):
 class API_PutSettings(BaseModel):
     """leave out what shouldn't change"""
 
-    default_platform_id: int | None = Field(
-        default=None,
-        description="Platform used when adding activity without one",
-    )
     pc_platform: PCPlatform | None = Field(
         default=None, description="What PC activity counts as"
     )

@@ -16,13 +16,13 @@ class TestHideName:
         assert r.json()["name"] == "alice"
         assert r.json()["display_name"] == "Alice"
 
-    def test_name_hidden(self, api, make_user, make_game):
+    def test_name_hidden(self, api, make_user, make_game, make_platform):
         user, client = make_user(
             name="badname",
             display_name="Bad Name",
             permissions=permissions_without(Permission.SHOW_NAME),
         )
-        add_session(user=user, game=make_game(), seconds=60)
+        add_session(user=user, game=make_game(), seconds=60, platform=make_platform())
         hidden = f"User {user.get_id()}"
 
         for r in (

@@ -17,7 +17,7 @@ DESCRIPTIONS: dict[Permission, str] = {
     Permission.ADMIN: "Can use admin commands in Discord and the admin page",
     Permission.COMMANDS: "Can use Discord bot commands",
     Permission.DEVELOPER: "Can use the bot when it runs in dev mode (commands starting with .)",
-    Permission.MANUAL_ACTIVITY: "Can add activity manually (Discord commands, manual tracking page, API)",
+    Permission.MANUAL_ACTIVITY: "Can add activity manually (manual tracking page, API)",
     Permission.OBLIVIONIS_SYNC: "Oblivionis activity is synced for this user",
     Permission.SHOW_AVATAR: "Discord avatar is shown on the site (otherwise a default avatar)",
     Permission.SHOW_NAME: "Name is shown on the site (otherwise 'User <id>')",

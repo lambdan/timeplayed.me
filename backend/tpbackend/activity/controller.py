@@ -57,11 +57,9 @@ def add_through_api(user: User, data: API_PostActivity) -> API_Activity:
     if not game:
         return not_found("Game not found")
 
-    platform = None
-    if data.platform_id:
-        platform = Platform_or_none(data.platform_id)
-        if not platform:
-            return not_found("Platform not found")
+    platform = Platform_or_none(data.platform_id)
+    if not platform:
+        return not_found("Platform not found")
 
     added = add_session(
         user=user,
@@ -158,11 +156,9 @@ def start_live_activity_through_api(
     if not game:
         return not_found("Game not found")
 
-    platform = user.get_default_platform()
-    if data.platform_id:
-        platform = Platform_or_none(data.platform_id)
-        if not platform:
-            return not_found("Platform not found")
+    platform = Platform_or_none(data.platform_id)
+    if not platform:
+        return not_found("Platform not found")
 
     new = LiveActivity.create(user=user, game=game, platform=platform, started=now())
     logger.info(

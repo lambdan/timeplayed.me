@@ -160,8 +160,8 @@
         can I track it here, manually?
       </h5>
       <p>
-        Use the <a href="/manual-tracking">manual tracking page</a> or DM the
-        bot (send <code>!help start</code>).
+        Use the <a href="/manual-tracking">manual tracking page</a>, with
+        <em>Start now</em>.
       </p>
 
       <h5 id="add-offline" class="mt-4">
@@ -169,8 +169,8 @@
         retroactively?
       </h5>
       <p>
-        By using the <code>!add</code> command:
-        <code>!add game_id h:m:s</code>
+        Use the <a href="/manual-tracking">manual tracking page</a>, with
+        <em>Add played time</em>.
       </p>
 
       <hr />
@@ -182,8 +182,11 @@
         of Windows.
       </h5>
       <p>
-        Use the <code>!pcplatform</code> (or shortcut: <code>!pcp</code>)
-        command to change what your PC platform is, eg <code>!pcp mac</code>
+        Set your Discord PC platform on the
+        <a href="/settings">settings page</a>
+        (click your avatar in the top right), or use the
+        <code>!pcplatform</code> (or shortcut: <code>!pcp</code>) command, eg
+        <code>!pcp mac</code>
       </p>
       <p>You can also retroactively update using <code>!set_platform</code>.</p>
 

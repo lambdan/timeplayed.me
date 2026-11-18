@@ -3,6 +3,14 @@ The e2e env runs without Discord, SGDB and IGDB credentials, so these check that
 backend behaves when they are disabled.
 """
 
+import pytest
+
+
+@pytest.fixture
+def platform_id(make_platform):
+    """the api requires a platform"""
+    return make_platform("testplatform").get_id()
+
 
 class TestSGDBDisabled:
     def test_grids_unavailable(self, api):
@@ -23,32 +31,46 @@ class TestIGDBDisabled:
         assert r.status_code == 200
         assert r.json()["id"] == game.get_id()
 
-    def test_add_activity_by_unknown_igdb_id(self, make_user):
+    def test_add_activity_by_unknown_igdb_id(self, make_user, platform_id):
         _, client = make_user()
-        r = client.post("/activity", json={"igdb_id": 1234, "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "igdb_id": 1234, "seconds": 60},
+        )
         assert r.status_code == 503
 
-    def test_add_activity_by_unknown_steam_id(self, make_user):
+    def test_add_activity_by_unknown_steam_id(self, make_user, platform_id):
         _, client = make_user()
-        r = client.post("/activity", json={"steam_id": 1234, "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "steam_id": 1234, "seconds": 60},
+        )
         assert r.status_code == 503
 
-    def test_add_activity_by_known_ids(self, make_user, make_game):
+    def test_add_activity_by_known_ids(self, make_user, make_game, platform_id):
         _, client = make_user()
         by_igdb = make_game("IGDB game", igdb_id=1234)
         by_steam = make_game("Steam game", steam_id=5678)
 
-        r = client.post("/activity", json={"igdb_id": 1234, "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "igdb_id": 1234, "seconds": 60},
+        )
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == by_igdb.get_id()
 
-        r = client.post("/activity", json={"steam_id": 5678, "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "steam_id": 5678, "seconds": 60},
+        )
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == by_steam.get_id()
 
-    def test_start_live_activity_by_unknown_igdb_id(self, make_user):
+    def test_start_live_activity_by_unknown_igdb_id(self, make_user, platform_id):
         _, client = make_user()
-        r = client.post("/activity/live", json={"igdb_id": 1234})
+        r = client.post(
+            "/activity/live", json={"platform_id": platform_id, "igdb_id": 1234}
+        )
         assert r.status_code == 503
 
 

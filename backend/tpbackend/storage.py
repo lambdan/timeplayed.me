@@ -237,11 +237,6 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     discord_id = CharField(unique=True, null=True)
     name = CharField()
     display_name = CharField(null=True)
-    # the id, not the platform: with the object default_platform_id would be the object too
-    default_platform = ForeignKeyField(
-        Platform,
-        default=lambda: Platform.get_or_create(abbreviation="unknown")[0].get_id(),
-    )
     pc_platform = CharField(default="win")
     permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
 
@@ -298,16 +293,6 @@ class User(IdMixin, HistoryMixin, SearchMixin):
                 self.get_name(),
                 new_display_name,
             )
-
-    def get_default_platform(self) -> Platform:
-        return cast(Platform, self.default_platform)
-
-    def set_default_platform(self, platform: Platform):
-        old_platform = self.get_default_platform()
-        self.default_platform = cast(ForeignKeyField, platform)
-        self.add_history(
-            f"Default platform changed from '{old_platform.abbreviation}' ({old_platform.get_id()}) to '{platform.abbreviation}' ({platform.get_id()})"
-        )
 
     def get_pc_platform(self) -> str:
         return cast(str, self.pc_platform)

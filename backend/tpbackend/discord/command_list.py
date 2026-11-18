@@ -1,6 +1,5 @@
 from tpbackend.discord.commands.token_generate import TokenGenerateCommand
 from tpbackend.discord.commands.token_revoke_all import TokenRevokeAllCommand
-from .commands.add_activity import AddActivityCommand
 from .commands.add_game_sgdb import AddGameSGDBCommand
 from .commands.add_game_admin import AddGameAdminCommand
 from .commands.add_platform_admin import AddPlatformAdminCommand
@@ -14,7 +13,6 @@ from .commands.permission_add_admin import AddPermissionAdminCommand
 from .commands.permission_remove_admin import RemovePermissionAdminCommand
 from .commands.refresh_search_admin import RefreshSearchAdminCommand
 from .commands.search_games import SearchGamesCommand
-from .commands.set_default_platform import SetDefaultPlatformCommand
 from .commands.set_game import SetGameCommand
 from .commands.set_game_image_admin import SetGameImageAdminCommand
 from .commands.igdb_missing_admin import MissingIGDBAdminCommand
@@ -25,8 +23,6 @@ from .commands.set_pc_platform import SetPCPlatformCommand
 from .commands.set_platform import SetPlatformCommand
 from .commands.set_platform_name_admin import SetPlatformNameAdminCommand
 from .commands.set_sgdb_id_admin import SetSGDBIDAdminCommand
-from .commands.start_manual import StartManualCommand
-from .commands.stop_manual import StopManualCommand
 from .commands.list_platforms import ListPlatformsCommand
 from .commands.add_game_alias_admin import AddGameAliasAdminCommand
 from .commands.delete_game_alias_admin import DeleteGameAliasAdminCommand
@@ -35,8 +31,6 @@ from .commands.search_users import SearchUsersCommand
 from .commands.uptime_admin import UptimeAdminCommand
 from .commands.set_game_admin import SetGameAdminCommand
 from .commands.delete_activity_admin import DeleteActivityAdminCommand
-from .commands.abort_manual import AbortManualCommand
-from .commands.time_manual import TimeManualCommand
 from .commands.missing_sgdb_admin import MissingSGDBAdminCommand
 from .commands.search_sgdb import SearchSGDBCommand
 from .commands.auto_sgdb_admin import AutoSGDBAdminCommand
@@ -62,18 +56,12 @@ REGULAR_COMMANDS = [
     AddGameSGDBCommand(),
     AddGameIGDBCommand(),
     # manual
-    StartManualCommand(),
-    StopManualCommand(),
-    AbortManualCommand(),
-    TimeManualCommand(),
     # platform
     ListPlatformsCommand(),
     GetPlatformCommand(),
-    SetDefaultPlatformCommand(),
     SetPCPlatformCommand(),
     # activity mgmt
     LastActivityCommand(),
-    AddActivityCommand(),
     SetPlatformCommand(),
     SetGameCommand(),
     MoveGameCommand(),

@@ -13,7 +13,7 @@ from tpbackend.admin.models import (
 from tpbackend.api.auth import AdminUser
 from tpbackend.api.responses import bad_request, not_found
 from tpbackend.platform.query import PlatformQuery
-from tpbackend.storage import Activity, LiveActivity, Platform, Platform_or_none, User
+from tpbackend.storage import Activity, LiveActivity, Platform, Platform_or_none
 
 logger = logging.getLogger("admin-platforms")
 router = APIRouter()
@@ -100,8 +100,6 @@ def delete_platform(platform_id: int, admin: AdminUser):
     platform = __get_platform(platform_id)
     if activity_count(platform=platform) > 0:
         return bad_request("Platform has activities")
-    if User.select().where(User.default_platform == platform).count() > 0:  # type: ignore
-        return bad_request("Platform is the default platform of a user")
     if LiveActivity.select().where(LiveActivity.platform == platform).count() > 0:  # type: ignore
         return bad_request("Platform has a live activity running")
     platform.delete_instance()

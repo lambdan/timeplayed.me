@@ -479,9 +479,7 @@ class TestAdminPlatforms:
         r = client.get("/admin/platforms")
         assert r.status_code == 200, r.text
         names = [p["abbreviation"] for p in r.json()]
-        # "unknown" is created for the admins default platform, also never played
-        assert names[:2] == ["new", "old"]
-        assert set(names[2:]) == {"never", "unknown"}
+        assert names == ["new", "old", "never"]
 
     def test_add(self, admin):
         _, client = admin

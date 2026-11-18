@@ -86,7 +86,8 @@ def parseActivity(activity: PassedActivity) -> bool:
         game_name = raw_game.removesuffix(" with Medal").strip()
         game = get_game_by_name_or_alias_or_create(game_name)
 
-        platform_abbr = activity["platform"]
+        # Discord activity is always on some platform, windows if it didn't say
+        platform_abbr = activity["platform"] or "win"
         if platform_abbr == "pc":
             # apply users set pc platform (linux/mac/win)
             platform_abbr = user.pc_platform or "win"

@@ -1,7 +1,5 @@
 from tpbackend.globals import timeplayed_url
-from tpbackend.storage import Platform, Game, User, Activity
-from tpbackend.activity.query import ActivityQuery
-from typing import cast
+from tpbackend.storage import Platform
 
 
 def display_name(platform: int | Platform) -> str:
@@ -23,18 +21,3 @@ def md_platform_link(platform: int | Platform) -> str:
     name = display_name(platform)
     url = platform_url(id)
     return f"[{name}]({url})"
-
-
-def last_platform_for_game(user: User, game: Game) -> Platform | None:
-    """
-    Returns the last platform the user played the game on if available
-    """
-    a = ActivityQuery.base()
-    a = ActivityQuery.user(a, user)
-    a = ActivityQuery.game(a, game)
-    a = ActivityQuery.apply_sort(a, "timestamp", "desc")
-    a = a.first()
-    if a:
-        a = cast(Activity, a)
-        return a.get_platform()
-    return None

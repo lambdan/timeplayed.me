@@ -19,7 +19,7 @@ class TestPendingHistory:
 
 class TestDefaultPermissions:
     def test_not_shared_with_defaults(self):
-        # creating a User needs the db (default platform), so check the field default
+        # check the field default, without creating a User
         permissions = User.permissions.default()  # type: ignore
         assert permissions == DEFAULT_PERMISSIONS
         permissions.append("admin")

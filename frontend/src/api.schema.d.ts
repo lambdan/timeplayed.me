@@ -684,8 +684,6 @@ export interface components {
              * @default Discord display name
              */
             display_name: string;
-            /** Default Platform Id */
-            default_platform_id: number;
             /** Created */
             created: number;
             /** Updated */
@@ -836,9 +834,9 @@ export interface components {
             steam_id?: number | null;
             /**
              * Platform Id
-             * @description ID of platform that was played on. Will default to user's default platform if not provided
+             * @description ID of platform that was played on
              */
-            platform_id?: number | null;
+            platform_id: number;
         };
         /** API_PostLiveActivity */
         API_PostLiveActivity: {
@@ -854,20 +852,15 @@ export interface components {
             igdb_id?: number | null;
             /**
              * Platform Id
-             * @description ID of platform that was played on. Will default to user's default platform if not provided
+             * @description ID of platform that was played on
              */
-            platform_id?: number | null;
+            platform_id: number;
         };
         /**
          * API_PutSettings
          * @description leave out what shouldn't change
          */
         API_PutSettings: {
-            /**
-             * Default Platform Id
-             * @description Platform used when adding activity without one
-             */
-            default_platform_id?: number | null;
             /**
              * Pc Platform
              * @description What PC activity counts as
@@ -890,8 +883,6 @@ export interface components {
              * @default Discord display name
              */
             display_name: string;
-            /** Default Platform Id */
-            default_platform_id: number;
             /** Created */
             created: number;
             /** Updated */
@@ -913,8 +904,6 @@ export interface components {
              * @default Discord display name
              */
             display_name: string;
-            /** Default Platform Id */
-            default_platform_id: number;
             /** Created */
             created: number;
             /** Updated */

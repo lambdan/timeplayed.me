@@ -54,7 +54,7 @@ def add_session(
     user: User,
     game: Game,
     seconds: int,
-    platform: Platform | None = None,
+    platform: Platform,
     timestamp: datetime.datetime | None = None,
 ) -> tuple[Activity | None, Exception | None]:
     """
@@ -67,8 +67,6 @@ def add_session(
         )
 
     try:
-        # use default platform if not provided
-        platform = platform or user.get_default_platform()
         if platform.get_abbreviation() == "pc":
             platform, created = Platform.get_or_create(
                 abbreviation=user.get_pc_platform()

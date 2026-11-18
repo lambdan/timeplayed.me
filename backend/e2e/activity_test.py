@@ -1,8 +1,15 @@
+import pytest
 import datetime
 
 from tpbackend import utils2
 from tpbackend.operations import add_session
-from tpbackend.storage import Activity
+from tpbackend.storage import Activity, Platform
+
+
+@pytest.fixture
+def platform_id(make_platform):
+    """the api requires a platform"""
+    return make_platform("testplatform").get_id()
 
 
 class TestAddActivity:
@@ -36,46 +43,59 @@ class TestAddActivity:
         activity = Activity.get_by_id(added["id"])
         assert any("Activity source: API" in h for h in activity.get_history())
 
-    def test_requires_auth(self, api, make_game):
+    def test_requires_auth(self, api, make_game, platform_id):
         game = make_game()
-        r = api.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
+        r = api.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
+        )
         assert r.status_code in (401, 403)
         assert Activity.select().count() == 0
 
-    def test_uses_default_platform(self, make_user, make_game, make_platform):
-        platform = make_platform("switch")
-        user, client = make_user(default_platform=platform)
+    def test_requires_platform(self, make_user, make_game):
+        _, client = make_user()
         game = make_game()
 
         r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
-        assert r.status_code == 200, r.text
-        assert r.json()["platform_id"] == platform.get_id()
+        assert r.status_code == 422, r.text
+        assert "platform_id" in r.text
+        assert Activity.select().count() == 0
 
-    def test_unknown_game(self, make_user):
+    def test_unknown_game(self, make_user, platform_id):
         _, client = make_user()
-        r = client.post("/activity", json={"game_id": 999, "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": 999, "seconds": 60},
+        )
         assert r.status_code == 404
 
-    def test_no_game(self, make_user):
+    def test_no_game(self, make_user, platform_id):
         _, client = make_user()
-        r = client.post("/activity", json={"seconds": 60})
+        r = client.post("/activity", json={"platform_id": platform_id, "seconds": 60})
         assert r.status_code == 400
 
-    def test_zero_seconds(self, make_user, make_game):
+    def test_zero_seconds(self, make_user, make_game, platform_id):
         _, client = make_user()
         game = make_game()
-        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 0})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 0},
+        )
         assert r.status_code == 422
 
-    def test_overlapping_activity_is_merged(self, make_user, make_game):
+    def test_overlapping_activity_is_merged(self, make_user, make_game, platform_id):
         _, client = make_user()
         game = make_game()
 
-        first = client.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
+        first = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
+        )
         assert first.status_code == 200, first.text
         # second session "ended" just now and was longer, so it covers the first one
         second = client.post(
-            "/activity", json={"game_id": game.get_id(), "seconds": 600}
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 600},
         )
         assert second.status_code == 200, second.text
 
@@ -87,7 +107,9 @@ class TestAddActivity:
             for h in activity.get_history()
         )
 
-    def test_all_overlapping_activities_are_merged(self, make_user, make_game):
+    def test_all_overlapping_activities_are_merged(
+        self, make_user, make_game, platform_id
+    ):
         user, client = make_user()
         game = make_game()
 
@@ -99,6 +121,7 @@ class TestAddActivity:
                 user=user,
                 game=game,
                 seconds=60,
+                platform=Platform.get_by_id(platform_id),
                 timestamp=now - datetime.timedelta(minutes=minutes_ago),
             )
             assert err is None
@@ -107,7 +130,12 @@ class TestAddActivity:
 
         # one long session ending now that covers all of them
         long = client.post(
-            "/activity", json={"game_id": game.get_id(), "seconds": 3600}
+            "/activity",
+            json={
+                "platform_id": platform_id,
+                "game_id": game.get_id(),
+                "seconds": 3600,
+            },
         )
         assert long.status_code == 200, long.text
 
@@ -117,7 +145,7 @@ class TestAddActivity:
         for short_id in short_ids:
             assert any(f"overlapped activity id {short_id}" in h for h in history)
 
-    def test_non_overlapping_activity_is_kept(self, make_user, make_game):
+    def test_non_overlapping_activity_is_kept(self, make_user, make_game, platform_id):
         user, client = make_user()
         game = make_game()
 
@@ -125,33 +153,39 @@ class TestAddActivity:
             user=user,
             game=game,
             seconds=60,
+            platform=Platform.get_by_id(platform_id),
             timestamp=utils2.now() - datetime.timedelta(hours=2),
         )
         assert err is None
-        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 600})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 600},
+        )
         assert r.status_code == 200, r.text
 
         assert Activity.select().count() == 2
 
 
 class TestDeleteActivity:
-    def test_delete_own(self, make_user, make_game, api):
+    def test_delete_own(self, make_user, make_game, api, platform_id):
         _, client = make_user()
         game = make_game()
         added = client.post(
-            "/activity", json={"game_id": game.get_id(), "seconds": 60}
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
         ).json()
 
         r = client.delete(f"/activity/{added['id']}")
         assert r.status_code == 200
         assert api.get(f"/activity/{added['id']}").status_code == 404
 
-    def test_cannot_delete_others(self, make_user, make_game):
+    def test_cannot_delete_others(self, make_user, make_game, platform_id):
         _, alice = make_user(name="alice")
         _, bob = make_user(name="bob")
         game = make_game()
         added = alice.post(
-            "/activity", json={"game_id": game.get_id(), "seconds": 60}
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
         ).json()
 
         r = bob.delete(f"/activity/{added['id']}")
@@ -160,16 +194,29 @@ class TestDeleteActivity:
 
 
 class TestLiveActivity:
-    def test_start_and_abort(self, make_user, make_game):
+    def test_requires_platform(self, make_user, make_game):
+        _, client = make_user()
+        game = make_game()
+        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        assert r.status_code == 422, r.text
+        assert "platform_id" in r.text
+
+    def test_start_and_abort(self, make_user, make_game, platform_id):
         user, client = make_user()
         game = make_game()
 
-        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        r = client.post(
+            "/activity/live",
+            json={"platform_id": platform_id, "game_id": game.get_id()},
+        )
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == game.get_id()
 
         # can't have two at once
-        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        r = client.post(
+            "/activity/live",
+            json={"platform_id": platform_id, "game_id": game.get_id()},
+        )
         assert r.status_code == 400
 
         assert client.get("/activity/live").json()["user_id"] == user.get_id()
@@ -177,12 +224,15 @@ class TestLiveActivity:
         assert client.get("/activity/live").status_code == 404
         assert Activity.select().count() == 0
 
-    def test_stop_creates_activity(self, make_user, make_game):
+    def test_stop_creates_activity(self, make_user, make_game, platform_id):
         _, client = make_user()
         game = make_game()
 
         assert (
-            client.post("/activity/live", json={"game_id": game.get_id()}).status_code
+            client.post(
+                "/activity/live",
+                json={"platform_id": platform_id, "game_id": game.get_id()},
+            ).status_code
             == 200
         )
         r = client.post("/activity/live/stop")
@@ -193,14 +243,20 @@ class TestLiveActivity:
 
 
 class TestManualActivityPermission:
-    def test_requires_permission(self, make_user, make_game):
+    def test_requires_permission(self, make_user, make_game, platform_id):
         # everything but manual_activity
         _, client = make_user(permissions=["commands", "oblivionis_sync"])
         game = make_game()
 
-        r = client.post("/activity", json={"game_id": game.get_id(), "seconds": 60})
+        r = client.post(
+            "/activity",
+            json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
+        )
         assert r.status_code == 403
-        r = client.post("/activity/live", json={"game_id": game.get_id()})
+        r = client.post(
+            "/activity/live",
+            json={"platform_id": platform_id, "game_id": game.get_id()},
+        )
         assert r.status_code == 403
         assert client.get("/activity/live").status_code == 403
         assert client.post("/activity/live/stop").status_code == 403

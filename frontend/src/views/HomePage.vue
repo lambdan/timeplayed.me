@@ -43,9 +43,8 @@ const topReady = ref(false);
             <a href="/help#what-is-tracked">see the help page for more info</a>.
           </p>
           <p>
-            You can also DM the bot on Discord to log your playtime manually and
-            manage your activities. Send it <code>!help</code> to see what's
-            possible.
+            You can also DM the bot on Discord to manage your activities. Send
+            it <code>!help</code> to see what's possible.
           </p>
           <hr />
           <p>
