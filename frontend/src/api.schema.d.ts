@@ -1194,6 +1194,8 @@ export interface operations {
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
                 after?: number;
                 game?: number | null;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 platform?: number | null;
             };
             header?: never;
@@ -1233,6 +1235,8 @@ export interface operations {
                 after?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
                 /** @description Sort by */
@@ -1275,6 +1279,8 @@ export interface operations {
                 limit?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1477,6 +1483,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
             };
@@ -1513,6 +1521,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
             };
@@ -1741,6 +1751,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
@@ -1825,6 +1837,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description Include the playtime of child games (at any depth) in their parent. */
+                include_children?: boolean;
             };
             header?: never;
             path: {
@@ -1869,6 +1883,8 @@ export interface operations {
                 /** @description Sort by */
                 sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "platform_count" | "name" | "id";
                 order?: "asc" | "desc";
+                /** @description Include the playtime of child games (at any depth) in their parent. */
+                include_children?: boolean;
             };
             header?: never;
             path: {
@@ -1917,6 +1933,8 @@ export interface operations {
                 order?: "asc" | "desc";
                 /** @description Search term to filter games by */
                 search?: string;
+                /** @description Include the playtime of child games (at any depth) in their parent. Children are then not listed separately, only games without a parent are. */
+                include_children?: boolean;
             };
             header?: never;
             path?: never;
@@ -2092,6 +2110,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
             };
             header?: never;
             path: {
@@ -2133,6 +2153,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description Sort by */
                 sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "game_count" | "name" | "id";
                 order?: "asc" | "desc";
@@ -2175,6 +2197,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
                 before?: number;
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
@@ -2322,6 +2346,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the game to filter by */
                 game?: number;
+                /** @description When filtering by game, also include its child games (at any depth). */
+                include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */

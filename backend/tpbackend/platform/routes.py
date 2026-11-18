@@ -10,6 +10,7 @@ from tpbackend.api.params import (
     path_csv,
     path_id,
     query_search,
+    query_game_include_children,
     query_ts,
     query_id,
     sorts,
@@ -27,6 +28,7 @@ def __get_platforms_stats(
     after=None,
     user_id: int | None = None,
     game_id: int | None = None,
+    include_children=False,
     sort="id",
     order="asc",
     offset: int | None = None,
@@ -52,7 +54,7 @@ def __get_platforms_stats(
         query = ActivityQuery.user(query, user_id)
 
     if game_id:
-        query = ActivityQuery.game(query, game_id)
+        query = ActivityQuery.game(query, game_id, include_children)
 
     if search:
         query = PlatformQuery.search(query, search=search)
@@ -79,6 +81,7 @@ def get_single_platform_stats(
     after=query_ts("after"),
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
 ) -> API_PlatformWithStats:
     x = __get_platforms_stats(
         pids=[int(platform_id)],
@@ -86,6 +89,7 @@ def get_single_platform_stats(
         after=after,
         user_id=user,
         game_id=game,
+        include_children=include_children,
     )
     if len(x) == 0:
         return not_found("Platform not found")
@@ -103,6 +107,7 @@ def get_many_platforms_stats(
     after=query_ts("after"),
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_PlatformWithStats]:
@@ -113,6 +118,7 @@ def get_many_platforms_stats(
         after=after,
         user_id=user,
         game_id=game,
+        include_children=include_children,
         sort=sort,
         order=order,
     )
@@ -128,6 +134,7 @@ def get_platforms_stats(
     limit=limit(),
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     before=query_ts("before"),
     after=query_ts("after"),
     sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "playtime"),
@@ -142,6 +149,7 @@ def get_platforms_stats(
         after=after,
         user_id=user,
         game_id=game,
+        include_children=include_children,
         sort=sort,
         order=order,
         offset=offset,

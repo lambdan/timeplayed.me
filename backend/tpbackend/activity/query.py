@@ -3,6 +3,7 @@ import logging
 from typing import Literal
 
 from tpbackend.common.query import sort_by
+from tpbackend.game.query import GameStatsQuery
 from tpbackend.storage import Activity, User, Game, Platform
 from tpbackend.utils2 import assertTimezone, validateTS, ts_to_dt
 
@@ -49,7 +50,13 @@ class ActivityQuery:
         return query.where(Activity.user.in_(user_ids))  # type: ignore
 
     @staticmethod
-    def game(query, game: int | Game):
+    def game(query, game: int | Game, include_children=False):
+        """
+        include_children: also activities of the game's children (any depth)
+        """
+        if include_children:
+            game_ids = GameStatsQuery.family_ids(int(game))  # type: ignore
+            return query.where(Activity.game.in_(game_ids))  # type: ignore
         return query.where(Activity.game == game)  # type: ignore
 
     @staticmethod

@@ -224,12 +224,16 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async getGameStats(game_id: number) {
+  static async getGameStats(
+    game_id: number,
+    query?: paths["/game-stats/{game_id}"]["get"]["parameters"]["query"],
+  ) {
     const { data, error } = await this.client.GET("/game-stats/{game_id}", {
       params: {
         path: {
           game_id,
         },
+        query,
       },
     });
     if (error) {

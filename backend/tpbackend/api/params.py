@@ -55,6 +55,18 @@ def query_ts(name: Literal["before", "after"]):
     )
 
 
+def query_include_children(
+    description="Include the playtime of child games (at any depth) in their parent.",
+) -> bool:
+    return Query(default=False, description=description)
+
+
+def query_game_include_children() -> bool:
+    return query_include_children(
+        "When filtering by game, also include its child games (at any depth)."
+    )
+
+
 def query_search(name: str):
     return Query(
         default=None,

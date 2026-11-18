@@ -10,6 +10,8 @@ import type { UserWithStats } from "../../api.models";
 
 const props = defineProps<{
   game?: Game;
+  /** with game: also its child games */
+  includeChildren?: boolean;
   platform?: Platform;
   /** ranked list without a date picker, the range comes from after/before */
   compact?: boolean;
@@ -34,7 +36,13 @@ const shown = computed(() =>
 
 // in compact mode the range comes from the page instead of our own picker
 watch(
-  () => [props.compact, props.search, props.after, props.before],
+  () => [
+    props.compact,
+    props.search,
+    props.after,
+    props.before,
+    props.includeChildren,
+  ],
   () => {
     if (!props.compact) return;
     _after.value = props.after;
@@ -55,6 +63,7 @@ async function fetchTheThings() {
       offset,
       limit: 100,
       game: props.game ? props.game.id : undefined,
+      include_children: props.includeChildren,
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
       platform: props.platform ? props.platform.id : undefined,

@@ -10,7 +10,7 @@ from tpbackend.activity.controller import (
 )
 
 from tpbackend.api.auth import AuthenticatedUser, ManualActivityUser
-from tpbackend.api.params import query_id, query_ts, sorts
+from tpbackend.api.params import query_game_include_children, query_id, query_ts, sorts
 from tpbackend.storage import Activity
 from tpbackend.activity.models import (
     API_Activity,
@@ -36,12 +36,13 @@ def __get_newest_or_oldest(
     user=None,
     game=None,
     platform=None,
+    include_children=False,
 ) -> API_Activity | None:
     query = ActivityQuery.base(include_hidden=False)
     if user:
         query = ActivityQuery.user(query, user)
     if game:
-        query = ActivityQuery.game(query, game)
+        query = ActivityQuery.game(query, game, include_children)
     if platform:
         query = ActivityQuery.platform(query, platform)
     if query.count() == 0:
@@ -64,9 +65,16 @@ def add_activity(user: ManualActivityUser, data: API_PostActivity) -> API_Activi
 def get_newest_activity(
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
 ) -> API_Activity | None:
-    x = __get_newest_or_oldest(which="newest", user=user, game=game, platform=platform)
+    x = __get_newest_or_oldest(
+        which="newest",
+        user=user,
+        game=game,
+        platform=platform,
+        include_children=include_children,
+    )
     if not x:
         raise not_found("No activity found")
     return x
@@ -76,9 +84,16 @@ def get_newest_activity(
 def get_oldest_activity(
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
 ) -> API_Activity | None:
-    x = __get_newest_or_oldest(which="oldest", user=user, game=game, platform=platform)
+    x = __get_newest_or_oldest(
+        which="oldest",
+        user=user,
+        game=game,
+        platform=platform,
+        include_children=include_children,
+    )
     if not x:
         raise not_found("No activity found")
     return x
@@ -163,6 +178,7 @@ def get_activities(
     sort=sorts(list(ActivityQuery.SORTS.keys()), "timestamp"),
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -175,7 +191,7 @@ def get_activities(
     if user is not None:
         query = ActivityQuery.user(query, user)
     if game is not None:
-        query = ActivityQuery.game(query, game)
+        query = ActivityQuery.game(query, game, include_children)
     if platform is not None:
         query = ActivityQuery.platform(query, platform)
     if before is not None:

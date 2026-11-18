@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import type { Activity, Game, Platform, User } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import DateRangerPicker from "./Misc/DateRangerPicker.vue";
@@ -10,6 +10,8 @@ const props = withDefaults(
   defineProps<{
     user?: User;
     game?: Game;
+    /** with game: also its child games */
+    includeChildren?: boolean;
     platform?: Platform;
     limit?: number;
     showExpand?: boolean;
@@ -43,6 +45,7 @@ async function fetchActivities(limit?: number) {
     limit,
     offset: activities.value.length,
     game: props.game ? props.game.id : undefined,
+    include_children: props.includeChildren,
     user: props.user ? props.user.id : undefined,
     platform: props.platform ? props.platform.id : undefined,
     before: _before.value ? _before.value.getTime() : Date.now(),
@@ -68,12 +71,14 @@ async function autoRefresh() {
     seen.value.add(a.id);
   }
   let lastCheck = Date.now();
-  while (true) {
+  while (!unmounted) {
     await new Promise((resolve) => setTimeout(resolve, 5000));
+    if (unmounted) return;
     fetching.value = true;
     const data = await TimeplayedAPI.getActivities({
       offset: 0,
       game: props.game ? props.game.id : undefined,
+      include_children: props.includeChildren,
       user: props.user ? props.user.id : undefined,
       platform: props.platform ? props.platform.id : undefined,
       after: lastCheck,
@@ -103,6 +108,12 @@ function sortByRecent() {
 function loadMore() {
   fetchActivities();
 }
+
+// stops the auto refresh loop
+let unmounted = false;
+onUnmounted(() => {
+  unmounted = true;
+});
 
 onMounted(async () => {
   await fetchActivities(props.limit);
@@ -145,7 +156,7 @@ onMounted(async () => {
             :key="a.id"
             :activity="a"
             :showUser="!user"
-            :showGame="!game"
+            :showGame="!game || includeChildren"
             :showPlatform="!platform"
           >
             <!-- muted, the badges are the main thing. shorter on phones -->

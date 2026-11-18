@@ -39,6 +39,16 @@ class TestHead:
         )
         assert '<meta property="og:title"' in r.text
 
+    def test_game_includes_children(self, api, make_user, make_game, make_platform):
+        user, _ = make_user()
+        platform = make_platform()
+        game = make_game("GTA V")
+        add_activity(user, game, platform, seconds=3600)
+        add_activity(user, make_game("FiveM", parent=game), platform, seconds=3600)
+
+        r = api.get(f"/head/game/{game.get_id()}")
+        assert "GTA V: 2.0 hours played by 1 player." in r.text
+
     def test_user(self, api, make_user, make_game, make_platform):
         user, _ = make_user(name="alice", display_name="Alice")
         add_activity(user, make_game(), make_platform(), seconds=600)

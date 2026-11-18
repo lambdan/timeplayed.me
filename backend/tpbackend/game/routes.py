@@ -20,6 +20,7 @@ from tpbackend.api.params import (
     query_ts,
     sorts,
     query_search,
+    query_include_children,
 )
 
 logger = logging.getLogger("games-routes")
@@ -37,11 +38,20 @@ def __get_games_stats(
     offset: int | None = None,
     limit: int | None = None,
     search="",
+    include_children=False,
+    only_top_level=False,
 ) -> list[API_GameWithStats]:
     bf = parseTS(before)
     af = parseTS(after)
 
-    query = GameStatsQuery.base()
+    if include_children:
+        query = GameStatsQuery.base_with_children()
+    else:
+        query = GameStatsQuery.base()
+
+    if only_top_level:
+        query = GameStatsQuery.top_level(query)
+
     if gids and len(gids) > 0:
         if len(gids) > 100:
             return bad_request("Cannot request more than 100 games at once")
@@ -84,6 +94,7 @@ def get_single_game_stats(
     after=query_ts("after"),
     user=query_id("user"),
     platform=query_id("platform"),
+    include_children: bool = query_include_children(),
 ) -> API_GameWithStats:
     x = __get_games_stats(
         gids=[int(game_id)],
@@ -91,6 +102,7 @@ def get_single_game_stats(
         after=after,
         user_id=user,
         platform_id=platform,
+        include_children=include_children,
     )
     if len(x) == 0:
         return not_found("Game not found")
@@ -110,6 +122,7 @@ def get_many_games_stats(
     platform=query_id("platform"),
     sort=sorts(list(GameStatsQuery.SORTS.keys()), default="id"),
     order: AscDescOrder = "asc",
+    include_children: bool = query_include_children(),
 ) -> list[API_GameWithStats]:
     gids = parse_csv(game_ids)
     return __get_games_stats(
@@ -120,6 +133,7 @@ def get_many_games_stats(
         platform_id=platform,
         sort=sort,
         order=order,
+        include_children=include_children,
     )
 
 
@@ -138,6 +152,10 @@ def get_games_stats(
     sort=sorts(list(GameStatsQuery.SORTS.keys()), default="playtime"),
     order: AscDescOrder = "desc",
     search=query_search("games"),
+    include_children: bool = query_include_children(
+        "Include the playtime of child games (at any depth) in their parent. "
+        "Children are then not listed separately, only games without a parent are."
+    ),
 ) -> list[API_GameWithStats]:
     limit = clamp(int(limit), 1, 100)
     offset = max(0, int(offset))
@@ -152,6 +170,9 @@ def get_games_stats(
         offset=offset,
         limit=limit,
         search=search,
+        include_children=include_children,
+        # children are counted in their parent
+        only_top_level=include_children,
     )
 
 

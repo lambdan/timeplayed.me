@@ -3,7 +3,7 @@ from typing import cast
 from fastapi import APIRouter
 from tpbackend.utils2 import validateTS
 from tpbackend.activity.query import ActivityQuery
-from tpbackend.api.params import query_id, query_ts
+from tpbackend.api.params import query_game_include_children, query_id, query_ts
 from tpbackend.charts.models import PlaytimeChart
 from tpbackend.storage import (
     Activity,
@@ -20,6 +20,7 @@ router = APIRouter()
 def get_playtime_by_day(
     user=query_id("user"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -31,7 +32,7 @@ def get_playtime_by_day(
     if user:
         query = ActivityQuery.user(query, user)
     if game:
-        query = ActivityQuery.game(query, game)
+        query = ActivityQuery.game(query, game, include_children)
     if platform:
         query = ActivityQuery.platform(query, platform)
     if before:

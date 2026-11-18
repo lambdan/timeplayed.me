@@ -18,6 +18,7 @@ from tpbackend.api.params import (
     query_id,
     query_csv,
     query_search,
+    query_game_include_children,
     sorts,
     offset,
     limit,
@@ -32,6 +33,7 @@ def __get_users_stats(
     before: int | None = None,
     after: int | None = None,
     game_id: int | None = None,
+    include_children=False,
     platform_id: int | None = None,
     sort="id",
     order="asc",
@@ -55,7 +57,7 @@ def __get_users_stats(
         query = ActivityQuery.after(query, af)
 
     if game_id:
-        query = ActivityQuery.game(query, game_id)
+        query = ActivityQuery.game(query, game_id, include_children)
 
     if platform_id:
         query = ActivityQuery.platform(query, platform_id)
@@ -85,6 +87,7 @@ def get_single_user_stats(
     before=query_ts("before"),
     after=query_ts("after"),
     game: int | None = None,
+    include_children: bool = query_game_include_children(),
     platform: int | None = None,
 ) -> API_UserWithStats:
     x = __get_users_stats(
@@ -92,6 +95,7 @@ def get_single_user_stats(
         before=before,
         after=after,
         game_id=game,
+        include_children=include_children,
         platform_id=platform,
     )
     if len(x) == 0:
@@ -109,6 +113,7 @@ def get_many_users_stats(
     before=query_ts("before"),
     after=query_ts("after"),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
     sort=sorts(list(UserStatsQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
@@ -119,6 +124,7 @@ def get_many_users_stats(
         before=before,
         after=after,
         game_id=game,
+        include_children=include_children,
         platform_id=platform,
         sort=sort,
         order=order,
@@ -134,6 +140,7 @@ def get_users_stats(
     offset=offset(),
     limit=limit(),
     game=query_id("game"),
+    include_children: bool = query_game_include_children(),
     platform=query_id("platform"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -148,6 +155,7 @@ def get_users_stats(
         before=before,
         after=after,
         game_id=game,
+        include_children=include_children,
         platform_id=platform,
         sort=sort,
         order=order,

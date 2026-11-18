@@ -77,7 +77,8 @@ def parse_id(value: str) -> int | None:
 
 
 def game_head(game_id: int) -> str:
-    query = GameStatsQuery.apply_ids(GameStatsQuery.base(), [game_id])
+    # same as the game page, which includes the children
+    query = GameStatsQuery.apply_ids(GameStatsQuery.base_with_children(), [game_id])
     game = query.get_or_none()
     # base() leaves out hidden games, get_hidden() also checks the parents
     if game is None or game.get_hidden():

@@ -111,6 +111,53 @@ class GameStatsQuery:
             )
 
     @staticmethod
+    def family():
+        """
+        CTE with (root_id, game_id) rows: every game paired with itself and all its
+        children, at any depth. UNION (not UNION ALL) so it ends even if parents loop
+        """
+        family = Game.select(Game.id.alias("root_id"), Game.id.alias("game_id")).cte(
+            "family", recursive=True, columns=("root_id", "game_id")
+        )
+        child = Game.alias()
+        children = child.select(family.c.root_id, child.id).join(
+            family, on=(child.parent == family.c.game_id)
+        )
+        return family.union(children)
+
+    @staticmethod
+    def family_ids(game_id: int):
+        """
+        Subquery with the ids of a game and all its children (any depth)
+        """
+        family = GameStatsQuery.family()
+        return family.select_from(family.c.game_id).where(family.c.root_id == game_id)
+
+    @staticmethod
+    def base_with_children(include_hidden=False):
+        """
+        Like base(), but the stats of every game include all its children (any depth)
+        """
+        family = GameStatsQuery.family()
+        query = (
+            Game.select(Game, *GameStatsQuery.AGGREGATES.values())
+            .join(family, JOIN.LEFT_OUTER, on=(family.c.root_id == Game.id))
+            .join(Activity, JOIN.LEFT_OUTER, on=(Activity.game == family.c.game_id))
+            .group_by(Game.id)
+            .with_cte(family)
+        )
+        if not include_hidden:
+            query = query.where(Game.hidden == False)  # noqa: E712
+        return query
+
+    @staticmethod
+    def top_level(query):
+        """
+        Only games without a parent
+        """
+        return query.where(Game.parent.is_null())  # type: ignore
+
+    @staticmethod
     def apply_ids(
         query,
         game_ids: list[int],

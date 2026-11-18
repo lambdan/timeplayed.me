@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import type { Game, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import {
@@ -15,20 +15,35 @@ import {
 import StatsChart from "./StatsChart.vue";
 
 // total playtime over time, with playtime per month and per weekday under it, for a game, user or platform page
-const props = defineProps<{ game?: Game; user?: User; platform?: Platform }>();
+const props = defineProps<{
+  game?: Game;
+  /** with game: also its child games */
+  includeChildren?: boolean;
+  user?: User;
+  platform?: Platform;
+}>();
 
 const days = ref<DaySeconds[]>([]);
 const loading = ref(true);
 
-onMounted(async () => {
-  const byDay = await TimeplayedAPI.getChartsPlaytimeByDay({
-    game: props.game?.id,
-    user: props.user?.id,
-    platform: props.platform?.id,
-  });
-  days.value = toDays(byDay);
-  loading.value = false;
-});
+let latest = 0;
+watch(
+  () => props.includeChildren,
+  async () => {
+    const request = ++latest;
+    loading.value = true;
+    const byDay = await TimeplayedAPI.getChartsPlaytimeByDay({
+      game: props.game?.id,
+      include_children: props.includeChildren,
+      user: props.user?.id,
+      platform: props.platform?.id,
+    });
+    if (request !== latest) return; // toggled again meanwhile
+    days.value = toDays(byDay);
+    loading.value = false;
+  },
+  { immediate: true },
+);
 
 const months = computed(() => {
   if (days.value.length === 0) return [];

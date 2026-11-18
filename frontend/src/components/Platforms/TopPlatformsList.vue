@@ -9,6 +9,8 @@ import PlatformBadge from "../Badges/PlatformBadge.vue";
 const props = withDefaults(
   defineProps<{
     game?: Game;
+    /** with game: also its child games */
+    includeChildren?: boolean;
     user?: User;
     /** only platforms with names matching this */
     search?: string;
@@ -24,12 +26,20 @@ const loading = ref(true);
 let latest = 0;
 
 watch(
-  () => [props.game, props.user, props.search, props.after, props.before],
+  () => [
+    props.game,
+    props.includeChildren,
+    props.user,
+    props.search,
+    props.after,
+    props.before,
+  ],
   async () => {
     const request = ++latest;
     loading.value = true;
     const data = await TimeplayedAPI.getPlatformsStats({
       game: props.game?.id,
+      include_children: props.includeChildren,
       user: props.user?.id,
       search: props.search || undefined,
       after: props.after?.getTime(),
