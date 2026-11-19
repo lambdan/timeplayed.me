@@ -44,7 +44,7 @@ def plural(count: int, word: str) -> str:
     return f"{count} {word}s"
 
 
-def head_tags(title: str, description: str, url: str) -> str:
+def head_tags(title: str, description: str, url: str, noindex=False) -> str:
     title = escape(f"{title} - Timeplayed.me")
     description = escape(description)
     url = escape(url)
@@ -56,6 +56,8 @@ def head_tags(title: str, description: str, url: str) -> str:
         f'<meta property="og:title" content="{title}" />',
         f'<meta property="og:description" content="{description}" />',
     ]
+    if noindex:
+        tags.append('<meta name="robots" content="noindex" />')
     # Without TIMEPLAYED_URL the url would be on localhost, which is worse than none
     if timeplayed_url() != FALLBACK_URL:
         tags.append(f'<link rel="canonical" href="{url}" />')
@@ -92,7 +94,10 @@ def game_head(game_id: int) -> str:
         f"{plural(game.user_count, 'player')}. "
         "Top players, recent sessions and playtime history."
     )
-    return head_tags(f"{name} playtime", description, game_url(game_id))
+    # nsfw games stay out of search results
+    return head_tags(
+        f"{name} playtime", description, game_url(game_id), noindex=game.get_nsfw()
+    )
 
 
 def user_head(user_id: int) -> str:

@@ -41,29 +41,29 @@ def __last_activity_per(field) -> dict[int, datetime.datetime]:
     return {id: last for id, last in query}
 
 
-def __hidden_game_ids() -> set[int]:
+def __excluded_game_ids() -> set[int]:
     """
-    Ids of hidden games, including games with a hidden parent. Same as
-    Game.get_hidden(), but with one query instead of one per parent
+    Ids of hidden and nsfw games, including games with a hidden or nsfw parent. Same
+    as Game.get_hidden() and Game.get_nsfw(), but with one query instead of one per parent
     """
     games = {
-        id: (hidden, parent_id)
-        for id, hidden, parent_id in Game.select(
-            Game.id, Game.hidden, Game.parent
+        id: (hidden or nsfw, parent_id)
+        for id, hidden, nsfw, parent_id in Game.select(
+            Game.id, Game.hidden, Game.nsfw, Game.parent
         ).tuples()
     }
-    hidden_ids = set()
+    excluded_ids = set()
     for game_id in games:
         current = game_id
         seen = set()
         while current is not None and current not in seen:
             seen.add(current)
-            hidden, parent_id = games[current]
-            if hidden:
-                hidden_ids.add(game_id)
+            excluded, parent_id = games[current]
+            if excluded:
+                excluded_ids.add(game_id)
                 break
             current = parent_id
-    return hidden_ids
+    return excluded_ids
 
 
 def __url_entry(url: str, lastmod: datetime.datetime | None = None) -> str:
@@ -89,9 +89,9 @@ def sitemap() -> Response:
 
     entries = [__url_entry(f"{base_url}{path}") for path in STATIC_PATHS]
 
-    hidden_game_ids = __hidden_game_ids()
+    excluded_game_ids = __excluded_game_ids()
     for game_id, last in sorted(__last_activity_per(Activity.game).items()):
-        if game_id not in hidden_game_ids:
+        if game_id not in excluded_game_ids:
             entries.append(__url_entry(game_url(game_id), last))
 
     for user_id, last in sorted(__last_activity_per(Activity.user).items()):

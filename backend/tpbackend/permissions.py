@@ -11,6 +11,7 @@ class Permission(StrEnum):
     OBLIVIONIS_SYNC = "oblivionis_sync"
     SHOW_AVATAR = "show_avatar"
     SHOW_NAME = "show_name"
+    SHOW_NSFW = "show_nsfw"
 
 
 DESCRIPTIONS: dict[Permission, str] = {
@@ -21,6 +22,7 @@ DESCRIPTIONS: dict[Permission, str] = {
     Permission.OBLIVIONIS_SYNC: "Oblivionis activity is synced for this user",
     Permission.SHOW_AVATAR: "Discord avatar is shown on the site (otherwise a default avatar)",
     Permission.SHOW_NAME: "Name is shown on the site (otherwise 'User <id>')",
+    Permission.SHOW_NSFW: "Sees NSFW game titles and covers on the site (otherwise censored), set by the user in settings",
 }
 
 # new users get these

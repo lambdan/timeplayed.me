@@ -55,6 +55,9 @@
                 >How can my activities show up as Mac or Linux?</a
               >
             </li>
+            <li>
+              <a href="#nsfw">Why are some game titles shown as ****?</a>
+            </li>
           </ul>
         </li>
         <li>
@@ -180,6 +183,12 @@
         To change the platform of an activity that's already saved, open the
         activity and click the <i class="bi bi-pencil"></i> next to its
         platform.
+      </p>
+
+      <h5 id="nsfw" class="mt-4">Why are some game titles shown as ****?</h5>
+      <p>
+        They're NSFW games. Turn on <i>Show NSFW games</i> on the
+        <a href="/settings">settings page</a> to see their titles and covers.
       </p>
 
       <hr />

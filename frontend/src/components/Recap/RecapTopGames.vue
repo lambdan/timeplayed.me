@@ -3,12 +3,15 @@ import { computed, ref } from "vue";
 import { formatDuration } from "../../utils";
 import { shortDate, type RecapGame } from "../../utils.recap";
 import CroppedCover from "../Games/CroppedCover.vue";
+import GameName from "../Games/GameName.vue";
+import { useNsfw } from "../../composables/useNsfw";
 
 const props = defineProps<{ games: RecapGame[]; showNew: boolean }>();
 
 const podium = computed(() => props.games.slice(0, 4));
 const rest = computed(() => props.games.slice(4, 10));
 const showAll = ref(false);
+const { gameName } = useNsfw();
 
 function average(game: RecapGame): string {
   return formatDuration(game.seconds / game.sessions);
@@ -30,8 +33,8 @@ function average(game: RecapGame): string {
         <a
           :href="`/game/${game.game_id}`"
           class="fw-bold link-body-emphasis text-decoration-none"
-          >{{ game.name }}</a
-        >
+          ><GameName :game="game"
+        /></a>
         <div class="fs-4 fw-bold mt-1">
           {{ formatDuration(game.seconds) }}
         </div>
@@ -52,9 +55,9 @@ function average(game: RecapGame): string {
         <a
           :href="`/game/${game.game_id}`"
           class="link-body-emphasis text-decoration-none"
-          :title="game.name"
-          >{{ game.name }}</a
-        >
+          :title="gameName(game)"
+          ><GameName :game="game"
+        /></a>
       </div>
       <div class="small text-body-secondary">
         {{ formatDuration(game.seconds) }} · {{ game.sessions }} activities
@@ -94,8 +97,8 @@ function average(game: RecapGame): string {
             <a
               :href="`/game/${game.game_id}`"
               class="link-underline link-underline-opacity-0"
-              >{{ game.name }}</a
-            >
+              ><GameName :game="game"
+            /></a>
             <span
               v-if="showNew && game.new"
               class="badge text-bg-secondary ms-2"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import {
   AdminAPI,
   type AdminPlatform,
@@ -22,6 +23,7 @@ const newAbbreviation = ref("");
 const error = ref("");
 const message = ref("");
 
+const route = useRoute();
 const selectedId = ref<number>();
 const selected = computed(() =>
   platforms.value.find((p) => p.id === selectedId.value),
@@ -168,7 +170,13 @@ async function addPlatform() {
   }
 }
 
-onMounted(fetchPlatforms);
+// linked to from platform pages with ?id=
+onMounted(async () => {
+  await fetchPlatforms();
+  const id = parseInt(route.query.id as string);
+  const linked = platforms.value.find((p) => p.id === id);
+  if (linked) select(linked);
+});
 </script>
 
 <template>

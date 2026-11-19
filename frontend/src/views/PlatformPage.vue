@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import type { PlatformWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import AdminEditLink from "../components/Misc/AdminEditLink.vue";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import PlatformMetadataCard from "../components/Platforms/PlatformMetadataCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
@@ -39,7 +40,10 @@ onMounted(async () => {
     <div class="row g-4">
       <div class="col-lg-8">
         <div class="card h-100">
-          <h1 class="card-header">{{ platform.display_name }}</h1>
+          <h1 class="card-header d-flex align-items-center gap-2">
+            <span class="me-auto">{{ platform.display_name }}</span>
+            <AdminEditLink tab="platforms" :id="platform.id" />
+          </h1>
           <div class="card-body">
             <div class="row g-3">
               <div class="col-12 col-sm-auto text-center">

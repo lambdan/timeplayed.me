@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { GameCoverData, SGDBGrid } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { COVER_MAX_AGE, getCached, setCached } from "../../utils.cache";
+import { useNsfw } from "../../composables/useNsfw";
 
 const props = withDefaults(
   defineProps<{
@@ -10,6 +11,8 @@ const props = withDefaults(
     clickable?: boolean;
     maxHeight?: number;
     maxWidth?: number;
+    /** the viewer is playing it, so there's nothing to protect them from */
+    uncensored?: boolean;
   }>(),
   {
     clickable: true,
@@ -19,11 +22,31 @@ const props = withDefaults(
 );
 
 const LOADING_COVER = `https://placehold.co/600x900?text=Loading...`;
+const NSFW_COVER = `https://placehold.co/600x900?text=Cover+hidden`;
 const clickable = ref(props.clickable);
-const imageUrl = ref<string>(LOADING_COVER);
 const coverData = ref<GameCoverData>();
-const creditsText = ref("...");
-const sourceUrl = ref<string>();
+const nsfw = ref(false);
+const { isCensored } = useNsfw();
+
+// censored here and not when loading, so opting in (or the user loading late) shows it right away
+const censored = computed(
+  () => !props.uncensored && isCensored({ nsfw: nsfw.value }),
+);
+const imageUrl = computed(() => {
+  if (!coverData.value) return LOADING_COVER;
+  return censored.value ? NSFW_COVER : coverData.value.imageUrl;
+});
+const sourceUrl = computed(() =>
+  censored.value ? undefined : coverData.value?.sourceUrl,
+);
+const creditsText = computed(() => {
+  const data = coverData.value;
+  if (!data) return "...";
+  if (censored.value) return "NSFW";
+  return data.credits
+    ? `Source: ${data.source}. ${data.credits}`
+    : `Source: ${data.source}.`;
+});
 
 /** this is a clusterfuck */
 async function getGameCoverData(gameId: number): Promise<GameCoverData> {
@@ -88,8 +111,7 @@ async function getGameCoverData(gameId: number): Promise<GameCoverData> {
     try {
       const gameData = await TimeplayedAPI.getGame(gameId);
 
-      // image_url explicitly set to "-" means this game should not have a cover
-      if (gameData.image_url === "-") {
+      if (gameData.cover_disabled) {
         return {
           imageUrl: `https://placehold.co/600x900?text=Cover+art+disabled\\nfor+this+game`,
           source: "None",
@@ -129,6 +151,21 @@ async function getGameCoverData(gameId: number): Promise<GameCoverData> {
         }
       }
 
+      // steam, mostly for games that aren't on igdb
+      if (gameData.steam_id) {
+        const steam = await orUndefined(
+          TimeplayedAPI.getSteamCover(gameData.steam_id),
+        );
+        if (steam) {
+          return {
+            imageUrl: steam.url,
+            source: "Steam",
+            sourceUrl: steam.store_url,
+            credits: `Steam app ID: ${gameData.steam_id}`,
+          };
+        }
+      }
+
       // parent?
       if (gameData.parent_id) {
         return getGameCoverData(gameData.parent_id);
@@ -154,14 +191,13 @@ async function getGameCoverData(gameId: number): Promise<GameCoverData> {
 }
 
 onMounted(async () => {
-  coverData.value = await getGameCoverData(props.gameId);
-  imageUrl.value = coverData.value.imageUrl;
-
-  sourceUrl.value = coverData.value.sourceUrl;
-  creditsText.value = `Source: ${coverData.value.source}.`;
-  if (coverData.value.credits) {
-    creditsText.value += " " + coverData.value.credits;
-  }
+  // both at once, so an nsfw cover is never shown before the game says it's nsfw
+  const [game, cover] = await Promise.all([
+    TimeplayedAPI.getGame(props.gameId).catch(() => undefined),
+    getGameCoverData(props.gameId),
+  ]);
+  nsfw.value = !!game?.nsfw;
+  coverData.value = cover;
 });
 </script>
 

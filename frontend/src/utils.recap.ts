@@ -18,6 +18,7 @@ export interface Bucket {
 export interface RecapGame extends Bucket {
   game_id: number;
   name: string;
+  nsfw: boolean;
   release_year: number | null;
   percentage: number;
   first_played: Date;
@@ -147,7 +148,7 @@ export async function loadRecap(
   const gameIds = [...new Set(activities.map((a) => a.game_id))];
   const games = new Map<
     number,
-    { name: string; release_year: number | null }
+    { name: string; nsfw: boolean; release_year: number | null }
   >();
   const playedBefore = new Set<number>();
   for (let i = 0; i < gameIds.length; i += 100) {
@@ -196,7 +197,10 @@ export async function loadRecap(
 /////////////// stats ///////////////
 
 interface Lookups {
-  games: Map<number, { name: string; release_year: number | null }>;
+  games: Map<
+    number,
+    { name: string; nsfw: boolean; release_year: number | null }
+  >;
   playedBefore: Set<number>;
   platforms: Map<
     number,
@@ -414,6 +418,7 @@ function buildRecap(
       ...t,
       game_id: id,
       name: info?.name ?? `Game ${id}`,
+      nsfw: info?.nsfw ?? false,
       release_year: info?.release_year ?? null,
       percentage: pct(t.seconds),
       first_played: addDays(first, played[0]),

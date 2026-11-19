@@ -74,3 +74,20 @@ class TestSitemap:
 
         urls = sitemap_urls(api)
         assert [u for u in urls if "/game/" in u] == []
+
+    def test_nsfw_excluded(self, api, make_user, make_game, make_platform):
+        user, _ = make_user()
+        platform = make_platform()
+        nsfw_parent = make_game("NSFW", nsfw=True)
+        child = make_game("Child", parent=nsfw_parent)
+        for game in (nsfw_parent, child):
+            Activity.create(
+                user=user,
+                game=game,
+                platform=platform,
+                seconds=3600,
+                timestamp=datetime.datetime.now(UTC),
+            )
+
+        urls = sitemap_urls(api)
+        assert [u for u in urls if "/game/" in u] == []

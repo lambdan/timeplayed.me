@@ -1,5 +1,5 @@
 from peewee import JOIN, fn
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from tpbackend.activity.models import API_Activity
 from tpbackend.game.models import API_Game
@@ -101,6 +101,7 @@ class Admin_ActivityDetails(Admin_Activity):
 
 class Admin_Game(API_Game):
     hidden: bool
+    own_nsfw: bool = Field(description="Set on this game, not inherited from a parent")
     activity_count: int
     last_activity: int | None
 
@@ -110,6 +111,7 @@ class Admin_Game(API_Game):
             **API_Game.from_game(game).model_dump(),
             # own hidden, not inherited from parent, that's what can be toggled
             hidden=bool(game.hidden),
+            own_nsfw=bool(game.nsfw),
             activity_count=activity_count(game=game),
             last_activity=last_activity(game=game),
         )
@@ -206,6 +208,8 @@ class Admin_PatchGame(BaseModel):
 
     name: str | None = None
     image_url: str | None = None
+    cover_disabled: bool | None = None
+    nsfw: bool | None = None
     release_year: int | None = None
     parent_id: int | None = None
     steam_id: int | None = None

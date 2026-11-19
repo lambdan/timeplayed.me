@@ -6,6 +6,8 @@ import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
 import type { Game, LiveActivity, Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
+import GameName from "../components/Games/GameName.vue";
+import { useNsfw } from "../composables/useNsfw";
 
 // shorter sessions are aborted instead of saved, the backend wants at least this (MINIMUM_SESSION_LENGTH)
 const MIN_SECONDS = 30;
@@ -109,9 +111,15 @@ const addSeconds = computed(
     (Number(addHours.value) || 0) * 3600 + (Number(addMinutes.value) || 0) * 60,
 );
 
+// nsfw games are left out unless the user opted in
+const { isCensored } = useNsfw();
+
 // game search
 const searchText = ref("");
 const searchResults = ref<Game[]>([]);
+const visibleSearchResults = computed(() =>
+  searchResults.value.filter((g) => !isCensored(g)),
+);
 let searchTimeout: number | undefined;
 watch(searchText, (text) => {
   window.clearTimeout(searchTimeout);
@@ -163,7 +171,9 @@ async function addByIGDB() {
 // previous games, most recent first
 const previousGames = ref<PreviousGame[]>(readPreviousGames());
 const sortedPreviousGames = computed(() =>
-  [...previousGames.value].sort((a, b) => b.date - a.date),
+  [...previousGames.value]
+    .filter((pg) => !isCensored(games.value[pg.gameId]))
+    .sort((a, b) => b.date - a.date),
 );
 
 /** preselected next time, and in previous games */
@@ -293,7 +303,8 @@ async function load() {
     // the running game, or the last used one
     const gameId = live?.game_id ?? Number(readStorage(LAST_GAME_KEY));
     const g = gameId ? await getGame(gameId) : undefined;
-    if (g) {
+    // a live nsfw game is still shown, just not preselected
+    if (g && (live || !isCensored(g))) {
       selectGame(g);
     }
     const lastPlatformId = Number(readStorage(LAST_PLATFORM_KEY)) || undefined;
@@ -339,13 +350,14 @@ watch(
         <div class="spinner-border" role="status"></div>
       </div>
 
-      <!-- playing right now -->
+      <!-- playing right now, not censored since they know what they're playing -->
       <template v-else-if="liveActivity">
         <div class="d-flex gap-3 align-items-center mb-4">
           <GameCover
             :gameId="liveActivity.game_id"
             :maxHeight="120"
             :clickable="false"
+            uncensored
           />
           <div style="min-width: 0">
             <a
@@ -415,12 +427,12 @@ watch(
             autocomplete="off"
           />
           <div
-            v-if="searchResults.length"
+            v-if="visibleSearchResults.length"
             class="list-group position-absolute w-100 z-3 shadow overflow-auto"
             style="max-height: 300px"
           >
             <button
-              v-for="g in searchResults"
+              v-for="g in visibleSearchResults"
               :key="g.id"
               type="button"
               class="list-group-item list-group-item-action"
@@ -519,7 +531,8 @@ watch(
               @click="selectPreviousGame(pg)"
             >
               <div class="fw-semibold text-truncate">
-                {{ games[pg.gameId]?.name ?? "..." }}
+                <GameName v-if="games[pg.gameId]" :game="games[pg.gameId]!" />
+                <template v-else>...</template>
               </div>
               <small class="text-body-secondary">{{
                 platforms.find((p) => p.id === pg.platformId)?.display_name

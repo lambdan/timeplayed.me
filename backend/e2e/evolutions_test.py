@@ -61,7 +61,12 @@ class TestEvolutions:
         # an existing database, told once that it's at evolution 1
         scratch = PostgresqlDatabase(scratch_db, **connect_params())
         # just what the evolutions after 1 touch
-        scratch.execute_sql("CREATE TABLE game (id integer, sgdb_grid_id integer)")
+        scratch.execute_sql(
+            "CREATE TABLE game (id integer, sgdb_grid_id integer, image_url varchar)"
+        )
+        scratch.execute_sql(
+            "INSERT INTO game (id, image_url) VALUES (1, '-'), (2, 'http://x/a.png'), (3, NULL)"
+        )
         scratch.execute_sql(
             "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}', default_platform_id integer)"
         )
@@ -80,6 +85,16 @@ class TestEvolutions:
         assert "default_platform_id" not in [
             c.name for c in scratch.get_columns("user")
         ]
+        # 6.sql turned image_url '-' into cover_disabled
+        games = scratch.execute_sql(
+            "SELECT image_url, cover_disabled FROM game ORDER BY id"
+        ).fetchall()
+        assert games == [(None, True), ("http://x/a.png", False), (None, False)]
+        # 7.sql, nothing is nsfw until marked
+        assert (
+            scratch.execute_sql("SELECT count(*) FROM game WHERE nsfw").fetchone()[0]
+            == 0
+        )
         # 4.sql gave existing users show_avatar and show_name, once
         permissions = scratch.execute_sql(
             'SELECT permissions FROM "user" ORDER BY id'

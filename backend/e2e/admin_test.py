@@ -332,6 +332,53 @@ class TestAdminGames:
         assert Game.get_by_id(game.get_id()).get_hidden() is True
         assert Activity.get().get_hidden() is True
 
+    def test_disable_cover(self, admin, make_game):
+        _, client = admin
+        game = make_game(igdb_id=123)
+        r = client.patch(f"/admin/game/{game.get_id()}", json={"cover_disabled": True})
+        assert r.status_code == 200, r.text
+        assert r.json()["cover_disabled"] is True
+        assert any(
+            "Cover disabled changed from False to True" in h
+            for h in r.json()["history"]
+        )
+        assert Game.get_by_id(game.get_id()).get_cover_disabled() is True
+
+        r = client.get(f"/game/{game.get_id()}")
+        assert r.json()["cover_disabled"] is True
+
+        r = client.patch(f"/admin/game/{game.get_id()}", json={"cover_disabled": None})
+        assert r.status_code == 400
+
+    def test_mark_nsfw(self, admin, make_game):
+        _, client = admin
+        game = make_game()
+        r = client.patch(f"/admin/game/{game.get_id()}", json={"nsfw": True})
+        assert r.status_code == 200, r.text
+        assert r.json()["nsfw"] is True
+        assert r.json()["own_nsfw"] is True
+        assert any("NSFW changed from False to True" in h for h in r.json()["history"])
+
+        r = client.patch(f"/admin/game/{game.get_id()}", json={"nsfw": None})
+        assert r.status_code == 400
+
+    def test_nsfw_parent_makes_children_nsfw(self, admin, make_game):
+        _, client = admin
+        parent = make_game("Parent", nsfw=True)
+        child = make_game("Child", parent=parent)
+
+        r = client.get(f"/game/{child.get_id()}")
+        assert r.json()["nsfw"] is True
+        # the admin page can tell it comes from the parent
+        r = client.get(f"/admin/game/{child.get_id()}")
+        assert r.json()["nsfw"] is True
+        assert r.json()["own_nsfw"] is False
+
+        r = client.get(f"/game/{parent.get_id()}")
+        assert r.json()["nsfw"] is True
+        r = client.get("/games", params={"search": "child"})
+        assert [g["nsfw"] for g in r.json()] == [True]
+
     def test_clear_igdb_id(self, admin, make_game):
         _, client = admin
         game = make_game(igdb_id=123)
@@ -437,10 +484,14 @@ class TestAdminGames:
     def test_missing_cover_leaves_out_not_on_igdb(self, admin, make_game):
         _, client = admin
         make_game("Has cover", igdb_id=1)
+        make_game("Has Steam ID", steam_id=1)
         missing = make_game("No cover")
         not_on_igdb = make_game("Not on IGDB", igdb_id=0)
         # got a cover another way, not listed anymore
         make_game("Not on IGDB, has image", igdb_id=0, image_url="http://x/a.png")
+        # nothing to look for
+        make_game("Cover disabled", cover_disabled=True)
+        make_game("Not on IGDB, cover disabled", igdb_id=0, cover_disabled=True)
 
         r = client.get("/admin/games?missing=cover")
         assert r.status_code == 200, r.text

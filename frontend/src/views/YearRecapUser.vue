@@ -22,6 +22,7 @@ import RecapMonthStack from "../components/Recap/RecapMonthStack.vue";
 import RecapReleaseYears from "../components/Recap/RecapReleaseYears.vue";
 import RecapActivityLengths from "../components/Recap/RecapActivityLengths.vue";
 import RecapPlatforms from "../components/Recap/RecapPlatforms.vue";
+import { useNsfw } from "../composables/useNsfw";
 
 const route = useRoute();
 const setTitle = usePageTitle();
@@ -38,8 +39,10 @@ const failed = ref(false);
 const user = ref<User>();
 const recap = ref<Recap>();
 
+const { gameName } = useNsfw();
+// censored for nsfw games, these are plain strings in the cards
 const gameNames = computed(
-  () => new Map(recap.value?.games.map((g) => [g.game_id, g.name])),
+  () => new Map(recap.value?.games.map((g) => [g.game_id, gameName(g)])),
 );
 const totals = computed(() => recap.value!.totals);
 const prev = computed(() => recap.value!.previous_year);
@@ -275,7 +278,7 @@ onMounted(async () => {
                 :daySessions="recap.daySessions"
                 :year="year"
                 :items="
-                  recap.games.map((g) => ({ id: g.game_id, name: g.name }))
+                  recap.games.map((g) => ({ id: g.game_id, name: gameName(g) }))
                 "
                 :keyOf="(a) => a.game_id"
               />

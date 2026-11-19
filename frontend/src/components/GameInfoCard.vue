@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { formatDuration } from "../utils";
 import GameCover from "./Games/GameCover.vue";
+import GameName from "./Games/GameName.vue";
+import AdminEditLink from "./Misc/AdminEditLink.vue";
 import type { Game, GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "./CalendarBasic.vue";
@@ -26,15 +28,18 @@ onMounted(async () => {
 
 <template>
   <div class="card">
-    <h1 class="card-header">
-      {{ game.name }}
-      <span class="text-muted" v-if="game.release_year">
-        ({{ game.release_year }})
-      </span>
-      <span class="text-muted d-block" style="font-size: 0.5em" v-if="parent">
-        Counted in
-        <a :href="'/game/' + parent.id">{{ parent.name }}</a>
-      </span>
+    <h1 class="card-header d-flex align-items-center gap-2">
+      <div class="me-auto">
+        <GameName :game="game" />
+        <span class="text-muted" v-if="game.release_year">
+          ({{ game.release_year }})
+        </span>
+        <span class="text-muted d-block" style="font-size: 0.5em" v-if="parent">
+          Counted in
+          <a :href="'/game/' + parent.id"><GameName :game="parent" /></a>
+        </span>
+      </div>
+      <AdminEditLink tab="games" :id="game.id" />
     </h1>
     <div class="card-body">
       <div class="row g-3">

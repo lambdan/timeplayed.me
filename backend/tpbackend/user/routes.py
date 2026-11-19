@@ -9,6 +9,7 @@ from tpbackend.user.models import (
 )
 from tpbackend.api.responses import bad_request, not_found
 from tpbackend.api.auth import AuthenticatedUser, authenticate
+from tpbackend.permissions import Permission
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.api.params import (
@@ -264,6 +265,11 @@ def update_settings(
 ) -> API_AuthenticatedUser:
     if data.pc_platform is not None and data.pc_platform != user.get_pc_platform():
         user.set_pc_platform(data.pc_platform)
+
+    if data.show_nsfw is True:
+        user.add_permission(Permission.SHOW_NSFW)
+    elif data.show_nsfw is False:
+        user.remove_permission(Permission.SHOW_NSFW)
 
     user.save()
     return API_AuthenticatedUser.from_user(user)

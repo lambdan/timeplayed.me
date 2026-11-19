@@ -4,6 +4,7 @@ import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { formatDuration } from "../../utils";
 import CroppedCover from "./CroppedCover.vue";
+import GameName from "./GameName.vue";
 import ExpandToggle from "../Misc/ExpandToggle.vue";
 import ChildGamesRows from "./ChildGamesRows.vue";
 
@@ -102,8 +103,8 @@ watch(
                   :href="`/game/${game.id}`"
                   class="link-underline link-underline-opacity-0 text-break"
                   :class="{ 'opacity-50': expanded.has(game.id) }"
-                  >{{ game.name }}</a
-                >
+                  ><GameName :game="game"
+                /></a>
               </div>
             </td>
             <td class="text-end text-nowrap">

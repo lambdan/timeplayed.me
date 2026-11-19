@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { Game } from "../../api.models";
 import CalendarBasic from "../CalendarBasic.vue";
+import { censor, useNsfw } from "../../composables/useNsfw";
 
 defineProps<{ game: Game }>();
+
+// the external pages show the game, so they're left out for censored games
+const { isCensored } = useNsfw();
 </script>
 
 <template>
@@ -15,11 +19,11 @@ defineProps<{ game: Game }>();
             <th class="text-nowrap">ID</th>
             <td>{{ game.id }}</td>
           </tr>
-          <tr v-if="game.igdb_id">
+          <tr v-if="game.igdb_id && !isCensored(game)">
             <th class="text-nowrap">IGDB</th>
             <td>{{ game.igdb_id }}</td>
           </tr>
-          <tr v-if="game.steam_id">
+          <tr v-if="game.steam_id && !isCensored(game)">
             <th class="text-nowrap">Steam</th>
             <td>
               <a
@@ -28,7 +32,7 @@ defineProps<{ game: Game }>();
               >
             </td>
           </tr>
-          <tr v-if="game.sgdb_id">
+          <tr v-if="game.sgdb_id && !isCensored(game)">
             <th class="text-nowrap">SteamGridDB</th>
             <td>
               <a :href="'https://www.steamgriddb.com/game/' + game.sgdb_id">{{
@@ -39,7 +43,12 @@ defineProps<{ game: Game }>();
           <tr v-if="game.aliases.length > 0">
             <th class="text-nowrap">Aliases</th>
             <td class="text-break">
-              <div v-for="alias in game.aliases" :key="alias">{{ alias }}</div>
+              <div v-for="alias in game.aliases" :key="alias">
+                <span v-if="isCensored(game)" class="text-danger">{{
+                  censor(alias)
+                }}</span>
+                <template v-else>{{ alias }}</template>
+              </div>
             </td>
           </tr>
           <tr>

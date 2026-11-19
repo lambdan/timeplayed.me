@@ -591,66 +591,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sgdb/{sgdb_game_id}/grids/best": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Best Grid Sgdb
-         * @description Tries to get the best grid for a game from SteamGridDB
-         */
-        get: operations["best_grid_sgdb_sgdb__sgdb_game_id__grids_best_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/sgdb/{sgdb_game_id}/grids": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Sgdb Grids
-         * @description Gets grids for a game from SteamGridDB
-         */
-        get: operations["sgdb_grids_sgdb__sgdb_game_id__grids_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/igdb/game/{igdb_game_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Igdb Game Info
-         * @description Get game info from IGDB by their ID
-         */
-        get: operations["get_igdb_game_info_igdb_game__igdb_game_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -730,6 +670,13 @@ export interface components {
             steam_id: number | null;
             /** Image Url */
             image_url: string | null;
+            /** Cover Disabled */
+            cover_disabled: boolean;
+            /**
+             * Nsfw
+             * @description This game or a parent is NSFW
+             */
+            nsfw: boolean;
             /** Aliases */
             aliases: string[];
             /** Release Year */
@@ -757,6 +704,13 @@ export interface components {
             steam_id: number | null;
             /** Image Url */
             image_url: string | null;
+            /** Cover Disabled */
+            cover_disabled: boolean;
+            /**
+             * Nsfw
+             * @description This game or a parent is NSFW
+             */
+            nsfw: boolean;
             /** Aliases */
             aliases: string[];
             /** Release Year */
@@ -894,6 +848,11 @@ export interface components {
              * @description What PC activity counts as
              */
             pc_platform?: ("win" | "mac" | "linux") | null;
+            /**
+             * Show Nsfw
+             * @description Show NSFW game titles and covers
+             */
+            show_nsfw?: boolean | null;
         };
         /** API_User */
         API_User: {
@@ -977,68 +936,6 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** IGDB_Cover */
-        IGDB_Cover: {
-            /** Id */
-            id: number;
-            /** Image Id */
-            image_id: string;
-        };
-        /** IGDB_GameInfo */
-        IGDB_GameInfo: {
-            /** Id */
-            id: number;
-            /** Name */
-            name: string;
-            /** First Release Date */
-            first_release_date?: number | null;
-            /** Url */
-            url: string;
-            /** Summary */
-            summary?: string | null;
-            cover?: components["schemas"]["IGDB_Cover"] | null;
-            /** Platforms */
-            platforms?: number[] | null;
-            /** Involved Companies */
-            involved_companies?: number[] | null;
-            /**
-             * Similar Games
-             * @default []
-             */
-            similar_games: number[];
-            /**
-             * Expanded Games
-             * @default []
-             */
-            expanded_games: number[];
-            /**
-             * Expansions
-             * @default []
-             */
-            expansions: number[];
-            /** Parent Game */
-            parent_game?: number | null;
-            /**
-             * Ports
-             * @default []
-             */
-            ports: number[];
-            /**
-             * Remakes
-             * @default []
-             */
-            remakes: number[];
-            /**
-             * Remasters
-             * @default []
-             */
-            remasters: number[];
-            /**
-             * Standalone Expansions
-             * @default []
-             */
-            standalone_expansions: number[];
-        };
         /** Info */
         Info: {
             /** Version */
@@ -1079,43 +976,6 @@ export interface components {
             labels: string[];
             /** Datasets */
             datasets: components["schemas"]["Data"][];
-        };
-        /** SGDB_Author */
-        SGDB_Author: {
-            /** Name */
-            name: string | null;
-            /** Steam64 */
-            steam64: string | null;
-            /** Avatar */
-            avatar: string | null;
-        };
-        /** SGDB_Grid */
-        SGDB_Grid: {
-            /** Id */
-            id: number | null;
-            /** Score */
-            score: number | null;
-            /** Width */
-            width: number | null;
-            /** Height */
-            height: number | null;
-            /** Style */
-            style: string | null;
-            /** Mime */
-            mime: string | null;
-            /** Language */
-            language: string | null;
-            /** Url */
-            url: string | null;
-            /** Thumb */
-            thumb: string | null;
-            /** Type */
-            type: string | null;
-            author: components["schemas"]["SGDB_Author"] | null;
-            /** Upvotes */
-            upvotes: number | null;
-            /** Downvotes */
-            downvotes: number | null;
         };
         /** Total */
         Total: {
@@ -2491,99 +2351,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaytimeChart"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    best_grid_sgdb_sgdb__sgdb_game_id__grids_best_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                sgdb_game_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SGDB_Grid"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    sgdb_grids_sgdb__sgdb_game_id__grids_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                sgdb_game_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SGDB_Grid"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_igdb_game_info_igdb_game__igdb_game_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                igdb_game_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IGDB_GameInfo"] | null;
                 };
             };
             /** @description Validation Error */

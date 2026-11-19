@@ -58,6 +58,9 @@ class API_PutSettings(BaseModel):
     pc_platform: PCPlatform | None = Field(
         default=None, description="What PC activity counts as"
     )
+    show_nsfw: bool | None = Field(
+        default=None, description="Show NSFW game titles and covers"
+    )
 
 
 class API_UserWithStats(API_User):

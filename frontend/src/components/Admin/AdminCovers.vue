@@ -188,7 +188,13 @@ function skip() {
 }
 
 function hasCover(g: AdminGame) {
-  return !!(g.igdb_id || g.sgdb_id || g.image_url);
+  return !!(
+    g.igdb_id ||
+    g.sgdb_id ||
+    g.steam_id ||
+    g.image_url ||
+    g.cover_disabled
+  );
 }
 
 watch(game, (g) => loadGame(g));

@@ -4,6 +4,7 @@ import type { GameWithStats } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { formatDuration } from "../../utils";
 import CroppedCover from "./CroppedCover.vue";
+import GameName from "./GameName.vue";
 import CalendarBasic from "../CalendarBasic.vue";
 import ExpandToggle from "../Misc/ExpandToggle.vue";
 // rows for its children are this same component, one level deeper
@@ -95,8 +96,8 @@ function hasChildRows(game: GameWithStats) {
             :href="`/game/${game.id}`"
             class="link-underline link-underline-opacity-0 text-break"
             :class="{ 'opacity-50': expanded.has(game.id) }"
-            >{{ game.name }}</a
-          >
+            ><GameName :game="game"
+          /></a>
         </div>
       </td>
       <td class="text-end text-nowrap">

@@ -34,6 +34,7 @@ export type AdminActivityPatch = Partial<{
 
 export type AdminGame = Game & {
   hidden: boolean;
+  own_nsfw: boolean;
   activity_count: number;
   last_activity: number | null;
 };
@@ -41,6 +42,8 @@ export type AdminGameDetails = AdminGame & { history: string[] };
 export type AdminGamePatch = Partial<{
   name: string;
   image_url: string | null;
+  cover_disabled: boolean;
+  nsfw: boolean;
   release_year: number | null;
   parent_id: number | null;
   steam_id: number | null;

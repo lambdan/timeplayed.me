@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import {
   AdminAPI,
+  type AdminGame,
   type AdminGameDetails,
   type AdminGamePatch,
   type IGDBSearchResult,
@@ -33,6 +34,8 @@ const form = ref({
   name: "",
   release_year: "",
   image_url: "",
+  cover_disabled: false,
+  nsfw: false,
   steam_id: "",
   parent_id: "",
   hidden: false,
@@ -46,6 +49,8 @@ const igdbResults = ref<IGDBSearchResult[]>();
 const sgdbResults = ref<SGDBSearchResult[]>();
 
 const targetId = ref("");
+const targetQuery = ref("");
+const targetResults = ref<AdminGame[]>();
 const mergePreview = ref<{ activity_count: number; new_aliases: string[] }>();
 const moveArmed = ref(false);
 const deleteArmed = ref(false);
@@ -63,6 +68,8 @@ function setGame(g: AdminGameDetails) {
     name: g.name,
     release_year: g.release_year?.toString() ?? "",
     image_url: g.image_url ?? "",
+    cover_disabled: g.cover_disabled,
+    nsfw: g.own_nsfw,
     steam_id: g.steam_id?.toString() ?? "",
     parent_id: g.parent_id?.toString() ?? "",
     hidden: g.hidden,
@@ -105,6 +112,9 @@ const patch = computed(() => {
   if (year !== g.release_year) changed.release_year = year;
   const imageUrl = form.value.image_url.trim() || null;
   if (imageUrl !== g.image_url) changed.image_url = imageUrl;
+  if (form.value.cover_disabled !== g.cover_disabled)
+    changed.cover_disabled = form.value.cover_disabled;
+  if (form.value.nsfw !== g.own_nsfw) changed.nsfw = form.value.nsfw;
   const steamId = toNumberOrNull(form.value.steam_id);
   if (steamId !== g.steam_id) changed.steam_id = steamId;
   const parentId = toNumberOrNull(form.value.parent_id);
@@ -117,6 +127,8 @@ const FIELD_LABELS: Record<keyof AdminGamePatch, string> = {
   name: "name",
   release_year: "release year",
   image_url: "image URL",
+  cover_disabled: "cover disabled",
+  nsfw: "NSFW",
   steam_id: "Steam ID",
   parent_id: "parent",
   hidden: "hidden",
@@ -232,6 +244,25 @@ function addAlias() {
 
 function removeAlias(alias: string) {
   run(() => AdminAPI.removeAlias(props.gameId, alias), "Alias removed");
+}
+
+async function searchTarget() {
+  const q = targetQuery.value.trim();
+  if (!q) return;
+  try {
+    error.value = "";
+    const found = await AdminAPI.getGames({ search: q, limit: 10 });
+    targetResults.value = found.filter((g) => g.id !== props.gameId);
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
+
+function useTarget(g: AdminGame) {
+  targetId.value = g.id.toString();
+  targetResults.value = undefined;
+  mergePreview.value = undefined;
+  moveArmed.value = false;
 }
 
 async function previewMerge() {
@@ -393,8 +424,7 @@ onMounted(async () => {
             </div>
             <div class="col-12 col-md-6">
               <label class="form-label small mb-0">
-                Image URL (overrides SGDB/IGDB cover, <code>-</code> disables
-                cover)
+                Image URL (overrides IGDB/SGDB/Steam cover)
               </label>
               <input
                 v-model="form.image_url"
@@ -411,7 +441,9 @@ onMounted(async () => {
                 type="number"
               />
             </div>
-            <div class="col-6 col-md-3 d-flex align-items-end">
+            <div
+              class="col-6 col-md-3 d-flex flex-wrap align-items-end column-gap-3 text-nowrap"
+            >
               <div class="form-check">
                 <input
                   id="game-hidden"
@@ -421,6 +453,35 @@ onMounted(async () => {
                   type="checkbox"
                 />
                 <label class="form-check-label" for="game-hidden">Hidden</label>
+              </div>
+              <div class="form-check">
+                <input
+                  id="game-cover-disabled"
+                  v-model="form.cover_disabled"
+                  class="form-check-input"
+                  :class="{ 'border-warning': 'cover_disabled' in patch }"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="game-cover-disabled">
+                  Cover disabled
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  id="game-nsfw"
+                  v-model="form.nsfw"
+                  class="form-check-input"
+                  :class="{ 'border-warning': 'nsfw' in patch }"
+                  type="checkbox"
+                />
+                <label class="form-check-label" for="game-nsfw">
+                  NSFW
+                  <span
+                    v-if="game.nsfw && !game.own_nsfw"
+                    class="text-body-secondary"
+                    >(parent)</span
+                  >
+                </label>
               </div>
             </div>
           </div>
@@ -556,6 +617,44 @@ onMounted(async () => {
           </div>
 
           <h6>Merge / move activities</h6>
+          <div class="input-group input-group-sm mb-2">
+            <input
+              v-model="targetQuery"
+              class="form-control"
+              type="search"
+              placeholder="Search our games"
+              @keydown.enter.prevent="searchTarget"
+            />
+            <button class="btn btn-outline-primary" @click="searchTarget">
+              Search
+            </button>
+          </div>
+          <ul v-if="targetResults" class="list-group list-group-flush mb-2">
+            <li v-if="targetResults.length === 0" class="list-group-item px-0">
+              No games found
+            </li>
+            <li
+              v-for="g in targetResults"
+              :key="g.id"
+              class="list-group-item px-0 d-flex align-items-center gap-2"
+            >
+              <div class="me-auto">
+                {{ g.name }}
+                <span v-if="g.release_year" class="text-body-secondary"
+                  >({{ g.release_year }})</span
+                >
+                <div class="small text-body-secondary">
+                  ID {{ g.id }} · {{ g.activity_count }} activities
+                </div>
+              </div>
+              <button
+                class="btn btn-outline-primary btn-sm"
+                @click="useTarget(g)"
+              >
+                Use
+              </button>
+            </li>
+          </ul>
           <div class="input-group input-group-sm mb-2">
             <input
               v-model="targetId"

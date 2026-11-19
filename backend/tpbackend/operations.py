@@ -209,6 +209,8 @@ def merge_games(source: Game, target: Game) -> int:
             ("sgdb_id", target.set_sgdb_id),
             ("image_url", target.set_image_url),
             ("release_year", target.set_release_year),
+            # merging shouldn't uncensor anything
+            ("nsfw", target.set_nsfw),
         ]:
             if getattr(source, field) and not getattr(target, field):
                 setter(getattr(source, field))

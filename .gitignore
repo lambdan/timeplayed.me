@@ -135,7 +135,7 @@ build-test
 backend/docker-compose.yml
 .vscode/
 
-# database backups (may contain prod data)
+# database backups
 /storage_v2_*.sql
 
 PLAN*.md

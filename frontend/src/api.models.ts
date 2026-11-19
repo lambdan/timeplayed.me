@@ -22,13 +22,25 @@ export type PlatformWithStats = components["schemas"]["API_PlatformWithStats"];
 export type Game = components["schemas"]["API_Game"];
 export type GameWithStats = components["schemas"]["API_GameWithStats"];
 
-export type SGDBGrid = components["schemas"]["SGDB_Grid"];
-//export type SGDBGame = components["schemas"]["SGDB_Game"];
-export type IGDBGameInfo = components["schemas"]["IGDB_GameInfo"];
+// the cover lookups (igdb, sgdb, steam) are not in the OpenAPI schema, these mirror
+// the parts we use of the models in backend/tpbackend/{igdb,sgdb,steam}/models.py
+export type IGDBGameInfo = {
+  id: number;
+  name: string;
+  first_release_date?: number | null;
+  url: string;
+  cover?: { id: number; image_id: string } | null;
+};
+export type SGDBGrid = {
+  id: number | null;
+  url: string | null;
+  author: { name: string | null } | null;
+};
+export type SteamCover = { url: string; store_url: string };
 
 export interface GameCoverData {
   imageUrl: string;
   sourceUrl?: string;
-  source: "SteamGridDB" | "IGDB" | "Custom" | "None";
+  source: "SteamGridDB" | "IGDB" | "Steam" | "Custom" | "None";
   credits?: string;
 }

@@ -39,6 +39,19 @@ class TestHead:
         )
         assert '<meta property="og:title"' in r.text
 
+    def test_game_indexed(self, api, make_game):
+        r = api.get(f"/head/game/{make_game().get_id()}")
+        assert "noindex" not in r.text
+
+    def test_nsfw_game_noindex(self, api, make_game):
+        parent = make_game("Some Juicy Title", nsfw=True)
+        child = make_game("Child", parent=parent)
+        for game in (parent, child):
+            r = api.get(f"/head/game/{game.get_id()}")
+            assert '<meta name="robots" content="noindex" />' in r.text
+            # the title isn't censored, only the site does that
+            assert "Some Juicy Title" in r.text or "Child" in r.text
+
     def test_game_includes_children(self, api, make_user, make_game, make_platform):
         user, _ = make_user()
         platform = make_platform()

@@ -355,16 +355,23 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     igdb_id = IntegerField(null=True, default=None)
     steam_id = IntegerField(null=True, default=None)
     image_url = CharField(null=True, default=None)
+    cover_disabled = BooleanField(default=False)
+    nsfw = BooleanField(default=False)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
 
     def has_cover_art(self) -> bool:
+        # turned off counts too, there is nothing to look for
+        if self.get_cover_disabled():
+            return True
         if self.get_image_url():
             return True
         if self.get_sgdb_id():
             return True
         if self.get_igdb_id():
+            return True
+        if self.get_steam_id():
             return True
         return False
 
@@ -451,6 +458,32 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         old_image_url = self.get_image_url()
         self.image_url = cast(CharField, image_url)
         self.add_history(f"Image URL changed from '{old_image_url}' to '{image_url}'")
+
+    def get_cover_disabled(self) -> bool:
+        return cast(bool, self.cover_disabled)
+
+    def set_cover_disabled(self, cover_disabled: bool):
+        old_cover_disabled = self.get_cover_disabled()
+        self.cover_disabled = cast(BooleanField, cover_disabled)
+        if old_cover_disabled != cover_disabled:
+            self.add_history(
+                f"Cover disabled changed from {old_cover_disabled} to {cover_disabled}"
+            )
+
+    def get_nsfw(self) -> bool:
+        """nsfw if this game or a parent is"""
+        if self.nsfw:
+            return True
+        parent = self.get_parent()
+        if parent:
+            return parent.get_nsfw()
+        return False
+
+    def set_nsfw(self, nsfw: bool):
+        old_nsfw = bool(self.nsfw)
+        self.nsfw = cast(BooleanField, nsfw)
+        if old_nsfw != nsfw:
+            self.add_history(f"NSFW changed from {old_nsfw} to {nsfw}")
 
     def get_aliases(self) -> list[str]:
         if not self.aliases:

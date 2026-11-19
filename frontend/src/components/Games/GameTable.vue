@@ -4,6 +4,7 @@ import type { GameWithStats, Platform, User } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import DateRangerPicker from "../Misc/DateRangerPicker.vue";
 import CroppedCover from "./CroppedCover.vue";
+import GameName from "./GameName.vue";
 import CalendarBasic from "../CalendarBasic.vue";
 import { formatDuration } from "../../utils";
 
@@ -227,8 +228,8 @@ onMounted(() => {
           <a
             :href="`/game/${game.id}`"
             class="link-underline link-underline-opacity-0"
-            >{{ game.name }}</a
-          >
+            ><GameName :game="game"
+          /></a>
         </td>
         <td class="text-nowrap">{{ formatDuration(game.stats.seconds) }}</td>
         <td v-if="_showDate" class="text-nowrap d-none d-md-table-cell">

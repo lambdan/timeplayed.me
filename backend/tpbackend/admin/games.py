@@ -142,6 +142,16 @@ def patch_game(
         if image_url != game.image_url:
             game.set_image_url(image_url)
 
+    if "cover_disabled" in sent:
+        if data.cover_disabled is None:
+            return bad_request("cover_disabled cannot be null")
+        game.set_cover_disabled(data.cover_disabled)
+
+    if "nsfw" in sent:
+        if data.nsfw is None:
+            return bad_request("nsfw cannot be null")
+        game.set_nsfw(data.nsfw)
+
     if "steam_id" in sent and data.steam_id != game.steam_id:
         if data.steam_id is not None:
             other = GameSelect.by_steam_id(data.steam_id)

@@ -18,6 +18,7 @@ const {
 
 const platforms = ref<Platform[]>([]);
 const pcPlatform = ref<PCPlatform>();
+const showNsfw = ref(false);
 const saving = ref(false);
 const saved = ref(false);
 const error = ref("");
@@ -27,6 +28,7 @@ watch(
   authenticatedUser,
   (user) => {
     pcPlatform.value = user?.pc_platform as PCPlatform | undefined;
+    showNsfw.value = !!user?.permissions.includes("show_nsfw");
   },
   { immediate: true },
 );
@@ -44,6 +46,7 @@ async function save() {
   try {
     await TimeplayedAPI.updateSettings(token.value, {
       pc_platform: pcPlatform.value,
+      show_nsfw: showNsfw.value,
     });
     await refreshAuthenticatedUser();
     saved.value = true;
@@ -87,6 +90,21 @@ onMounted(async () => {
             </option>
           </select>
           <div class="form-text">Count Discord PC activity under this OS.</div>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check form-switch">
+            <input
+              id="show-nsfw"
+              v-model="showNsfw"
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+            />
+            <label for="show-nsfw" class="form-check-label"
+              >Show NSFW games</label
+            >
+          </div>
         </div>
 
         <div class="d-flex align-items-center gap-3">

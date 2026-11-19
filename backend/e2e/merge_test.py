@@ -48,6 +48,14 @@ class TestMergeGames:
         assert target.steam_id == 999
         assert any("Merged in 'Bla™'" in h for h in target.get_history())
 
+    def test_nsfw_source_makes_target_nsfw(self, make_game):
+        target = make_game("Bla")
+        source = make_game("Bla™", nsfw=True)
+
+        merge_games(source, target)
+
+        assert Game.get_by_id(target.get_id()).get_nsfw() is True
+
     def test_target_is_child_of_source(self, make_game):
         source = make_game("Parent")
         target = make_game("Child", parent=source)

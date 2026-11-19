@@ -3,6 +3,7 @@ import { formatDuration, getRecapYear } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { UserWithStats } from "../api.models";
 import CalendarBasic from "./CalendarBasic.vue";
+import AdminEditLink from "./Misc/AdminEditLink.vue";
 
 defineProps<{ user: UserWithStats }>();
 
@@ -13,6 +14,7 @@ const recapYear = getRecapYear();
   <div class="card">
     <h1 class="card-header d-flex align-items-center gap-2">
       <span class="me-auto">{{ user.display_name }}</span>
+      <AdminEditLink tab="users" :id="user.id" />
       <a
         v-if="recapYear"
         :href="`/user/${user.id}/recap/${recapYear}`"

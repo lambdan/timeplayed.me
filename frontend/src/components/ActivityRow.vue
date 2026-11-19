@@ -5,6 +5,7 @@ import { heatBadgeStyle } from "../utils.heat";
 import { useLookups } from "../composables/useLookups";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import CroppedCover from "./Games/CroppedCover.vue";
+import GameName from "./Games/GameName.vue";
 import PlatformBadge from "./Badges/PlatformBadge.vue";
 
 // one activity in a list. the last cell (when it happened) is up to the list, as a slot
@@ -43,8 +44,10 @@ const shown = () => props.seconds ?? props.activity.seconds;
       <a
         :href="`/game/${activity.game_id}`"
         class="link-underline link-underline-opacity-0"
-        >{{ lookups.game(activity.game_id)?.name }}</a
-      >
+        ><GameName
+          v-if="lookups.game(activity.game_id)"
+          :game="lookups.game(activity.game_id)!"
+      /></a>
     </td>
     <!-- without the game (on its own page) there's room for the name of who played -->
     <td v-else-if="showUser" class="w-100 text-break">

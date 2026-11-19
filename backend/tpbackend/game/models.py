@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
 
@@ -15,6 +15,8 @@ class API_Game(BaseModel):
     igdb_id: int | None
     steam_id: int | None
     image_url: str | None
+    cover_disabled: bool
+    nsfw: bool = Field(description="This game or a parent is NSFW")
     aliases: list[str]
     release_year: int | None
     created: int
@@ -31,6 +33,8 @@ class API_Game(BaseModel):
             igdb_id=game.igdb_id,
             steam_id=game.steam_id,
             image_url=game.image_url,
+            cover_disabled=game.get_cover_disabled(),
+            nsfw=game.get_nsfw(),
             aliases=game.aliases,
             release_year=game.release_year,
             created=dt_to_ts(game.created),
@@ -52,6 +56,8 @@ class API_GameWithStats(API_Game):
             igdb_id=game.igdb_id,
             steam_id=game.steam_id,
             image_url=game.image_url,
+            cover_disabled=game.get_cover_disabled(),
+            nsfw=game.get_nsfw(),
             aliases=game.aliases,
             release_year=game.release_year,
             created=dt_to_ts(game.created),

@@ -10,11 +10,14 @@ import {
 } from "chart.js";
 import { formatDuration } from "../../utils";
 import { barOptions, bsColor, type RecapGame } from "../../utils.recap";
+import GameName from "../Games/GameName.vue";
+import { useNsfw } from "../../composables/useNsfw";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
 // playtime grouped by when the games came out
 const props = defineProps<{ games: RecapGame[]; year: number }>();
+const { gameName } = useNsfw();
 
 const dated = computed(() => props.games.filter((g) => g.release_year));
 const undated = computed(() => props.games.length - dated.value.length);
@@ -87,7 +90,7 @@ const data = computed(() => ({
 const options = barOptions(({ dataIndex: i }) => {
   const y = years.value[i];
   if (!y.games) return "nothing";
-  return `${formatDuration(y.seconds)} · ${y.games} ${y.games === 1 ? "game" : "games"} · most played: ${y.top!.name}`;
+  return `${formatDuration(y.seconds)} · ${y.games} ${y.games === 1 ? "game" : "games"} · most played: ${gameName(y.top!)}`;
 });
 
 function share(seconds: number): string {
@@ -136,8 +139,8 @@ function share(seconds: number): string {
               <a
                 :href="`/game/${d.top!.game_id}`"
                 class="link-underline link-underline-opacity-0"
-                >{{ d.top!.name }}</a
-              >
+                ><GameName :game="d.top!"
+              /></a>
             </td>
           </tr>
         </tbody>

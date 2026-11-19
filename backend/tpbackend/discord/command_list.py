@@ -14,13 +14,11 @@ from .commands.permission_remove_admin import RemovePermissionAdminCommand
 from .commands.refresh_search_admin import RefreshSearchAdminCommand
 from .commands.search_games import SearchGamesCommand
 from .commands.set_game import SetGameCommand
-from .commands.set_game_image_admin import SetGameImageAdminCommand
 from .commands.igdb_missing_admin import MissingIGDBAdminCommand
 from .commands.igdb_set_id_admin import SetIGDBIDAdminCommand
 from .commands.igdb_add_game import AddGameIGDBCommand
 from .commands.igdb_auto_admin import AutoIGDBAdminCommand
 from .commands.set_platform_name_admin import SetPlatformNameAdminCommand
-from .commands.set_sgdb_id_admin import SetSGDBIDAdminCommand
 from .commands.list_platforms import ListPlatformsCommand
 from .commands.add_game_alias_admin import AddGameAliasAdminCommand
 from .commands.delete_game_alias_admin import DeleteGameAliasAdminCommand
@@ -29,16 +27,13 @@ from .commands.search_users import SearchUsersCommand
 from .commands.uptime_admin import UptimeAdminCommand
 from .commands.set_game_admin import SetGameAdminCommand
 from .commands.delete_activity_admin import DeleteActivityAdminCommand
-from .commands.missing_sgdb_admin import MissingSGDBAdminCommand
 from .commands.search_sgdb import SearchSGDBCommand
-from .commands.auto_sgdb_admin import AutoSGDBAdminCommand
 from .commands.games_without_activity_admin import GamesWithoutActivityAdminCommand
 from .commands.move_game import MoveGameCommand
 from .commands.move_game_admin import MoveGameAdminCommand
 from .commands.merge_game_admin import MergeGameAdminCommand
 from .commands.merge_overlaps_admin import MergeOverlapsAdminCommand
 from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
-from .commands.missing_cover_admin import MissingCoverAdminCommand
 from .commands.set_platform_colors_admin import SetPlatformColorsAdminCommand
 from .commands.get_platform import GetPlatformCommand
 from .commands.set_platform_icon_admin import SetPlatformIconAdminCommand
@@ -73,16 +68,11 @@ REGULAR_COMMANDS = [
 ADMIN_COMMANDS = [
     # HelpAdminCommand(), # circular import
     AddGameAdminCommand(),
-    # sgdb
-    SetSGDBIDAdminCommand(),
-    AutoSGDBAdminCommand(),
-    MissingSGDBAdminCommand(),
     # igdb
     SetIGDBIDAdminCommand(),
     MissingIGDBAdminCommand(),
     AutoIGDBAdminCommand(),
     # manual game
-    SetGameImageAdminCommand(),
     SetGameReleaseYearAdminCommand(),
     # platform mgmt
     AddPlatformAdminCommand(),
@@ -108,7 +98,6 @@ ADMIN_COMMANDS = [
     DeleteActivityAdminCommand(),
     # misc
     UptimeAdminCommand(),
-    MissingCoverAdminCommand(),
     MissingGRYAdminCommand(),
     RefreshSearchAdminCommand(),
 ]
