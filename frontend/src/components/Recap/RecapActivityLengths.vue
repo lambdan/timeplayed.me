@@ -24,9 +24,6 @@ const rows = computed(() => {
   }
   return res;
 });
-const maxSessions = computed(() =>
-  Math.max(...rows.value.map((r) => r.sessions), 1),
-);
 const totalSeconds = computed(() =>
   props.sessions.reduce((a, b) => a + b.seconds, 0),
 );
@@ -38,7 +35,6 @@ const totalSeconds = computed(() =>
       <thead>
         <tr>
           <th>Length</th>
-          <th class="w-25 d-none d-md-table-cell"></th>
           <th class="text-end">Activities</th>
           <th class="text-end d-none d-sm-table-cell">Share</th>
           <th class="text-end">Played</th>
@@ -48,14 +44,6 @@ const totalSeconds = computed(() =>
       <tbody>
         <tr v-for="r in rows" :key="r.label">
           <td class="fw-semibold text-nowrap">{{ r.label }}</td>
-          <td class="d-none d-md-table-cell">
-            <div class="progress" style="height: 6px">
-              <div
-                class="progress-bar bg-warning"
-                :style="{ width: `${(r.sessions / maxSessions) * 100}%` }"
-              ></div>
-            </div>
-          </td>
           <td class="text-end">{{ r.sessions }}</td>
           <td class="text-end text-body-secondary d-none d-sm-table-cell">
             {{ ((r.sessions / sessions.length) * 100).toFixed(0) }}%

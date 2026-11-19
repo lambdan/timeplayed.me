@@ -72,9 +72,6 @@ const decades = computed(() =>
     (d) => `${d}s`,
   ).filter((d) => d.games),
 );
-const maxDecade = computed(() =>
-  Math.max(...decades.value.map((d) => d.seconds), 1),
-);
 
 const data = computed(() => ({
   labels: years.value.map((y) => y.label),
@@ -110,7 +107,6 @@ function share(seconds: number): string {
         <thead>
           <tr>
             <th>Decade</th>
-            <th class="w-25 d-none d-md-table-cell"></th>
             <th class="text-end">Games</th>
             <th class="text-end">Played</th>
             <th class="text-end d-none d-sm-table-cell">Share</th>
@@ -120,14 +116,6 @@ function share(seconds: number): string {
         <tbody>
           <tr v-for="d in decades" :key="d.label">
             <td class="fw-semibold">{{ d.label }}</td>
-            <td class="d-none d-md-table-cell">
-              <div class="progress" style="height: 6px">
-                <div
-                  class="progress-bar bg-warning"
-                  :style="{ width: `${(d.seconds / maxDecade) * 100}%` }"
-                ></div>
-              </div>
-            </td>
             <td class="text-end">{{ d.games }}</td>
             <td class="text-end text-nowrap">
               {{ formatDuration(d.seconds) }}
