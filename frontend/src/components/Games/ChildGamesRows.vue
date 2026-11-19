@@ -41,25 +41,36 @@ function setExpanded(id: number, value: boolean) {
   }
 }
 
+const error = ref(false);
+
 onMounted(async () => {
-  const [children, parentOnly] = await Promise.all([
-    TimeplayedAPI.getGameStatsMany(props.parent.children_ids, {
-      ...props.filters,
-      include_children: true,
-    }),
-    TimeplayedAPI.getGameStats(props.parent.id, props.filters),
-  ]);
-  let rows = children.sort((a, b) => b.stats.seconds - a.stats.seconds);
-  if (props.compact) {
-    rows = rows.filter((g) => g.stats.seconds > 0);
+  try {
+    const [children, parentOnly] = await Promise.all([
+      TimeplayedAPI.getGameStatsMany(props.parent.children_ids, {
+        ...props.filters,
+        include_children: true,
+      }),
+      // the list endpoint, not the single one: with filters (like a user who only played
+      // the children) the parent has no stats of its own, and the single one says 404
+      TimeplayedAPI.getGameStatsMany([props.parent.id], props.filters),
+    ]);
+    let rows = children.sort((a, b) => b.stats.seconds - a.stats.seconds);
+    if (props.compact) {
+      rows = rows.filter((g) => g.stats.seconds > 0);
+    }
+    // the parent's own playtime, among the children by playtime
+    const own = parentOnly[0];
+    if (own && own.stats.seconds > 0) {
+      const i = rows.findIndex((g) => g.stats.seconds < own.stats.seconds);
+      rows.splice(i === -1 ? rows.length : i, 0, own);
+    }
+    games.value = rows;
+  } catch (e) {
+    console.error("Loading child games failed", e);
+    error.value = true;
+  } finally {
+    loading.value = false;
   }
-  // the parent's own playtime, among the children by playtime
-  if (parentOnly.stats.seconds > 0) {
-    const i = rows.findIndex((g) => g.stats.seconds < parentOnly.stats.seconds);
-    rows.splice(i === -1 ? rows.length : i, 0, parentOnly);
-  }
-  games.value = rows;
-  loading.value = false;
 });
 
 function hasChildRows(game: GameWithStats) {
@@ -72,6 +83,11 @@ function hasChildRows(game: GameWithStats) {
   <tr v-if="loading">
     <td :colspan="compact ? 3 : 4" class="text-center">
       <div class="spinner-border spinner-border-sm" role="status"></div>
+    </td>
+  </tr>
+  <tr v-else-if="error">
+    <td :colspan="compact ? 3 : 4" class="text-center text-body-secondary">
+      Loading failed
     </td>
   </tr>
   <template v-for="game in games" :key="game.id">
