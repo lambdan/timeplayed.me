@@ -9,6 +9,7 @@ import { TimeplayedAPI } from "../../api.client";
 import type { Platform } from "../../api.models";
 import { formatDate, formatDuration } from "../../utils";
 import AdminHistory from "./AdminHistory.vue";
+import GamePicker from "../Games/GamePicker.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
@@ -25,7 +26,7 @@ const deleteArmed = ref(false);
 const section = ref("details");
 
 const form = ref({
-  game_id: "",
+  game_id: null as number | null,
   user_id: "",
   platform_id: 0,
   duration: "",
@@ -50,7 +51,7 @@ function parseDuration(s: string): number {
 function setActivity(a: AdminActivityDetails) {
   activity.value = a;
   form.value = {
-    game_id: a.game_id.toString(),
+    game_id: a.game_id as number | null,
     user_id: a.user_id.toString(),
     platform_id: a.platform_id,
     duration: formatDuration(a.seconds, true),
@@ -64,8 +65,9 @@ const patch = computed(() => {
   const changed: AdminActivityPatch = {};
   const a = activity.value;
   if (!a) return changed;
-  const gameId = parseInt(form.value.game_id);
-  if (gameId !== a.game_id) changed.game_id = gameId;
+  // an activity always has a game, an emptied picker changes nothing
+  const gameId = form.value.game_id;
+  if (gameId !== null && gameId !== a.game_id) changed.game_id = gameId;
   const userId = parseInt(form.value.user_id);
   if (userId !== a.user_id) changed.user_id = userId;
   if (form.value.platform_id !== a.platform_id)
@@ -186,13 +188,13 @@ onMounted(async () => {
           </div>
 
           <div class="row g-2 mb-2">
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Game ID</label>
-              <input
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0">Game</label>
+              <GamePicker
                 v-model="form.game_id"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'game_id' in patch }"
-                type="number"
+                admin
+                size="sm"
+                :class="{ 'border border-warning rounded': 'game_id' in patch }"
               />
             </div>
             <div class="col-6 col-md-3">

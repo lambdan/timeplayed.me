@@ -11,6 +11,7 @@ import { formatDuration, iso8601Date } from "../../utils";
 import { clearCachedGame } from "../../utils.cache";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminIGDBResults from "./AdminIGDBResults.vue";
+import GamePicker from "../Games/GamePicker.vue";
 
 const PAGE_SIZE = 100;
 
@@ -31,8 +32,12 @@ const igdbQuery = ref("");
 const igdbResults = ref<IGDBSearchResult[]>();
 const searching = ref(false);
 
-const parentQuery = ref("");
-const parentResults = ref<AdminGame[]>();
+// games are often a dlc or edition of another game, "Name: Subtitle" -> "Name"
+const parentGuess = computed(
+  () => game.value?.name.split(/[:\-–(]/)[0].trim() ?? "",
+);
+const parentId = ref<number | null>(null);
+const parent = ref<AdminGame>();
 const imageUrl = ref("");
 
 const remaining = computed(() =>
@@ -57,7 +62,8 @@ async function loadQueue() {
 /** new game in view: who played it, and try igdb with its name (like !aigdb) */
 async function loadGame(g: AdminGame | undefined) {
   igdbResults.value = undefined;
-  parentResults.value = undefined;
+  parentId.value = null;
+  parent.value = undefined;
   mergeArmed.value = undefined;
   players.value = [];
   platforms.value = [];
@@ -66,8 +72,6 @@ async function loadGame(g: AdminGame | undefined) {
   searching.value = false;
   if (!g) return;
   igdbQuery.value = g.name;
-  // games are often a dlc or edition of another game, "Name: Subtitle" -> "Name"
-  parentQuery.value = g.name.split(/[:\-–(]/)[0].trim();
   searchIGDB();
   try {
     const stats = await Promise.all([
@@ -99,21 +103,6 @@ async function searchIGDB() {
     if (mine === igdbSearch) error.value = e.message;
   } finally {
     if (mine === igdbSearch) searching.value = false;
-  }
-}
-
-async function searchParent() {
-  const q = parentQuery.value.trim();
-  if (!q || !game.value) return;
-  try {
-    error.value = "";
-    const id = game.value.id;
-    const found = await AdminAPI.getGames({ search: q, limit: 10 });
-    // skipped to another game while searching
-    if (game.value?.id !== id) return;
-    parentResults.value = found.filter((g) => g.id !== id);
-  } catch (e: any) {
-    error.value = e.message;
   }
 }
 
@@ -337,59 +326,43 @@ onMounted(loadQueue);
         />
 
         <h6>Parent game</h6>
-        <div class="input-group mb-2">
-          <input
-            v-model="parentQuery"
-            class="form-control"
-            type="search"
-            placeholder="Search our games"
-            @keydown.enter.prevent="searchParent"
-          />
-          <button class="btn btn-outline-primary" @click="searchParent">
-            Search
+        <!-- keyed by game, so the next game in the queue starts with its own guess -->
+        <GamePicker
+          :key="game.id"
+          v-model="parentId"
+          admin
+          :exclude="[game.id]"
+          :initialQuery="parentGuess"
+          placeholder="Search our games"
+          class="mb-2"
+          @picked="(p) => (parent = p as AdminGame)"
+        />
+        <div
+          v-if="parent && parentId === parent.id"
+          class="d-flex align-items-center gap-2 mb-3"
+        >
+          <div class="me-auto small text-body-secondary">
+            {{ hasCover(parent) ? "Has cover" : "No cover either" }}
+          </div>
+          <button
+            class="btn btn-outline-primary"
+            :disabled="busy"
+            @click="setParent(parent)"
+          >
+            Set as parent
+          </button>
+          <button
+            class="btn btn-outline-danger"
+            :disabled="busy"
+            @click="mergeInto(parent)"
+          >
+            {{
+              mergeArmed === parent.id
+                ? `Really merge ${game.activity_count} activities?`
+                : "Merge into"
+            }}
           </button>
         </div>
-        <ul v-if="parentResults" class="list-group list-group-flush mb-3">
-          <li v-if="parentResults.length === 0" class="list-group-item px-0">
-            No games found
-          </li>
-          <li
-            v-for="p in parentResults"
-            :key="p.id"
-            class="list-group-item px-0 d-flex align-items-center gap-2"
-          >
-            <div class="me-auto">
-              {{ p.name }}
-              <span v-if="p.release_year" class="text-body-secondary"
-                >({{ p.release_year }})</span
-              >
-              <div class="small text-body-secondary">
-                ID {{ p.id }} ·
-                {{ hasCover(p) ? "has cover" : "no cover either" }}
-              </div>
-            </div>
-            <div class="d-flex flex-column flex-sm-row gap-1">
-              <button
-                class="btn btn-outline-primary"
-                :disabled="busy"
-                @click="setParent(p)"
-              >
-                Set as parent
-              </button>
-              <button
-                class="btn btn-outline-danger"
-                :disabled="busy"
-                @click="mergeInto(p)"
-              >
-                {{
-                  mergeArmed === p.id
-                    ? `Really merge ${game.activity_count} activities?`
-                    : "Merge into"
-                }}
-              </button>
-            </div>
-          </li>
-        </ul>
 
         <h6>Image URL</h6>
         <div class="input-group">

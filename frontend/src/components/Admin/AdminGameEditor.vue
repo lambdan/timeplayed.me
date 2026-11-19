@@ -13,6 +13,7 @@ import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import AdminIGDBResults from "./AdminIGDBResults.vue";
+import GamePicker from "../Games/GamePicker.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
 import { clearCachedGame } from "../../utils.cache";
@@ -37,7 +38,7 @@ const form = ref({
   cover_disabled: false,
   nsfw: false,
   steam_id: "",
-  parent_id: "",
+  parent_id: null as number | null,
   hidden: false,
 });
 const igdbId = ref("");
@@ -48,9 +49,8 @@ const sgdbQuery = ref("");
 const igdbResults = ref<IGDBSearchResult[]>();
 const sgdbResults = ref<SGDBSearchResult[]>();
 
-const targetId = ref("");
-const targetQuery = ref("");
-const targetResults = ref<AdminGame[]>();
+const targetId = ref<number | null>(null);
+const target = ref<AdminGame>();
 const mergePreview = ref<{ activity_count: number; new_aliases: string[] }>();
 const moveArmed = ref(false);
 const deleteArmed = ref(false);
@@ -71,7 +71,7 @@ function setGame(g: AdminGameDetails) {
     cover_disabled: g.cover_disabled,
     nsfw: g.own_nsfw,
     steam_id: g.steam_id?.toString() ?? "",
-    parent_id: g.parent_id?.toString() ?? "",
+    parent_id: g.parent_id ?? null,
     hidden: g.hidden,
   };
   igdbId.value = g.igdb_id?.toString() ?? "";
@@ -117,8 +117,8 @@ const patch = computed(() => {
   if (form.value.nsfw !== g.own_nsfw) changed.nsfw = form.value.nsfw;
   const steamId = toNumberOrNull(form.value.steam_id);
   if (steamId !== g.steam_id) changed.steam_id = steamId;
-  const parentId = toNumberOrNull(form.value.parent_id);
-  if (parentId !== g.parent_id) changed.parent_id = parentId;
+  if (form.value.parent_id !== g.parent_id)
+    changed.parent_id = form.value.parent_id;
   if (form.value.hidden !== g.hidden) changed.hidden = form.value.hidden;
   return changed;
 });
@@ -246,32 +246,13 @@ function removeAlias(alias: string) {
   run(() => AdminAPI.removeAlias(props.gameId, alias), "Alias removed");
 }
 
-async function searchTarget() {
-  const q = targetQuery.value.trim();
-  if (!q) return;
-  try {
-    error.value = "";
-    const found = await AdminAPI.getGames({ search: q, limit: 10 });
-    targetResults.value = found.filter((g) => g.id !== props.gameId);
-  } catch (e: any) {
-    error.value = e.message;
-  }
-}
-
-function useTarget(g: AdminGame) {
-  targetId.value = g.id.toString();
-  targetResults.value = undefined;
-  mergePreview.value = undefined;
-  moveArmed.value = false;
-}
-
 async function previewMerge() {
   moveArmed.value = false;
   try {
     error.value = "";
     mergePreview.value = await AdminAPI.mergePreview(
       props.gameId,
-      parseInt(targetId.value),
+      targetId.value!,
     );
   } catch (e: any) {
     error.value = e.message;
@@ -279,7 +260,7 @@ async function previewMerge() {
 }
 
 async function merge() {
-  const into = parseInt(targetId.value);
+  const into = targetId.value!;
   try {
     error.value = "";
     await AdminAPI.mergeGame(props.gameId, into);
@@ -301,10 +282,7 @@ async function moveActivities() {
   moveArmed.value = false;
   try {
     error.value = "";
-    const res = await AdminAPI.moveActivities(
-      props.gameId,
-      parseInt(targetId.value),
-    );
+    const res = await AdminAPI.moveActivities(props.gameId, targetId.value!);
     setGame(await AdminAPI.getGame(props.gameId));
     message.value = `Moved ${res.moved} activities`;
     emit("changed");
@@ -414,12 +392,16 @@ onMounted(async () => {
               />
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Parent game ID</label>
-              <input
+              <label class="form-label small mb-0">Parent game</label>
+              <GamePicker
                 v-model="form.parent_id"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'parent_id' in patch }"
-                type="number"
+                admin
+                :exclude="[gameId]"
+                size="sm"
+                placeholder="None"
+                :class="{
+                  'border border-warning rounded': 'parent_id' in patch,
+                }"
               />
             </div>
             <div class="col-12 col-md-6">
@@ -617,60 +599,25 @@ onMounted(async () => {
           </div>
 
           <h6>Merge / move activities</h6>
-          <div class="input-group input-group-sm mb-2">
-            <input
-              v-model="targetQuery"
-              class="form-control"
-              type="search"
-              placeholder="Search our games"
-              @keydown.enter.prevent="searchTarget"
-            />
-            <button class="btn btn-outline-primary" @click="searchTarget">
-              Search
-            </button>
-          </div>
-          <ul v-if="targetResults" class="list-group list-group-flush mb-2">
-            <li v-if="targetResults.length === 0" class="list-group-item px-0">
-              No games found
-            </li>
-            <li
-              v-for="g in targetResults"
-              :key="g.id"
-              class="list-group-item px-0 d-flex align-items-center gap-2"
-            >
-              <div class="me-auto">
-                {{ g.name }}
-                <span v-if="g.release_year" class="text-body-secondary"
-                  >({{ g.release_year }})</span
-                >
-                <div class="small text-body-secondary">
-                  ID {{ g.id }} · {{ g.activity_count }} activities
-                </div>
-              </div>
-              <button
-                class="btn btn-outline-primary btn-sm"
-                @click="useTarget(g)"
-              >
-                Use
-              </button>
-            </li>
-          </ul>
-          <div class="input-group input-group-sm mb-2">
-            <input
-              v-model="targetId"
-              class="form-control"
-              type="number"
-              placeholder="Target game ID"
-            />
+          <GamePicker
+            v-model="targetId"
+            admin
+            :exclude="[gameId]"
+            size="sm"
+            placeholder="Search our games"
+            class="mb-2"
+            @picked="(g) => (target = g as AdminGame)"
+          />
+          <div class="d-flex flex-wrap gap-2 mb-2">
             <button
-              class="btn btn-outline-danger"
+              class="btn btn-outline-danger btn-sm"
               :disabled="!targetId"
               @click="previewMerge"
             >
               Merge into
             </button>
             <button
-              class="btn btn-outline-danger"
+              class="btn btn-outline-danger btn-sm"
               :disabled="!targetId"
               @click="moveActivities"
             >
@@ -678,8 +625,8 @@ onMounted(async () => {
             </button>
           </div>
           <div v-if="mergePreview" class="alert alert-warning small">
-            {{ mergePreview.activity_count }} activities will be moved to game
-            {{ targetId
+            {{ mergePreview.activity_count }} activities will be moved to
+            {{ target?.id === targetId ? target.name : `game ${targetId}`
             }}<template v-if="mergePreview.new_aliases.length"
               >, {{ mergePreview.new_aliases.join(", ") }} added as
               alias</template

@@ -3,6 +3,7 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { formatDuration } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import CroppedCover from "../components/Games/CroppedCover.vue";
+import GamePicker from "../components/Games/GamePicker.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
 import type { Game, LiveActivity, Platform } from "../api.models";
@@ -120,48 +121,17 @@ const addSeconds = computed(
 // nsfw games are left out unless the user opted in
 const { isCensored } = useNsfw();
 
-// game search
-const searchText = ref("");
-const searchResults = ref<Game[]>([]);
-const visibleSearchResults = computed(() =>
-  searchResults.value.filter((g) => !isCensored(g)),
-);
-let searchTimeout: number | undefined;
-watch(searchText, (text) => {
-  window.clearTimeout(searchTimeout);
-  // the selected game's name was put in the field, nothing to search for
-  if (text === game.value?.name) {
-    searchResults.value = [];
-    return;
-  }
-  // typing something else means that game isn't the one anymore
-  game.value = undefined;
-  if (!text.trim()) {
-    searchResults.value = [];
-    return;
-  }
-  searchTimeout = window.setTimeout(async () => {
-    try {
-      const results = await TimeplayedAPI.getGames({
-        search: text,
-        limit: 10,
-        order: "desc",
-        sort: "updated",
-      });
-      for (const g of results) {
-        games.value[g.id] = g;
-      }
-      searchResults.value = results;
-    } catch {
-      error.value = "Searching for games failed";
-    }
-  }, 300);
+// the picked game, GamePicker hands over the whole game before the id
+const gameId = computed<number | null>({
+  get: () => game.value?.id ?? null,
+  set: (id) => {
+    if (id === null) game.value = undefined;
+  },
 });
 
 function selectGame(g: Game) {
+  games.value[g.id] = g;
   game.value = g;
-  searchText.value = g.name;
-  searchResults.value = [];
 }
 
 async function addByIGDB() {
@@ -217,10 +187,7 @@ function errorMessage(err: any, fallback: string): string {
 // elapsed time of the live activity
 const now = ref(Date.now());
 const timer = window.setInterval(() => (now.value = Date.now()), 1000);
-onUnmounted(() => {
-  window.clearInterval(timer);
-  window.clearTimeout(searchTimeout);
-});
+onUnmounted(() => window.clearInterval(timer));
 const elapsedSeconds = computed(() =>
   liveActivity.value ? (now.value - liveActivity.value.started) / 1000 : 0,
 );
@@ -431,32 +398,12 @@ watch(
 
         <div class="mb-3 position-relative">
           <label for="game-search" class="form-label">Game</label>
-          <input
+          <GamePicker
             id="game-search"
-            v-model="searchText"
-            type="search"
-            class="form-control form-control-lg"
-            placeholder="Search for a game..."
-            autocomplete="off"
+            v-model="gameId"
+            size="lg"
+            @picked="selectGame"
           />
-          <div
-            v-if="visibleSearchResults.length"
-            class="list-group position-absolute w-100 z-3 shadow overflow-auto"
-            style="max-height: 300px"
-          >
-            <button
-              v-for="g in visibleSearchResults"
-              :key="g.id"
-              type="button"
-              class="list-group-item list-group-item-action"
-              @click="selectGame(g)"
-            >
-              {{ g.name }}
-              <span v-if="g.release_year" class="text-body-secondary"
-                >({{ g.release_year }})</span
-              >
-            </button>
-          </div>
           <button
             type="button"
             class="btn btn-link btn-sm px-0"
