@@ -318,7 +318,7 @@ onMounted(async () => {
 
         <section class="mt-5">
           <h2 class="h4 fw-bold mb-3">Platforms</h2>
-          <RecapPlatforms :platforms="recap.platforms" :gameNames="gameNames" />
+          <RecapPlatforms :platforms="recap.platforms" />
         </section>
       </template>
     </template>

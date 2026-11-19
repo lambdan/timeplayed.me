@@ -9,13 +9,13 @@ import {
   type ChartOptions,
 } from "chart.js";
 import { formatDuration } from "../../utils";
+import CroppedCover from "../Games/CroppedCover.vue";
 import { bsColor, type RecapPlatform } from "../../utils.recap";
 
 ChartJS.register(ArcElement, Tooltip);
 
 const props = defineProps<{
   platforms: RecapPlatform[];
-  gameNames: Map<number, string>;
 }>();
 
 /** index into platforms, set from both the chart and the table */
@@ -83,10 +83,11 @@ function hoverRow(i: number | undefined) {
           <thead>
             <tr>
               <th>Platform</th>
-              <th>Most played</th>
               <th class="text-end">Played</th>
               <th class="text-end d-none d-sm-table-cell">Activities</th>
-              <th class="text-end">Share</th>
+              <th class="text-end d-none d-sm-table-cell">Share</th>
+              <!-- last like in the other tables, so the playtime isn't read as the game's -->
+              <th class="text-center">Most played</th>
             </tr>
           </thead>
           <tbody>
@@ -111,21 +112,22 @@ function hoverRow(i: number | undefined) {
                   >{{ p.name }}</a
                 >
               </td>
-              <td>
-                <a
-                  :href="`/game/${p.top_game_id}`"
-                  class="link-underline link-underline-opacity-0"
-                  >{{ gameNames.get(p.top_game_id) }}</a
-                >
-              </td>
               <td class="text-end text-nowrap">
                 {{ formatDuration(p.seconds) }}
               </td>
               <td class="text-end text-body-secondary d-none d-sm-table-cell">
                 {{ p.sessions }}
               </td>
-              <td class="text-end text-body-secondary">
+              <td class="text-end text-body-secondary d-none d-sm-table-cell">
                 {{ p.percentage.toFixed(0) }}%
+              </td>
+              <td>
+                <!-- the cover, long names made the table too wide -->
+                <CroppedCover
+                  :gameId="p.top_game_id"
+                  class="mx-auto"
+                  style="width: 32px"
+                />
               </td>
             </tr>
           </tbody>
