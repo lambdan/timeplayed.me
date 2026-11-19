@@ -200,7 +200,7 @@
       <p>
         Yes, there is an API which you can use to send in playtime. See the
         <a href="/api/docs">API documentation</a>, in particular the
-        <a href="/api/docs#/authenticated/add_activity_api_activity_post"
+        <a href="/api/docs#/authenticated/add_activity_activity_post"
           >Add Activity endpoint</a
         >.
       </p>

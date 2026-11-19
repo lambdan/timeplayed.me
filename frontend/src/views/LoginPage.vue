@@ -39,9 +39,8 @@ function logoutCurrentSession() {
     <div class="card-body">
       <div class="auth-intro mb-3">
         Logging in with a token from the Discord bot is
-        <strong>completely optional</strong>, but it lets you do things like
-        manual activity tracking through the website, and maybe more cool stuff
-        in the future.
+        <strong>completely optional</strong>, but it lets you track playtime
+        manually, edit or delete your activities, and change your settings.
       </div>
 
       <div v-if="authenticatedUser" class="alert alert-success mb-3">
