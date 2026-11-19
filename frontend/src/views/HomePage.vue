@@ -25,15 +25,16 @@ const topReady = ref(false);
           <p class="lead">
             This is a thing that automatically tracks your playtime across games
             using Discord, on both PC and
-            <a href="/help#consoles">supported consoles</a> (e.g. PS5).
+            <a href="/help#consoles">supported consoles</a>.
           </p>
           <p>
             All you need to do is join the Discord server and you will be
-            tracked:
-            <i class="bi bi-discord"></i> 
-            <a href="https://discord.gg/YyhX6KHE27"
-              >https://discord.gg/YyhX6KHE27</a
-            >
+            tracked.
+          </p>
+          <p>
+            <a href="https://discord.gg/YyhX6KHE27" class="btn btn-primary">
+              <i class="bi bi-discord"></i> Join the Discord server
+            </a>
           </p>
           <p>
             <i
