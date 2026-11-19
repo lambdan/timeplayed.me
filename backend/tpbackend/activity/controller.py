@@ -91,6 +91,26 @@ def delete_through_api(user: User, activity_id: int):
         return forbidden("You cannot delete someone else's activity")
 
 
+def set_platform_through_api(
+    user: User, activity_id: int, platform_id: int
+) -> API_Activity:
+    """same checks as deleting: the user's own activity, hidden ones too"""
+    act = ActivityQuery.base(include_hidden=True)
+    act = ActivityQuery.id(act, activity_id).first()
+    if not act:
+        return not_found("Activity not found")
+    act = cast(Activity, act)
+    if act.get_user() != user:
+        return forbidden("You cannot change someone else's activity")
+    platform = Platform_or_none(platform_id)
+    if not platform:
+        return not_found("Platform not found")
+    if platform.get_id() != act.get_platform().get_id():
+        act.set_platform(platform)
+        act.save()
+    return API_Activity.from_activity(act)
+
+
 def get_live_activity_through_api(user: User) -> API_LiveActivity:
     act = LiveActivity_or_none(user=user)
     if not act:

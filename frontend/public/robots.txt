@@ -2,5 +2,6 @@ User-agent: *
 Disallow: /admin
 Disallow: /authenticate
 Disallow: /settings
+Disallow: /activity/
 
 Sitemap: https://timeplayed.me/sitemap.xml

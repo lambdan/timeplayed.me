@@ -311,6 +311,23 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async setActivityPlatform(
+    token: string,
+    activityId: number,
+    platformId: number,
+  ) {
+    const { data, error } = await this.client.PUT("/activity/{id}/platform", {
+      headers: this.getAuthHeaders(token),
+      params: { path: { id: activityId } },
+      body: { platform_id: platformId },
+    });
+    if (error) {
+      console.error("Error changing activity platform:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async deleteActivity(token: string, activityId: number) {
     const { data, error } = await this.client.DELETE("/activity/{id}", {
       headers: this.getAuthHeaders(token),

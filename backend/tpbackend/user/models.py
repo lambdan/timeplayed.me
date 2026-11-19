@@ -1,12 +1,12 @@
-from typing import Literal, get_args
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
 from tpbackend.permissions import Permission
 
+# what Discord PC activity counts as, the abbreviations of the windows/mac/linux platforms
 PCPlatform = Literal["win", "mac", "linux"]
-PC_PLATFORMS: list[str] = list(get_args(PCPlatform))
 
 
 class UserTotals(BaseTotals):

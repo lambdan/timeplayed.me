@@ -5,6 +5,7 @@ from tpbackend.activity.controller import (
     add_through_api,
     delete_through_api,
     get_live_activity_through_api,
+    set_platform_through_api,
     start_live_activity_through_api,
     stop_live_activity_through_api,
 )
@@ -17,6 +18,7 @@ from tpbackend.activity.models import (
     API_LiveActivity,
     API_PostActivity,
     API_PostLiveActivity,
+    API_PutActivityPlatform,
     Total,
 )
 from tpbackend.activity.query import ActivityQuery
@@ -149,6 +151,20 @@ def get_single_activity(id: int) -> API_Activity:
 @router.delete("/activity/{id}", tags=["activities", "authenticated"])
 def delete_activity(id: int, user: AuthenticatedUser):
     return delete_through_api(user=user, activity_id=id)
+
+
+@router.put(
+    "/activity/{id}/platform",
+    tags=["activities", "authenticated"],
+    response_model=API_Activity,
+)
+def set_activity_platform(
+    id: int, data: API_PutActivityPlatform, user: AuthenticatedUser
+) -> API_Activity:
+    """Change the platform of one of your own activities"""
+    return set_platform_through_api(
+        user=user, activity_id=id, platform_id=data.platform_id
+    )
 
 
 @router.get(

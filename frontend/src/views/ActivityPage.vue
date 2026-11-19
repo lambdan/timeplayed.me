@@ -21,6 +21,11 @@ const game = ref<Game>();
 const platform = ref<Platform>();
 const error = ref("");
 const deleteArmed = ref(false);
+// changing the platform, for the owner
+const platforms = ref<Platform[]>([]);
+const newPlatformId = ref<number>();
+const savingPlatform = ref(false);
+const editingPlatform = ref(false);
 const deleting = ref(false);
 const deleted = ref(false);
 
@@ -31,6 +36,51 @@ function canDeleteActivity() {
     !!authenticatedUser.value &&
     authenticatedUser.value.id === activity.value.user_id
   );
+}
+
+async function loadPlatforms() {
+  const all: Platform[] = [];
+  while (true) {
+    const page = await TimeplayedAPI.getPlatforms({
+      offset: all.length,
+      limit: 100,
+    });
+    all.push(...page);
+    if (page.length < 100) break;
+  }
+  platforms.value = all.sort((a, b) =>
+    a.display_name.localeCompare(b.display_name),
+  );
+}
+
+async function changePlatform() {
+  if (!token.value || !activity.value || !newPlatformId.value) return;
+  savingPlatform.value = true;
+  error.value = "";
+  try {
+    activity.value = await TimeplayedAPI.setActivityPlatform(
+      token.value,
+      activity.value.id,
+      newPlatformId.value,
+    );
+    platform.value = platforms.value.find(
+      (p) => p.id === activity.value!.platform_id,
+    );
+    editingPlatform.value = false;
+  } catch (e: any) {
+    error.value = e?.detail || "Changing the platform failed.";
+  } finally {
+    savingPlatform.value = false;
+  }
+}
+
+// the pen next to the platform, only the owner sees it
+async function editPlatform() {
+  newPlatformId.value = activity.value?.platform_id;
+  editingPlatform.value = true;
+  if (platforms.value.length === 0) {
+    await loadPlatforms();
+  }
 }
 
 async function deleteCurrentActivity() {
@@ -105,13 +155,54 @@ onMounted(async () => {
 
               <li class="list-group-item">
                 <i class="bi bi-controller"></i> 
-                <a
-                  class="text-decoration-none"
-                  :href="'/platform/' + activity.platform_id"
-                  v-if="platform"
-                  >{{ platform.display_name }}</a
+                <span
+                  v-if="editingPlatform"
+                  class="d-inline-flex flex-wrap gap-2 align-items-center"
                 >
-                <span v-else>Loading...</span>
+                  <select
+                    v-model="newPlatformId"
+                    class="form-select form-select-sm w-auto"
+                    aria-label="Platform"
+                  >
+                    <option v-for="p in platforms" :key="p.id" :value="p.id">
+                      {{ p.display_name }}
+                    </option>
+                  </select>
+                  <button
+                    class="btn btn-sm btn-primary"
+                    :disabled="
+                      savingPlatform || newPlatformId === activity.platform_id
+                    "
+                    @click="changePlatform"
+                  >
+                    {{ savingPlatform ? "Saving..." : "Save" }}
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="savingPlatform"
+                    @click="editingPlatform = false"
+                  >
+                    Cancel
+                  </button>
+                </span>
+                <template v-else>
+                  <a
+                    class="text-decoration-none"
+                    :href="'/platform/' + activity.platform_id"
+                    v-if="platform"
+                    >{{ platform.display_name }}</a
+                  >
+                  <span v-else>Loading...</span>
+                  <button
+                    v-if="canDeleteActivity()"
+                    class="btn btn-sm btn-link py-0 ms-1"
+                    title="Change platform"
+                    aria-label="Change platform"
+                    @click="editPlatform"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </template>
               </li>
 
               <li class="list-group-item">

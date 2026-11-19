@@ -86,6 +86,10 @@ class API_PostActivity(BaseModel):
     platform_id: int = Field(description="ID of platform that was played on")
 
 
+class API_PutActivityPlatform(BaseModel):
+    platform_id: int = Field(description="ID of the platform it was played on")
+
+
 class API_PostLiveActivity(BaseModel):
     game_id: int | None = Field(
         description="ID of the game being played, can be null if igdb_id is provided",

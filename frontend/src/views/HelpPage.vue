@@ -159,19 +159,13 @@
         I am playing a game on a platform that does not show up on Discord. How
         can I track it here, manually?
       </h5>
-      <p>
-        Use the <a href="/manual-tracking">manual tracking page</a>, with
-        <em>Start now</em>.
-      </p>
+      <p>Use the <a href="/manual-tracking">manual tracking page</a>.</p>
 
       <h5 id="add-offline" class="mt-4">
         I played a game while I was on an airplane/offline. How can I add it
         retroactively?
       </h5>
-      <p>
-        Use the <a href="/manual-tracking">manual tracking page</a>, with
-        <em>Add played time</em>.
-      </p>
+      <p>Use the <a href="/manual-tracking">manual tracking page</a>.</p>
 
       <hr />
 
@@ -183,12 +177,13 @@
       </h5>
       <p>
         Set your Discord PC platform on the
-        <a href="/settings">settings page</a>
-        (click your avatar in the top right), or use the
-        <code>!pcplatform</code> (or shortcut: <code>!pcp</code>) command, eg
-        <code>!pcp mac</code>
+        <a href="/settings">settings page</a>.
       </p>
-      <p>You can also retroactively update using <code>!set_platform</code>.</p>
+      <p>
+        To change the platform of an activity that's already saved, open the
+        activity and click the <i class="bi bi-pencil"></i> next to its
+        platform.
+      </p>
 
       <hr />
 

@@ -19,8 +19,6 @@ from .commands.igdb_missing_admin import MissingIGDBAdminCommand
 from .commands.igdb_set_id_admin import SetIGDBIDAdminCommand
 from .commands.igdb_add_game import AddGameIGDBCommand
 from .commands.igdb_auto_admin import AutoIGDBAdminCommand
-from .commands.set_pc_platform import SetPCPlatformCommand
-from .commands.set_platform import SetPlatformCommand
 from .commands.set_platform_name_admin import SetPlatformNameAdminCommand
 from .commands.set_sgdb_id_admin import SetSGDBIDAdminCommand
 from .commands.list_platforms import ListPlatformsCommand
@@ -59,10 +57,8 @@ REGULAR_COMMANDS = [
     # platform
     ListPlatformsCommand(),
     GetPlatformCommand(),
-    SetPCPlatformCommand(),
     # activity mgmt
     LastActivityCommand(),
-    SetPlatformCommand(),
     SetGameCommand(),
     MoveGameCommand(),
     DeleteActivityCommand(),
