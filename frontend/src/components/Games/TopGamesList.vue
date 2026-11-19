@@ -37,6 +37,24 @@ const filters = computed(() => ({
   before: props.before?.getTime(),
 }));
 
+/**
+ * the game to show for a combined row: when all of its playtime (with these filters) is
+ * from one child, like only having played the Switch 2 Edition, that child instead
+ */
+async function onlyPlayed(game: GameWithStats): Promise<GameWithStats> {
+  if (game.children_ids.length === 0) return game;
+  const [own, children] = await Promise.all([
+    TimeplayedAPI.getGameStatsMany([game.id], filters.value),
+    TimeplayedAPI.getGameStatsMany(game.children_ids, {
+      ...filters.value,
+      include_children: true,
+    }),
+  ]);
+  const played = children.filter((c) => c.stats.seconds > 0);
+  if ((own[0]?.stats.seconds ?? 0) > 0 || played.length !== 1) return game;
+  return onlyPlayed(played[0]!);
+}
+
 function setExpanded(id: number, value: boolean) {
   if (value) {
     expanded.value.add(id);
@@ -59,7 +77,13 @@ watch(
       order: "desc",
     });
     if (request !== latest) return; // a newer range was picked meanwhile
-    games.value = data;
+    let shown = data;
+    if (grouped.value) {
+      // a failed check keeps the combined row
+      shown = await Promise.all(data.map((g) => onlyPlayed(g).catch(() => g)));
+      if (request !== latest) return;
+    }
+    games.value = shown;
     // the open child rows were for the old filters
     expanded.value.clear();
     loading.value = false;
