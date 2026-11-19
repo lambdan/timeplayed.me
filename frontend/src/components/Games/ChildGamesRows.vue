@@ -9,6 +9,7 @@ import CalendarBasic from "../CalendarBasic.vue";
 import ExpandToggle from "../Misc/ExpandToggle.vue";
 // rows for its children are this same component, one level deeper
 import ChildGamesRows from "./ChildGamesRows.vue";
+import { playedFamilyRow } from "../../utils.family";
 
 // table rows for the children of a game, each with the playtime of its own children
 // included, and a row for the game itself (without children) so the rows add up to its
@@ -30,6 +31,8 @@ const props = defineProps<{
 const games = ref<GameWithStats[]>([]);
 const loading = ref(true);
 const expanded = ref(new Set<number>());
+// compact: child games with more than themselves played (see playedFamilyRow)
+const expandable = ref(new Set<number>());
 // less in the compact list, it's in a narrow column
 const indent = props.compact ? 0.75 : 1.5;
 
@@ -57,6 +60,20 @@ onMounted(async () => {
     let rows = children.sort((a, b) => b.stats.seconds - a.stats.seconds);
     if (props.compact) {
       rows = rows.filter((g) => g.stats.seconds > 0);
+      // like in the most played list: the one child that was played, and no arrow
+      // when only the game itself was
+      const shown = await Promise.all(
+        rows.map((g) =>
+          playedFamilyRow(g, props.filters ?? {}).catch(() => ({
+            game: g,
+            expandable: g.children_ids.length > 0,
+          })),
+        ),
+      );
+      rows = shown.map((r) => r.game);
+      expandable.value = new Set(
+        shown.filter((r) => r.expandable).map((r) => r.game.id),
+      );
     }
     // the parent's own playtime, among the children by playtime
     const own = parentOnly[0];
@@ -75,7 +92,10 @@ onMounted(async () => {
 
 function hasChildRows(game: GameWithStats) {
   // the parent's own row is already expanded, its children are the other rows
-  return game.id !== props.parent.id && game.children_ids.length > 0;
+  if (game.id === props.parent.id) return false;
+  return props.compact
+    ? expandable.value.has(game.id)
+    : game.children_ids.length > 0;
 }
 </script>
 

@@ -7,6 +7,7 @@ import CroppedCover from "./CroppedCover.vue";
 import GameName from "./GameName.vue";
 import ExpandToggle from "../Misc/ExpandToggle.vue";
 import ChildGamesRows from "./ChildGamesRows.vue";
+import { playedFamilyRow } from "../../utils.family";
 
 // compact ranked list of the most played games in a date range, one section of the "most played" cards
 const props = withDefaults(
@@ -28,6 +29,8 @@ const loading = ref(true);
 // not when searching, the game searched for could be a child
 const grouped = computed(() => !props.search);
 const expanded = ref(new Set<number>());
+// games with more than themselves played, the rest have no arrow
+const expandable = ref(new Set<number>());
 let latest = 0;
 
 const filters = computed(() => ({
@@ -36,24 +39,6 @@ const filters = computed(() => ({
   after: props.after?.getTime(),
   before: props.before?.getTime(),
 }));
-
-/**
- * the game to show for a combined row: when all of its playtime (with these filters) is
- * from one child, like only having played the Switch 2 Edition, that child instead
- */
-async function onlyPlayed(game: GameWithStats): Promise<GameWithStats> {
-  if (game.children_ids.length === 0) return game;
-  const [own, children] = await Promise.all([
-    TimeplayedAPI.getGameStatsMany([game.id], filters.value),
-    TimeplayedAPI.getGameStatsMany(game.children_ids, {
-      ...filters.value,
-      include_children: true,
-    }),
-  ]);
-  const played = children.filter((c) => c.stats.seconds > 0);
-  if ((own[0]?.stats.seconds ?? 0) > 0 || played.length !== 1) return game;
-  return onlyPlayed(played[0]!);
-}
 
 function setExpanded(id: number, value: boolean) {
   if (value) {
@@ -77,13 +62,23 @@ watch(
       order: "desc",
     });
     if (request !== latest) return; // a newer range was picked meanwhile
-    let shown = data;
+    let rows = data.map((game) => ({
+      game,
+      expandable: game.children_ids.length > 0,
+    }));
     if (grouped.value) {
-      // a failed check keeps the combined row
-      shown = await Promise.all(data.map((g) => onlyPlayed(g).catch(() => g)));
+      // a failed check keeps the combined row as it is
+      rows = await Promise.all(
+        rows.map((row) =>
+          playedFamilyRow(row.game, filters.value).catch(() => row),
+        ),
+      );
       if (request !== latest) return;
     }
-    games.value = shown;
+    games.value = rows.map((r) => r.game);
+    expandable.value = new Set(
+      rows.filter((r) => r.expandable).map((r) => r.game.id),
+    );
     // the open child rows were for the old filters
     expanded.value.clear();
     loading.value = false;
@@ -110,7 +105,7 @@ watch(
               <div class="d-flex align-items-center gap-2">
                 <template v-if="grouped">
                   <ExpandToggle
-                    v-if="game.children_ids.length > 0"
+                    v-if="expandable.has(game.id)"
                     :modelValue="expanded.has(game.id)"
                     @update:modelValue="(value) => setExpanded(game.id, value)"
                   />
