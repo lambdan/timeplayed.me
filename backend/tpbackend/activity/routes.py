@@ -5,6 +5,7 @@ from tpbackend.activity.controller import (
     add_through_api,
     delete_through_api,
     get_live_activity_through_api,
+    set_game_through_api,
     set_platform_through_api,
     start_live_activity_through_api,
     stop_live_activity_through_api,
@@ -18,6 +19,7 @@ from tpbackend.activity.models import (
     API_LiveActivity,
     API_PostActivity,
     API_PostLiveActivity,
+    API_PutActivityGame,
     API_PutActivityPlatform,
     Total,
 )
@@ -165,6 +167,18 @@ def set_activity_platform(
     return set_platform_through_api(
         user=user, activity_id=id, platform_id=data.platform_id
     )
+
+
+@router.put(
+    "/activity/{id}/game",
+    tags=["activities", "authenticated"],
+    response_model=API_Activity,
+)
+def set_activity_game(
+    id: int, data: API_PutActivityGame, user: AuthenticatedUser
+) -> API_Activity:
+    """Change the game of one of your own activities, like an emulator to the actual game"""
+    return set_game_through_api(user=user, activity_id=id, game_id=data.game_id)
 
 
 @router.get(

@@ -299,6 +299,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/activity/{id}/game": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Activity Game
+         * @description Change the game of one of your own activities, like an emulator to the actual game
+         */
+        put: operations["set_activity_game_activity__id__game_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities/{ids}": {
         parameters: {
             query?: never;
@@ -829,6 +849,14 @@ export interface components {
              * @description ID of platform that was played on
              */
             platform_id: number;
+        };
+        /** API_PutActivityGame */
+        API_PutActivityGame: {
+            /**
+             * Game Id
+             * @description ID of the game that was played
+             */
+            game_id: number;
         };
         /** API_PutActivityPlatform */
         API_PutActivityPlatform: {
@@ -1667,6 +1695,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["API_PutActivityPlatform"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Activity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_activity_game_activity__id__game_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["API_PutActivityGame"];
             };
         };
         responses: {

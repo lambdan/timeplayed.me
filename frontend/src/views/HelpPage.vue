@@ -131,6 +131,10 @@
         click a <strong>non-verified</strong> game's title to rename it to
         whatever you want.
       </p>
+      <p>
+        To change the game of an activity that's already saved, open the
+        activity and click the <i class="bi bi-pencil"></i> next to its game.
+      </p>
 
       <h5 id="ignore-game" class="mt-4">
         I don't want to track a particular game I am playing. How can I ignore

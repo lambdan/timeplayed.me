@@ -6,6 +6,7 @@ import { usePageTitle } from "../composables/usePageTitle";
 import { heatBadgeStyle } from "../utils.heat";
 import GameCover from "../components/Games/GameCover.vue";
 import GameName from "../components/Games/GameName.vue";
+import GamePicker from "../components/Games/GamePicker.vue";
 import AdminEditLink from "../components/Misc/AdminEditLink.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
@@ -28,6 +29,11 @@ const platforms = ref<Platform[]>([]);
 const newPlatformId = ref<number>();
 const savingPlatform = ref(false);
 const editingPlatform = ref(false);
+// changing the game, for the owner (like an emulator to the actual game)
+const newGameId = ref<number | null>(null);
+const newGame = ref<Game>();
+const savingGame = ref(false);
+const editingGame = ref(false);
 const deleting = ref(false);
 const deleted = ref(false);
 
@@ -74,6 +80,33 @@ async function changePlatform() {
   } finally {
     savingPlatform.value = false;
   }
+}
+
+async function changeGame() {
+  if (!token.value || !activity.value || !newGameId.value) return;
+  savingGame.value = true;
+  error.value = "";
+  try {
+    activity.value = await TimeplayedAPI.setActivityGame(
+      token.value,
+      activity.value.id,
+      newGameId.value,
+    );
+    game.value =
+      newGame.value?.id === activity.value.game_id
+        ? newGame.value
+        : await TimeplayedAPI.getGame(activity.value.game_id);
+    editingGame.value = false;
+  } catch (e: any) {
+    error.value = e?.detail || "Changing the game failed.";
+  } finally {
+    savingGame.value = false;
+  }
+}
+
+function editGame() {
+  newGameId.value = activity.value?.game_id ?? null;
+  editingGame.value = true;
 }
 
 // the pen next to the platform, only the owner sees it
@@ -155,7 +188,12 @@ onMounted(async () => {
       <div class="card-body">
         <div class="row g-3">
           <div class="col-12 col-sm-auto text-center">
-            <GameCover :gameId="activity.game_id" :maxHeight="200" />
+            <!-- keyed so a changed game loads its cover -->
+            <GameCover
+              :key="activity.game_id"
+              :gameId="activity.game_id"
+              :maxHeight="200"
+            />
           </div>
           <div class="col">
             <table class="table table-sm mb-0 align-middle">
@@ -198,13 +236,52 @@ onMounted(async () => {
                 <tr>
                   <th class="text-nowrap pe-4">Game</th>
                   <td>
-                    <a
-                      :href="'/game/' + activity.game_id"
-                      v-if="game"
-                      class="link-underline link-underline-opacity-0"
-                      ><GameName :game="game"
-                    /></a>
-                    <span v-else>Loading...</span>
+                    <div v-if="editingGame">
+                      <GamePicker
+                        v-model="newGameId"
+                        size="sm"
+                        class="mb-2"
+                        @picked="(g) => (newGame = g as Game)"
+                      />
+                      <div class="d-flex gap-2">
+                        <button
+                          class="btn btn-sm btn-primary"
+                          :disabled="
+                            savingGame ||
+                            !newGameId ||
+                            newGameId === activity.game_id
+                          "
+                          @click="changeGame"
+                        >
+                          {{ savingGame ? "Saving..." : "Save" }}
+                        </button>
+                        <button
+                          class="btn btn-sm btn-outline-secondary"
+                          :disabled="savingGame"
+                          @click="editingGame = false"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                    <div v-else class="d-flex align-items-center gap-2">
+                      <a
+                        :href="'/game/' + activity.game_id"
+                        v-if="game"
+                        class="me-auto link-underline link-underline-opacity-0"
+                        ><GameName :game="game"
+                      /></a>
+                      <span v-else class="me-auto">Loading...</span>
+                      <button
+                        v-if="canDeleteActivity()"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Change game"
+                        aria-label="Change game"
+                        @click="editGame"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 <tr>

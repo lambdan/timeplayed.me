@@ -111,6 +111,24 @@ def set_platform_through_api(
     return API_Activity.from_activity(act)
 
 
+def set_game_through_api(user: User, activity_id: int, game_id: int) -> API_Activity:
+    """same checks as changing the platform"""
+    act = ActivityQuery.base(include_hidden=True)
+    act = ActivityQuery.id(act, activity_id).first()
+    if not act:
+        return not_found("Activity not found")
+    act = cast(Activity, act)
+    if act.get_user() != user:
+        return forbidden("You cannot change someone else's activity")
+    game = GameSelect.by_id(game_id)
+    if not game:
+        return not_found("Game not found")
+    if game.get_id() != act.get_game().get_id():
+        act.set_game(game)
+        act.save()
+    return API_Activity.from_activity(act)
+
+
 def get_live_activity_through_api(user: User) -> API_LiveActivity:
     act = LiveActivity_or_none(user=user)
     if not act:
