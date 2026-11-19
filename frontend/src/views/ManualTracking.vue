@@ -82,8 +82,13 @@ async function getGame(id: number): Promise<Game | undefined> {
   if (!games.value[id]) {
     try {
       games.value[id] = await TimeplayedAPI.getGame(id);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error getting game", id, err);
+      // the server answered, so the game is gone (deleted, merged or hidden),
+      // not just unreachable
+      if (err?.detail) {
+        forgetPreviousGame(id);
+      }
       return undefined;
     }
   }
@@ -175,6 +180,13 @@ const sortedPreviousGames = computed(() =>
     .filter((pg) => !isCensored(games.value[pg.gameId]))
     .sort((a, b) => b.date - a.date),
 );
+
+function forgetPreviousGame(gameId: number) {
+  previousGames.value = previousGames.value.filter(
+    (pg) => pg.gameId !== gameId,
+  );
+  writeStorage(PREVIOUS_GAMES_KEY, JSON.stringify(previousGames.value));
+}
 
 /** preselected next time, and in previous games */
 function remember(gameId: number, platformId: number) {
