@@ -16,9 +16,9 @@ const topReady = ref(false);
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-12 p-0 mt-4">
-      <div class="card h-100 p-0">
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card h-100">
         <h1 class="card-header">Playtime Tracker</h1>
 
         <div class="card-body text-start">
@@ -78,16 +78,14 @@ const topReady = ref(false);
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- recent activity, and what's been played the most lately next to it -->
-  <div class="row mt-4 mb-4">
-    <div class="col-lg-8 p-0 pe-lg-4">
+    <!-- recent activity, and what's been played the most lately next to it -->
+    <div class="col-lg-8">
       <RecentActivityCard :limit="25" />
     </div>
-    <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+    <div class="col-lg-4">
       <!-- one card, the picker applies to everything in it -->
-      <div class="card p-0">
+      <div class="card">
         <h2 class="card-header">Most played</h2>
         <div class="card-body d-flex flex-column gap-4">
           <DateRangerPicker

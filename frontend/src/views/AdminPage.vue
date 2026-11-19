@@ -48,7 +48,7 @@ onBeforeRouteLeave(() => confirmDiscard());
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h1 class="card-header">Admin</h1>
     <div class="card-body p-2 p-md-3">
       <div v-if="loadingAuthenticatedUser" class="text-body-secondary">

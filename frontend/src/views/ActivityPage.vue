@@ -133,7 +133,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="activity && !deleted">
-    <div class="card p-0">
+    <div class="card">
       <h1 class="card-header">#{{ activity.id }}</h1>
       <div class="card-body">
         <div class="row">

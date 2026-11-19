@@ -55,8 +55,8 @@ const total = computed(() =>
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-12 p-0 mt-4">
+  <div class="row g-4">
+    <div class="col-12">
       <StatsChart
         title="Total playtime"
         kind="line"
@@ -67,7 +67,7 @@ const total = computed(() =>
         :aspectRatio="4"
       />
     </div>
-    <div class="col-lg-6 p-0 pe-lg-4 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="Playtime per month"
         :loading="loading"
@@ -76,7 +76,7 @@ const total = computed(() =>
         unit="hours"
       />
     </div>
-    <div class="col-lg-6 p-0 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="Playtime per weekday"
         :loading="loading"

@@ -1,10 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div
-    class="card p-0"
-    style="max-width: 900px; margin: auto; margin-top: 2rem"
-  >
+  <div class="card" style="max-width: 900px; margin: auto">
     <h1 class="card-header">Help</h1>
 
     <div class="card-body">

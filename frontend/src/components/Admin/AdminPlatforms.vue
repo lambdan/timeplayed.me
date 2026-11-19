@@ -175,7 +175,7 @@ onMounted(fetchPlatforms);
   <div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <div v-if="selected && preview" class="card p-0 mb-3">
+    <div v-if="selected && preview" class="card mb-3">
       <div class="card-header d-flex align-items-center gap-2">
         <strong class="me-auto"
           >{{ selected.display_name }} ({{ selected.id }})</strong

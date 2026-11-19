@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h1 class="card-header">News</h1>
 
     <div class="card-body text-start">

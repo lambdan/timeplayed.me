@@ -24,9 +24,9 @@ function searchChanged() {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-12 p-0 mt-4">
-      <div class="card p-0">
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
         <h1 class="card-header">Browse</h1>
         <div class="card-body">
           <input
@@ -40,11 +40,9 @@ function searchChanged() {
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="row mb-4">
-    <div class="col-lg-4 p-0 pe-lg-4 mt-4">
-      <div class="card p-0 h-100">
+    <div class="col-lg-4">
+      <div class="card h-100">
         <div class="card-body">
           <TopGamesList :search="search" :limit="10" />
         </div>
@@ -53,8 +51,8 @@ function searchChanged() {
         </div>
       </div>
     </div>
-    <div class="col-lg-4 p-0 pe-lg-4 mt-4">
-      <div class="card p-0 h-100">
+    <div class="col-lg-4">
+      <div class="card h-100">
         <div class="card-body">
           <TopPlayersCard :compact="true" :search="search" :limit="10" />
         </div>
@@ -63,8 +61,8 @@ function searchChanged() {
         </div>
       </div>
     </div>
-    <div class="col-lg-4 p-0 mt-4">
-      <div class="card p-0 h-100">
+    <div class="col-lg-4">
+      <div class="card h-100">
         <div class="card-body">
           <TopPlatformsList :search="search" :limit="10" />
         </div>

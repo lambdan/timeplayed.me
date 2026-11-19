@@ -6,8 +6,8 @@ const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-lg bg-body-tertiary border rounded px-3">
-    <div class="container">
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border rounded">
+    <div class="container-fluid">
       <a href="/" class="navbar-brand">timeplayed.me</a>
       <button
         class="navbar-toggler"

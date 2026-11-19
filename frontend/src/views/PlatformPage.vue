@@ -31,14 +31,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!platform" class="text-center mt-4">
+  <div v-if="!platform" class="text-center">
     <div class="spinner-border" role="status"></div>
   </div>
 
   <template v-else>
-    <div class="row">
-      <div class="col-lg-8 p-0 pe-lg-4 mt-4">
-        <div class="card p-0 h-100">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card h-100">
           <h1 class="card-header">{{ platform.display_name }}</h1>
           <div class="card-body">
             <div class="row g-3">
@@ -91,19 +91,17 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="col-lg-4 p-0 mt-4">
+      <div class="col-lg-4">
         <PlatformMetadataCard class="h-100" :platform="platform" />
       </div>
-    </div>
 
-    <!-- recent activity, and what's played the most on it next to it -->
-    <div class="row mt-4">
-      <div class="col-lg-8 p-0 pe-lg-4">
+      <!-- recent activity, and what's played the most on it next to it -->
+      <div class="col-lg-8">
         <RecentActivityCard :platform="platform" :limit="20" />
       </div>
-      <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+      <div class="col-lg-4">
         <!-- one card, the picker applies to everything in it -->
-        <div class="card p-0">
+        <div class="card">
           <h2 class="card-header">Top lists</h2>
           <div class="card-body d-flex flex-column gap-4">
             <DateRangerPicker
@@ -135,8 +133,9 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+      <div class="col-12">
+        <PlaytimeCharts :platform="platform" />
+      </div>
     </div>
-
-    <PlaytimeCharts class="mb-4" :platform="platform" />
   </template>
 </template>

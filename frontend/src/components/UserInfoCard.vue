@@ -10,7 +10,7 @@ const recapYear = getRecapYear();
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h1 class="card-header d-flex align-items-center gap-2">
       <span class="me-auto">{{ user.display_name }}</span>
       <a

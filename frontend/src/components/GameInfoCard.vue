@@ -25,7 +25,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h1 class="card-header">
       {{ game.name }}
       <span class="text-muted" v-if="game.release_year">

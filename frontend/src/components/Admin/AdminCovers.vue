@@ -234,7 +234,7 @@ onMounted(loadQueue);
       }}
     </div>
 
-    <div v-else class="card p-0">
+    <div v-else class="card">
       <div class="card-header d-flex align-items-center gap-2">
         <strong class="me-auto">
           {{ game.name }}

@@ -94,7 +94,7 @@ const showLastPlayed = computed(
 
 <template>
   <!-- compact = a section in a bigger card (front page), so no card of its own -->
-  <div :class="{ 'card p-0': !compact }">
+  <div :class="{ card: !compact }">
     <h2 v-if="!compact" class="card-header">Top players</h2>
     <h3 v-else class="h5 mb-2">Players</h3>
     <div :class="{ 'card-body': !compact }">

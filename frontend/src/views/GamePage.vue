@@ -50,33 +50,29 @@ onMounted(async () => {
 
 <template>
   <template v-if="game">
-    <div class="row">
-      <div class="col-lg-8 p-0 pe-lg-4 mt-4">
+    <div class="row g-4">
+      <div class="col-lg-8">
         <GameInfoCard class="h-100" :game="game" :familyStats="familyStats" />
       </div>
-      <div class="col-lg-4 p-0 mt-4">
+      <div class="col-lg-4">
         <GameMetadataCard class="h-100" :game="game" />
       </div>
-    </div>
 
-    <div v-if="game.children_ids.length > 0" class="row mt-4">
-      <div class="col-12 p-0">
+      <div v-if="game.children_ids.length > 0" class="col-12">
         <ChildGamesCard :game="game" />
       </div>
-    </div>
 
-    <!-- recent activity, and who played it the most next to it -->
-    <div class="row mt-4">
-      <div class="col-lg-8 p-0 pe-lg-4">
+      <!-- recent activity, and who played it the most next to it -->
+      <div class="col-lg-8">
         <RecentActivityCard
           :game="game"
           :includeChildren="withChildren"
           :limit="10"
         />
       </div>
-      <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+      <div class="col-lg-4">
         <!-- one card, the picker applies to everything in it -->
-        <div class="card p-0">
+        <div class="card">
           <h2 class="card-header">Top lists</h2>
           <div class="card-body d-flex flex-column gap-4">
             <DateRangerPicker
@@ -110,8 +106,9 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+      <div class="col-12">
+        <PlaytimeCharts :game="game" :includeChildren="withChildren" />
+      </div>
     </div>
-
-    <PlaytimeCharts class="mb-4" :game="game" :includeChildren="withChildren" />
   </template>
 </template>

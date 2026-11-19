@@ -122,7 +122,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h2 class="card-header">
       Recent activity
 

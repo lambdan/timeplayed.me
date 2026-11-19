@@ -116,7 +116,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card mt-2 p-0 h-100">
+  <div class="card mt-2 h-100">
     <div class="card-body">
       <div v-if="!info">
         <span

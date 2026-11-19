@@ -7,7 +7,7 @@ defineProps<{ game: GameWithStats }>();
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h2 class="card-header">Breakdown</h2>
     <div class="card-body">
       <table class="table table-sm table-hover align-middle mb-0">

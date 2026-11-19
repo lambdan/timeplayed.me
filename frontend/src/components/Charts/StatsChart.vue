@@ -91,7 +91,7 @@ const options = computed(() => ({
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h2 class="card-header h4">{{ title }}</h2>
     <div class="card-body">
       <div v-if="loading" class="text-center">

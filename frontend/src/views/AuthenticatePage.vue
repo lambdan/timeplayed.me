@@ -34,7 +34,7 @@ function logoutCurrentSession() {
 </script>
 
 <template>
-  <div class="card p-0 auth-card">
+  <div class="card auth-card">
     <h1 class="card-header">Authenticate</h1>
     <div class="card-body">
       <div class="auth-intro mb-3">

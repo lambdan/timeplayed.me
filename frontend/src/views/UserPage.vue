@@ -28,25 +28,23 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!user" class="text-center mt-4">
+  <div v-if="!user" class="text-center">
     <div class="spinner-border" role="status"></div>
   </div>
 
   <template v-else>
-    <div class="row">
-      <div class="col-12 p-0 mt-4">
+    <div class="row g-4">
+      <div class="col-12">
         <UserInfoCard :user="user" />
       </div>
-    </div>
 
-    <!-- recent activity, and what they played the most next to it -->
-    <div class="row mt-4">
-      <div class="col-lg-8 p-0 pe-lg-4">
+      <!-- recent activity, and what they played the most next to it -->
+      <div class="col-lg-8">
         <RecentActivityCard :user="user" :limit="12" />
       </div>
-      <div class="col-lg-4 p-0 mt-4 mt-lg-0">
+      <div class="col-lg-4">
         <!-- one card, the picker applies to everything in it -->
-        <div class="card p-0">
+        <div class="card">
           <h2 class="card-header">Top lists</h2>
           <div class="card-body d-flex flex-column gap-4">
             <DateRangerPicker
@@ -77,8 +75,9 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+      <div class="col-12">
+        <PlaytimeCharts :user="user" />
+      </div>
     </div>
-
-    <PlaytimeCharts class="mb-4" :user="user" />
   </template>
 </template>

@@ -20,7 +20,7 @@ const localOrder = ref(props.order);
 </script>
 
 <template>
-  <div class="card p-0">
+  <div class="card">
     <h1 class="card-header">Users</h1>
     <div class="card-body">
       <UserTable

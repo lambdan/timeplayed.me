@@ -159,9 +159,9 @@ const figures = computed(() => {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-12 p-0 mt-4">
-      <div class="card p-0">
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card">
         <h1 class="card-header">Stats</h1>
         <div class="card-body">
           <div class="row g-3">
@@ -180,10 +180,8 @@ const figures = computed(() => {
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="row">
-    <div class="col-12 p-0 mt-4">
+    <div class="col-12">
       <StatsChart
         title="Total playtime"
         :loading="!daysLoaded"
@@ -194,10 +192,8 @@ const figures = computed(() => {
         :aspectRatio="4"
       />
     </div>
-  </div>
 
-  <div class="row mb-4">
-    <div class="col-lg-6 p-0 pe-lg-4 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="Playtime per month"
         :loading="!daysLoaded"
@@ -206,7 +202,7 @@ const figures = computed(() => {
         unit="hours"
       />
     </div>
-    <div class="col-lg-6 p-0 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="Playtime per weekday"
         :loading="!daysLoaded"
@@ -215,7 +211,7 @@ const figures = computed(() => {
         unit="hours"
       />
     </div>
-    <div class="col-lg-6 p-0 pe-lg-4 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="New players per month"
         :loading="!daysLoaded || !usersLoaded"
@@ -225,7 +221,7 @@ const figures = computed(() => {
         color="rgba(13, 110, 253, 0.8)"
       />
     </div>
-    <div class="col-lg-6 p-0 mt-4">
+    <div class="col-lg-6">
       <StatsChart
         title="New games per month"
         :loading="!daysLoaded || !gamesLoaded"

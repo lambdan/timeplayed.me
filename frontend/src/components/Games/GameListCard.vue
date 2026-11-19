@@ -28,7 +28,7 @@ const localOrder = ref(props.order);
 
 <template>
   <div class="col">
-    <div class="card p-0">
+    <div class="card">
       <h1 class="card-header">Games</h1>
       <div class="card-body">
         <GameTable

@@ -321,7 +321,7 @@ watch(
 </script>
 
 <template>
-  <div class="card p-0 mx-auto mt-4" style="max-width: 600px">
+  <div class="card mx-auto" style="max-width: 600px">
     <h1 class="card-header">Manual tracking</h1>
     <div class="card-body">
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
