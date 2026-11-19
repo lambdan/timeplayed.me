@@ -47,7 +47,7 @@ class TestSensitiveReplies:
         assert not any(token in m for m in stored)
 
     def test_regular_reply_is_stored(self):
-        reply = dm_receive(FakeMessage("!uptime"))  # type: ignore
+        reply = dm_receive(FakeMessage("!help"))  # type: ignore
         assert reply
         stored = [h.message for h in DiscordHistory.select()]
         assert reply in stored

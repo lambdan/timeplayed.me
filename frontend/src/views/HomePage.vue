@@ -43,10 +43,6 @@ const topReady = ref(false);
             >, otherwise the bot can't see it -
             <a href="/help#what-is-tracked">see the help page for more info</a>.
           </p>
-          <p>
-            You can also DM the bot on Discord to manage your activities. Send
-            it <code>!help</code> to see what's possible.
-          </p>
           <hr />
           <p>
             You can also use the

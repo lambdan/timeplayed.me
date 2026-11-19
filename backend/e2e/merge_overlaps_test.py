@@ -1,13 +1,11 @@
 import datetime
 
-from discord_test import FakeAuthor, FakeMessage
-from tpbackend.discord.bot import dm_receive
 from tpbackend.operations import (
     add_session,
     find_overlapping_groups,
     merge_overlapping_group,
 )
-from tpbackend.storage import Activity, User
+from tpbackend.storage import Activity
 
 UTC = datetime.timezone.utc
 NOW = datetime.datetime(2026, 11, 4, 12, 0, tzinfo=UTC)
@@ -137,52 +135,6 @@ class TestMergeOverlappingGroup:
             f"overlapped activity id {short.get_id()}" in h
             for h in merged.get_history()
         )
-
-
-class TestMergeOverlapsCommand:
-    def test_preview_then_merge(self, make_game, make_platform):
-        admin = User.create(
-            discord_id="1234",
-            name="discordguy",
-            permissions=["commands", "admin"],
-        )
-        game = make_game()
-        pc = make_platform("pc")
-        long = add_activity(admin, game, pc, 0, 3600)
-        short = add_activity(admin, game, pc, 10, 60)
-
-        reply = dm_receive(FakeMessage("!merge_overlaps", FakeAuthor()))  # type: ignore
-        assert reply
-        assert f"keep #{long.get_id()}, remove #{short.get_id()}" in reply
-        assert Activity.select().count() == 2
-
-        reply = dm_receive(FakeMessage("!merge_overlaps y", FakeAuthor()))  # type: ignore
-        assert reply
-        assert "1 activities removed" in reply
-        assert Activity.select().count() == 1
-
-    def test_nothing_to_merge(self):
-        User.create(
-            discord_id="1234",
-            name="discordguy",
-            permissions=["commands", "admin"],
-        )
-
-        reply = dm_receive(FakeMessage("!merge_overlaps", FakeAuthor()))  # type: ignore
-        assert reply == "No overlapping activities found."
-
-    def test_admin_only(self, make_game, make_platform):
-        regular = User.create(
-            discord_id="1234", name="discordguy", permissions=["commands"]
-        )
-        game = make_game()
-        pc = make_platform("pc")
-        add_activity(regular, game, pc, 0, 3600)
-        add_activity(regular, game, pc, 10, 60)
-
-        dm_receive(FakeMessage("!merge_overlaps y", FakeAuthor()))  # type: ignore
-
-        assert Activity.select().count() == 2
 
 
 def at(hour, minute=0):

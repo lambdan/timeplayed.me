@@ -5,9 +5,8 @@ from tpbackend.permissions import Permission
 from tpbackend.storage import User, DiscordHistory
 from tpbackend.globals import DEBUG
 
-from .command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
+from .command_list import COMMANDS
 from .commands.help import HelpCommand
-from .commands.help_admin import HelpAdminCommand
 
 import discord
 from discord.ext import commands
@@ -121,7 +120,7 @@ def dm_receive(message: discord.Message) -> str | None:
     content = message.content.strip()  # utils.normalizeQuotes(message.content.strip())
     in_cmd = content.split(" ")[0].lower()[1:]  # first word (command) + remove ! or .
     body = " ".join(content.split(" ")[1:])  # remove command
-    cmds = [HelpCommand(), HelpAdminCommand(), *REGULAR_COMMANDS, *ADMIN_COMMANDS]
+    cmds = [HelpCommand(), *COMMANDS]
     for c in cmds:
         for n in c.names:
             if in_cmd == n and c.can_execute(user, body):

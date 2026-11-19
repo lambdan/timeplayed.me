@@ -25,9 +25,6 @@ class Command(ABC):
     def can_execute(self, user: User, msg: str) -> bool:
         return user.has_permission(Permission.COMMANDS)
 
-    def is_admin(self, user: User) -> bool:
-        return user.has_permission(Permission.ADMIN)
-
     def get_help_message(self) -> str:
         msg = "# " + self.names[0] + "\n"
         msg += self.description + "\n"

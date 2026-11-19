@@ -126,17 +126,11 @@
         <code>game.exe</code>. Can I rename it so it automatically gets properly
         named here?
       </h5>
-      <ul>
-        <li>
-          If you go into the Registered Games section in Discord settings, you
-          can click a <strong>non-verified</strong> game's title to rename it to
-          whatever you want.
-        </li>
-        <li>
-          You can also use the <code>!set_game</code> command to change an
-          activity's game retroactively.
-        </li>
-      </ul>
+      <p>
+        If you go into the Registered Games section in Discord settings, you can
+        click a <strong>non-verified</strong> game's title to rename it to
+        whatever you want.
+      </p>
 
       <h5 id="ignore-game" class="mt-4">
         I don't want to track a particular game I am playing. How can I ignore
@@ -147,8 +141,8 @@
         toggle detection. (Note that this hides the game from all of Discord).
       </p>
       <p>
-        Alternatively you can remove the session afterwards using the
-        <code>!remove</code> command.
+        Alternatively you can delete the session afterwards: open the activity
+        and click the <i class="bi bi-trash"></i> next to its title.
       </p>
 
       <hr />

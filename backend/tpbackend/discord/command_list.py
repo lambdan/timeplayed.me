@@ -1,109 +1,14 @@
-from tpbackend.discord.commands.token_generate import TokenGenerateCommand
-from tpbackend.discord.commands.token_revoke_all import TokenRevokeAllCommand
-from .commands.add_game_sgdb import AddGameSGDBCommand
-from .commands.add_game_admin import AddGameAdminCommand
-from .commands.add_platform_admin import AddPlatformAdminCommand
-from .commands.delete_activity import DeleteActivityCommand
-from .commands.delete_game_admin import DeleteGameAdminCommand
-from .commands.delete_platform_admin import DeletePlatformAdminCommand
-from .commands.get_activity import GetActivityCommand
-from .commands.get_game import GetGameCommand
-from .commands.last import LastActivityCommand
-from .commands.permission_add_admin import AddPermissionAdminCommand
-from .commands.permission_remove_admin import RemovePermissionAdminCommand
-from .commands.refresh_search_admin import RefreshSearchAdminCommand
-from .commands.search_games import SearchGamesCommand
-from .commands.set_game import SetGameCommand
-from .commands.igdb_missing_admin import MissingIGDBAdminCommand
-from .commands.igdb_set_id_admin import SetIGDBIDAdminCommand
-from .commands.igdb_add_game import AddGameIGDBCommand
-from .commands.igdb_auto_admin import AutoIGDBAdminCommand
-from .commands.set_platform_name_admin import SetPlatformNameAdminCommand
-from .commands.list_platforms import ListPlatformsCommand
-from .commands.add_game_alias_admin import AddGameAliasAdminCommand
-from .commands.delete_game_alias_admin import DeleteGameAliasAdminCommand
-from .commands.set_game_release_year_admin import SetGameReleaseYearAdminCommand
-from .commands.search_users import SearchUsersCommand
-from .commands.uptime_admin import UptimeAdminCommand
-from .commands.set_game_admin import SetGameAdminCommand
-from .commands.delete_activity_admin import DeleteActivityAdminCommand
-from .commands.search_sgdb import SearchSGDBCommand
-from .commands.games_without_activity_admin import GamesWithoutActivityAdminCommand
-from .commands.move_game import MoveGameCommand
-from .commands.move_game_admin import MoveGameAdminCommand
-from .commands.merge_game_admin import MergeGameAdminCommand
-from .commands.merge_overlaps_admin import MergeOverlapsAdminCommand
-from .commands.missing_game_release_year_admin import MissingGRYAdminCommand
-from .commands.set_platform_colors_admin import SetPlatformColorsAdminCommand
-from .commands.get_platform import GetPlatformCommand
-from .commands.set_platform_icon_admin import SetPlatformIconAdminCommand
-from .commands.hide_game_admin import HideGameAdminCommand
-from .commands.set_parent_admin import SetParentAdminCommand
-from .commands.igdb_search import SearchIGDBCommand
+from .commands.token_generate import TokenGenerateCommand
+from .commands.token_revoke_all import TokenRevokeAllCommand
 
-REGULAR_COMMANDS = [
-    # HelpCommand(), # circular import
-    SearchGamesCommand(),
-    SearchSGDBCommand(),
-    SearchIGDBCommand(),
-    AddGameSGDBCommand(),
-    AddGameIGDBCommand(),
-    # manual
-    # platform
-    ListPlatformsCommand(),
-    GetPlatformCommand(),
-    # activity mgmt
-    LastActivityCommand(),
-    SetGameCommand(),
-    MoveGameCommand(),
-    DeleteActivityCommand(),
-    # gets
-    GetActivityCommand(),
-    GetGameCommand(),
-    # token
+# everything else is on the website, the bot is for tracking and getting a token
+COMMANDS = [
     TokenGenerateCommand(),
     TokenRevokeAllCommand(),
 ]
 
-ADMIN_COMMANDS = [
-    # HelpAdminCommand(), # circular import
-    AddGameAdminCommand(),
-    # igdb
-    SetIGDBIDAdminCommand(),
-    MissingIGDBAdminCommand(),
-    AutoIGDBAdminCommand(),
-    # manual game
-    SetGameReleaseYearAdminCommand(),
-    # platform mgmt
-    AddPlatformAdminCommand(),
-    SetPlatformNameAdminCommand(),
-    SetPlatformColorsAdminCommand(),
-    SetPlatformIconAdminCommand(),
-    DeletePlatformAdminCommand(),
-    # game mgmt
-    AddGameAliasAdminCommand(),
-    DeleteGameAliasAdminCommand(),
-    DeleteGameAdminCommand(),
-    GamesWithoutActivityAdminCommand(),
-    HideGameAdminCommand(),
-    SetParentAdminCommand(),
-    # user mgmt
-    SearchUsersCommand(),
-    AddPermissionAdminCommand(),
-    RemovePermissionAdminCommand(),
-    SetGameAdminCommand(),
-    MoveGameAdminCommand(),
-    MergeGameAdminCommand(),
-    MergeOverlapsAdminCommand(),
-    DeleteActivityAdminCommand(),
-    # misc
-    UptimeAdminCommand(),
-    MissingGRYAdminCommand(),
-    RefreshSearchAdminCommand(),
-]
-
 used = set()
-for c in [*REGULAR_COMMANDS, *ADMIN_COMMANDS]:
+for c in COMMANDS:
     for name in c.names:
         if name in used:
             assert False, f"Duplicate command name: {name}"

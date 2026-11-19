@@ -1,7 +1,6 @@
 from tpbackend.storage import User
 from .command import Command
-from ..command_list import REGULAR_COMMANDS, ADMIN_COMMANDS
-from .help_admin import HelpAdminCommand
+from ..command_list import COMMANDS
 
 
 class HelpCommand(Command):
@@ -16,11 +15,9 @@ class HelpCommand(Command):
 
     def command_list(self, user: User) -> str:
         msg = ""
-        for c in REGULAR_COMMANDS:
+        for c in COMMANDS:
             if c.can_execute(user, ""):
                 msg += f"- `!{c.names[0]}` - {c.description}\n"
-        if self.is_admin(user):
-            msg += "\n\n☣️ You are admin, see `!help_admin`"
         msg += "\nUse `!help <command>` for more info"
         return msg
 
@@ -29,17 +26,9 @@ class HelpCommand(Command):
         # stupid hax because of circular import hell
         if command_name == "help":
             return self.get_help_message()
-        if command_name == "help_admin" and self.is_admin(user):
-            return HelpAdminCommand().get_help_message()
-        for c in REGULAR_COMMANDS:
+        for c in COMMANDS:
             for name in c.names:
                 if name == command_name:
                     if c.can_execute(user, ""):
                         return c.get_help_message()
-        if self.is_admin(user):
-            for c in ADMIN_COMMANDS:
-                for name in c.names:
-                    if name == command_name:
-                        if c.can_execute(user, ""):
-                            return c.get_help_message()
         return f"Command `{command_name}` not found."
