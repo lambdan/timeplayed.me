@@ -77,7 +77,7 @@ onMounted(async () => {
         <div class="spinner-border spinner-border-sm" role="status"></div>
       </div>
       <p v-else-if="!authenticatedUser" class="mb-0">
-        <a href="/authenticate">Authenticate</a> to change your settings.
+        <a href="/login">Log in</a> to change your settings.
       </p>
       <form v-else @submit.prevent="save">
         <div class="mb-3">

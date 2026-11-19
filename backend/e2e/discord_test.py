@@ -33,6 +33,8 @@ class TestSensitiveReplies:
         match = re.search(r"```(.+)```", reply)
         assert match, reply
         token = match.group(1)
+        # and where to use it
+        assert "/login" in reply
 
         # user gets a working token
         r = Api(token).get("/who_am_i")

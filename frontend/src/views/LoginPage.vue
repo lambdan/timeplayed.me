@@ -35,10 +35,10 @@ function logoutCurrentSession() {
 
 <template>
   <div class="card auth-card">
-    <h1 class="card-header">Authenticate</h1>
+    <h1 class="card-header">Log in</h1>
     <div class="card-body">
       <div class="auth-intro mb-3">
-        Authenticating your web session with a token from the Discord bot is
+        Logging in with a token from the Discord bot is
         <strong>completely optional</strong>, but it lets you do things like
         manual activity tracking through the website, and maybe more cool stuff
         in the future.
@@ -65,7 +65,7 @@ function logoutCurrentSession() {
             @click="authenticateSession"
             :disabled="authenticating"
           >
-            {{ authenticating ? "Authenticating..." : "Authenticate" }}
+            {{ authenticating ? "Logging in..." : "Log in" }}
           </button>
         </div>
 

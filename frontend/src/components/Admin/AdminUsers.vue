@@ -316,8 +316,8 @@ onMounted(async () => {
               @focus="($event.target as HTMLInputElement).select()"
             />
             Only shown once. Use it on the
-            <a href="/authenticate" target="_blank">Authenticate</a> page in a
-            private window, logging in here would replace your own session.
+            <a href="/login" target="_blank">Log in</a> page in a private
+            window, logging in here would replace your own session.
           </div>
           <div class="text-body-secondary small mb-2">
             Only a hash of each token is stored, so the tokens themselves can't

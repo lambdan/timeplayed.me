@@ -1,6 +1,7 @@
 User-agent: *
 Disallow: /admin
 Disallow: /authenticate
+Disallow: /login
 Disallow: /settings
 Disallow: /activity/
 

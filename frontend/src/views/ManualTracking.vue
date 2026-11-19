@@ -321,7 +321,7 @@ watch(
         <div class="spinner-border" role="status"></div>
       </div>
       <p v-else-if="!authenticatedUser" class="mb-0">
-        You need to be <a href="/authenticate">authenticated</a>.
+        You need to <a href="/login">log in</a>.
       </p>
       <p v-else-if="!canTrack" class="mb-0">
         You don't have permission to use manual tracking.

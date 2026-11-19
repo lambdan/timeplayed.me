@@ -15,7 +15,7 @@ import BrowsePage from "../views/BrowsePage.vue";
 import ActivityPage from "../views/ActivityPage.vue";
 import GamePageByIGDB from "../views/GamePageByIGDB.vue";
 import ManualTracking from "../views/ManualTracking.vue";
-import AuthenticatePage from "../views/AuthenticatePage.vue";
+import LoginPage from "../views/LoginPage.vue";
 import AdminPage from "../views/AdminPage.vue";
 import SettingsPage from "../views/SettingsPage.vue";
 import { updateDocumentTitle } from "../utils.ts";
@@ -29,10 +29,12 @@ const routes: RouteRecordRaw[] = [
   { path: "/browse", component: BrowsePage, meta: { title: "Browse" } },
   { path: "/help", component: HelpPage, meta: { title: "Help" } },
   {
-    path: "/authenticate",
-    component: AuthenticatePage,
-    meta: { title: "Authenticate" },
+    path: "/login",
+    component: LoginPage,
+    meta: { title: "Log in" },
   },
+  // the old name, still in bot messages and bookmarks
+  { path: "/authenticate", redirect: "/login" },
   { path: "/users", component: UserListPage, meta: { title: "Users" } },
   { path: "/games", component: GameListPage, meta: { title: "Games" } },
   {

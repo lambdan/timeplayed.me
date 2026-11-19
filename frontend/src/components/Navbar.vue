@@ -63,8 +63,8 @@ const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
           </li>
 
           <li v-if="!authenticatedUser" class="nav-item">
-            <a class="nav-link" href="/authenticate"
-              ><i class="bi bi-shield-lock"></i> Authenticate</a
+            <a class="nav-link" href="/login"
+              ><i class="bi bi-shield-lock"></i> Log in</a
             >
           </li>
         </ul>

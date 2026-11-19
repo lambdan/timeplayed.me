@@ -56,7 +56,7 @@ onBeforeRouteLeave(() => confirmDiscard());
       </div>
       <div v-else-if="!isAdmin" class="alert alert-warning mb-0">
         Admin permission required.
-        <a href="/authenticate">Authenticate</a> with an admin account.
+        <a href="/login">Log in</a> with an admin account.
       </div>
       <template v-else>
         <ul class="nav nav-tabs mb-3 flex-nowrap overflow-x-auto">
