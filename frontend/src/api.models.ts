@@ -38,6 +38,20 @@ export type SGDBGrid = {
 };
 export type SteamCover = { url: string; store_url: string };
 
+// the charts route isn't in the OpenAPI schema either, see backend/tpbackend/charts/
+export type PlaytimeChart = {
+  labels: string[];
+  datasets: { label: string; data: number[] }[];
+};
+export type PlaytimeChartQuery = {
+  user?: number;
+  game?: number;
+  include_children?: boolean;
+  platform?: number;
+  before?: number;
+  after?: number;
+};
+
 export interface GameCoverData {
   imageUrl: string;
   sourceUrl?: string;

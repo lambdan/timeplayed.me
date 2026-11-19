@@ -36,7 +36,8 @@ def create_app():
     api_router.include_router(activity_router)
     api_router.include_router(game_router)
     api_router.include_router(platform_router)
-    api_router.include_router(charts_router, prefix="/charts")
+    # only for our own frontend's charts, not part of the public API
+    api_router.include_router(charts_router, prefix="/charts", include_in_schema=False)
     api_router.include_router(discord_router, prefix="/discord")
     # cover lookups for our own frontend, not part of the public API
     api_router.include_router(sgdb_router, prefix="/sgdb", include_in_schema=False)

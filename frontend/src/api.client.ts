@@ -5,6 +5,8 @@ import type {
   IGDBGameInfo,
   LiveActivity,
   LiveActivityPost,
+  PlaytimeChart,
+  PlaytimeChartQuery,
   SGDBGrid,
   SteamCover,
 } from "./api.models.ts";
@@ -425,8 +427,16 @@ export class TimeplayedAPI {
   }
 
   /** for the routes that aren't in the OpenAPI schema, so the typed client can't call them */
-  private static async getUnlisted<T>(path: string): Promise<T> {
-    const response = await fetch(`/api${path}`);
+  private static async getUnlisted<T>(
+    path: string,
+    query: Record<string, string | number | boolean | undefined> = {},
+  ): Promise<T> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined) params.set(key, String(value));
+    }
+    const qs = params.toString();
+    const response = await fetch(`/api${path}${qs ? "?" + qs : ""}`);
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       throw data ?? new Error(`${response.status} ${response.statusText}`);
@@ -478,18 +488,9 @@ export class TimeplayedAPI {
 
   ////////////////// CHART /////////////////////
   static async getChartsPlaytimeByDay(
-    query: paths["/charts/playtime/by_day"]["get"]["parameters"]["query"],
-  ) {
-    const { data, error } = await this.client.GET("/charts/playtime/by_day", {
-      params: {
-        query,
-      },
-    });
-    if (error) {
-      console.error("Error fetching chart data:", error);
-      throw error;
-    }
-    return data;
+    query: PlaytimeChartQuery,
+  ): Promise<PlaytimeChart> {
+    return this.getUnlisted<PlaytimeChart>("/charts/playtime/by_day", query);
   }
 
   /////////////// DISCORD /////////////////
