@@ -26,6 +26,8 @@ class TestSitemap:
         urls = sitemap_urls(api)
         assert "http://timeplayed.test/" in urls
         assert "http://timeplayed.test/help" in urls
+        # removed page
+        assert "http://timeplayed.test/news" not in urls
 
     def test_pages_with_playtime(self, api, make_user, make_game, make_platform):
         user, _ = make_user()

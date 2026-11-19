@@ -28,11 +28,6 @@ const { authenticatedUser, isAdmin, logoutSession } = useAuthenticatedUser();
               <i class="bi bi-house-fill"></i> Home</a
             >
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/news"
-              ><i class="bi bi-newspaper"></i> News</a
-            >
-          </li>
           <!-- users, games and platforms are reached through browse -->
           <li class="nav-item">
             <a class="nav-link" href="/browse"

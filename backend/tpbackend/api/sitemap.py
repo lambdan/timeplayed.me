@@ -23,7 +23,6 @@ STATIC_PATHS = [
     "/platforms",
     "/stats",
     "/browse",
-    "/news",
     "/help",
 ]
 

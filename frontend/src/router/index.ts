@@ -2,7 +2,6 @@ import { createRouter, createWebHistory, START_LOCATION } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import UserPage from "../views/UserPage.vue";
-import NewsPage from "../views/NewsPage.vue";
 import UserListPage from "../views/UserListPage.vue";
 import GameListPage from "../views/GameListPage.vue";
 import PlatformListPage from "../views/PlatformListPage.vue";
@@ -24,7 +23,8 @@ const routes: RouteRecordRaw[] = [
   // Static pages
 
   { path: "/", component: HomePage, meta: { title: "Home" } },
-  { path: "/news", component: NewsPage, meta: { title: "News" } },
+  // the news page was removed, old links go home
+  { path: "/news", redirect: "/" },
   { path: "/stats", component: StatsPage, meta: { title: "Stats" } },
   { path: "/browse", component: BrowsePage, meta: { title: "Browse" } },
   { path: "/help", component: HelpPage, meta: { title: "Help" } },
