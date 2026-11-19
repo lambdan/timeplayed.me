@@ -37,12 +37,21 @@ const editingGame = ref(false);
 const deleting = ref(false);
 const deleted = ref(false);
 
+/** the owner can delete it */
 function canDeleteActivity() {
   return (
     !!token.value &&
     !!activity.value &&
     !!authenticatedUser.value &&
     authenticatedUser.value.id === activity.value.user_id
+  );
+}
+
+/** changing the game or platform needs manual_activity too (the backend checks it) */
+function canEditActivity() {
+  return (
+    canDeleteActivity() &&
+    !!authenticatedUser.value?.permissions.includes("manual_activity")
   );
 }
 
@@ -273,7 +282,7 @@ onMounted(async () => {
                       /></a>
                       <span v-else class="me-auto">Loading...</span>
                       <button
-                        v-if="canDeleteActivity()"
+                        v-if="canEditActivity()"
                         class="btn btn-sm btn-outline-primary"
                         title="Change game"
                         aria-label="Change game"
@@ -331,7 +340,7 @@ onMounted(async () => {
                       >
                       <span v-else class="me-auto">Loading...</span>
                       <button
-                        v-if="canDeleteActivity()"
+                        v-if="canEditActivity()"
                         class="btn btn-sm btn-outline-primary"
                         title="Change platform"
                         aria-label="Change platform"

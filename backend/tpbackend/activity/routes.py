@@ -152,6 +152,7 @@ def get_single_activity(id: int) -> API_Activity:
 
 @router.delete("/activity/{id}", tags=["activities", "authenticated"])
 def delete_activity(id: int, user: AuthenticatedUser):
+    # no permission needed, deleting can't inflate anything
     return delete_through_api(user=user, activity_id=id)
 
 
@@ -161,7 +162,7 @@ def delete_activity(id: int, user: AuthenticatedUser):
     response_model=API_Activity,
 )
 def set_activity_platform(
-    id: int, data: API_PutActivityPlatform, user: AuthenticatedUser
+    id: int, data: API_PutActivityPlatform, user: ManualActivityUser
 ) -> API_Activity:
     """Change the platform of one of your own activities"""
     return set_platform_through_api(
@@ -175,7 +176,7 @@ def set_activity_platform(
     response_model=API_Activity,
 )
 def set_activity_game(
-    id: int, data: API_PutActivityGame, user: AuthenticatedUser
+    id: int, data: API_PutActivityGame, user: ManualActivityUser
 ) -> API_Activity:
     """Change the game of one of your own activities, like an emulator to the actual game"""
     return set_game_through_api(user=user, activity_id=id, game_id=data.game_id)

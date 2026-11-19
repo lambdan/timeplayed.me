@@ -73,6 +73,30 @@ class TestSetActivityPlatform:
         assert r.status_code in (401, 403)
 
 
+class TestEditPermission:
+    def test_requires_manual_activity(self, make_user, make_game, make_platform):
+        # everything but manual_activity
+        user, client = make_user(permissions=["commands", "oblivionis_sync"])
+        old = make_game("Old")
+        ps4 = make_platform("ps4")
+        activity = make_activity(user, old, ps4)
+        path = f"/activity/{activity.get_id()}"
+
+        r = client.put(f"{path}/game", json={"game_id": make_game("New").get_id()})
+        assert r.status_code == 403
+        r = client.put(
+            f"{path}/platform", json={"platform_id": make_platform("ps5").get_id()}
+        )
+        assert r.status_code == 403
+
+        unchanged = Activity.get_by_id(activity.get_id())
+        assert unchanged.get_game() == old
+        assert unchanged.get_platform() == ps4
+
+        # deleting can't inflate anything, so it needs no permission
+        assert client.delete(path).status_code == 200
+
+
 class TestSetActivityGame:
     def test_own_activity(self, make_user, make_game, make_platform):
         user, client = make_user()

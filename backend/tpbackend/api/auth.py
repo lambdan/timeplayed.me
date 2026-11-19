@@ -50,7 +50,8 @@ AdminUser = Annotated[User, Depends(authenticate_admin)]
 
 
 def authenticate_manual_activity(user: AuthenticatedUser) -> User:
-    # manual tracking page and API
+    # adding activity (manual tracking page, API) and changing its game or platform,
+    # what could be used to inflate the numbers
     if user.has_permission(Permission.MANUAL_ACTIVITY):
         return user
     return forbidden("Manual activity permission required")
