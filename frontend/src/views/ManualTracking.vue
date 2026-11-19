@@ -2,6 +2,7 @@
 import { computed, onUnmounted, ref, watch } from "vue";
 import { formatDuration } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
+import CroppedCover from "../components/Games/CroppedCover.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
 import type { Game, LiveActivity, Platform } from "../api.models";
@@ -539,16 +540,25 @@ watch(
               v-for="pg in sortedPreviousGames"
               :key="`${pg.gameId}-${pg.platformId}`"
               type="button"
-              class="list-group-item list-group-item-action"
+              class="list-group-item list-group-item-action d-flex align-items-center gap-3"
               @click="selectPreviousGame(pg)"
             >
-              <div class="fw-semibold text-truncate">
-                <GameName v-if="games[pg.gameId]" :game="games[pg.gameId]!" />
-                <template v-else>...</template>
+              <!-- not clickable, the whole row is the button -->
+              <CroppedCover
+                :gameId="pg.gameId"
+                :clickable="false"
+                class="flex-shrink-0"
+                style="width: 40px"
+              />
+              <div style="min-width: 0">
+                <div class="fw-semibold text-truncate">
+                  <GameName v-if="games[pg.gameId]" :game="games[pg.gameId]!" />
+                  <template v-else>...</template>
+                </div>
+                <small class="text-body-secondary">{{
+                  platforms.find((p) => p.id === pg.platformId)?.display_name
+                }}</small>
               </div>
-              <small class="text-body-secondary">{{
-                platforms.find((p) => p.id === pg.platformId)?.display_name
-              }}</small>
             </button>
           </div>
         </template>

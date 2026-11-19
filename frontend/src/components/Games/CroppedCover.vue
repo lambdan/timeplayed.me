@@ -2,7 +2,9 @@
 import GameCover from "./GameCover.vue";
 
 // GameCover cropped to a 2:3 box, so covers line up regardless of source
-defineProps<{ gameId: number }>();
+withDefaults(defineProps<{ gameId: number; clickable?: boolean }>(), {
+  clickable: true,
+});
 </script>
 
 <template>
@@ -10,7 +12,7 @@ defineProps<{ gameId: number }>();
     class="rounded overflow-hidden bg-body-secondary"
     style="aspect-ratio: 2 / 3"
   >
-    <GameCover :gameId="gameId" :maxHeight="0" />
+    <GameCover :gameId="gameId" :maxHeight="0" :clickable="clickable" />
   </div>
 </template>
 
