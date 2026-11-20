@@ -82,12 +82,13 @@ def parseActivity(activity: PassedActivity) -> bool:
             )
             return True
 
-        raw_game = activity["game_name"]
-        game_name = raw_game.removesuffix(" with Medal").strip()
+        incoming_game = activity["game_name"]
+        game_name = incoming_game.removesuffix(" with Medal").strip()
         game = get_game_by_name_or_alias_or_create(game_name)
 
         # Discord activity is always on some platform, windows if it didn't say
-        platform_abbr = activity["platform"] or "win"
+        incoming_platform = activity["platform"]
+        platform_abbr = incoming_platform or "win"
         if platform_abbr == "pc":
             # apply users set pc platform (linux/mac/win)
             platform_abbr = user.pc_platform or "win"
@@ -109,7 +110,7 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Activity synced successfully")
             created_activity = success[0]
             created_activity.add_history(
-                f"Activity source: Oblivionis (raw game: '{raw_game}')"
+                f"Activity source: Oblivionis (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}')"
             )
             created_activity.save()
             return True
