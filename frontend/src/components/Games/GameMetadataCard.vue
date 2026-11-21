@@ -44,10 +44,7 @@ const { isCensored } = useNsfw();
             <th class="text-nowrap">Aliases</th>
             <td class="text-break">
               <div v-for="alias in game.aliases" :key="alias">
-                <span v-if="isCensored(game)" class="text-danger">{{
-                  censor(alias)
-                }}</span>
-                <template v-else>{{ alias }}</template>
+                {{ isCensored(game) ? censor(alias) : alias }}
               </div>
             </td>
           </tr>
