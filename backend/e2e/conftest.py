@@ -35,6 +35,7 @@ TIMEPLAYED_TABLES = [
     "game",
     '"user"',
     "platform",
+    "imagefile",
 ]
 OBLIVIONIS_TABLES = ["activity", "game", '"user"']
 

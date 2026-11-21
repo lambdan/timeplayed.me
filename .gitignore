@@ -140,3 +140,8 @@ backend/docker-compose.yml
 
 PLAN*.md
 *.swp
+
+# files kept by the backend (FILES_DIR), locally and in e2e
+backend/files/
+backend/e2e/files/
+backend/files_dir/

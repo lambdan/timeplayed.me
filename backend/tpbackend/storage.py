@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 import os
 import logging
 from typing import cast
@@ -14,6 +15,7 @@ from peewee import (
     Model,
     TextField,
     AutoField,
+    UUIDField,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.permissions import DEFAULT_PERMISSIONS
@@ -172,6 +174,65 @@ class HiddenMixin(BaseModel):
 ####################
 ###### Models ######
 ####################
+
+
+class File(BaseModel):
+    """
+    A file we keep. The bytes are in the file storage (tpbackend/files/storage.py) under
+    the id, not in the database, so backups stay small. Only subclasses get a table
+    """
+
+    id = UUIDField(primary_key=True, default=uuid.uuid4)
+    content_type = CharField()
+    size = IntegerField()
+    sha256 = CharField()
+    created = DateTimeField(default=lambda: now())
+
+    def get_id(self) -> str:
+        return str(self.id)
+
+    def get_content_type(self) -> str:
+        return cast(str, self.content_type)
+
+    def get_size(self) -> int:
+        return cast(int, self.size)
+
+    def get_sha256(self) -> str:
+        return cast(str, self.sha256)
+
+
+class ImageFile(File):
+    """an image, downloaded from elsewhere (like a cover) or uploaded"""
+
+    # where it was downloaded from, None for uploads and versions
+    source = TextField(null=True, unique=True)
+    width = IntegerField()
+    height = IntegerField()
+    # for versions of an image (like "display", smaller for the site): the image it was made from.
+    # see tpbackend/files/images.py
+    original = ForeignKeyField(
+        "self",
+        null=True,
+        backref="versions",
+        on_delete="CASCADE",
+        column_name="original",
+    )
+    version = CharField(null=True)
+
+    def get_source(self) -> str | None:
+        return cast(str | None, self.source)
+
+    def get_width(self) -> int:
+        return cast(int, self.width)
+
+    def get_height(self) -> int:
+        return cast(int, self.height)
+
+    def get_original(self) -> "ImageFile | None":
+        return cast(ImageFile | None, self.original)
+
+    def get_version(self) -> str | None:
+        return cast(str | None, self.version)
 
 
 class Platform(IdMixin, HistoryMixin, SearchMixin):

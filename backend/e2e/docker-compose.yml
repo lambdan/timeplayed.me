@@ -35,6 +35,10 @@ services:
       TIMEPLAYED_DB: storage_v2
       CACHE_ENABLED: "false"
       TIMEPLAYED_URL: http://timeplayed.test
+      FILES_DIR: /files
+    volumes:
+      # shared with the tests, so they can put files there
+      - ./files:/files
     ports:
       - "${E2E_API_PORT:-58000}:8000"
     depends_on:

@@ -13,6 +13,7 @@ from tpbackend.igdb.routes import router as igdb_router
 from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
 from tpbackend.admin.routes import router as admin_router
+from tpbackend.files.routes import router as files_router
 from .misc import misc_router
 from .sitemap import sitemap_router
 from .head import head_router
@@ -43,6 +44,8 @@ def create_app():
     api_router.include_router(sgdb_router, prefix="/sgdb", include_in_schema=False)
     api_router.include_router(igdb_router, prefix="/igdb", include_in_schema=False)
     api_router.include_router(steam_router, prefix="/steam", include_in_schema=False)
+    # files we keep (like covers), linked to from other responses
+    api_router.include_router(files_router, prefix="/files", include_in_schema=False)
     api_router.include_router(admin_router, prefix="/admin")
 
     app.include_router(api_router)
