@@ -24,6 +24,8 @@ export type GameWithStats = components["schemas"]["API_GameWithStats"];
 
 export type GameCover = components["schemas"]["API_GameCover"];
 
+export type IGDBSearchResult = components["schemas"]["IGDB_SearchResult"];
+
 // the charts route isn't in the OpenAPI schema either, see backend/tpbackend/charts/
 export type PlaytimeChart = {
   labels: string[];

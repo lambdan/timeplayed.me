@@ -4,6 +4,9 @@ from tpbackend.game.models import API_GameWithStats
 from tpbackend.game.query import GameStatsQuery
 from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.igdb.controller import enabled as igdb_enabled
+from tpbackend.igdb.controller import search_game as igdb_search_game
+from tpbackend.igdb.models import IGDB_SearchResult
+from tpbackend.api.auth import ManualActivityUser
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
 from tpbackend.game.models import (
@@ -17,7 +20,7 @@ from tpbackend.files.images import public_url
 from tpbackend.game.select import GameSelect
 from tpbackend.api.responses import bad_request, not_found, service_unavailable
 import logging
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Query
 from tpbackend.api.params import (
     AscDescOrder,
     offset,
@@ -288,6 +291,20 @@ def get_single_game_by_igdb_id(igdb_id=path_id("IGDB game")) -> API_Game:
     if not igdb_enabled():
         return service_unavailable("Game not in database, and IGDB is not enabled")
     return not_found("Game not found (probably not in IGDB)")
+
+
+@router.get(
+    "/igdb/search",
+    tags=["games", "IGDB"],
+    response_model=list[IGDB_SearchResult],
+    description="Search IGDB for games by name, for adding one that isn't here yet "
+    "with /game_igdb/{igdb_id}. A number is also looked up as an IGDB ID, that game "
+    "comes first. Needs the manual_activity permission",
+)
+def search_igdb(user: ManualActivityUser, q: str = Query()) -> list[IGDB_SearchResult]:
+    if not igdb_enabled():
+        return service_unavailable("IGDB is not enabled")
+    return igdb_search_game(q)
 
 
 @router.get(

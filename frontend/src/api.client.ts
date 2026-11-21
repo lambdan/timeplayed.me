@@ -272,6 +272,18 @@ export class TimeplayedAPI {
     return changed ? `${url}?v=${changed}` : url;
   }
 
+  static async searchIGDB(token: string, q: string) {
+    const { data, error } = await this.client.GET("/igdb/search", {
+      headers: this.getAuthHeaders(token),
+      params: { query: { q } },
+    });
+    if (error) {
+      console.error("Error searching IGDB:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getGameByIGDB(igdb_id: number) {
     const { data, error } = await this.client.GET("/game_igdb/{igdb_id}", {
       params: {

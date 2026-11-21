@@ -4,6 +4,7 @@ import type {
   Activity,
   AuthenticatedUser,
   Game,
+  IGDBSearchResult,
   Platform,
 } from "./api.models.ts";
 import { useApiToken } from "./composables/useApiToken.ts";
@@ -68,13 +69,8 @@ export type AdminPlatformPatch = Partial<{
 
 export type AdminOverlapGroup = { keep_id: number; remove_ids: number[] };
 
-export type IGDBSearchResult = {
-  id: number;
-  name: string;
-  first_release_date: number | null;
-  url: string;
-  cover: { id: number; image_id: string } | null;
-};
+// the public IGDB search gives the same
+export type { IGDBSearchResult };
 // the parts we use of IGDB_GameInfo in backend/tpbackend/igdb/models.py
 export type IGDBGameInfo = {
   id: number;

@@ -117,6 +117,18 @@ class TestIGDBDisabled:
         _, client = make_user(name="admin", permissions=["admin"])
         assert client.get("/admin/igdb/game/1").status_code == 503
 
+    def test_search_unavailable(self, make_user):
+        _, client = make_user()
+        assert client.get("/igdb/search", params={"q": "zelda"}).status_code == 503
+
+    def test_search_needs_login(self, api):
+        assert api.get("/igdb/search", params={"q": "zelda"}).status_code in (401, 403)
+
+    def test_search_needs_manual_activity(self, make_user):
+        # everything but manual_activity
+        _, client = make_user(permissions=["commands", "oblivionis_sync"])
+        assert client.get("/igdb/search", params={"q": "zelda"}).status_code == 403
+
     def test_game_by_igdb_id_not_in_db(self, api):
         assert api.get("/game_igdb/1234").status_code == 503
 

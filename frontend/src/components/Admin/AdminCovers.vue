@@ -10,7 +10,7 @@ import type { PlatformWithStats, UserWithStats } from "../../api.models";
 import { formatDuration, iso8601Date } from "../../utils";
 import { clearCachedGame } from "../../utils.cache";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
-import AdminIGDBResults from "./AdminIGDBResults.vue";
+import IGDBResults from "../Games/IGDBResults.vue";
 import AdminCoverInput from "./AdminCoverInput.vue";
 import GamePicker from "../Games/GamePicker.vue";
 
@@ -313,7 +313,7 @@ onMounted(loadQueue);
         <div v-if="searching" class="text-body-secondary mb-3">
           Searching...
         </div>
-        <AdminIGDBResults
+        <IGDBResults
           v-else-if="igdbResults"
           :results="igdbResults"
           class="mb-3"

@@ -23,14 +23,31 @@ def available() -> bool:
     return igdb.available()
 
 
-def search_game(query: str) -> list[IGDB_SearchResult]:
-    data = f'search "{query}"; fields id,name,first_release_date,url,cover.image_id; limit 10;'
-    res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
+SEARCH_FIELDS = "fields id,name,first_release_date,url,cover.image_id;"
+
+
+def __find_games(query: str) -> list[IGDB_SearchResult]:
+    res = igdb.request(url="https://api.igdb.com/v4/games", query=query)
     ret = []
     if res:
         for r in json.loads(res):
             ret.append(IGDB_SearchResult.model_validate(r))
     return ret
+
+
+def search_game(query: str) -> list[IGDB_SearchResult]:
+    """
+    games matching the name. A number is also looked up as an IGDB ID, that game
+    comes first (IGDB's search doesn't match ids, and a number can be a name too, like 1942)
+    """
+    query = query.strip()
+    by_id = []
+    if query.isdigit():
+        by_id = __find_games(f"{SEARCH_FIELDS} where id = {int(query)};")
+    # quotes would break the IGDB query
+    name = query.replace('"', "")
+    by_name = __find_games(f'search "{name}"; {SEARCH_FIELDS} limit 10;')
+    return by_id + [g for g in by_name if g not in by_id]
 
 
 def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:

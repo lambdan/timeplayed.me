@@ -314,8 +314,7 @@ def remove_cover(game_id: int) -> Admin_GameDetails:
 def search_igdb(q: str = Query()) -> list[IGDB_SearchResult]:
     if not igdb.enabled():
         return service_unavailable("IGDB is not enabled")
-    # quotes would break the IGDB query
-    return igdb.search_game(q.replace('"', ""))
+    return igdb.search_game(q)
 
 
 @router.get("/igdb/game/{igdb_id}", response_model=IGDB_GameInfo)

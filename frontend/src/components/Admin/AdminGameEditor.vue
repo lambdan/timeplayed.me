@@ -10,7 +10,7 @@ import {
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
-import AdminIGDBResults from "./AdminIGDBResults.vue";
+import IGDBResults from "../Games/IGDBResults.vue";
 import AdminCoverInput from "./AdminCoverInput.vue";
 import GamePicker from "../Games/GamePicker.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
@@ -509,7 +509,7 @@ onMounted(async () => {
               Search
             </button>
           </div>
-          <AdminIGDBResults
+          <IGDBResults
             v-if="igdbResults"
             :results="igdbResults"
             class="small mb-2"

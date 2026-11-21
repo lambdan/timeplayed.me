@@ -4,9 +4,15 @@ import { formatDuration } from "../utils";
 import GameCover from "../components/Games/GameCover.vue";
 import CroppedCover from "../components/Games/CroppedCover.vue";
 import GamePicker from "../components/Games/GamePicker.vue";
+import IGDBResults from "../components/Games/IGDBResults.vue";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
-import type { Game, LiveActivity, Platform } from "../api.models";
+import type {
+  Game,
+  IGDBSearchResult,
+  LiveActivity,
+  Platform,
+} from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import GameName from "../components/Games/GameName.vue";
 import { useNsfw } from "../composables/useNsfw";
@@ -134,13 +140,36 @@ function selectGame(g: Game) {
   game.value = g;
 }
 
-async function addByIGDB() {
-  const igdbId = Number(prompt("Enter IGDB ID:"));
-  if (!igdbId || igdbId <= 0) return;
+// a game that isn't on the site yet, it's added when picked
+const igdbOpen = ref(false);
+const igdbQuery = ref("");
+const igdbResults = ref<IGDBSearchResult[]>();
+
+async function searchIGDB() {
+  const q = igdbQuery.value.trim();
+  if (!token.value || !q) return;
+  error.value = "";
+  busy.value = true;
+  try {
+    igdbResults.value = await TimeplayedAPI.searchIGDB(token.value, q);
+  } catch (err) {
+    error.value = errorMessage(err, "Searching IGDB failed");
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function useIGDB(igdbId: number) {
+  error.value = "";
+  busy.value = true;
   try {
     selectGame(await TimeplayedAPI.getGameByIGDB(igdbId));
-  } catch {
-    error.value = "Could not get game by IGDB ID, probably invalid ID?";
+    igdbOpen.value = false;
+    igdbResults.value = undefined;
+  } catch (err) {
+    error.value = errorMessage(err, "Adding the game failed");
+  } finally {
+    busy.value = false;
   }
 }
 
@@ -407,10 +436,33 @@ watch(
           <button
             type="button"
             class="btn btn-link btn-sm px-0"
-            @click="addByIGDB"
+            @click="igdbOpen = !igdbOpen"
           >
-            Add a game by IGDB ID
+            Not here? Search IGDB
           </button>
+          <template v-if="igdbOpen">
+            <form class="input-group" @submit.prevent="searchIGDB">
+              <input
+                v-model="igdbQuery"
+                type="search"
+                class="form-control"
+                placeholder="Name or IGDB ID"
+                aria-label="Search IGDB"
+              />
+              <button
+                type="submit"
+                class="btn btn-outline-secondary"
+                :disabled="busy || !igdbQuery.trim()"
+              >
+                <i class="bi bi-search"></i> Search
+              </button>
+            </form>
+            <IGDBResults
+              v-if="igdbResults"
+              :results="igdbResults"
+              @use="useIGDB"
+            />
+          </template>
         </div>
 
         <div class="mb-3">

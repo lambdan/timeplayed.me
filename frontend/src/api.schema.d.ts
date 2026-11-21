@@ -498,6 +498,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/igdb/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Igdb
+         * @description Search IGDB for games by name, for adding one that isn't here yet with /game_igdb/{igdb_id}. A number is also looked up as an IGDB ID, that game comes first. Needs the manual_activity permission
+         */
+        get: operations["search_igdb_igdb_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/games/{game_ids}": {
         parameters: {
             query?: never;
@@ -1017,6 +1037,25 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IGDB_Cover */
+        IGDB_Cover: {
+            /** Id */
+            id: number;
+            /** Image Id */
+            image_id: string;
+        };
+        /** IGDB_SearchResult */
+        IGDB_SearchResult: {
+            /** Id */
+            id: number;
+            /** First Release Date */
+            first_release_date?: number | null;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            cover?: components["schemas"]["IGDB_Cover"] | null;
         };
         /** Info */
         Info: {
@@ -2169,6 +2208,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_Game"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_igdb_igdb_search_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IGDB_SearchResult"][];
                 };
             };
             /** @description Validation Error */

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { IGDBSearchResult } from "../../admin.client";
+import type { IGDBSearchResult } from "../../api.models";
 
 defineProps<{ results: IGDBSearchResult[] }>();
 const emit = defineEmits<{ use: [igdbId: number] }>();
 
-function year(ts: number | null) {
+function year(ts?: number | null) {
   // igdb gives seconds
   return ts ? new Date(ts * 1000).getUTCFullYear() : "?";
 }
