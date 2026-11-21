@@ -26,7 +26,6 @@ def available() -> bool:
 def search_game(query: str) -> list[IGDB_SearchResult]:
     data = f'search "{query}"; fields id,name,first_release_date,url,cover.image_id; limit 10;'
     res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
-    logger.info("Got res: %s", res)
     ret = []
     if res:
         for r in json.loads(res):
@@ -53,7 +52,6 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     # to get everything:
     # data = f"fields *; where id = {igdb_game_id};"
     res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
-    logger.info("Got res: %s", res)
     if not res:
         return None
     try:
@@ -110,7 +108,6 @@ def get_or_create_game_by_steam_id(
     """
 
     res = igdb.request(url="https://api.igdb.com/v4/external_games", query=data)
-    logger.info("Got res: %s", res)
     igdb_game_id = None
     if res:
         try:
