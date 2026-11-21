@@ -43,6 +43,8 @@ THUMBNAIL = Version("thumbnail", (120, 180), "WEBP")
 PREVIEW = Version("preview", (8, 12), "PNG")
 VERSIONS = {v.name: v for v in [DISPLAY, THUMBNAIL, PREVIEW]}
 WEBP_QUALITY = 85
+# shown by browsers as they are, so a small enough one is its own version
+SERVED_AS_IS = ["image/jpeg", "image/png", "image/webp"]
 
 # a page asks for many covers at once, often the same one several times. Only one
 # request downloads an image or makes its versions, the others wait and use those
@@ -197,14 +199,34 @@ def get_version(image: ImageFile, version: Version) -> ImageFile | None:
     return made
 
 
+def is_own_version(image: ImageFile, version: Version) -> bool:
+    """
+    the image is small enough to be the version as it is, so no copy is made.
+    Not GIFs, they can be animated and large, a version is a still image
+    """
+    width, height = version.size
+    return (
+        image.get_content_type() in SERVED_AS_IS
+        and image.get_width() <= width
+        and image.get_height() <= height
+    )
+
+
 def get_versions(image: ImageFile) -> dict[str, ImageFile]:
     """all versions of the image by name, the missing ones are made first"""
+    versions = {}
+    to_make = []
+    for version in VERSIONS.values():
+        if is_own_version(image, version):
+            versions[version.name] = image
+        else:
+            to_make.append(version)
+
     stored = stored_versions(image)
-    if all(name in stored for name in VERSIONS):
-        return stored
+    if all(version.name in stored for version in to_make):
+        return versions | {version.name: stored[version.name] for version in to_make}
     with making_versions.hold(image.get_id()):
-        versions = {}
-        for version in VERSIONS.values():
+        for version in to_make:
             made = get_version(image, version)
             if made:
                 versions[version.name] = made

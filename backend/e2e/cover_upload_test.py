@@ -38,6 +38,9 @@ class TestCoverUpload:
         }
         assert cover["versions"].keys() == sizes.keys()
         assert cover["versions"]["original"]["content_type"] == "image/png"
+        # it fits the display version already, so it is that version
+        versions = cover["versions"]
+        assert versions["display"]["url"] == versions["original"]["url"]
         for version, size in sizes.items():
             listed = cover["versions"][version]
             assert (listed["width"], listed["height"]) == size
@@ -48,6 +51,32 @@ class TestCoverUpload:
             r = api.get(location.removeprefix("/api"))
             assert r.status_code == 200
             assert Image.open(io.BytesIO(r.content)).size == size
+
+    @pytest.mark.parametrize(
+        "size, same_as_original",
+        [
+            # fits the display version, so it is that version
+            ((600, 900), {"display"}),
+            # too large, a smaller display version is made
+            ((1200, 1800), set()),
+            # fits both the display and thumbnail versions
+            ((120, 120), {"display", "thumbnail"}),
+        ],
+    )
+    def test_versions_made_only_when_smaller(
+        self, admin, api, make_game, size, same_as_original
+    ):
+        _, client = admin
+        game = make_game()
+        upload(client, game, png_bytes(size=size))
+        versions = api.get(f"/game/{game.get_id()}/cover").json()["versions"]
+        original = versions["original"]["url"]
+        same = {
+            name
+            for name, version in versions.items()
+            if name != "original" and version["url"] == original
+        }
+        assert same == same_as_original
 
     def test_used_by_children(self, admin, api, make_game):
         _, client = admin

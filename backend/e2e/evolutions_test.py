@@ -3,6 +3,7 @@ from peewee import PostgresqlDatabase
 
 from conftest import DB_PORT
 from tpbackend import evolutions
+from tpbackend.storage import ImageFile, ImageFileData
 from tpbackend.storage import db as tp_db
 
 
@@ -114,3 +115,48 @@ class TestEvolutions:
             == newest
         )
         scratch.close()
+
+
+class TestEvolution11:
+    """removes versions that are copies of an original small enough to be them"""
+
+    def image(self, content_type="image/jpeg", size=(264, 352), **kwargs) -> ImageFile:
+        image = ImageFile.create(
+            content_type=content_type,
+            size=1,
+            sha256="x",
+            width=size[0],
+            height=size[1],
+            **kwargs,
+        )
+        ImageFileData.create(file=image.get_id(), data=b"x")
+        return image
+
+    def versions(self, original: ImageFile) -> list[str]:
+        rows = ImageFile.select().where(ImageFile.original == original.get_id())
+        return sorted(r.get_version() for r in rows)
+
+    def test_removes_copies(self, db):
+        def versions_of(original):
+            for name, size in [
+                ("display", (264, 352)),
+                ("thumbnail", (120, 160)),
+                ("preview", (8, 11)),
+            ]:
+                self.image(size=size, original=original.get_id(), version=name)
+
+        igdb = self.image()
+        versions_of(igdb)
+        large = self.image(size=(1200, 1800))
+        versions_of(large)
+        gif = self.image("image/gif")
+        versions_of(gif)
+
+        sql = (evolutions.EVOLUTIONS_DIR / "11.sql").read_text()
+        tp_db.execute_sql(sql)
+
+        assert self.versions(igdb) == ["preview", "thumbnail"]
+        assert self.versions(large) == ["display", "preview", "thumbnail"]
+        assert self.versions(gif) == ["display", "preview", "thumbnail"]
+        # the bytes went with them
+        assert ImageFileData.select().count() == ImageFile.select().count()

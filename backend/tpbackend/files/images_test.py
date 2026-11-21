@@ -4,13 +4,16 @@ import io
 import pytest
 from PIL import Image
 
+from tpbackend.files import images
 from tpbackend.files.images import (
     DISPLAY,
     PREVIEW,
     THUMBNAIL,
     ImageInfo,
+    get_versions,
     make_version,
 )
+from tpbackend.storage import ImageFile
 
 
 def image_bytes(size: tuple[int, int], format="PNG", color=(200, 50, 50)) -> bytes:
@@ -75,3 +78,42 @@ class TestMakeVersion:
         display = open_image(make_version(out.getvalue(), DISPLAY))
         assert display.mode == "RGBA"
         assert display.getpixel((0, 0))[3] == 0
+
+
+class TestGetVersions:
+    @pytest.fixture
+    def made(self, monkeypatch) -> list[str]:
+        """the versions that get made, none are stored yet"""
+        names: list[str] = []
+
+        def get_version(image, version):
+            names.append(version.name)
+            return ImageFile(width=1, height=1, version=version.name)
+
+        monkeypatch.setattr(images, "stored_versions", lambda image: {})
+        monkeypatch.setattr(images, "get_version", get_version)
+        return names
+
+    def test_large_image(self, made):
+        image = ImageFile(content_type="image/jpeg", width=1200, height=1800)
+        versions = get_versions(image)
+        assert made == ["display", "thumbnail", "preview"]
+        assert all(versions[name] is not image for name in made)
+
+    def test_small_enough_to_be_the_display_version(self, made):
+        # like IGDB's covers, 264x352
+        image = ImageFile(content_type="image/jpeg", width=264, height=352)
+        versions = get_versions(image)
+        assert versions["display"] is image
+        assert made == ["thumbnail", "preview"]
+
+    def test_tiny_image_is_every_version(self, made):
+        image = ImageFile(content_type="image/png", width=8, height=12)
+        versions = get_versions(image)
+        assert all(version is image for version in versions.values())
+        assert made == []
+
+    def test_gif_is_always_made(self, made):
+        image = ImageFile(content_type="image/gif", width=264, height=352)
+        get_versions(image)
+        assert made == ["display", "thumbnail", "preview"]
