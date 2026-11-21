@@ -22,7 +22,6 @@ const props = withDefaults(
 );
 
 const LOADING_COVER = `https://placehold.co/600x900?text=Loading...`;
-const NSFW_COVER = `https://placehold.co/600x900?text=Cover+hidden`;
 const clickable = ref(props.clickable);
 const coverData = ref<GameCoverData>();
 const nsfw = ref(false);
@@ -32,9 +31,30 @@ const { isCensored } = useNsfw();
 const censored = computed(
   () => !props.uncensored && isCensored({ nsfw: nsfw.value }),
 );
-const imageUrl = computed(() => {
-  if (!coverData.value) return LOADING_COVER;
-  return censored.value ? NSFW_COVER : coverData.value.imageUrl;
+const imageUrl = computed(() => coverData.value?.imageUrl ?? LOADING_COVER);
+
+// a share of the width so it's equally blurry at every size. starts strong, so it's
+// never shown sharp while loading, and is set from the real width once loaded
+const BLUR_SHARE = 0.06;
+const blurPx = ref(20);
+function onLoad(event: Event) {
+  const img = event.target as HTMLImageElement;
+  if (img.clientWidth > 0) {
+    blurPx.value = img.clientWidth * BLUR_SHARE;
+  }
+}
+// placeholders (no cover art etc) have nothing to hide
+const blurred = computed(
+  () => censored.value && coverData.value?.source !== "None",
+);
+const imgStyle = computed(() => {
+  return {
+    maxHeight: props.maxHeight ? props.maxHeight + "px" : undefined,
+    maxWidth: props.maxWidth ? props.maxWidth + "px" : undefined,
+    // scaled up a bit, so the blurry edges are cut off by the overflow-hidden wrapper
+    filter: blurred.value ? `blur(${blurPx.value}px)` : undefined,
+    transform: blurred.value ? "scale(1.15)" : undefined,
+  };
 });
 const sourceUrl = computed(() =>
   censored.value ? undefined : coverData.value?.sourceUrl,
@@ -42,7 +62,7 @@ const sourceUrl = computed(() =>
 const creditsText = computed(() => {
   const data = coverData.value;
   if (!data) return "...";
-  if (censored.value) return "NSFW";
+  if (censored.value) return undefined;
   return data.credits
     ? `Source: ${data.source}. ${data.credits}`
     : `Source: ${data.source}.`;
@@ -202,7 +222,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div style="display: inline-block; position: relative">
+  <div
+    :class="{ 'overflow-hidden': blurred }"
+    style="display: inline-block; position: relative"
+  >
     <template v-if="clickable">
       <a :href="`/game/${props.gameId}`">
         <img
@@ -210,10 +233,8 @@ onMounted(async () => {
           :title="creditsText"
           :src="`${imageUrl}`"
           class="img-fluid"
-          :style="{
-            maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
-            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
-          }"
+          :style="imgStyle"
+          @load="onLoad"
         />
       </a>
     </template>
@@ -224,10 +245,8 @@ onMounted(async () => {
           :src="`${imageUrl}`"
           :title="creditsText"
           class="img-fluid"
-          :style="{
-            maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
-            maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
-          }"
+          :style="imgStyle"
+          @load="onLoad"
         />
       </a>
     </template>
@@ -237,10 +256,8 @@ onMounted(async () => {
         :src="`${imageUrl}`"
         :title="creditsText"
         class="img-fluid"
-        :style="{
-          maxHeight: props.maxHeight ? props.maxHeight + 'px' : undefined,
-          maxWidth: props.maxWidth ? props.maxWidth + 'px' : undefined,
-        }"
+        :style="imgStyle"
+        @load="onLoad"
       />
     </template>
   </div>
