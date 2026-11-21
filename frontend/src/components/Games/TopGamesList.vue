@@ -113,6 +113,7 @@ watch(
                   <span v-else class="flex-shrink-0" style="width: 1em"></span>
                 </template>
                 <CroppedCover
+                  thumbnail
                   :gameId="game.id"
                   class="flex-shrink-0"
                   :class="{ 'opacity-50': expanded.has(game.id) }"

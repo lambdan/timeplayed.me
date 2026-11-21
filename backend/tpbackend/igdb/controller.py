@@ -63,6 +63,21 @@ def get_game_info(igdb_game_id: int) -> IGDB_GameInfo | None:
     return None
 
 
+def get_cover_info(igdb_game_id: int) -> IGDB_GameInfo | None:
+    """just what's needed for the cover (the url is the game's IGDB page)"""
+    data = f"fields id, name, url, cover.image_id, cover.id; where id = {igdb_game_id};"
+    res = igdb.request(url="https://api.igdb.com/v4/games", query=data)
+    if not res:
+        return None
+    try:
+        parsed = json.loads(res)
+        if parsed:
+            return IGDB_GameInfo.model_validate(parsed[0])
+    except Exception as e:
+        logger.error("Error parsing IGDB cover response: %s", e)
+    return None
+
+
 def get_or_create_game(igdb_game_id: int, history_create_msg: str) -> Game | None:
     if not igdb_game_id:
         return None
@@ -81,7 +96,10 @@ def get_or_create_game(igdb_game_id: int, history_create_msg: str) -> Game | Non
         game_year = dt.year
 
     new_game = Game.create(
-        name=igdb_game.name, igdb_id=igdb_game_id, release_year=game_year
+        name=igdb_game.name,
+        igdb_id=igdb_game_id,
+        igdb_url=igdb_game.url,
+        release_year=game_year,
     )
     new_game = cast(Game, new_game)
     new_game.add_history(history_create_msg)

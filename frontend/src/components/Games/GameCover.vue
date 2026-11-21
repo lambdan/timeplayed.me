@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import type { GameCoverData, SGDBGrid } from "../../api.models";
+import { computed, onMounted, ref, watch } from "vue";
 import { TimeplayedAPI } from "../../api.client";
-import { COVER_MAX_AGE, getCached, setCached } from "../../utils.cache";
+import type { GameCover } from "../../api.models";
 import { useNsfw } from "../../composables/useNsfw";
 
 const props = withDefaults(
@@ -11,8 +10,10 @@ const props = withDefaults(
     clickable?: boolean;
     maxHeight?: number;
     maxWidth?: number;
-    /** the viewer is playing it, so there's nothing to protect them from */
-    uncensored?: boolean;
+    /** shown small (like in lists), so a smaller version of the cover is enough */
+    thumbnail?: boolean;
+    /** where the cover is from, under it */
+    showCredits?: boolean;
   }>(),
   {
     clickable: true,
@@ -21,20 +22,62 @@ const props = withDefaults(
   },
 );
 
-const LOADING_COVER = `https://placehold.co/600x900?text=Loading...`;
-const clickable = ref(props.clickable);
-const coverData = ref<GameCoverData>();
-const nsfw = ref(false);
+const DISABLED_COVER = `https://placehold.co/600x900?text=Cover+art+disabled\\nfor+this+game`;
+const NO_COVER = `https://placehold.co/600x900?text=No+cover+art\\n...yet`;
+const game = ref<{ nsfw: boolean; cover_disabled: boolean }>();
 const { isCensored } = useNsfw();
 
-// censored here and not when loading, so opting in (or the user loading late) shows it right away
-const censored = computed(
-  () => !props.uncensored && isCensored({ nsfw: nsfw.value }),
+// the preview (a few pixels, shown blurred) right away. The full cover once we know the game,
+// and that it's not NSFW (or the viewer opted in to see NSFW)
+const previewUrl = computed(() =>
+  TimeplayedAPI.gameCoverUrl(props.gameId, "preview"),
 );
-const imageUrl = computed(() => coverData.value?.imageUrl ?? LOADING_COVER);
+const fullUrl = computed(() => {
+  if (!game.value || isCensored(game.value)) return undefined;
+  const version = props.thumbnail ? "thumbnail" : "display";
+  return TimeplayedAPI.gameCoverUrl(props.gameId, version);
+});
+// the preview is a 404 when the game has no cover
+const noCover = ref(false);
 
-// a share of the width so it's equally blurry at every size. starts strong, so it's
-// never shown sharp while loading, and is set from the real width once loaded
+// the full cover is loaded on the side, the preview is shown until it's done
+const fullLoaded = ref(false);
+watch(
+  fullUrl,
+  (url) => {
+    fullLoaded.value = false;
+    if (!url) return;
+    const full = new Image();
+    full.onload = () => {
+      if (fullUrl.value === url) fullLoaded.value = true;
+    };
+    full.onerror = () => {
+      if (fullUrl.value === url) noCover.value = true;
+    };
+    full.src = url;
+    // already in the browser's cache, then don't flash the preview
+    if (full.complete && full.naturalWidth > 0) fullLoaded.value = true;
+  },
+  { immediate: true },
+);
+
+const placeholder = computed(() => {
+  if (game.value?.cover_disabled) return DISABLED_COVER;
+  if (noCover.value) return NO_COVER;
+  return undefined;
+});
+const showingPreview = computed(() => !placeholder.value && !fullLoaded.value);
+const imageUrl = computed(() => {
+  if (placeholder.value) return placeholder.value;
+  if (showingPreview.value) return previewUrl.value;
+  return fullUrl.value!;
+});
+function onError() {
+  if (imageUrl.value === previewUrl.value) noCover.value = true;
+}
+
+// a share of the width so it's equally blurry at every size. starts strong, and is set
+// from the real width once the preview is loaded
 const BLUR_SHARE = 0.06;
 const blurPx = ref(20);
 function onLoad(event: Event) {
@@ -43,222 +86,81 @@ function onLoad(event: Event) {
     blurPx.value = img.clientWidth * BLUR_SHARE;
   }
 }
-// placeholders (no cover art etc) have nothing to hide
-const blurred = computed(
-  () => censored.value && coverData.value?.source !== "None",
-);
+// the preview is a few pixels large, so it's always shown blurred,
+// and stretched to the size the cover would have
+const blurred = showingPreview;
+function previewSize() {
+  if (props.maxHeight) return { height: props.maxHeight + "px" };
+  if (props.maxWidth) return { width: props.maxWidth + "px" };
+  // CroppedCover stretches it already
+  return {};
+}
 const imgStyle = computed(() => {
-  return {
+  const style = {
     maxHeight: props.maxHeight ? props.maxHeight + "px" : undefined,
     maxWidth: props.maxWidth ? props.maxWidth + "px" : undefined,
-    // scaled up a bit, so the blurry edges are cut off by the overflow-hidden wrapper
-    filter: blurred.value ? `blur(${blurPx.value}px)` : undefined,
-    transform: blurred.value ? "scale(1.15)" : undefined,
   };
-});
-const sourceUrl = computed(() =>
-  censored.value ? undefined : coverData.value?.sourceUrl,
-);
-const creditsText = computed(() => {
-  const data = coverData.value;
-  if (!data) return "...";
-  if (censored.value) return undefined;
-  return data.credits
-    ? `Source: ${data.source}. ${data.credits}`
-    : `Source: ${data.source}.`;
-});
-
-/** this is a clusterfuck */
-async function getGameCoverData(gameId: number): Promise<GameCoverData> {
-  const key = `gameCover_${gameId}_GameCoverData8`;
-
-  async function test(gameId: number): Promise<GameCoverData | undefined> {
-    function getFromSessionStorage() {
-      return getCached<GameCoverData>(key, COVER_MAX_AGE);
-    }
-
-    function fromGrid(grid: SGDBGrid): GameCoverData {
-      function ret(url: string): GameCoverData {
-        return {
-          imageUrl: url,
-          sourceUrl: `https://www.steamgriddb.com/grid/${grid.id}`,
-          source: "SteamGridDB",
-          credits: `Grid: ${grid.id}, Author: ${grid.author?.name}`,
-        };
-      }
-      return ret(grid.url!);
-    }
-
-    /** a source failing (like a grid removed from SGDB) shouldn't stop us from trying the next one */
-    async function orUndefined<T>(promise: Promise<T>): Promise<T | undefined> {
-      try {
-        return await promise;
-      } catch {
-        return undefined;
-      }
-    }
-
-    async function getBest(id: number) {
-      const best = await orUndefined(TimeplayedAPI.getBestSGDBGridForGame(id));
-      if (best) {
-        return fromGrid(best);
-      }
-      return null;
-    }
-
-    let inSS = getFromSessionStorage();
-    if (inSS) {
-      return inSS;
-    }
-
-    let waited = 0;
-    const delay = 10;
-    while (sessionStorage.getItem(key + "_loading") === "true") {
-      //console.log("Waiting for someone else to load the cover...");
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      inSS = getFromSessionStorage();
-      if (inSS) {
-        return inSS;
-      }
-      waited += delay;
-      if (waited >= 3000) {
-        return;
-      }
-    }
-
-    sessionStorage.setItem(key + "_loading", "true");
-
-    try {
-      const gameData = await TimeplayedAPI.getGame(gameId);
-
-      if (gameData.cover_disabled) {
-        return {
-          imageUrl: `https://placehold.co/600x900?text=Cover+art+disabled\\nfor+this+game`,
-          source: "None",
-        };
-      }
-
-      // direct image_url?
-      if (gameData.image_url) {
-        return {
-          imageUrl: gameData.image_url,
-          source: "Custom",
-        };
-      }
-
-      // igdb?
-      if (gameData.igdb_id) {
-        const igdbInfo = await orUndefined(
-          TimeplayedAPI.getIGDBGameInfo(gameData.igdb_id),
-        );
-        if (igdbInfo && igdbInfo.cover) {
-          const size = "t_cover_big";
-          const imageUrl = `https://images.igdb.com/igdb/image/upload/${size}/${igdbInfo.cover.image_id}.jpg`;
-          return {
-            imageUrl,
-            source: "IGDB",
-            sourceUrl: igdbInfo.url,
-            credits: `IGDB cover image ID: ${igdbInfo.cover.image_id}`,
-          };
-        }
-      }
-
-      // sgdb as fallback
-      if (gameData.sgdb_id) {
-        const best = await getBest(gameData.sgdb_id);
-        if (best) {
-          return best;
-        }
-      }
-
-      // steam, mostly for games that aren't on igdb
-      if (gameData.steam_id) {
-        const steam = await orUndefined(
-          TimeplayedAPI.getSteamCover(gameData.steam_id),
-        );
-        if (steam) {
-          return {
-            imageUrl: steam.url,
-            source: "Steam",
-            sourceUrl: steam.store_url,
-            credits: `Steam app ID: ${gameData.steam_id}`,
-          };
-        }
-      }
-
-      // parent?
-      if (gameData.parent_id) {
-        return getGameCoverData(gameData.parent_id);
-      }
-
-      return undefined;
-    } catch (err) {
-    } finally {
-      sessionStorage.setItem(key + "_loading", "false");
-    }
+  if (!blurred.value) {
+    return style;
   }
-  const coverData = await test(gameId);
-  if (coverData) {
-    setCached(key, coverData);
-    return coverData;
-  }
-  // fallback to placeholder
-  const size = "600x900";
   return {
-    imageUrl: `https://placehold.co/${size}?text=No+cover+art\\n...yet`,
-    source: "None",
+    ...style,
+    ...previewSize(),
+    filter: `blur(${blurPx.value}px)`,
+    // scaled up a bit, so the blurry edges are cut off by the overflow-hidden wrapper
+    transform: "scale(1.15)",
   };
+});
+// only IGDB's are credited, uploaded covers can be from anywhere
+const cover = ref<GameCover>();
+const credits = computed(() => {
+  if (!game.value || isCensored(game.value)) return undefined;
+  if (cover.value?.source !== "IGDB") return undefined;
+  return cover.value.credits ?? undefined;
+});
+
+async function load() {
+  noCover.value = false;
+  game.value = await TimeplayedAPI.getGame(props.gameId).catch(() => undefined);
+  if (props.showCredits) {
+    cover.value = await TimeplayedAPI.getGameCover(props.gameId).catch(
+      () => undefined,
+    );
+  }
 }
 
-onMounted(async () => {
-  // both at once, so an nsfw cover is never shown before the game says it's nsfw
-  const [game, cover] = await Promise.all([
-    TimeplayedAPI.getGame(props.gameId).catch(() => undefined),
-    getGameCoverData(props.gameId),
-  ]);
-  nsfw.value = !!game?.nsfw;
-  coverData.value = cover;
-});
+onMounted(load);
+watch(() => props.gameId, load);
 </script>
 
 <template>
-  <div
-    :class="{ 'overflow-hidden': blurred }"
-    style="display: inline-block; position: relative"
-  >
-    <template v-if="clickable">
-      <a :href="`/game/${props.gameId}`">
+  <div style="display: inline-block">
+    <div
+      :class="{ 'overflow-hidden': blurred }"
+      style="display: inline-block; position: relative"
+    >
+      <a v-if="clickable" :href="`/game/${props.gameId}`">
         <img
           v-show="imageUrl"
-          :title="creditsText"
           :src="`${imageUrl}`"
           class="img-fluid"
           :style="imgStyle"
           @load="onLoad"
+          @error="onError"
         />
       </a>
-    </template>
-    <template v-else-if="sourceUrl">
-      <a :href="sourceUrl">
-        <img
-          v-show="imageUrl"
-          :src="`${imageUrl}`"
-          :title="creditsText"
-          class="img-fluid"
-          :style="imgStyle"
-          @load="onLoad"
-        />
-      </a>
-    </template>
-    <template v-else>
       <img
+        v-else
         v-show="imageUrl"
         :src="`${imageUrl}`"
-        :title="creditsText"
         class="img-fluid"
         :style="imgStyle"
         @load="onLoad"
+        @error="onError"
       />
-    </template>
+    </div>
+    <div v-if="credits" class="small text-body-secondary" :title="credits">
+      Cover from IGDB
+    </div>
   </div>
 </template>

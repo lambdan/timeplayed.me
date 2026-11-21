@@ -6,13 +6,12 @@ import {
   type AdminGameDetails,
   type AdminGamePatch,
   type IGDBSearchResult,
-  type SGDBSearchResult,
 } from "../../admin.client";
-import { TimeplayedAPI } from "../../api.client";
 import AdminHistory from "./AdminHistory.vue";
 import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import AdminIGDBResults from "./AdminIGDBResults.vue";
+import AdminCoverInput from "./AdminCoverInput.vue";
 import GamePicker from "../Games/GamePicker.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
@@ -34,7 +33,6 @@ const message = ref("");
 const form = ref({
   name: "",
   release_year: "",
-  image_url: "",
   cover_disabled: false,
   nsfw: false,
   steam_id: "",
@@ -42,12 +40,9 @@ const form = ref({
   hidden: false,
 });
 const igdbId = ref("");
-const sgdbId = ref("");
 const newAlias = ref("");
 const igdbQuery = ref("");
-const sgdbQuery = ref("");
 const igdbResults = ref<IGDBSearchResult[]>();
-const sgdbResults = ref<SGDBSearchResult[]>();
 
 const targetId = ref<number | null>(null);
 const target = ref<AdminGame>();
@@ -67,7 +62,6 @@ function setGame(g: AdminGameDetails) {
   form.value = {
     name: g.name,
     release_year: g.release_year?.toString() ?? "",
-    image_url: g.image_url ?? "",
     cover_disabled: g.cover_disabled,
     nsfw: g.own_nsfw,
     steam_id: g.steam_id?.toString() ?? "",
@@ -75,7 +69,6 @@ function setGame(g: AdminGameDetails) {
     hidden: g.hidden,
   };
   igdbId.value = g.igdb_id?.toString() ?? "";
-  sgdbId.value = g.sgdb_id?.toString() ?? "";
 }
 
 /** so public pages in this tab show the change (child games show the parents cover) */
@@ -110,8 +103,6 @@ const patch = computed(() => {
   if (form.value.name !== g.name) changed.name = form.value.name;
   const year = toNumberOrNull(form.value.release_year);
   if (year !== g.release_year) changed.release_year = year;
-  const imageUrl = form.value.image_url.trim() || null;
-  if (imageUrl !== g.image_url) changed.image_url = imageUrl;
   if (form.value.cover_disabled !== g.cover_disabled)
     changed.cover_disabled = form.value.cover_disabled;
   if (form.value.nsfw !== g.own_nsfw) changed.nsfw = form.value.nsfw;
@@ -126,7 +117,6 @@ const patch = computed(() => {
 const FIELD_LABELS: Record<keyof AdminGamePatch, string> = {
   name: "name",
   release_year: "release year",
-  image_url: "image URL",
   cover_disabled: "cover disabled",
   nsfw: "NSFW",
   steam_id: "Steam ID",
@@ -181,7 +171,7 @@ async function refreshFromIGDB() {
   try {
     error.value = "";
     message.value = "";
-    const info = await TimeplayedAPI.getIGDBGameInfo(g.igdb_id);
+    const info = await AdminAPI.getIGDBGameInfo(g.igdb_id);
     if (!info) {
       error.value = "Game not found in IGDB";
       return;
@@ -207,9 +197,22 @@ function setIGDB(id: number | null) {
   igdbResults.value = undefined;
 }
 
-function setSGDB(id: number | null) {
-  run(() => AdminAPI.setSGDBId(props.gameId, id), "SGDB ID set");
-  sgdbResults.value = undefined;
+const uploading = ref(false);
+
+async function uploadCover(file: File) {
+  uploading.value = true;
+  await run(() => AdminAPI.uploadCover(props.gameId, file), "Cover uploaded");
+  uploading.value = false;
+}
+
+async function coverFromUrl(url: string) {
+  uploading.value = true;
+  await run(() => AdminAPI.coverFromUrl(props.gameId, url), "Cover set");
+  uploading.value = false;
+}
+
+function removeCover() {
+  run(() => AdminAPI.removeCover(props.gameId), "Uploaded cover removed");
 }
 
 async function searchIGDB() {
@@ -221,17 +224,8 @@ async function searchIGDB() {
   }
 }
 
-async function searchSGDB() {
-  try {
-    error.value = "";
-    sgdbResults.value = await AdminAPI.searchSGDB(sgdbQuery.value.trim());
-  } catch (e: any) {
-    error.value = e.message;
-  }
-}
-
 function year(ts: number | null) {
-  // IGDB and SGDB give seconds
+  // IGDB gives seconds
   return ts ? new Date(ts * 1000).getUTCFullYear() : "?";
 }
 
@@ -311,7 +305,6 @@ onMounted(async () => {
     setGame(await AdminAPI.getGame(props.gameId));
     // only on load, so saving doesn't overwrite what's been typed
     igdbQuery.value = game.value?.name ?? "";
-    sgdbQuery.value = game.value?.name ?? "";
   } catch (e: any) {
     error.value = e.message;
   }
@@ -404,16 +397,6 @@ onMounted(async () => {
                 }"
               />
             </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label small mb-0">
-                Image URL (overrides IGDB/SGDB/Steam cover)
-              </label>
-              <input
-                v-model="form.image_url"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'image_url' in patch }"
-              />
-            </div>
             <div class="col-6 col-md-3">
               <label class="form-label small mb-0">Steam ID</label>
               <input
@@ -472,6 +455,25 @@ onMounted(async () => {
             <AdminUnsaved :labels="unsavedLabels" @revert="revert" />
           </div>
 
+          <h6>Cover</h6>
+          <p class="small text-body-secondary mb-2">
+            <template v-if="game.uploaded_cover">
+              Uploaded, used instead of IGDB's cover.
+              <a href="#" class="link-danger" @click.prevent="removeCover"
+                >Remove</a
+              >
+            </template>
+            <template v-else>
+              From IGDB, or upload one to use instead.
+            </template>
+          </p>
+          <AdminCoverInput
+            class="mb-3"
+            :busy="uploading"
+            @file="uploadCover"
+            @url="coverFromUrl"
+          />
+
           <h6>IGDB</h6>
           <div class="input-group input-group-sm mb-2">
             <input
@@ -513,60 +515,6 @@ onMounted(async () => {
             class="small mb-2"
             @use="setIGDB"
           />
-
-          <h6>SGDB</h6>
-          <div class="input-group input-group-sm mb-2">
-            <input
-              v-model="sgdbId"
-              class="form-control"
-              type="number"
-              placeholder="SGDB ID (0 = not in SGDB)"
-            />
-            <button
-              class="btn btn-outline-primary"
-              @click="setSGDB(toNumberOrNull(sgdbId))"
-            >
-              Set
-            </button>
-          </div>
-          <div class="input-group input-group-sm mb-2">
-            <input
-              v-model="sgdbQuery"
-              class="form-control"
-              type="search"
-              placeholder="Search SGDB"
-              @keydown.enter.prevent="searchSGDB"
-            />
-            <button class="btn btn-outline-secondary" @click="searchSGDB">
-              Search
-            </button>
-          </div>
-          <ul v-if="sgdbResults" class="list-group list-group-flush small mb-2">
-            <li v-if="sgdbResults.length === 0" class="list-group-item px-0">
-              No results
-            </li>
-            <li
-              v-for="r in sgdbResults"
-              :key="r.id"
-              class="list-group-item px-0 d-flex align-items-center gap-2"
-            >
-              <span class="me-auto">
-                <a
-                  :href="`https://www.steamgriddb.com/game/${r.id}`"
-                  target="_blank"
-                  >{{ r.name }}</a
-                >
-                ({{ year(r.release_date) }}) - {{ r.id }}
-                <i v-if="r.verified" class="bi bi-patch-check-fill"></i>
-              </span>
-              <button
-                class="btn btn-outline-primary btn-sm"
-                @click="setSGDB(r.id)"
-              >
-                Use
-              </button>
-            </li>
-          </ul>
 
           <h6 class="mt-3">Aliases</h6>
           <div class="d-flex flex-wrap gap-1 mb-2">

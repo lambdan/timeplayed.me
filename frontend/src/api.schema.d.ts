@@ -438,6 +438,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/game/{game_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Game Cover
+         * @description What's available of a game's cover art (uploaded by an admin, or from IGDB): its versions, and where it's from. NSFW covers are given to everyone, the site decides whether to show them
+         */
+        get: operations["get_game_cover_game__game_id__cover_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game/{game_id}/cover/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Game Cover Image
+         * @description Redirects to that version of the cover (see /game/{game_id}/cover). 404 if the game has no cover (or it's disabled). NSFW covers are given to everyone, the site decides whether to show them
+         */
+        get: operations["get_game_cover_image_game__game_id__cover__version__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/game_igdb/{igdb_id}": {
         parameters: {
             query?: never;
@@ -659,20 +699,35 @@ export interface components {
              */
             pc_platform: string;
         };
+        /** API_CoverImage */
+        API_CoverImage: {
+            /**
+             * Url
+             * @description The file, it never changes so it can be cached for good
+             */
+            url: string;
+            /** Content Type */
+            content_type: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+        };
         /** API_Game */
         API_Game: {
             /** Id */
             id: number;
             /** Name */
             name: string;
-            /** Sgdb Id */
-            sgdb_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
+            /**
+             * Igdb Url
+             * @description The game's page on IGDB
+             */
+            igdb_url: string | null;
             /** Steam Id */
             steam_id: number | null;
-            /** Image Url */
-            image_url: string | null;
             /** Cover Disabled */
             cover_disabled: boolean;
             /**
@@ -693,20 +748,43 @@ export interface components {
             /** Parent Id */
             parent_id: number | null;
         };
+        /**
+         * API_GameCover
+         * @description what's available of the cover. Each version is also at /game/{game_id}/cover/{version}
+         */
+        API_GameCover: {
+            /**
+             * Source
+             * @description Disabled: turned off for this game. None: no cover found
+             * @enum {string}
+             */
+            source: "Uploaded" | "IGDB" | "Disabled" | "None";
+            /** Credits */
+            credits?: string | null;
+            /**
+             * Versions
+             * @description original: as uploaded or downloaded. display: what the game page shows. thumbnail: for small covers in lists. preview: a few pixels, to show blurred. Empty if there's no cover
+             * @default {}
+             */
+            versions: {
+                [key: string]: components["schemas"]["API_CoverImage"];
+            };
+        };
         /** API_GameWithStats */
         API_GameWithStats: {
             /** Id */
             id: number;
             /** Name */
             name: string;
-            /** Sgdb Id */
-            sgdb_id: number | null;
             /** Igdb Id */
             igdb_id: number | null;
+            /**
+             * Igdb Url
+             * @description The game's page on IGDB
+             */
+            igdb_url: string | null;
             /** Steam Id */
             steam_id: number | null;
-            /** Image Url */
-            image_url: string | null;
             /** Cover Disabled */
             cover_disabled: boolean;
             /**
@@ -1997,6 +2075,69 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["API_Game"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_game_cover_game__game_id__cover_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the game to filter by */
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_GameCover"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_game_cover_image_game__game_id__cover__version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version: "original" | "display" | "thumbnail" | "preview";
+                /** @description ID of the game to filter by */
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

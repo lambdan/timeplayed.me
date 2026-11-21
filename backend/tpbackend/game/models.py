@@ -1,6 +1,8 @@
+from typing import Literal
 from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
+from tpbackend.files.images import public_url
 
 
 class GameStats(BaseTotals):
@@ -11,10 +13,9 @@ class GameStats(BaseTotals):
 class API_Game(BaseModel):
     id: int
     name: str
-    sgdb_id: int | None
     igdb_id: int | None
+    igdb_url: str | None = Field(description="The game's page on IGDB")
     steam_id: int | None
-    image_url: str | None
     cover_disabled: bool
     nsfw: bool = Field(description="This game or a parent is NSFW")
     aliases: list[str]
@@ -29,10 +30,9 @@ class API_Game(BaseModel):
         return cls(
             id=game.id,
             name=game.name,
-            sgdb_id=game.sgdb_id,
             igdb_id=game.igdb_id,
+            igdb_url=game.get_igdb_url(),
             steam_id=game.steam_id,
-            image_url=game.image_url,
             cover_disabled=game.get_cover_disabled(),
             nsfw=game.get_nsfw(),
             aliases=game.aliases,
@@ -52,10 +52,9 @@ class API_GameWithStats(API_Game):
         return cls(
             id=game.id,
             name=game.name,
-            sgdb_id=game.sgdb_id,
             igdb_id=game.igdb_id,
+            igdb_url=game.get_igdb_url(),
             steam_id=game.steam_id,
-            image_url=game.image_url,
             cover_disabled=game.get_cover_disabled(),
             nsfw=game.get_nsfw(),
             aliases=game.aliases,
@@ -77,3 +76,41 @@ class API_GameWithStats(API_Game):
                 ),
             ),
         )
+
+
+CoverVersion = Literal["original", "display", "thumbnail", "preview"]
+
+
+class API_CoverImage(BaseModel):
+    url: str = Field(
+        description="The file, it never changes so it can be cached for good"
+    )
+    content_type: str
+    width: int
+    height: int
+
+    @classmethod
+    def from_image(cls, image):
+        return cls(
+            url=public_url(image),
+            content_type=image.get_content_type(),
+            width=image.get_width(),
+            height=image.get_height(),
+        )
+
+
+class API_GameCover(BaseModel):
+    """
+    what's available of the cover. Each version is also at /game/{game_id}/cover/{version}
+    """
+
+    source: Literal["Uploaded", "IGDB", "Disabled", "None"] = Field(
+        description="Disabled: turned off for this game. None: no cover found"
+    )
+    credits: str | None = None
+    versions: dict[CoverVersion, API_CoverImage] = Field(
+        default={},
+        description="original: as uploaded or downloaded. display: what the game page shows. "
+        "thumbnail: for small covers in lists. preview: a few pixels, to show blurred. "
+        "Empty if there's no cover",
+    )

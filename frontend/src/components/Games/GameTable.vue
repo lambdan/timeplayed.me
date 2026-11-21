@@ -222,7 +222,7 @@ onMounted(() => {
     <tbody class="align-middle">
       <tr v-for="game in _gamesData" :key="game.id">
         <td class="d-none d-md-table-cell" style="width: 70px">
-          <CroppedCover :gameId="game.id" style="width: 40px" />
+          <CroppedCover :gameId="game.id" thumbnail style="width: 40px" />
         </td>
         <td class="text-break">
           <a

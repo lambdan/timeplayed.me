@@ -289,13 +289,12 @@ class TestAdminGames:
     def test_patch(self, admin, make_game):
         _, client = admin
         parent = make_game("Parent")
-        game = make_game("Old name", image_url="http://x/old.png")
+        game = make_game("Old name")
         r = client.patch(
             f"/admin/game/{game.get_id()}",
             json={
                 "name": "New name",
                 "release_year": 2001,
-                "image_url": None,
                 "parent_id": parent.get_id(),
             },
         )
@@ -303,17 +302,16 @@ class TestAdminGames:
         game = Game.get_by_id(game.get_id())
         assert game.get_name() == "New name"
         assert game.get_release_year() == 2001
-        assert game.image_url is None
         assert game.get_parent() == parent
 
     def test_patch_unsent_fields_unchanged(self, admin, make_game):
         _, client = admin
-        game = make_game("Name", release_year=1999, image_url="http://x/a.png")
+        game = make_game("Name", release_year=1999, nsfw=True)
         r = client.patch(f"/admin/game/{game.get_id()}", json={"name": "Other"})
         assert r.status_code == 200, r.text
         game = Game.get_by_id(game.get_id())
         assert game.get_release_year() == 1999
-        assert game.image_url == "http://x/a.png"
+        assert game.nsfw is True
 
     def test_patch_name_and_year_conflict(self, admin, make_game):
         _, client = admin
@@ -381,9 +379,12 @@ class TestAdminGames:
 
     def test_clear_igdb_id(self, admin, make_game):
         _, client = admin
-        game = make_game(igdb_id=123)
+        game = make_game(igdb_id=123, igdb_url="https://www.igdb.com/games/x")
+        r = client.get(f"/game/{game.get_id()}")
+        assert r.json()["igdb_url"] == "https://www.igdb.com/games/x"
         r = client.put(f"/admin/game/{game.get_id()}/igdb", json={"igdb_id": None})
         assert r.status_code == 200, r.text
+        assert r.json()["igdb_url"] is None
         assert Game.get_by_id(game.get_id()).igdb_id is None
 
     def test_igdb_id_taken(self, admin, make_game):
@@ -393,14 +394,6 @@ class TestAdminGames:
         r = client.put(f"/admin/game/{game.get_id()}/igdb", json={"igdb_id": 123})
         assert r.status_code == 400
         assert "merge" in r.json()["detail"]
-
-    def test_sgdb_zero(self, admin, make_game):
-        _, client = admin
-        make_game("Other", sgdb_id=0)
-        game = make_game()
-        r = client.put(f"/admin/game/{game.get_id()}/sgdb", json={"sgdb_id": 0})
-        assert r.status_code == 200, r.text
-        assert Game.get_by_id(game.get_id()).sgdb_id == 0
 
     def test_aliases(self, admin, make_game):
         _, client = admin
@@ -481,21 +474,27 @@ class TestAdminGames:
         )
         assert r.json()[-1]["last_activity"] is None
 
-    def test_missing_cover_leaves_out_not_on_igdb(self, admin, make_game):
+    def test_missing_cover_leaves_out_not_on_igdb(self, admin, make_game, upload_cover):
         _, client = admin
         make_game("Has cover", igdb_id=1)
-        make_game("Has Steam ID", steam_id=1)
+        # Steam doesn't give covers
+        steam_only = make_game("Has Steam ID", steam_id=1)
         missing = make_game("No cover")
         not_on_igdb = make_game("Not on IGDB", igdb_id=0)
         # got a cover another way, not listed anymore
-        make_game("Not on IGDB, has image", igdb_id=0, image_url="http://x/a.png")
+        uploaded = make_game("Not on IGDB, uploaded", igdb_id=0)
+        upload_cover(uploaded)
+        # uses its parent's
+        make_game("Child", parent=uploaded)
         # nothing to look for
         make_game("Cover disabled", cover_disabled=True)
         make_game("Not on IGDB, cover disabled", igdb_id=0, cover_disabled=True)
 
         r = client.get("/admin/games?missing=cover")
         assert r.status_code == 200, r.text
-        assert [g["id"] for g in r.json()] == [missing.get_id()]
+        assert sorted(g["id"] for g in r.json()) == sorted(
+            [steam_only.get_id(), missing.get_id()]
+        )
 
         r = client.get("/admin/games?missing=not_on_igdb")
         assert r.status_code == 200, r.text

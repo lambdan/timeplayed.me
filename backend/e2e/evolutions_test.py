@@ -62,7 +62,7 @@ class TestEvolutions:
         scratch = PostgresqlDatabase(scratch_db, **connect_params())
         # just what the evolutions after 1 touch
         scratch.execute_sql(
-            "CREATE TABLE game (id integer, sgdb_grid_id integer, image_url varchar)"
+            "CREATE TABLE game (id integer PRIMARY KEY, sgdb_grid_id integer, sgdb_id integer, image_url varchar)"
         )
         scratch.execute_sql(
             "INSERT INTO game (id, image_url) VALUES (1, '-'), (2, 'http://x/a.png'), (3, NULL)"
@@ -87,9 +87,13 @@ class TestEvolutions:
         ]
         # 6.sql turned image_url '-' into cover_disabled
         games = scratch.execute_sql(
-            "SELECT image_url, cover_disabled FROM game ORDER BY id"
+            "SELECT cover_disabled FROM game ORDER BY id"
         ).fetchall()
-        assert games == [(None, True), ("http://x/a.png", False), (None, False)]
+        assert games == [(True,), (False,), (False,)]
+        # 9.sql dropped SteamGridDB and image urls
+        game_columns = [c.name for c in scratch.get_columns("game")]
+        assert "sgdb_id" not in game_columns
+        assert "image_url" not in game_columns
         # 7.sql, nothing is nsfw until marked
         assert (
             scratch.execute_sql("SELECT count(*) FROM game WHERE nsfw").fetchone()[0]

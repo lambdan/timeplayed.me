@@ -6,7 +6,15 @@ from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.igdb.controller import enabled as igdb_enabled
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
-from tpbackend.game.models import API_Game
+from tpbackend.game.models import (
+    API_CoverImage,
+    API_Game,
+    API_GameCover,
+    CoverVersion,
+)
+from tpbackend.game.cover import find_cover
+from tpbackend.files.images import public_url
+from tpbackend.game.select import GameSelect
 from tpbackend.api.responses import bad_request, not_found, service_unavailable
 import logging
 from fastapi import APIRouter, Path
@@ -215,6 +223,56 @@ def get_single_game(game_id=path_id("game")) -> API_Game:
     if len(x) == 0:
         return not_found("Game not found")
     return x[0]
+
+
+@router.get(
+    "/game/{game_id}/cover",
+    tags=["games"],
+    response_model=API_GameCover,
+    description="What's available of a game's cover art (uploaded by an admin, or from IGDB): "
+    "its versions, and where it's from. "
+    "NSFW covers are given to everyone, the site decides whether to show them",
+)
+def get_game_cover(game_id=path_id("game")) -> API_GameCover:
+    game = GameSelect.by_id(int(game_id))
+    if not game:
+        return not_found("Game not found")
+    cover = find_cover(game)
+    return API_GameCover(
+        source=cover.source,
+        credits=cover.credits,
+        versions={
+            name: API_CoverImage.from_image(image)
+            for name, image in cover.versions.items()
+        },
+    )
+
+
+@router.get(
+    "/game/{game_id}/cover/{version}",
+    tags=["games"],
+    response_class=RedirectResponse,
+    status_code=302,
+    description="Redirects to that version of the cover (see /game/{game_id}/cover). "
+    "404 if the game has no cover (or it's disabled). "
+    "NSFW covers are given to everyone, the site decides whether to show them",
+)
+def get_game_cover_image(
+    version: CoverVersion,
+    game_id=path_id("game"),
+):
+    game = GameSelect.by_id(int(game_id))
+    if not game:
+        return not_found("Game not found")
+    image = find_cover(game).versions.get(version)
+    if not image:
+        return not_found("Game has no cover")
+    # short, so a new cover shows up soon. The file itself is cached for good
+    return RedirectResponse(
+        public_url(image),
+        status_code=302,
+        headers={"Cache-Control": "public, max-age=300"},
+    )
 
 
 @router.get(

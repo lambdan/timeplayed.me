@@ -35,13 +35,14 @@ export type AdminActivityPatch = Partial<{
 export type AdminGame = Game & {
   hidden: boolean;
   own_nsfw: boolean;
+  // ImageFile id of the uploaded cover
+  uploaded_cover: string | null;
   activity_count: number;
   last_activity: number | null;
 };
 export type AdminGameDetails = AdminGame & { history: string[] };
 export type AdminGamePatch = Partial<{
   name: string;
-  image_url: string | null;
   cover_disabled: boolean;
   nsfw: boolean;
   release_year: number | null;
@@ -50,7 +51,7 @@ export type AdminGamePatch = Partial<{
   hidden: boolean;
 }>;
 export type AdminGameMissing =
-  "igdb" | "sgdb" | "cover" | "release_year" | "activity" | "not_on_igdb"; // igdb id 0
+  "igdb" | "cover" | "release_year" | "activity" | "not_on_igdb"; // igdb id 0
 
 export type AdminPlatform = Platform & {
   activity_count: number;
@@ -74,11 +75,12 @@ export type IGDBSearchResult = {
   url: string;
   cover: { id: number; image_id: string } | null;
 };
-export type SGDBSearchResult = {
+// the parts we use of IGDB_GameInfo in backend/tpbackend/igdb/models.py
+export type IGDBGameInfo = {
   id: number;
   name: string;
-  verified: boolean;
-  release_date: number;
+  first_release_date?: number | null;
+  url: string;
 };
 
 type Query = Record<string, string | number | undefined>;
@@ -88,7 +90,8 @@ const { token } = useApiToken();
 async function request<T>(
   method: string,
   path: string,
-  options: { query?: Query; body?: unknown } = {},
+  // file: sent as the body as it is, like an image upload
+  options: { query?: Query; body?: unknown; file?: File } = {},
 ): Promise<T> {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(options.query ?? {})) {
@@ -99,13 +102,21 @@ async function request<T>(
   const qs = params.toString();
   const url = `/api/admin${path}${qs ? "?" + qs : ""}`;
 
+  let body: BodyInit | undefined;
+  let contentType = "application/json";
+  if (options.file) {
+    body = options.file;
+    contentType = options.file.type || "application/octet-stream";
+  } else if (options.body !== undefined) {
+    body = JSON.stringify(options.body);
+  }
   const response = await fetch(url, {
     method,
     headers: {
       Authorization: `Bearer ${token.value}`,
-      "Content-Type": "application/json",
+      "Content-Type": contentType,
     },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body,
   });
   const data = await response.json().catch(() => null);
   if (!response.ok) {
@@ -245,10 +256,18 @@ export class AdminAPI {
     });
   }
 
-  static setSGDBId(id: number, sgdb_id: number | null) {
-    return request<AdminGameDetails>("PUT", `/game/${id}/sgdb`, {
-      body: { sgdb_id },
+  static uploadCover(id: number, file: File) {
+    return request<AdminGameDetails>("PUT", `/game/${id}/cover`, { file });
+  }
+
+  static coverFromUrl(id: number, url: string) {
+    return request<AdminGameDetails>("PUT", `/game/${id}/cover/url`, {
+      body: { url },
     });
+  }
+
+  static removeCover(id: number) {
+    return request<AdminGameDetails>("DELETE", `/game/${id}/cover`);
   }
 
   static addAlias(id: number, alias: string) {
@@ -285,8 +304,8 @@ export class AdminAPI {
     return request<IGDBSearchResult[]>("GET", "/igdb/search", { query: { q } });
   }
 
-  static searchSGDB(q: string) {
-    return request<SGDBSearchResult[]>("GET", "/sgdb/search", { query: { q } });
+  static getIGDBGameInfo(igdb_id: number) {
+    return request<IGDBGameInfo>("GET", `/igdb/game/${igdb_id}`);
   }
 
   /////////////// PLATFORMS //////////////////

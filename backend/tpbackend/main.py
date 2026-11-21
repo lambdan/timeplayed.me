@@ -6,7 +6,6 @@ from tpbackend.globals import (
     DISCORD_TOKEN,
     IGDB_ENABLED,
     OBLIVIONIS_ENABLED,
-    SGDB_ENABLED,
 )
 from tpbackend.storage import db, clean_loop
 from tpbackend import evolutions
@@ -29,7 +28,6 @@ def log_integrations():
         return "enabled" if enabled else "disabled"
 
     logger.info("Discord: %s (DISCORD_TOKEN)", status(DISCORD_ENABLED))
-    logger.info("SGDB: %s (SGDB_TOKEN)", status(SGDB_ENABLED))
     logger.info("IGDB: %s (IGDB_CLIENT_ID, IGDB_CLIENT_SECRET)", status(IGDB_ENABLED))
     logger.info("Oblivionis sync: %s (OBLIVIONIS_DB)", status(OBLIVIONIS_ENABLED))
 

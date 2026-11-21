@@ -330,14 +330,14 @@ watch(
         <div class="spinner-border" role="status"></div>
       </div>
 
-      <!-- playing right now, not censored since they know what they're playing -->
+      <!-- playing right now, the name isn't censored since they know what they're playing.
+           the cover still is, the backend only gives NSFW covers to users that opted in -->
       <template v-else-if="liveActivity">
         <div class="d-flex gap-3 align-items-center mb-4">
           <GameCover
             :gameId="liveActivity.game_id"
             :maxHeight="120"
             :clickable="false"
-            uncensored
           />
           <div style="min-width: 0">
             <a
@@ -492,6 +492,7 @@ watch(
             >
               <!-- not clickable, the whole row is the button -->
               <CroppedCover
+                thumbnail
                 :gameId="pg.gameId"
                 :clickable="false"
                 class="flex-shrink-0"

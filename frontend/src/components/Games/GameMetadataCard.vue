@@ -21,7 +21,12 @@ const { isCensored } = useNsfw();
           </tr>
           <tr v-if="game.igdb_id && !isCensored(game)">
             <th class="text-nowrap">IGDB</th>
-            <td>{{ game.igdb_id }}</td>
+            <td>
+              <a v-if="game.igdb_url" :href="game.igdb_url">{{
+                game.igdb_id
+              }}</a>
+              <template v-else>{{ game.igdb_id }}</template>
+            </td>
           </tr>
           <tr v-if="game.steam_id && !isCensored(game)">
             <th class="text-nowrap">Steam</th>
@@ -30,14 +35,6 @@ const { isCensored } = useNsfw();
                 :href="'https://store.steampowered.com/app/' + game.steam_id"
                 >{{ game.steam_id }}</a
               >
-            </td>
-          </tr>
-          <tr v-if="game.sgdb_id && !isCensored(game)">
-            <th class="text-nowrap">SteamGridDB</th>
-            <td>
-              <a :href="'https://www.steamgriddb.com/game/' + game.sgdb_id">{{
-                game.sgdb_id
-              }}</a>
             </td>
           </tr>
           <tr v-if="game.aliases.length > 0">

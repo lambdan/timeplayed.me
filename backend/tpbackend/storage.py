@@ -412,10 +412,10 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     """
 
     name = CharField()
-    sgdb_id = IntegerField(null=True, default=None)
     igdb_id = IntegerField(null=True, default=None)
+    # the game's page on IGDB, set when IGDB is asked about the game (own, not the parent's)
+    igdb_url = TextField(null=True, default=None)
     steam_id = IntegerField(null=True, default=None)
-    image_url = CharField(null=True, default=None)
     cover_disabled = BooleanField(default=False)
     nsfw = BooleanField(default=False)
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
@@ -426,14 +426,15 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         # turned off counts too, there is nothing to look for
         if self.get_cover_disabled():
             return True
-        if self.get_image_url():
+        if self.get_uploaded_cover():
             return True
-        if self.get_sgdb_id():
-            return True
+        # 0 is "not on IGDB", the IGDB ID is the parent's if this game has none
         if self.get_igdb_id():
             return True
-        if self.get_steam_id():
-            return True
+        # the parent's uploaded cover is used too
+        parent = self.get_parent()
+        if parent:
+            return parent.has_cover_art()
         return False
 
     def build_search(self) -> str:
@@ -458,23 +459,6 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         self.name = cast(CharField, name)
         self.add_history(f"Name changed from '{old_name}' to '{name}'")
 
-    def get_sgdb_id(self) -> int | None:
-        """
-        Get SGDB ID (or parents)
-        """
-        if self.sgdb_id is not None:
-            return cast(int, self.sgdb_id)
-        # try parent
-        parent = self.get_parent()
-        if parent:
-            return parent.get_sgdb_id()
-        return None
-
-    def set_sgdb_id(self, sgdb_id: int | None):
-        old_sgdb_id = self.get_sgdb_id()
-        self.sgdb_id = cast(IntegerField, sgdb_id)
-        self.add_history(f"SGDB ID changed from '{old_sgdb_id}' to '{sgdb_id}'")
-
     def get_igdb_id(self) -> int | None:
         """
         Get IGDB ID (or parents)
@@ -486,9 +470,13 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
             return parent.get_igdb_id()
         return None
 
-    def set_igdb_id(self, igdb_id: int | None):
+    def get_igdb_url(self) -> str | None:
+        return cast(str | None, self.igdb_url)
+
+    def set_igdb_id(self, igdb_id: int | None, igdb_url: str | None = None):
         old_igdb_id = self.get_igdb_id()
         self.igdb_id = cast(IntegerField, igdb_id)
+        self.igdb_url = cast(TextField, igdb_url)
         self.add_history(f"IGDB ID changed from '{old_igdb_id}' to '{igdb_id}'")
 
     def get_steam_id(self) -> int | None:
@@ -504,21 +492,26 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         self.steam_id = cast(IntegerField, steam_id)
         self.add_history(f"Steam ID changed from '{old_steam_id}' to '{steam_id}'")
 
-    def get_image_url(self) -> str | None:
-        """
-        Get image url (or parents)
-        """
-        if self.image_url:
-            return cast(str, self.image_url)
-        parent = self.get_parent()
-        if parent:
-            return parent.get_image_url()
+    def get_cover(self) -> "GameCover | None":
+        return GameCover.get_or_none(GameCover.game == self.get_id())
+
+    def get_uploaded_cover(self) -> ImageFile | None:
+        cover = self.get_cover()
+        if cover and cover.get_source() == GameCover.UPLOAD:
+            return cover.get_image()
         return None
 
-    def set_image_url(self, image_url: str | None):
-        old_image_url = self.get_image_url()
-        self.image_url = cast(CharField, image_url)
-        self.add_history(f"Image URL changed from '{old_image_url}' to '{image_url}'")
+    def set_uploaded_cover(self, image: ImageFile | None):
+        """
+        replaces the game's cover (an IGDB one too), None removes it so IGDB's is used again.
+        the cover is written right away, the history when the game is saved
+        """
+        GameCover.delete().where(GameCover.game == self.get_id()).execute()
+        if image:
+            GameCover.create(game=self.get_id(), image=image, source=GameCover.UPLOAD)
+            self.add_history(f"Cover uploaded ({image.get_id()})")
+        else:
+            self.add_history("Uploaded cover removed")
 
     def get_cover_disabled(self) -> bool:
         return cast(bool, self.cover_disabled)
@@ -647,6 +640,37 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
             .first()
         )
         return exists is not None
+
+
+class GameCover(BaseModel):
+    """
+    a game's cover, one per game: uploaded by an admin, or IGDB's (stored the first time it's
+    looked up, see tpbackend/game/cover.py). The image's smaller versions point to the image
+    """
+
+    UPLOAD = "upload"
+    IGDB = "igdb"
+
+    game = ForeignKeyField(
+        Game, primary_key=True, on_delete="CASCADE", column_name="game_id"
+    )
+    image = ForeignKeyField(ImageFile, on_delete="CASCADE", column_name="image_id")
+    source = CharField()
+    # for IGDB covers: the IGDB ID it's the cover of
+    igdb_id = IntegerField(null=True)
+    created = DateTimeField(default=lambda: now())
+
+    class Meta:
+        table_name = "game_cover"
+
+    def get_image(self) -> ImageFile:
+        return cast(ImageFile, self.image)
+
+    def get_source(self) -> str:
+        return cast(str, self.source)
+
+    def get_igdb_id(self) -> int | None:
+        return cast(int | None, self.igdb_id)
 
 
 class Activity(IdMixin, HistoryMixin, HiddenMixin):

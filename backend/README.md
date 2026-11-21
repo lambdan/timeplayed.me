@@ -12,17 +12,16 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 | DB_PASSWORD        |            |                                                                                                                        |
 | TIMEPLAYED_DB      | storage_v2 | DB that this thing is using                                                                                            |
 | DISCORD_TOKEN      |            | Discord bot is enabled if set                                                                                          |
-| SGDB_TOKEN         |            | SteamGridDB is enabled if set                                                                                          |
 | IGDB_CLIENT_ID     |            | IGDB is enabled if both client ID and secret are set                                                                   |
 | IGDB_CLIENT_SECRET |            |                                                                                                                        |
 | OBLIVIONIS_DB      |            | DB that oblivionis is using. Oblivionis sync is enabled if set                                                         |
 | TIMEPLAYED_URL     |            | Base URL of the site (e.g. https://timeplayed.me). Used for links in bot commands, canonical links and the sitemap. If empty (or `http://localhost`), links use http://localhost and there is no sitemap or canonical links. |
-| FILES_DIR          | files      | Where files (like images) are kept. Put it on a volume so they survive restarts |
+| FILES_DIR          | files      | Where covers are kept. Put it on a volume and back it up: uploaded covers are only kept here. IGDB covers are downloaded again if they are lost |
 
 # Tests
 
 - `make test`: unit tests in `tpbackend/` (`*_test.py`), no dependencies.
-- `make e2e`: e2e tests in `e2e/`. Spins up a fresh postgres and the backend (without Discord, SGDB and IGDB) in docker, runs the tests against the API, then tears everything down. Use `make e2e-up`, `pytest e2e` and `make e2e-down` to iterate without restarting every time.
+- `make e2e`: e2e tests in `e2e/`. Spins up a fresh postgres and the backend (without Discord and IGDB) in docker, runs the tests against the API, then tears everything down. Use `make e2e-up`, `pytest e2e` and `make e2e-down` to iterate without restarting every time.
 
 # Evolutions
 

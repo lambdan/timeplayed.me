@@ -4,7 +4,7 @@
 const MINUTE = 60 * 1000;
 /** games, users, platforms */
 export const DATA_MAX_AGE = 2 * MINUTE;
-/** covers come from IGDB/SGDB (the backend caches IGDB for an hour too), so they're kept longer */
+/** covers rarely change, so they're kept longer */
 export const COVER_MAX_AGE = 60 * MINUTE;
 
 interface Entry<T> {
@@ -49,6 +49,12 @@ function clearCached(prefix: string) {
 export function clearCachedGame(gameId: number) {
   sessionStorage.removeItem(`api_getGame_${gameId}`);
   clearCached(`gameCover_${gameId}_`);
+  // the browser caches the cover images, a new URL gets the new cover right away
+  setCached(`coverChanged_${gameId}`, Date.now());
+}
+
+export function coverChanged(gameId: number): number | null {
+  return getCached<number>(`coverChanged_${gameId}`, COVER_MAX_AGE);
 }
 
 export function clearCachedPlatform(platformId: number) {

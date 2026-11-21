@@ -124,6 +124,7 @@ function hoverRow(i: number | undefined) {
               <td>
                 <!-- the cover, long names made the table too wide -->
                 <CroppedCover
+                  thumbnail
                   :gameId="p.top_game_id"
                   class="mx-auto"
                   style="width: 32px"

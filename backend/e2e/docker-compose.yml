@@ -1,5 +1,5 @@
 # Throwaway environment for e2e tests: fresh postgres + backend.
-# Discord, SGDB and IGDB are disabled by not giving them any credentials.
+# Discord and IGDB are disabled by not giving them any credentials.
 # Use `make e2e` from backend/ rather than running this directly.
 name: timeplayed-e2e
 

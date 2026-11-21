@@ -26,6 +26,20 @@ def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)) 
 
 AuthenticatedUser = Annotated[User, Depends(authenticate)]
 
+optional_security = HTTPBearer(auto_error=False)
+
+
+def authenticate_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+) -> User | None:
+    """for routes that work without logging in, but show more to some users"""
+    if not credentials:
+        return None
+    return lookup_user(credentials.credentials)
+
+
+OptionalUser = Annotated[User | None, Depends(authenticate_optional)]
+
 
 def current_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),

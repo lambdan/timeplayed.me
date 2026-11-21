@@ -123,6 +123,7 @@ function hasChildRows(game: GameWithStats) {
           <!-- same width as the button, so covers line up -->
           <span v-else class="flex-shrink-0" style="width: 1em"></span>
           <CroppedCover
+            thumbnail
             :gameId="game.id"
             class="flex-shrink-0"
             :class="{ 'opacity-50': expanded.has(game.id) }"

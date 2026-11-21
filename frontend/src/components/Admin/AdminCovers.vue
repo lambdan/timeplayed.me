@@ -11,6 +11,7 @@ import { formatDuration, iso8601Date } from "../../utils";
 import { clearCachedGame } from "../../utils.cache";
 import PlatformBadge from "../Badges/PlatformBadge.vue";
 import AdminIGDBResults from "./AdminIGDBResults.vue";
+import AdminCoverInput from "./AdminCoverInput.vue";
 import GamePicker from "../Games/GamePicker.vue";
 
 const PAGE_SIZE = 100;
@@ -38,7 +39,6 @@ const parentGuess = computed(
 );
 const parentId = ref<number | null>(null);
 const parent = ref<AdminGame>();
-const imageUrl = ref("");
 
 const remaining = computed(() =>
   hasMore.value ? `${queue.value.length}+` : `${queue.value.length}`,
@@ -67,7 +67,6 @@ async function loadGame(g: AdminGame | undefined) {
   mergeArmed.value = undefined;
   players.value = [];
   platforms.value = [];
-  imageUrl.value = "";
   igdbSearch++;
   searching.value = false;
   if (!g) return;
@@ -165,10 +164,12 @@ const typedIGDBId = computed(() => {
   return /^\d+$/.test(q) ? parseInt(q) : null;
 });
 
-function setImageUrl() {
-  const url = imageUrl.value.trim();
-  if (!url) return;
-  resolve((id) => AdminAPI.patchGame(id, { image_url: url }), "image set");
+function uploadCover(file: File) {
+  resolve((id) => AdminAPI.uploadCover(id, file), "cover uploaded");
+}
+
+function coverFromUrl(url: string) {
+  resolve((id) => AdminAPI.coverFromUrl(id, url), "cover set");
 }
 
 function skip() {
@@ -177,13 +178,7 @@ function skip() {
 }
 
 function hasCover(g: AdminGame) {
-  return !!(
-    g.igdb_id ||
-    g.sgdb_id ||
-    g.steam_id ||
-    g.image_url ||
-    g.cover_disabled
-  );
+  return !!(g.uploaded_cover || g.igdb_id || g.cover_disabled);
 }
 
 watch(game, (g) => loadGame(g));
@@ -364,23 +359,8 @@ onMounted(loadQueue);
           </button>
         </div>
 
-        <h6>Image URL</h6>
-        <div class="input-group">
-          <input
-            v-model="imageUrl"
-            class="form-control"
-            type="url"
-            placeholder="https://..."
-            @keydown.enter.prevent="setImageUrl"
-          />
-          <button
-            class="btn btn-outline-primary"
-            :disabled="busy || !imageUrl.trim()"
-            @click="setImageUrl"
-          >
-            Set
-          </button>
-        </div>
+        <h6>Upload a cover</h6>
+        <AdminCoverInput :busy="busy" @file="uploadCover" @url="coverFromUrl" />
       </div>
     </div>
   </div>

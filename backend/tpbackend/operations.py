@@ -136,7 +136,7 @@ def add_session(
 
 def adopt_name(game: Game, external_name: str, source: str) -> tuple[str, bool]:
     """
-    For matching our games with IGDB/SGDB games:
+    For matching our games with IGDB games:
     if the names differ, take the external name and keep ours as alias.
     returns (report, conflict), conflict means another game already has that name so we didn't rename
     """
@@ -206,14 +206,17 @@ def merge_games(source: Game, target: Game) -> int:
             target.set_steam_id(steam_id)  # type: ignore
         # the setters add history, so it's visible what came from the merge
         for field, setter in [
-            ("sgdb_id", target.set_sgdb_id),
-            ("image_url", target.set_image_url),
             ("release_year", target.set_release_year),
             # merging shouldn't uncensor anything
             ("nsfw", target.set_nsfw),
         ]:
             if getattr(source, field) and not getattr(target, field):
                 setter(getattr(source, field))
+
+        # an uploaded cover is kept, unless target has its own
+        uploaded = source.get_uploaded_cover()
+        if uploaded and not target.get_uploaded_cover():
+            target.set_uploaded_cover(uploaded)
 
         for alias in merge_aliases(source, target):
             target.add_alias(alias)

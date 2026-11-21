@@ -99,16 +99,25 @@ class Admin_ActivityDetails(Admin_Activity):
         )
 
 
+def uploaded_cover_id(game: Game) -> str | None:
+    image = game.get_uploaded_cover()
+    if image:
+        return image.get_id()
+    return None
+
+
 class Admin_Game(API_Game):
     hidden: bool
     own_nsfw: bool = Field(description="Set on this game, not inherited from a parent")
     activity_count: int
     last_activity: int | None
+    uploaded_cover: str | None = Field(description="ImageFile id of the uploaded cover")
 
     @classmethod
     def from_game(cls, game: Game):
         return cls(
             **API_Game.from_game(game).model_dump(),
+            uploaded_cover=uploaded_cover_id(game),
             # own hidden, not inherited from parent, that's what can be toggled
             hidden=bool(game.hidden),
             own_nsfw=bool(game.nsfw),
@@ -207,7 +216,6 @@ class Admin_PatchGame(BaseModel):
     """only fields that are sent are changed, null clears"""
 
     name: str | None = None
-    image_url: str | None = None
     cover_disabled: bool | None = None
     nsfw: bool | None = None
     release_year: int | None = None
@@ -216,12 +224,12 @@ class Admin_PatchGame(BaseModel):
     hidden: bool | None = None
 
 
+class Admin_CoverUrl(BaseModel):
+    url: str
+
+
 class Admin_SetIGDB(BaseModel):
     igdb_id: int | None
-
-
-class Admin_SetSGDB(BaseModel):
-    sgdb_id: int | None
 
 
 class Admin_Alias(BaseModel):

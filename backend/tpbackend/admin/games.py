@@ -1,7 +1,8 @@
 import logging
 from typing import Literal, cast
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
+from fastapi.concurrency import run_in_threadpool
 
 from tpbackend.admin.models import (
     Admin_Alias,
@@ -13,7 +14,7 @@ from tpbackend.admin.models import (
     Admin_PatchGame,
     Admin_PostGame,
     Admin_SetIGDB,
-    Admin_SetSGDB,
+    Admin_CoverUrl,
     activity_count,
     by_last_activity,
 )
@@ -23,23 +24,22 @@ from tpbackend.api.responses import bad_request, not_found, service_unavailable
 from tpbackend.game.query import GameQuery
 from tpbackend.game.select import GameSelect
 from tpbackend.igdb import controller as igdb
-from tpbackend.igdb.models import IGDB_SearchResult
+from tpbackend.igdb.models import IGDB_GameInfo, IGDB_SearchResult
 from tpbackend.operations import (
     adopt_name,
     merge_aliases,
     merge_games,
     sync_activities_hidden,
 )
-from tpbackend.sgdb import controller as sgdb
-from tpbackend.sgdb.models import SGDB_Game
-from tpbackend.storage import Activity, Game, LiveActivity
+from tpbackend.files.images import get_image, get_versions, store_upload
+from tpbackend.storage import Activity, Game, ImageFile, LiveActivity
 from tpbackend.utils2 import clamp, ts_to_dt
 
 logger = logging.getLogger("admin-games")
 router = APIRouter()
 
 # not_on_igdb: igdb id 0 and no cover, looked for on igdb but not there (yet)
-Missing = Literal["igdb", "sgdb", "cover", "release_year", "activity", "not_on_igdb"]
+Missing = Literal["igdb", "cover", "release_year", "activity", "not_on_igdb"]
 
 
 def __get_game(game_id: int) -> Game:
@@ -52,8 +52,6 @@ def __get_game(game_id: int) -> Game:
 def __is_missing(game: Game, missing: Missing) -> bool:
     if missing == "igdb":
         return game.get_igdb_id() is None
-    if missing == "sgdb":
-        return game.get_sgdb_id() is None
     if missing == "cover":
         # games not on igdb are left out, they're a list of their own
         return not game.has_cover_art() and game.igdb_id != 0
@@ -137,11 +135,6 @@ def patch_game(
     if year != game.get_release_year():
         game.set_release_year(year)
 
-    if "image_url" in sent:
-        image_url = (data.image_url or "").strip() or None
-        if image_url != game.image_url:
-            game.set_image_url(image_url)
-
     if "cover_disabled" in sent:
         if data.cover_disabled is None:
             return bad_request("cover_disabled cannot be null")
@@ -213,40 +206,7 @@ def set_igdb_id(game_id: int, data: Admin_SetIGDB) -> Admin_GameDetails:
         year = ts_to_dt(igdb_game.first_release_date).year
         if year != game.get_release_year():
             game.set_release_year(year)
-    game.set_igdb_id(igdb_id)
-    game.save()
-    return Admin_GameDetails.from_game(game)
-
-
-@router.put("/game/{game_id}/sgdb", response_model=Admin_GameDetails)
-def set_sgdb_id(game_id: int, data: Admin_SetSGDB) -> Admin_GameDetails:
-    game = __get_game(game_id)
-    sgdb_id = data.sgdb_id
-
-    # 0 is for games that are not in SGDB, many games can have that
-    if sgdb_id == 0 or sgdb_id is None:
-        game.set_sgdb_id(sgdb_id)
-        game.save()
-        return Admin_GameDetails.from_game(game)
-
-    other = Game.get_or_none(Game.sgdb_id == sgdb_id)  # type: ignore
-    if other and other.get_id() != game.get_id():
-        return bad_request(
-            f"SGDB ID already belongs to '{other.get_label()}' (id: {other.get_id()})"
-        )
-
-    sgdb_game = sgdb.get_game_by_id(sgdb_id)
-    if not sgdb_game or not sgdb_game.name:
-        return not_found("Game not found in SGDB (or SGDB is not enabled)")
-
-    report, conflict = adopt_name(game, sgdb_game.name, "SGDB")
-    if conflict:
-        return bad_request(report)
-    if sgdb_game.release_date:
-        year = sgdb_game.release_date.year
-        if year != game.get_release_year():
-            game.set_release_year(year)
-    game.set_sgdb_id(sgdb_id)
+    game.set_igdb_id(igdb_id, igdb_game.url)
     game.save()
     return Admin_GameDetails.from_game(game)
 
@@ -310,6 +270,46 @@ def merge_game(game_id: int, data: Admin_MergeGame) -> Admin_Moved:
     return Admin_Moved(moved=moved)
 
 
+def __set_uploaded_cover(game_id: int, image: ImageFile | None) -> Admin_GameDetails:
+    game = __get_game(game_id)
+    game.set_uploaded_cover(image)
+    game.save()
+    return Admin_GameDetails.from_game(game)
+
+
+def __upload_cover(game_id: int, data: bytes) -> Admin_GameDetails:
+    __get_game(game_id)
+    try:
+        image = store_upload(data)
+    except Exception as e:
+        logger.warning("Upload for game %d is not an image we take: %s", game_id, e)
+        return bad_request("Not an image (JPEG, PNG, WebP or GIF, at most 10 MB)")
+    return __set_uploaded_cover(game_id, image)
+
+
+@router.put("/game/{game_id}/cover", response_model=Admin_GameDetails)
+async def upload_cover(game_id: int, request: Request) -> Admin_GameDetails:
+    """the image is the request body, as is"""
+    data = await request.body()
+    # storing and making the versions is slow, keep it off the event loop
+    return await run_in_threadpool(__upload_cover, game_id, data)
+
+
+@router.put("/game/{game_id}/cover/url", response_model=Admin_GameDetails)
+def cover_from_url(game_id: int, data: Admin_CoverUrl) -> Admin_GameDetails:
+    __get_game(game_id)
+    image = get_image(data.url.strip())
+    if not image:
+        return bad_request("Could not download an image from that URL")
+    get_versions(image)
+    return __set_uploaded_cover(game_id, image)
+
+
+@router.delete("/game/{game_id}/cover", response_model=Admin_GameDetails)
+def remove_cover(game_id: int) -> Admin_GameDetails:
+    return __set_uploaded_cover(game_id, None)
+
+
 @router.get("/igdb/search", response_model=list[IGDB_SearchResult])
 def search_igdb(q: str = Query()) -> list[IGDB_SearchResult]:
     if not igdb.enabled():
@@ -318,8 +318,12 @@ def search_igdb(q: str = Query()) -> list[IGDB_SearchResult]:
     return igdb.search_game(q.replace('"', ""))
 
 
-@router.get("/sgdb/search", response_model=list[SGDB_Game])
-def search_sgdb(q: str = Query()) -> list[SGDB_Game]:
-    if not sgdb.available():
-        return service_unavailable("SGDB is not enabled")
-    return sgdb.search(q)
+@router.get("/igdb/game/{igdb_id}", response_model=IGDB_GameInfo)
+def igdb_game_info(igdb_id: int) -> IGDB_GameInfo:
+    """for refreshing a game's name and release year from IGDB"""
+    if not igdb.enabled():
+        return service_unavailable("IGDB is not enabled")
+    info = igdb.get_game_info(igdb_id)
+    if not info:
+        return not_found("Game not found on IGDB")
+    return info

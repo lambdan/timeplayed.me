@@ -14,10 +14,12 @@ os.environ.setdefault("OBLIVIONIS_DB", "oblivionis")
 os.environ.setdefault("TIMEPLAYED_DB", "storage_v2")
 os.environ.setdefault("CACHE_ENABLED", "false")
 
+import io
 from typing import cast
 
 import pytest
 import requests
+from PIL import Image
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 from tpbackend.storage import Game, Platform, User
@@ -35,6 +37,7 @@ TIMEPLAYED_TABLES = [
     "game",
     '"user"',
     "platform",
+    "game_cover",
     "imagefile",
 ]
 OBLIVIONIS_TABLES = ["activity", "game", '"user"']
@@ -118,6 +121,28 @@ def make_game():
         return cast(Game, Game.create(name=name, **kwargs))
 
     return _make
+
+
+def png_bytes(size=(600, 900), color=(200, 50, 50)) -> bytes:
+    out = io.BytesIO()
+    Image.new("RGB", size, color).save(out, format="PNG")
+    return out.getvalue()
+
+
+@pytest.fixture
+def upload_cover(make_user):
+    """uploads a cover for a game through the admin API"""
+    _, admin = make_user(name="cover uploader", permissions=["admin"])
+
+    def _upload(game: Game, data: bytes | None = None) -> requests.Response:
+        r = admin.put(
+            f"/admin/game/{game.get_id()}/cover",
+            data=data or png_bytes(),
+            headers={"Content-Type": "application/octet-stream"},
+        )
+        return r
+
+    return _upload
 
 
 @pytest.fixture

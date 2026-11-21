@@ -7,9 +7,6 @@ from tpbackend.user.routes import router as user_router
 from tpbackend.game.routes import router as game_router
 from tpbackend.platform.routes import router as platform_router
 from tpbackend.discord.routes import router as discord_router
-from tpbackend.sgdb.routes import router as sgdb_router
-from tpbackend.steam.routes import router as steam_router
-from tpbackend.igdb.routes import router as igdb_router
 from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
 from tpbackend.admin.routes import router as admin_router
@@ -40,10 +37,6 @@ def create_app():
     # only for our own frontend's charts, not part of the public API
     api_router.include_router(charts_router, prefix="/charts", include_in_schema=False)
     api_router.include_router(discord_router, prefix="/discord")
-    # cover lookups for our own frontend, not part of the public API
-    api_router.include_router(sgdb_router, prefix="/sgdb", include_in_schema=False)
-    api_router.include_router(igdb_router, prefix="/igdb", include_in_schema=False)
-    api_router.include_router(steam_router, prefix="/steam", include_in_schema=False)
     # files we keep (like covers), linked to from other responses
     api_router.include_router(files_router, prefix="/files", include_in_schema=False)
     api_router.include_router(admin_router, prefix="/admin")

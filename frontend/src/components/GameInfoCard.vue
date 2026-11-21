@@ -44,7 +44,12 @@ onMounted(async () => {
     <div class="card-body">
       <div class="row g-3">
         <div class="col-12 col-sm-auto text-center">
-          <GameCover :gameId="game.id" :clickable="false" :maxHeight="300" />
+          <GameCover
+            :gameId="game.id"
+            :clickable="false"
+            :maxHeight="300"
+            :showCredits="true"
+          />
         </div>
         <div class="col">
           <table class="table table-sm table-hover mb-0">

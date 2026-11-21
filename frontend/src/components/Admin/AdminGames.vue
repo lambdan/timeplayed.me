@@ -111,7 +111,6 @@ onMounted(() => fetchGames());
         <select v-model="missing" class="form-select">
           <option value="">All games</option>
           <option value="igdb">Missing IGDB ID</option>
-          <option value="sgdb">Missing SGDB ID</option>
           <option value="cover">Missing cover</option>
           <option value="release_year">Missing release year</option>
           <option value="activity">Without activity</option>
@@ -138,7 +137,6 @@ onMounted(() => fetchGames());
             <th>Name</th>
             <th>Year</th>
             <th class="d-none d-md-table-cell">IGDB</th>
-            <th class="d-none d-md-table-cell">SGDB</th>
             <th class="d-none d-lg-table-cell">Steam</th>
             <th class="d-none d-lg-table-cell">Parent</th>
             <th class="d-none d-md-table-cell">Last played</th>
@@ -160,7 +158,6 @@ onMounted(() => fetchGames());
             </td>
             <td>{{ g.release_year ?? "-" }}</td>
             <td class="d-none d-md-table-cell">{{ g.igdb_id ?? "-" }}</td>
-            <td class="d-none d-md-table-cell">{{ g.sgdb_id ?? "-" }}</td>
             <td class="d-none d-lg-table-cell">{{ g.steam_id ?? "-" }}</td>
             <td class="d-none d-lg-table-cell">{{ g.parent_id ?? "-" }}</td>
             <td class="d-none d-md-table-cell text-nowrap">
