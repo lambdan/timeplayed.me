@@ -2,7 +2,7 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 
 # Rules
 
-- Never commit automatically
+- Never commit automatically, unless user has given you the OK to do so for this session
 - Code should always be formatted (see Commands below)
 - All tests should always pass
 - Any new feature should have a test added if possible
@@ -21,7 +21,8 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
     - Python ternaries (`x if cond else y`) are OK when both values are simple and the condition is short, so it reads like a sentence: `state = "hidden" if game.get_hidden() else "visible"`
     - Otherwise use a normal `if` block, e.g. when the values are real expressions (`parts[1].strip().lower() if len(parts) > 1 else ""`), ternaries are chained, or the ternary is inside an f-string or function call
     - JS/TS ternaries (`a ? b : c`) are fine
-- Do small concise changes per "commit", don't do 4 things in 1 commit
+- API routes should be intuitive and easy to use from code: a plain resource route returns JSON of what's there, and sub-resources get their own path instead of query flags
+    - Example: `GET /game/{id}/cover` lists the cover's source, credits and versions; `GET /game/{id}/cover/{version}` redirects to that image, so it can go straight into an `<img src>`
 
 # Workflow
 
@@ -38,7 +39,7 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
     - `tpbackend/operations.py`: shared logic. `add_session` is the single path for creating activities (API, live tracking, Oblivionis sync), with overlap checks
     - `tpbackend/api/`: public API routes. `tpbackend/admin/`: admin API routes (hidden from Swagger)
     - `tpbackend/discord/`: the bot. `tpbackend/oblivionis/`: syncs activity from the Oblivionis database
-    - `evolutions/<n>.sql`: database migrations, applied in order at startup. To change the schema add the next number; never edit one that exists
+    - `evolutions/<n>.sql`: database migrations, applied in order at startup. To change the schema add the next number; never edit one that has been released (run in prod). Ones that aren't released yet can be edited or squashed, then restore a backup into the dev environment (see Commands) so they're applied again from the released state
     - `e2e/`: e2e tests against the API in docker
 - `frontend/`: Vue 3 + TypeScript + Bootstrap 5 (+ Bootstrap Icons), built with Vite
     - `src/views/`: one component per page, routes in `src/router/index.ts`
@@ -54,10 +55,16 @@ Python lives in `.venv` at the repo root. direnv sets it up (`.envrc`); without 
     - `make format` / `make format-check` (black)
     - `make test`: unit tests (`tpbackend/**/*_test.py`), no dependencies
     - `make e2e`: e2e tests, needs docker. `make e2e-up`, `pytest e2e`, `make e2e-down` to iterate
+        - Docker Desktop on macOS hides file ownership, so things shared between the e2e containers and the tests (like `e2e/files`) can pass locally and fail on Linux in CI. The e2e backend runs as the tests' user for that reason
+    - `make dev`: the dev environment (formats, runs unit tests, builds the image, `docker compose up -d` with `backend/docker-compose.yml`, follows the logs). Postgres data is in `backend/psql_volume`, files (FILES_DIR) in `backend/files_dir`
+    - Restoring a prod backup into the dev environment (`backend/storage_v2_*.sql`, newest by date in the name), with the dev compose down:
+        1. `docker compose up -d postgres --wait`, copy the backup into the container with `docker cp`
+        2. In the container, as `$POSTGRES_USER`: `DROP DATABASE IF EXISTS storage_v2 WITH (FORCE)`, `CREATE DATABASE storage_v2 OWNER "$POSTGRES_USER"`, then `psql -d storage_v2 -f <backup>`
+        3. Empty `backend/files_dir` (its files belong to the old database), then `docker compose down`. The next `make dev` applies the newer evolutions
 - `frontend/`:
     - `npm run format` / `npm run format-check` (prettier)
     - `npm run build`: type checks and builds
-    - `npm run generate-schema`: regenerates `src/api.schema.d.ts` after API changes (needs the backend running on localhost:8000)
+    - `npm run generate-schema`: regenerates `src/api.schema.d.ts` after API changes (needs the backend running on localhost:8000). Or against the e2e backend, after `make e2e-up`: `npx openapi-typescript http://localhost:58000/openapi.json -o src/api.schema.d.ts`, then `npm run format`
 
 CI runs format-check, `make test`, `make e2e` and `npm run build`. If those pass locally, CI passes.
 
@@ -70,4 +77,6 @@ CI runs format-check, `make test`, `make e2e` and `npm run build`. If those pass
     - `manual_activity`: adding activity (manual tracking, API) and changing an activity's game or platform. Deleting your own activity needs no permission
     - `oblivionis_sync`: whether the user's Oblivionis activity is synced
 - Public routes only let users change their own activity. Admins edit other users' through the admin routes.
+- NSFW is decided in the frontend: the backend gives NSFW names and covers to everyone, and `useNsfw` hides them from viewers who haven't opted in (the `show_nsfw` permission, set in settings). Names are jumbled, covers stay on the blurred preview
+- The backend is one process, but sync routes run in a thread pool, so shared things (like the IGDB client) must be thread-safe. For "only do this once" work (like fetching a cover), use `KeyedLock` (`tpbackend/keyed_lock.py`): a unique constraint alone still lets every request do the work before one insert wins
 - Activity data from 2025 is messy: manual backfills with hand-typed timestamps and duplicates. Overlap detection only exists since 2025-12-21. Odd rows from that time are usually manual entries, not bugs.
