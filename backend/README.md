@@ -16,7 +16,6 @@ Originally forked from [Hamuko/oblivionis](https://github.com/Hamuko/oblivionis)
 | IGDB_CLIENT_SECRET |            |                                                                                                                        |
 | OBLIVIONIS_DB      |            | DB that oblivionis is using. Oblivionis sync is enabled if set                                                         |
 | TIMEPLAYED_URL     |            | Base URL of the site (e.g. https://timeplayed.me). Used for links in bot commands, canonical links and the sitemap. If empty (or `http://localhost`), links use http://localhost and there is no sitemap or canonical links. |
-| FILES_DIR          | files      | Where covers are kept. Put it on a volume and back it up: uploaded covers are only kept here. IGDB covers are downloaded again if they are lost |
 
 # Tests
 

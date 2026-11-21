@@ -6,6 +6,7 @@ from typing import cast
 from datetime import datetime, timedelta
 
 from peewee import (
+    BlobField,
     fn,
     BooleanField,
     CharField,
@@ -178,8 +179,8 @@ class HiddenMixin(BaseModel):
 
 class File(BaseModel):
     """
-    A file we keep. The bytes are in the file storage (tpbackend/files/storage.py) under
-    the id, not in the database, so backups stay small. Only subclasses get a table
+    A file we keep. The bytes are in their own table (ImageFileData for images, see
+    tpbackend/files/storage.py), so queries on the files don't load them. Only subclasses get a table
     """
 
     id = UUIDField(primary_key=True, default=uuid.uuid4)
@@ -233,6 +234,18 @@ class ImageFile(File):
 
     def get_version(self) -> str | None:
         return cast(str | None, self.version)
+
+
+class ImageFileData(BaseModel):
+    """the bytes of an image, removed with it"""
+
+    file = ForeignKeyField(
+        ImageFile, primary_key=True, on_delete="CASCADE", column_name="id"
+    )
+    data = BlobField()
+
+    class Meta:
+        table_name = "imagefile_data"
 
 
 class Platform(IdMixin, HistoryMixin, SearchMixin):

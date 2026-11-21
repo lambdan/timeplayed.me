@@ -10,8 +10,6 @@ test:
 	pytest -v
 
 E2E_COMPOSE = docker compose -f e2e/docker-compose.yml
-export E2E_UID := $(shell id -u)
-export E2E_GID := $(shell id -g)
 
 # spins up a fresh postgres + backend (no discord) in docker, runs e2e tests, tears it down
 e2e:
@@ -20,8 +18,6 @@ e2e:
 
 # leave the environment running to iterate on tests with `pytest e2e`
 e2e-up:
-	# made here, so it's ours and not root's (docker makes missing ones as root)
-	mkdir -p e2e/files
 	$(E2E_COMPOSE) up -d --build --wait
 
 e2e-down:

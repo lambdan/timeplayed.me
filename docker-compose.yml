@@ -1,6 +1,5 @@
 volumes:
   db:
-  files:
 
 networks:
   nginxnet:
@@ -39,11 +38,7 @@ services:
       IGDB_CLIENT_ID: x # IGDB is disabled if client id/secret not set
       IGDB_CLIENT_SECRET: x
       REDIS_HOST: redis
-      # covers, back it up: uploaded covers are only kept here
-      FILES_DIR: /files
       # TIMEPLAYED_URL: https://timeplayed.me  # Base URL for game page links in bot commands
-    volumes:
-      - files:/files
     restart: always
     depends_on:
       - postgres

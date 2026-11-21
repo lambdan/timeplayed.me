@@ -17,7 +17,7 @@ from PIL import Image
 
 from tpbackend.files.storage import storage
 from tpbackend.keyed_lock import KeyedLock
-from tpbackend.storage import ImageFile
+from tpbackend.storage import ImageFile, db
 
 logger = logging.getLogger("images")
 
@@ -100,7 +100,10 @@ def public_url(image: ImageFile) -> str:
 
 
 def new_image(data: bytes, **fields) -> ImageFile:
-    """stores the bytes and makes an ImageFile for them (not saved yet)"""
+    """
+    stores the image: the ImageFile and its bytes, together or not at all.
+    Raises IntegrityError if it's there already (like stored at the same time somewhere else)
+    """
     info = ImageInfo(data)
     image = ImageFile(
         content_type=info.content_type,
@@ -110,7 +113,9 @@ def new_image(data: bytes, **fields) -> ImageFile:
         height=info.height,
         **fields,
     )
-    storage.save(image.get_id(), data)
+    with db.atomic():
+        image.save(force_insert=True)
+        storage.save(image.get_id(), data)
     return image
 
 
@@ -122,7 +127,7 @@ def stored_image(url: str) -> ImageFile | None:
 def get_image(url: str) -> ImageFile | None:
     """the image, downloaded and stored first if we don't have it. None if that fails"""
     image = stored_image(url)
-    if image and storage.exists(image.get_id()):
+    if image:
         return image
     with downloading.hold(url):
         return __download_image(url)
@@ -131,28 +136,18 @@ def get_image(url: str) -> ImageFile | None:
 def __download_image(url: str) -> ImageFile | None:
     # it may have been downloaded while we waited
     image = stored_image(url)
-    if image and storage.exists(image.get_id()):
+    if image:
         return image
 
     try:
         data = download(url)
-        if image:
-            # we had it, but the storage lost the file (cleared folder, new server)
-            ImageInfo(data)
-            storage.save(image.get_id(), data)
-            logger.info("Restored %s from %s", image.get_id(), url)
-            return image
         image = new_image(data, source=url)
+    except IntegrityError:
+        # downloaded at the same time somewhere else, theirs is the same image
+        return stored_image(url)
     except Exception as e:
         logger.error("Could not download image %s: %s", url, e)
         return None
-
-    try:
-        image.save(force_insert=True)
-    except IntegrityError:
-        # downloaded at the same time somewhere else, theirs is the same image
-        storage.delete(image.get_id())
-        return stored_image(url)
     logger.info(
         "Stored %s: %s %dx%d, %d bytes, from %s",
         image.get_id(),
@@ -172,35 +167,34 @@ def stored_versions(image: ImageFile) -> dict[str, ImageFile]:
 
 
 def get_version(image: ImageFile, version: Version) -> ImageFile | None:
-    """the version, made first if needed. None if the original is gone"""
+    """the version, made first if needed. None if the original's bytes are missing"""
     stored = stored_versions(image).get(version.name)
     if stored:
         return stored
-    data = load_image(image)
+    data = storage.load(image.get_id())
     if data is None:
+        logger.error("%s has no bytes, can't make its %s", image.get_id(), version.name)
         return None
     started = time.monotonic()
-    made = new_image(
-        make_version(data, version), original=image.get_id(), version=version.name
-    )
     try:
-        made.save(force_insert=True)
-        logger.info(
-            "Stored %s: %s of %s, %s %dx%d, %d bytes, %.2fs",
-            made.get_id(),
-            version.name,
-            image.get_id(),
-            made.get_content_type(),
-            made.get_width(),
-            made.get_height(),
-            made.get_size(),
-            time.monotonic() - started,
+        made = new_image(
+            make_version(data, version), original=image.get_id(), version=version.name
         )
-        return made
     except IntegrityError:
         # made at the same time somewhere else
-        storage.delete(made.get_id())
         return stored_versions(image).get(version.name)
+    logger.info(
+        "Stored %s: %s of %s, %s %dx%d, %d bytes, %.2fs",
+        made.get_id(),
+        version.name,
+        image.get_id(),
+        made.get_content_type(),
+        made.get_width(),
+        made.get_height(),
+        made.get_size(),
+        time.monotonic() - started,
+    )
+    return made
 
 
 def get_versions(image: ImageFile) -> dict[str, ImageFile]:
@@ -222,7 +216,6 @@ def store_upload(data: bytes) -> ImageFile:
     if len(data) > MAX_IMAGE_BYTES:
         raise ValueError(f"Image is over {MAX_IMAGE_BYTES} bytes")
     image = new_image(data)
-    image.save(force_insert=True)
     logger.info(
         "Stored %s: %s %dx%d, %d bytes, uploaded",
         image.get_id(),
@@ -233,36 +226,3 @@ def store_upload(data: bytes) -> ImageFile:
     )
     get_versions(image)
     return image
-
-
-def load_image(image: ImageFile) -> bytes | None:
-    """the bytes, made again if the storage lost them (from the source, or the original)"""
-    data = storage.load(image.get_id())
-    if data is not None:
-        return data
-
-    source = image.get_source()
-    if source:
-        if get_image(source) is None:
-            return None
-        return storage.load(image.get_id())
-
-    original = image.get_original()
-    version = VERSIONS.get(image.get_version() or "")
-    if original and version:
-        logger.info(
-            "Remaking %s (%s of %s), it's missing from storage",
-            image.get_id(),
-            version.name,
-            original.get_id(),
-        )
-        original_data = load_image(original)
-        if original_data is None:
-            return None
-        data = make_version(original_data, version)
-        storage.save(image.get_id(), data)
-        return data
-
-    # an upload that's gone, nothing to make it from
-    logger.error("%s is missing from storage, and can't be made again", image.get_id())
-    return None

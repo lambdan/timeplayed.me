@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Response
 
 from tpbackend.api.responses import not_found
-from tpbackend.files.images import load_image
+from tpbackend.files.storage import storage
 from tpbackend.storage import ImageFile
 
 router = APIRouter()
@@ -20,8 +20,7 @@ def get_file(file_id: uuid.UUID) -> Response:
     if not image:
         return not_found("File not found")
 
-    # made again if the storage lost it (cleared folder, new server)
-    data = load_image(image)
+    data = storage.load(image.get_id())
     if data is None:
         return not_found("File not found")
 

@@ -55,12 +55,12 @@ Python lives in `.venv` at the repo root. direnv sets it up (`.envrc`); without 
     - `make format` / `make format-check` (black)
     - `make test`: unit tests (`tpbackend/**/*_test.py`), no dependencies
     - `make e2e`: e2e tests, needs docker. `make e2e-up`, `pytest e2e`, `make e2e-down` to iterate
-        - Docker Desktop on macOS hides file ownership, so things shared between the e2e containers and the tests (like `e2e/files`) can pass locally and fail on Linux in CI. The e2e backend runs as the tests' user for that reason
-    - `make dev`: the dev environment (formats, runs unit tests, builds the image, `docker compose up -d` with `backend/docker-compose.yml`, follows the logs). Postgres data is in `backend/psql_volume`, files (FILES_DIR) in `backend/files_dir`
+        - Docker Desktop on macOS hides file ownership, so anything shared on disk between the e2e containers and the tests can pass locally and fail on Linux in CI. Prefer sharing through the database
+    - `make dev`: the dev environment (formats, runs unit tests, builds the image, `docker compose up -d` with `backend/docker-compose.yml`, follows the logs). Postgres data is in `backend/psql_volume`
     - Restoring a prod backup into the dev environment (`backend/storage_v2_*.sql`, newest by date in the name), with the dev compose down:
         1. `docker compose up -d postgres --wait`, copy the backup into the container with `docker cp`
         2. In the container, as `$POSTGRES_USER`: `DROP DATABASE IF EXISTS storage_v2 WITH (FORCE)`, `CREATE DATABASE storage_v2 OWNER "$POSTGRES_USER"`, then `psql -d storage_v2 -f <backup>`
-        3. Empty `backend/files_dir` (its files belong to the old database), then `docker compose down`. The next `make dev` applies the newer evolutions
+        3. `docker compose down`. The next `make dev` applies the newer evolutions
 - `frontend/`:
     - `npm run format` / `npm run format-check` (prettier)
     - `npm run build`: type checks and builds
