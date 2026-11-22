@@ -26,9 +26,10 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- full width navbar, its content lines up with the page container -->
+  <Navbar />
   <!-- the one container for every page, pages lay themselves out with row g-4 and cols -->
-  <div class="container py-3">
-    <Navbar />
+  <div class="container pb-3">
     <main class="my-4">
       <!-- key: remount when going between pages of the same type, e.g. game to game -->
       <router-view :key="$route.path" />
