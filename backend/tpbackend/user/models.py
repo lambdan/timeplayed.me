@@ -5,8 +5,8 @@ from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
 from tpbackend.permissions import Permission
 
-# what Discord PC activity counts as, the abbreviations of the windows/mac/linux platforms
-PCPlatform = Literal["win", "mac", "linux"]
+# what Discord PC activity counts as, the abbreviations of the pc (unknown OS)/windows/mac/linux platforms
+PCPlatform = Literal["pc", "win", "mac", "linux"]
 
 
 class UserTotals(BaseTotals):
@@ -41,7 +41,9 @@ class API_User(BaseModel):
 
 class API_AuthenticatedUser(API_User):
     permissions: list[str]
-    pc_platform: str = Field(description="What PC activity counts as (win/mac/linux)")
+    pc_platform: str = Field(
+        description="What PC activity counts as (pc/win/mac/linux)"
+    )
 
     @classmethod
     def from_user(cls, user):

@@ -6,7 +6,7 @@ import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
 
 // same as PCPlatform in the backend (user/models.py)
-const PC_PLATFORMS = ["win", "mac", "linux"] as const;
+const PC_PLATFORMS = ["pc", "win", "mac", "linux"] as const;
 type PCPlatform = (typeof PC_PLATFORMS)[number];
 
 const { token } = useApiToken();
@@ -86,7 +86,7 @@ onMounted(async () => {
           >
           <select id="pc-platform" v-model="pcPlatform" class="form-select">
             <option v-for="p in PC_PLATFORMS" :key="p" :value="p">
-              {{ pcPlatformName(p) }}
+              {{ p === "pc" ? "Unknown" : pcPlatformName(p) }}
             </option>
           </select>
           <div class="form-text">Count Discord PC activity under this OS.</div>

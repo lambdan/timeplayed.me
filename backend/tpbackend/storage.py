@@ -311,7 +311,7 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     discord_id = CharField(unique=True, null=True)
     name = CharField()
     display_name = CharField(null=True)
-    pc_platform = CharField(default="win")
+    pc_platform = CharField(default="pc")
     permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
 
     def get_discord_id(self) -> str | None:

@@ -86,12 +86,12 @@ def parseActivity(activity: PassedActivity) -> bool:
         game_name = incoming_game.removesuffix(" with Medal").strip()
         game = get_game_by_name_or_alias_or_create(game_name)
 
-        # Discord activity is always on some platform, windows if it didn't say
+        # Discord activity is always on some platform, pc if it didn't say
         incoming_platform = activity["platform"]
-        platform_abbr = incoming_platform or "win"
+        platform_abbr = incoming_platform or "pc"
         if platform_abbr == "pc":
-            # apply users set pc platform (linux/mac/win)
-            platform_abbr = user.pc_platform or "win"
+            # apply users set pc platform (pc/win/mac/linux)
+            platform_abbr = user.get_pc_platform() or "pc"
         platform, created = Platform.get_or_create(abbreviation=platform_abbr)
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)

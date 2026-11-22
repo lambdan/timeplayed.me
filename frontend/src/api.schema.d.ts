@@ -715,7 +715,7 @@ export interface components {
             permissions: string[];
             /**
              * Pc Platform
-             * @description What PC activity counts as (win/mac/linux)
+             * @description What PC activity counts as (pc/win/mac/linux)
              */
             pc_platform: string;
         };
@@ -956,7 +956,7 @@ export interface components {
              * Pc Platform
              * @description What PC activity counts as
              */
-            pc_platform?: ("win" | "mac" | "linux") | null;
+            pc_platform?: ("pc" | "win" | "mac" | "linux") | null;
             /**
              * Show Nsfw
              * @description Show NSFW game titles and covers

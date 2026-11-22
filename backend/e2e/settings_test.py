@@ -7,7 +7,7 @@ class TestSettings:
 
     def test_who_am_i_has_pc_platform(self, make_user):
         _, client = make_user()
-        assert client.get("/who_am_i").json()["pc_platform"] == "win"
+        assert client.get("/who_am_i").json()["pc_platform"] == "pc"
 
     def test_set_pc_platform(self, make_user):
         user, client = make_user()
@@ -27,13 +27,13 @@ class TestSettings:
     def test_invalid(self, make_user):
         user, client = make_user()
         assert client.put("/settings", json={"pc_platform": "amiga"}).status_code == 422
-        assert User.get_by_id(user.get_id()).get_pc_platform() == "win"
+        assert User.get_by_id(user.get_id()).get_pc_platform() == "pc"
 
     def test_only_changes_own_user(self, make_user):
         _, alice_client = make_user("alice")
         bob, _ = make_user("bob")
         alice_client.put("/settings", json={"pc_platform": "mac"})
-        assert User.get_by_id(bob.get_id()).get_pc_platform() == "win"
+        assert User.get_by_id(bob.get_id()).get_pc_platform() == "pc"
 
     def test_nsfw_off_by_default(self, make_user):
         _, client = make_user()

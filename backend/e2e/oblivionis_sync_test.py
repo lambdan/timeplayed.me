@@ -37,7 +37,7 @@ class TestOblivionisSync:
         assert activity.get_game() == game
         assert activity.get_seconds() == 120
         # pc gets mapped to the users pc platform
-        assert activity.get_platform().get_abbreviation() == "win"
+        assert activity.get_platform().get_abbreviation() == "pc"
 
         r = api.get(f"/activity/{activity.get_id()}")
         assert r.status_code == 200

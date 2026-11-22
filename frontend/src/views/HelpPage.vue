@@ -52,7 +52,7 @@
           <ul>
             <li>
               <a href="#pc-platform"
-                >How can my activities show up as Mac or Linux?</a
+                >How do I specify Windows, Mac or Linux for my PC activity?</a
               >
             </li>
             <li>
@@ -170,8 +170,7 @@
       <h2 id="settings">Settings</h2>
 
       <h5 id="pc-platform" class="mt-4">
-        I use a Mac or Linux, and want my activities to show up as such instead
-        of Windows.
+        How do I specify Windows, Mac or Linux for my PC activity?
       </h5>
       <p>
         Set your Discord PC platform on the

@@ -3,7 +3,7 @@ from peewee import PostgresqlDatabase
 
 from conftest import DB_PORT
 from tpbackend import evolutions
-from tpbackend.storage import ImageFile, ImageFileData
+from tpbackend.storage import History, ImageFile, ImageFileData, Platform, User
 from tpbackend.storage import db as tp_db
 
 
@@ -69,7 +69,13 @@ class TestEvolutions:
             "INSERT INTO game (id, image_url) VALUES (1, '-'), (2, 'http://x/a.png'), (3, NULL)"
         )
         scratch.execute_sql(
-            "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}', default_platform_id integer)"
+            "CREATE TABLE \"user\" (id integer, permissions text[] DEFAULT '{commands}', default_platform_id integer, pc_platform varchar DEFAULT 'win')"
+        )
+        scratch.execute_sql(
+            "CREATE TABLE platform (id serial, abbreviation varchar UNIQUE, name varchar, icon varchar, search varchar)"
+        )
+        scratch.execute_sql(
+            "CREATE TABLE history (id serial, timestamp timestamptz DEFAULT now(), user_id integer, platform_id integer, message text)"
         )
         scratch.execute_sql(
             "CREATE TABLE evolutions (id integer PRIMARY KEY, applied timestamptz NOT NULL DEFAULT now())"
@@ -160,3 +166,28 @@ class TestEvolution11:
         assert self.versions(gif) == ["display", "preview", "thumbnail"]
         # the bytes went with them
         assert ImageFileData.select().count() == ImageFile.select().count()
+
+
+class TestEvolution12:
+    """adds the pc platform, users who never picked a pc platform go from win to it"""
+
+    def test_moves_users_who_never_changed_it(self, db):
+        never_changed = User.create(name="never", pc_platform="win")
+        changed_back = User.create(name="changed_back", pc_platform="win")
+        changed_back.set_pc_platform("linux")
+        changed_back.set_pc_platform("win")
+        changed_back.save()
+        on_mac = User.create(name="mac", pc_platform="mac")
+
+        # like the evolutions runner, execute_sql would trip on the % in LIKE
+        tp_db.cursor().execute((evolutions.EVOLUTIONS_DIR / "12.sql").read_text())
+
+        assert User.get_by_id(never_changed.get_id()).get_pc_platform() == "pc"
+        assert User.get_by_id(changed_back.get_id()).get_pc_platform() == "win"
+        assert User.get_by_id(on_mac.get_id()).get_pc_platform() == "mac"
+        assert History.select().where(History.user == never_changed).count() == 1
+
+        pc = Platform.get(Platform.abbreviation == "pc")
+        assert pc.get_name() == "PC"
+        # new users get it too
+        assert User.create(name="new").get_pc_platform() == "pc"
