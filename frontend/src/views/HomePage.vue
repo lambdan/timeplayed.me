@@ -18,53 +18,49 @@ const topReady = ref(false);
 <template>
   <div class="row g-4">
     <div class="col-12">
-      <div class="card h-100">
-        <div class="card-body text-start">
-          <p class="lead">
-            Track your playtime across all your games, on any platform.
-          </p>
-          <ul>
-            <li>
-              PC and <a href="/help#consoles">some consoles</a> can be tracked
-              automatically using Discord
-            </li>
-            <li>
-              Everything else can be tracked
-              <a href="/manual-tracking">manually</a>
-            </li>
-            <li>
-              You can also build your own tracking with the
-              <a href="/help#api-section">API</a>
-            </li>
-          </ul>
-          <p>
-            To get started, join the Discord server. If you have Discord
-            activity sharing enabled, your playtime will automatically start
-            showing up here (<a href="/help#what-is-tracked">more info</a>).
-          </p>
-          <p>
-            <a href="https://discord.gg/YyhX6KHE27" class="btn btn-primary">
-              <i class="bi bi-discord"></i> Join the Discord server
-            </a>
-          </p>
-          <marquee
-            v-if="recapYear"
-            behavior="scroll"
-            direction="left"
-            scrollamount="16"
-          >
-            <h2>
-              {{ recapYear }} recap available! Look for a green button in your
-              profile!
-            </h2>
-            <small
-              >Yes this is a <code>&lt;marquee&gt;</code> in
-              {{ new Date().getFullYear() }}. But you paid attention to it
-              didn't you.</small
-            >
-          </marquee>
-        </div>
-      </div>
+      <p class="lead">
+        Track your playtime across all your games, on any platform.
+      </p>
+      <ul>
+        <li>
+          PC and <a href="/help#consoles">some consoles</a> can be tracked
+          automatically using Discord
+        </li>
+        <li>
+          Everything else can be tracked
+          <a href="/manual-tracking">manually</a>
+        </li>
+        <li>
+          You can also build your own tracking with the
+          <a href="/help#api-section">API</a>
+        </li>
+      </ul>
+      <p>
+        To get started, join the Discord server. If you have Discord activity
+        sharing enabled, your playtime will automatically start showing up here
+        (<a href="/help#what-is-tracked">more info</a>).
+      </p>
+      <p>
+        <a href="https://discord.gg/YyhX6KHE27" class="btn btn-primary">
+          <i class="bi bi-discord"></i> Join the Discord server
+        </a>
+      </p>
+      <marquee
+        v-if="recapYear"
+        behavior="scroll"
+        direction="left"
+        scrollamount="16"
+      >
+        <h2>
+          {{ recapYear }} recap available! Look for a green button in your
+          profile!
+        </h2>
+        <small
+          >Yes this is a <code>&lt;marquee&gt;</code> in
+          {{ new Date().getFullYear() }}. But you paid attention to it didn't
+          you.</small
+        >
+      </marquee>
     </div>
 
     <!-- recent activity, and what's been played the most lately next to it -->
