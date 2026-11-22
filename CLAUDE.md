@@ -77,6 +77,8 @@ Python lives in `.venv` at the repo root. direnv sets it up (`.envrc`); without 
     - `make e2e`: e2e tests, needs docker. `make e2e-up`, `pytest e2e`, `make e2e-down` to iterate
         - Docker Desktop on macOS hides file ownership, so anything shared on disk between the e2e containers and the tests can pass locally and fail on Linux in CI. Prefer sharing through the database
     - `make dev`: the dev environment (formats, runs unit tests, builds the image, `docker compose up -d` with `backend/docker-compose.yml`, follows the logs). Postgres data is in `backend/psql_volume`
+        - Since it never exits, agents run it as a background task. It needs the venv on PATH (`black`), so without direnv: `PATH="$PWD/../.venv/bin:$PATH" make dev` from `backend/`
+        - It's up within seconds. Check the log for "Database is up to date" instead of writing wait loops
     - Restoring a prod backup into the dev environment (`backend/storage_v2_*.sql`, newest by date in the name), with the dev compose down:
         1. `docker compose up -d postgres --wait`, copy the backup into the container with `docker cp`
         2. In the container, as `$POSTGRES_USER`: `DROP DATABASE IF EXISTS storage_v2 WITH (FORCE)`, `CREATE DATABASE storage_v2 OWNER "$POSTGRES_USER"`, then `psql -d storage_v2 -f <backup>`
