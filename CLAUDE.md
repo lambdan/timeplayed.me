@@ -28,6 +28,7 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 
 - Never commit database backups (`storage_v2_*.sql`) or `backend/docker-compose.yml` (it holds the Discord token). Both are gitignored, keep it that way.
 - Never push, tag or make releases (`make release`, `make-release.sh`). The user does that
+- Commit messages start with the area, then what was done: `frontend: show child platforms on the platform page`, `backend: ...`, `e2e: ...`
 - You may commit when all of these hold:
     - Formatting passes and all tests pass
     - The change does exactly what was asked, nothing more
@@ -79,6 +80,7 @@ Python lives in `.venv` at the repo root. direnv sets it up (`.envrc`); without 
     - `make dev`: the dev environment (formats, runs unit tests, builds the image, `docker compose up -d` with `backend/docker-compose.yml`, follows the logs). Postgres data is in `backend/psql_volume`
         - Since it never exits, agents run it as a background task. It needs the venv on PATH (`black`), so without direnv: `PATH="$PWD/../.venv/bin:$PATH" make dev` from `backend/`
         - It's up within seconds. Check the log for "Database is up to date" instead of writing wait loops
+        - The dev environment is disposable: do whatever you need in it (reset data, run write requests, apply evolutions). A prod backup restores it (below)
     - Restoring a prod backup into the dev environment (`backend/storage_v2_*.sql`, newest by date in the name), with the dev compose down:
         1. `docker compose up -d postgres --wait`, copy the backup into the container with `docker cp`
         2. In the container, as `$POSTGRES_USER`: `DROP DATABASE IF EXISTS storage_v2 WITH (FORCE)`, `CREATE DATABASE storage_v2 OWNER "$POSTGRES_USER"`, then `psql -d storage_v2 -f <backup>`
