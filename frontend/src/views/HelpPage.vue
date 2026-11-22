@@ -55,9 +55,6 @@
                 >How do I specify Windows, Mac or Linux for my PC activity?</a
               >
             </li>
-            <li>
-              <a href="#nsfw">Why are some game titles shown as ****?</a>
-            </li>
           </ul>
         </li>
         <li>
@@ -173,19 +170,13 @@
         How do I specify Windows, Mac or Linux for my PC activity?
       </h5>
       <p>
-        Set your Discord PC platform on the
+        Set your PC operating system on the
         <a href="/settings">settings page</a>.
       </p>
       <p>
         To change the platform of an activity that's already saved, open the
         activity and click the <i class="bi bi-pencil"></i> next to its
         platform.
-      </p>
-
-      <h5 id="nsfw" class="mt-4">Why are some game titles shown as ****?</h5>
-      <p>
-        They're NSFW games. Turn on <i>Show NSFW games</i> on the
-        <a href="/settings">settings page</a> to see their titles and covers.
       </p>
 
       <hr />

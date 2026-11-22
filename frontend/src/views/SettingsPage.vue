@@ -82,7 +82,7 @@ onMounted(async () => {
       <form v-else @submit.prevent="save">
         <div class="mb-3">
           <label for="pc-platform" class="form-label"
-            >Discord PC platform</label
+            >PC operating system</label
           >
           <select id="pc-platform" v-model="pcPlatform" class="form-select">
             <option v-for="p in PC_PLATFORMS" :key="p" :value="p">
@@ -92,7 +92,10 @@ onMounted(async () => {
           <div class="form-text">Count Discord PC activity under this OS.</div>
         </div>
 
+        <hr />
+
         <div class="mb-3">
+          <label for="show-nsfw" class="form-label">NSFW games</label>
           <div class="form-check form-switch">
             <input
               id="show-nsfw"
@@ -101,9 +104,10 @@ onMounted(async () => {
               type="checkbox"
               role="switch"
             />
-            <label for="show-nsfw" class="form-check-label"
-              >Show NSFW games</label
-            >
+          </div>
+          <div class="form-text">
+            Show titles and covers of NSFW games. When off, titles are hidden
+            and covers are blurred.
           </div>
         </div>
 
