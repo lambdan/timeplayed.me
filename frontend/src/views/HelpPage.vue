@@ -59,11 +59,6 @@
         </li>
         <li>
           <a href="#api-section">API</a>
-          <ul>
-            <li>
-              <a href="#api">Is there any other way to track my playtime?</a>
-            </li>
-          </ul>
         </li>
       </ul>
 
@@ -89,10 +84,13 @@
 
       <h5 id="consoles" class="mt-4">Can I track games played on consoles?</h5>
       <p>
-        Yes, on consoles that can show your activity in Discord, such as
-        PlayStation and Xbox. For this to work, your PlayStation Network or Xbox
-        Live account needs to be connected to Discord, with it displayed as your
-        status. You can do that in Discord under User Settings → Connections:
+        Yes, any console can be tracked on the
+        <a href="/manual-tracking">manual tracking page</a>. Consoles that can
+        show your activity in Discord, such as PlayStation and Xbox, are also
+        tracked automatically. For this to work, your PlayStation Network or
+        Xbox Live account needs to be connected to Discord, with it displayed as
+        your status. You can do that in Discord under User Settings →
+        Connections:
       </p>
       <div class="row">
         <div class="col-lg-6">
@@ -183,18 +181,15 @@
 
       <h2 id="api-section">API</h2>
 
-      <h5 id="api" class="mt-4">
-        Apart from Discord and the manual tracking page, is there any other way
-        to track my playtime?
-      </h5>
       <p>
-        Yes, there is an API which you can use to send in playtime. See the
-        <a href="/api/docs">API documentation</a>, in particular the
-        <a href="/api/docs#/authenticated/add_activity_activity_post"
-          >Add Activity endpoint</a
-        >.
+        With the public API you can build your own playtime tracking and get
+        your data out. See the <a href="/api/docs">Swagger page</a>.
       </p>
-      <p>Here are some example scripts I've made for Linux:</p>
+      <p id="api-token">
+        To authenticate you need a token. You can get one by sending
+        <code>!token</code> to the bot in a DM.
+      </p>
+      <p>To get started, here are some example scripts for Linux:</p>
       <ul>
         <li>
           <a
@@ -209,10 +204,6 @@
           >
         </li>
       </ul>
-      <p>
-        To authenticate with the API you need a token, send
-        <code>!token</code> to the bot in a DM to get one.
-      </p>
     </div>
   </div>
 </template>

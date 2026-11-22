@@ -23,38 +23,31 @@ const topReady = ref(false);
 
         <div class="card-body text-start">
           <p class="lead">
-            This is a thing that automatically tracks your playtime across games
-            using Discord, on both PC and
-            <a href="/help#consoles">supported consoles</a>.
+            Track your playtime across all your games, on any platform.
           </p>
+          <ul>
+            <li>
+              PC and <a href="/help#consoles">some consoles</a> can be tracked
+              automatically using Discord
+            </li>
+            <li>
+              Everything else can be tracked
+              <a href="/manual-tracking">manually</a>
+            </li>
+            <li>
+              You can also build your own tracking with the
+              <a href="/help#api-section">API</a>
+            </li>
+          </ul>
           <p>
-            All you need to do is join the Discord server and you will be
-            tracked.
+            To get started, join the Discord server. If you have Discord
+            activity sharing enabled, your playtime will automatically start
+            showing up here (<a href="/help#what-is-tracked">more info</a>).
           </p>
           <p>
             <a href="https://discord.gg/YyhX6KHE27" class="btn btn-primary">
               <i class="bi bi-discord"></i> Join the Discord server
             </a>
-          </p>
-          <p>
-            <i
-              >Please note that you need to be online and have activity sharing
-              enabled</i
-            >, otherwise the bot can't see it -
-            <a href="/help#what-is-tracked">see the help page for more info</a>.
-          </p>
-          <hr />
-          <p>
-            You can also use the
-            <a href="/manual-tracking">manual tracking page</a> to log your
-            playtime manually, or you can make custom tracking implementations
-            using the <a href="/api/docs">API</a>.
-          </p>
-          <p class="text-muted">
-            Note that for now the only way to become a member, which you need to
-            be to be able to authenticate with the API, is by joining the
-            Discord server. In the future I might add other ways to become a
-            member, but for now Discord is required, unfortunately.
           </p>
           <marquee
             v-if="recapYear"
