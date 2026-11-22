@@ -9,14 +9,10 @@ SELECT id, 'Created by evolution 12' FROM platform WHERE abbreviation = 'pc';
 ALTER TABLE "user" ALTER COLUMN pc_platform SET DEFAULT 'pc';
 
 -- users who never picked a PC platform got Windows by default, they get "pc" now
-WITH moved AS (
-    UPDATE "user" u SET pc_platform = 'pc'
-    WHERE pc_platform = 'win'
-        AND NOT EXISTS (
-            SELECT 1 FROM history h
-            WHERE h.user_id = u.id AND h.message LIKE 'PC platform changed%'
-        )
-    RETURNING id
-)
-INSERT INTO history (user_id, message)
-SELECT id, 'PC platform changed from ''win'' to ''pc'' (new default)' FROM moved;
+-- no history for this, it would be a row for almost every user
+UPDATE "user" u SET pc_platform = 'pc'
+WHERE pc_platform = 'win'
+    AND NOT EXISTS (
+        SELECT 1 FROM history h
+        WHERE h.user_id = u.id AND h.message LIKE 'PC platform changed%'
+    );

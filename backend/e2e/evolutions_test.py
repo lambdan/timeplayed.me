@@ -195,7 +195,7 @@ class TestEvolution12:
         assert User.get_by_id(never_changed.get_id()).get_pc_platform() == "pc"
         assert User.get_by_id(changed_back.get_id()).get_pc_platform() == "win"
         assert User.get_by_id(on_mac.get_id()).get_pc_platform() == "mac"
-        assert History.select().where(History.user == never_changed).count() == 1
+        assert History.select().where(History.user == never_changed).count() == 0
 
         pc = Platform.get(Platform.abbreviation == "pc")
         assert pc.get_name() == "PC"
