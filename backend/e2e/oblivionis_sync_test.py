@@ -17,10 +17,12 @@ def wait_for(condition, timeout=10.0):
     raise AssertionError("Timed out waiting for condition")
 
 
-def add_oblivionis_activity(discord_id: str, name: str, game: str, seconds: int):
+def add_oblivionis_activity(
+    discord_id: str, name: str, game: str, seconds: int, platform: str = "pc"
+):
     user, _ = oblivionis.User.get_or_create(id=discord_id, name=name)
     g, _ = oblivionis.Game.get_or_create(name=game)
-    oblivionis.Activity.create(user=user, game=g, seconds=seconds, platform="pc")
+    oblivionis.Activity.create(user=user, game=g, seconds=seconds, platform=platform)
 
 
 class TestOblivionisSync:
@@ -76,3 +78,21 @@ class TestOblivionisSync:
 
         assert not User.get().has_permission(Permission.OBLIVIONIS_SYNC)
         assert Activity.select().count() == 0
+
+    def test_drops_playstation_sessions_of_exactly_8_hours(self):
+        add_oblivionis_activity("1234", "discordguy", "Capped", 28800, platform="ps5")
+        add_oblivionis_activity("1234", "discordguy", "Capped too", 28800, "ps4")
+        # one second off, or another platform, is a real session
+        add_oblivionis_activity("1234", "discordguy", "Real", 28801, platform="ps5")
+        add_oblivionis_activity("1234", "discordguy", "Real PC", 28800)
+
+        wait_for(lambda: oblivionis.Activity.select().count() == 0)
+
+        names = sorted(a.get_game().get_name() for a in Activity.select())
+        assert names == ["Real", "Real PC"]
+        # the drops are kept in the users history, to follow up on later
+        history = User.get(User.discord_id == "1234").get_history()
+        dropped = [h for h in history if "Dropped Oblivionis activity" in h]
+        assert len(dropped) == 2
+        assert "game: 'Capped', platform: 'ps5'" in dropped[0]
+        assert "game: 'Capped too', platform: 'ps4'" in dropped[1]

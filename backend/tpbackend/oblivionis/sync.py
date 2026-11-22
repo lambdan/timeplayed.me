@@ -13,6 +13,13 @@ from tpbackend.storage import User, Platform, Game
 
 logger = logging.getLogger("oblivionis-sync")
 
+# PlayStation sessions of exactly 8 hours happen too often, across many users, to be real.
+# Probably a bug somewhere outside our control, so they are dropped. Each drop is written
+# to the user's history, so they can be looked into later. One guess is the console being
+# put in rest mode mid-game, and Sony reporting the time since the game started, capped at 8h
+PLAYSTATION_PLATFORMS = ["ps4", "ps5"]
+PLAYSTATION_CAPPED_SECONDS = 8 * 60 * 60
+
 
 class PassedActivity(TypedDict):
     game_name: str
@@ -80,6 +87,17 @@ def parseActivity(activity: PassedActivity) -> bool:
                 user.name,
                 user.id,
             )
+            return True
+
+        if (
+            activity["platform"] in PLAYSTATION_PLATFORMS
+            and activity["duration"] == PLAYSTATION_CAPPED_SECONDS
+        ):
+            logger.warning("Skipping PlayStation session of exactly 8 hours...")
+            user.add_history(
+                f"Dropped Oblivionis activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}')"
+            )
+            user.save()
             return True
 
         incoming_game = activity["game_name"]
