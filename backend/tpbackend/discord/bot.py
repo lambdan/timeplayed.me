@@ -18,6 +18,10 @@ intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# dev and prod run with the same bot token, so each only answers its own prefix:
+# ! in prod, . while developing (and then only for users with the developer permission)
+PREFIX = "." if DEBUG else "!"
+
 __CMD = 0
 
 
@@ -83,12 +87,9 @@ def dm_receive(message: discord.Message) -> str | None:
 
     c = message.content
     _info(f"<{message.author}> {c}")
-    # ! in prod
-    # . while developing
 
-    if not c.startswith("!") and not c.startswith("."):
-        # ignore messages without ! or .
-        _warn("Ignoring because it doesn't have prefix")
+    if not c.startswith(PREFIX):
+        _warn(f"Ignoring because it doesn't start with {PREFIX}")
         return _ret(None)
 
     user = user_from_message(message)
@@ -97,15 +98,8 @@ def dm_receive(message: discord.Message) -> str | None:
         return _ret(None)
 
     _info(f"User is: {user.id} {user.name}, permissions: {user.permissions}")
-    if DEBUG:
-        if not user.has_permission(Permission.DEVELOPER):
-            _warn("Ignoring because user doesn't have developer permission")
-            return _ret(None)
-        if c.startswith("!"):
-            _warn("Ignoring prod message")
-            return _ret(None)
-    if not DEBUG and c.startswith("."):
-        _warn("Ignoring dev message in prod")
+    if DEBUG and not user.has_permission(Permission.DEVELOPER):
+        _warn("Ignoring because user doesn't have developer permission")
         return _ret(None)
 
     DiscordHistory.create(
@@ -134,6 +128,54 @@ def dm_receive(message: discord.Message) -> str | None:
     return _ret("Unknown command. Use `!help` to see available commands.")
 
 
+def channel_command(content: str) -> str | None:
+    """The command in a channel message, like "token" for "!token", if it's one of ours"""
+    if not content.startswith(PREFIX):
+        return None
+    name = content.strip().split(" ")[0][len(PREFIX) :].lower()
+    for command in [HelpCommand(), *COMMANDS]:
+        if name in command.names:
+            return name
+    return None
+
+
+async def channel_receive(message: discord.Message):
+    # The bot never posts in channels, they stay silent. Someone posting a command there
+    # (newcomers do) gets a 👀 on it and a DM pointing them to the DMs, nothing else.
+    if message.author.bot:
+        return
+    name = channel_command(message.content)
+    if not name:
+        return
+    if DEBUG:
+        user = User.get_or_none(User.discord_id == str(message.author.id))
+        if not user or not user.has_permission(Permission.DEVELOPER):
+            return
+    logger.info(
+        "%s posted %s%s in #%s, pointing them to DMs",
+        message.author,
+        PREFIX,
+        name,
+        message.channel,
+    )
+    await point_to_dms(message)
+
+
+async def point_to_dms(message: discord.Message):
+    # either can fail (no permission to react, DMs from server members turned off),
+    # then the other one still happens and nothing ends up in the channel
+    try:
+        await message.add_reaction("👀")
+    except discord.HTTPException as e:
+        logger.warning("Could not react to %s's message: %s", message.author, e)
+    try:
+        await message.author.send(
+            f"Commands only work in DMs with me. Send `{PREFIX}help` here to see what's available."
+        )
+    except discord.HTTPException as e:
+        logger.warning("Could not DM %s: %s", message.author, e)
+
+
 @bot.event
 async def on_guild_available(guild: discord.Guild):
     logger.info("Server %s available", guild)
@@ -149,7 +191,7 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
     if message.guild:
-        # Ignore messages in channels
+        await channel_receive(message)
         return
 
     reply = dm_receive(message)

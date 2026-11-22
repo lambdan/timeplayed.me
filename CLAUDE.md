@@ -95,7 +95,7 @@ CI runs format-check, `make test`, `make e2e` and `npm run build`. If those pass
 # Background
 
 - The website is the interface for everything. Don't add Discord commands: only `!help`, `!token` (how users get the token they log in with on the website) and `!revoke_tokens` are left. The `AdminCommand` base class is kept on purpose for later, even though nothing uses it.
-- The bot never posts in the Discord server's channels; they stay completely silent. All of its communication is through DMs with a single user. Never add code that sends anything to a channel (announcements, notifications, error reports, replies), not even behind a flag.
+- The bot never posts in the Discord server's channels; they stay completely silent. All of its communication is through DMs with a single user. Never add code that sends anything to a channel (announcements, notifications, error reports, replies), not even behind a flag. The one exception: when someone posts one of the bot's commands in a channel by mistake, it reacts with 👀 and DMs them (`channel_receive` in `backend/tpbackend/discord/bot.py`).
 - `/admin` on the website is the only admin tool. Its most used part is the Covers tab, mostly used on a phone. IGDB ID 0 means "not on IGDB".
 - User permissions are abuse switches, added after real misuse, so check them in the backend on every path, not just in the frontend:
     - `commands`: the remaining Discord commands
