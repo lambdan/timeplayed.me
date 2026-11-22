@@ -56,13 +56,14 @@ def playing_from_activities(activities) -> Playing | None:
     return None
 
 
-def close(presence: DiscordPresence, ended: datetime.datetime):
+def close(presence: DiscordPresence, ended: datetime.datetime, reason: str):
     # some games reset Discord's start mid-session, and Discord's start is from before the
     # bot saw them if the bot started later, so the longer of the two wins
-    seconds = int((ended - presence.get_started()).total_seconds())
+    # rounded like Oblivionis does, so the same session gets the same duration
+    seconds = round((ended - presence.get_started()).total_seconds())
     discord_started = presence.get_discord_started()
     if discord_started:
-        seconds = max(seconds, int((ended - discord_started).total_seconds()))
+        seconds = max(seconds, round((ended - discord_started).total_seconds()))
     logger.info(
         "%s stopped playing %s (%s) after %s seconds",
         presence.get_discord_user_name(),
@@ -77,7 +78,7 @@ def close(presence: DiscordPresence, ended: datetime.datetime):
     details = f", first seen: {js_iso(presence.get_started())}"
     if discord_started:
         details += f", Discord start: {js_iso(discord_started)}"
-    details += f", ended: {js_iso(ended)}"
+    details += f", ended: {js_iso(ended)} ({reason})"
     sync.parseActivity(
         {
             "game_name": presence.get_game_name(),
@@ -107,7 +108,7 @@ def update(
     )
 
     if presence and now - presence.get_last_seen() > STALE_AFTER:
-        close(presence, presence.get_last_seen())
+        close(presence, presence.get_last_seen(), "not seen since, bot was down")
         presence = None
 
     if (
@@ -128,7 +129,8 @@ def update(
         return
 
     if presence:
-        close(presence, now)
+        reason = "started something else" if playing else "stopped playing"
+        close(presence, now, reason)
 
     if playing:
         logger.info(

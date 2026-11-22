@@ -51,7 +51,7 @@ class TestDiscordPresence:
         assert activity.get_ended() == T0 + minutes(4)
         assert any(
             "Activity source: Discord presence" in h
-            and "first seen: 2026-11-22T12:01:00Z, Discord start: 2026-11-22T12:00:00Z, ended: 2026-11-22T12:04:00Z"
+            and "duration: 240, first seen: 2026-11-22T12:01:00Z, Discord start: 2026-11-22T12:00:00Z, ended: 2026-11-22T12:04:00Z (stopped playing)"
             in h
             for h in activity.get_history()
         )
@@ -63,6 +63,7 @@ class TestDiscordPresence:
         [first] = activities()
         assert first.get_game().get_name() == "First"
         assert first.get_seconds() == 30 * 60
+        assert any("(started something else)" in h for h in first.get_history())
         assert DiscordPresence.get().get_game_name() == "Second"
 
     def test_same_game_on_another_platform_is_another_session(self):
@@ -117,6 +118,10 @@ class TestDiscordPresence:
         [activity] = activities()
         assert activity.get_started() == T0
         assert activity.get_ended() == T0 + minutes(10)
+        assert any(
+            "ended: 2026-11-22T12:10:00Z (not seen since, bot was down)" in h
+            for h in activity.get_history()
+        )
 
     def test_still_playing_after_bot_was_down_is_one_session(self):
         playing = Playing("Game", "ps5", T0)
@@ -156,7 +161,10 @@ class TestDiscordPresence:
         assert activity.get_ended() == T0 + minutes(60)
         # what both sources said is kept
         history = activity.get_history()
-        assert any("Activity source: Oblivionis" in h for h in history)
+        assert any(
+            "Activity source: Oblivionis" in h and "duration: 3540)" in h
+            for h in history
+        )
         assert any("Activity source: Discord presence" in h for h in history)
 
     def test_playstation_8_hours_is_dropped(self):
@@ -165,4 +173,16 @@ class TestDiscordPresence:
 
         assert Activity.select().count() == 0
         user = User.get(User.discord_id == "1234")
-        assert any("Dropped Discord presence activity" in h for h in user.get_history())
+        assert any(
+            "Dropped Discord presence activity" in h
+            and "first seen: 2026-11-22T12:01:00Z, Discord start: 2026-11-22T12:00:00Z, ended: 2026-11-22T20:00:00Z (stopped playing)"
+            in h
+            for h in user.get_history()
+        )
+
+    def test_duration_is_rounded_like_oblivionis(self):
+        # a hair under 8 hours is still the capped 8 hours
+        play(Playing("Game", "ps5", T0), 1, 8 * 60 - 1)
+        update(None, T0 + minutes(8 * 60) - datetime.timedelta(milliseconds=400))
+
+        assert Activity.select().count() == 0

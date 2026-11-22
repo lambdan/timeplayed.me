@@ -54,7 +54,7 @@ def parseActivity(
     """
     Adds a session that ended `ended` (now if None) from Discord activity: from Oblivionis,
     or from the bot's own presence tracking (`source` says which, for logs and history).
-    `details` is added to the activity's history
+    `details` is added to the activity's history (or the user's, if it's dropped)
     """
     try:
         logger.info("Syncing activity: %s", activity)
@@ -105,7 +105,7 @@ def parseActivity(
         ):
             logger.warning("Skipping PlayStation session of exactly 8 hours...")
             user.add_history(
-                f"Dropped {source} activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}')"
+                f"Dropped {source} activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}'{details})"
             )
             user.save()
             return True
@@ -138,7 +138,7 @@ def parseActivity(
             logger.info("Activity synced successfully")
             created_activity = success[0]
             created_activity.add_history(
-                f"Activity source: {source} (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}'{details})"
+                f"Activity source: {source} (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}', duration: {activity['duration']}{details})"
             )
             created_activity.save()
             return True
