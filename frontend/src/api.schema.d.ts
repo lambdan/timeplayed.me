@@ -276,47 +276,11 @@ export interface paths {
         delete: operations["delete_activity_activity__id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/activity/{id}/platform": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
         /**
-         * Set Activity Platform
-         * @description Change the platform of one of your own activities
+         * Patch Activity
+         * @description Change the game and/or platform of one of your own activities, like an emulator to the actual game. Only the fields that are sent are changed
          */
-        put: operations["set_activity_platform_activity__id__platform_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/activity/{id}/game": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Set Activity Game
-         * @description Change the game of one of your own activities, like an emulator to the actual game
-         */
-        put: operations["set_activity_game_activity__id__game_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
+        patch: operations["patch_activity_activity__id__patch"];
         trace?: never;
     };
     "/activities/{ids}": {
@@ -842,6 +806,22 @@ export interface components {
             /** Platform Id */
             platform_id: number;
         };
+        /**
+         * API_PatchActivity
+         * @description only fields that are sent are changed
+         */
+        API_PatchActivity: {
+            /**
+             * Game Id
+             * @description ID of the game that was played
+             */
+            game_id?: number | null;
+            /**
+             * Platform Id
+             * @description ID of the platform it was played on
+             */
+            platform_id?: number | null;
+        };
         /** API_Platform */
         API_Platform: {
             /** Id */
@@ -936,22 +916,6 @@ export interface components {
             /**
              * Platform Id
              * @description ID of platform that was played on
-             */
-            platform_id: number;
-        };
-        /** API_PutActivityGame */
-        API_PutActivityGame: {
-            /**
-             * Game Id
-             * @description ID of the game that was played
-             */
-            game_id: number;
-        };
-        /** API_PutActivityPlatform */
-        API_PutActivityPlatform: {
-            /**
-             * Platform Id
-             * @description ID of the platform it was played on
              */
             platform_id: number;
         };
@@ -1787,7 +1751,7 @@ export interface operations {
             };
         };
     };
-    set_activity_platform_activity__id__platform_put: {
+    patch_activity_activity__id__patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -1798,42 +1762,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["API_PutActivityPlatform"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["API_Activity"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_activity_game_activity__id__game_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["API_PutActivityGame"];
+                "application/json": components["schemas"]["API_PatchActivity"];
             };
         };
         responses: {

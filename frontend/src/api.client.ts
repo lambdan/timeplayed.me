@@ -406,35 +406,19 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async setActivityPlatform(
+  /** only the fields that are given are changed */
+  static async patchActivity(
     token: string,
     activityId: number,
-    platformId: number,
+    patch: components["schemas"]["API_PatchActivity"],
   ) {
-    const { data, error } = await this.client.PUT("/activity/{id}/platform", {
+    const { data, error } = await this.client.PATCH("/activity/{id}", {
       headers: this.getAuthHeaders(token),
       params: { path: { id: activityId } },
-      body: { platform_id: platformId },
+      body: patch,
     });
     if (error) {
-      console.error("Error changing activity platform:", error);
-      throw error;
-    }
-    return data;
-  }
-
-  static async setActivityGame(
-    token: string,
-    activityId: number,
-    gameId: number,
-  ) {
-    const { data, error } = await this.client.PUT("/activity/{id}/game", {
-      headers: this.getAuthHeaders(token),
-      params: { path: { id: activityId } },
-      body: { game_id: gameId },
-    });
-    if (error) {
-      console.error("Error changing activity game:", error);
+      console.error("Error changing activity:", error);
       throw error;
     }
     return data;

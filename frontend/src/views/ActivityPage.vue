@@ -75,10 +75,10 @@ async function changePlatform() {
   savingPlatform.value = true;
   error.value = "";
   try {
-    activity.value = await TimeplayedAPI.setActivityPlatform(
+    activity.value = await TimeplayedAPI.patchActivity(
       token.value,
       activity.value.id,
-      newPlatformId.value,
+      { platform_id: newPlatformId.value },
     );
     platform.value = platforms.value.find(
       (p) => p.id === activity.value!.platform_id,
@@ -96,10 +96,10 @@ async function changeGame() {
   savingGame.value = true;
   error.value = "";
   try {
-    activity.value = await TimeplayedAPI.setActivityGame(
+    activity.value = await TimeplayedAPI.patchActivity(
       token.value,
       activity.value.id,
-      newGameId.value,
+      { game_id: newGameId.value },
     );
     game.value =
       newGame.value?.id === activity.value.game_id

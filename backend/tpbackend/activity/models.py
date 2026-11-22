@@ -86,12 +86,15 @@ class API_PostActivity(BaseModel):
     platform_id: int = Field(description="ID of platform that was played on")
 
 
-class API_PutActivityPlatform(BaseModel):
-    platform_id: int = Field(description="ID of the platform it was played on")
+class API_PatchActivity(BaseModel):
+    """only fields that are sent are changed"""
 
-
-class API_PutActivityGame(BaseModel):
-    game_id: int = Field(description="ID of the game that was played")
+    game_id: int | None = Field(
+        default=None, description="ID of the game that was played"
+    )
+    platform_id: int | None = Field(
+        default=None, description="ID of the platform it was played on"
+    )
 
 
 class API_PostLiveActivity(BaseModel):

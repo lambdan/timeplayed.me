@@ -16,15 +16,15 @@ def make_activity(user, game, platform, hidden=False) -> Activity:
     )
 
 
-class TestSetActivityPlatform:
+class TestPatchActivityPlatform:
     def test_own_activity(self, make_user, make_game, make_platform):
         user, client = make_user()
         ps4 = make_platform("ps4")
         ps5 = make_platform("ps5")
         activity = make_activity(user, make_game(), ps4)
 
-        r = client.put(
-            f"/activity/{activity.get_id()}/platform",
+        r = client.patch(
+            f"/activity/{activity.get_id()}",
             json={"platform_id": ps5.get_id()},
         )
         assert r.status_code == 200, r.text
@@ -40,8 +40,8 @@ class TestSetActivityPlatform:
         user, client = make_user()
         ps5 = make_platform("ps5")
         activity = make_activity(user, make_game(), make_platform("ps4"), hidden=True)
-        r = client.put(
-            f"/activity/{activity.get_id()}/platform",
+        r = client.patch(
+            f"/activity/{activity.get_id()}",
             json={"platform_id": ps5.get_id()},
         )
         assert r.status_code == 200, r.text
@@ -52,8 +52,8 @@ class TestSetActivityPlatform:
         ps4 = make_platform("ps4")
         activity = make_activity(alice, make_game(), ps4)
 
-        r = bob.put(
-            f"/activity/{activity.get_id()}/platform",
+        r = bob.patch(
+            f"/activity/{activity.get_id()}",
             json={"platform_id": make_platform("ps5").get_id()},
         )
         assert r.status_code == 403
@@ -62,17 +62,15 @@ class TestSetActivityPlatform:
     def test_not_found(self, make_user, make_game, make_platform):
         user, client = make_user()
         activity = make_activity(user, make_game(), make_platform("ps4"))
-        r = client.put("/activity/999/platform", json={"platform_id": 1})
+        r = client.patch("/activity/999", json={"platform_id": 1})
         assert r.status_code == 404
-        r = client.put(
-            f"/activity/{activity.get_id()}/platform", json={"platform_id": 999}
-        )
+        r = client.patch(f"/activity/{activity.get_id()}", json={"platform_id": 999})
         assert r.status_code == 404
 
     def test_requires_token(self, api, make_user, make_game, make_platform):
         user, _ = make_user()
         activity = make_activity(user, make_game(), make_platform("ps4"))
-        r = api.put(f"/activity/{activity.get_id()}/platform", json={"platform_id": 1})
+        r = api.patch(f"/activity/{activity.get_id()}", json={"platform_id": 1})
         assert r.status_code in (401, 403)
 
 
@@ -85,11 +83,9 @@ class TestEditPermission:
         activity = make_activity(user, old, ps4)
         path = f"/activity/{activity.get_id()}"
 
-        r = client.put(f"{path}/game", json={"game_id": make_game("New").get_id()})
+        r = client.patch(path, json={"game_id": make_game("New").get_id()})
         assert r.status_code == 403
-        r = client.put(
-            f"{path}/platform", json={"platform_id": make_platform("ps5").get_id()}
-        )
+        r = client.patch(path, json={"platform_id": make_platform("ps5").get_id()})
         assert r.status_code == 403
 
         unchanged = Activity.get_by_id(activity.get_id())
@@ -100,15 +96,15 @@ class TestEditPermission:
         assert client.delete(path).status_code == 200
 
 
-class TestSetActivityGame:
+class TestPatchActivityGame:
     def test_own_activity(self, make_user, make_game, make_platform):
         user, client = make_user()
         emulator = make_game("RetroArch")
         game = make_game("Super Mario World")
         activity = make_activity(user, emulator, make_platform())
 
-        r = client.put(
-            f"/activity/{activity.get_id()}/game", json={"game_id": game.get_id()}
+        r = client.patch(
+            f"/activity/{activity.get_id()}", json={"game_id": game.get_id()}
         )
         assert r.status_code == 200, r.text
         assert r.json()["game_id"] == game.get_id()
@@ -122,8 +118,8 @@ class TestSetActivityGame:
         old = make_game("Old")
         activity = make_activity(alice, old, make_platform())
 
-        r = bob.put(
-            f"/activity/{activity.get_id()}/game",
+        r = bob.patch(
+            f"/activity/{activity.get_id()}",
             json={"game_id": make_game("New").get_id()},
         )
         assert r.status_code == 403
@@ -134,9 +130,9 @@ class TestSetActivityGame:
         old = make_game("Old")
         activity = make_activity(user, old, make_platform())
 
-        r = client.put("/activity/999/game", json={"game_id": old.get_id()})
+        r = client.patch("/activity/999", json={"game_id": old.get_id()})
         assert r.status_code == 404
-        r = client.put(f"/activity/{activity.get_id()}/game", json={"game_id": 999})
+        r = client.patch(f"/activity/{activity.get_id()}", json={"game_id": 999})
         assert r.status_code == 404
         assert Activity.get_by_id(activity.get_id()).get_game() == old
 
@@ -144,13 +140,57 @@ class TestSetActivityGame:
         user, client = make_user()
         activity = make_activity(user, make_game(), make_platform())
         hidden = make_game("Hidden", hidden=True)
-        r = client.put(
-            f"/activity/{activity.get_id()}/game", json={"game_id": hidden.get_id()}
+        r = client.patch(
+            f"/activity/{activity.get_id()}", json={"game_id": hidden.get_id()}
         )
         assert r.status_code == 200, r.text
 
     def test_requires_token(self, api, make_user, make_game, make_platform):
         user, _ = make_user()
         activity = make_activity(user, make_game(), make_platform())
-        r = api.put(f"/activity/{activity.get_id()}/game", json={"game_id": 1})
+        r = api.patch(f"/activity/{activity.get_id()}", json={"game_id": 1})
         assert r.status_code in (401, 403)
+
+
+class TestPatchActivityBoth:
+    def test_game_and_platform(self, make_user, make_game, make_platform):
+        user, client = make_user()
+        game = make_game("Super Mario World")
+        snes = make_platform("snes")
+        activity = make_activity(user, make_game("RetroArch"), make_platform("pc"))
+
+        r = client.patch(
+            f"/activity/{activity.get_id()}",
+            json={"game_id": game.get_id(), "platform_id": snes.get_id()},
+        )
+        assert r.status_code == 200, r.text
+        changed = Activity.get_by_id(activity.get_id())
+        assert changed.get_game() == game
+        assert changed.get_platform() == snes
+
+    def test_bad_id_changes_nothing(self, make_user, make_game, make_platform):
+        user, client = make_user()
+        old = make_game("Old")
+        activity = make_activity(user, old, make_platform())
+
+        r = client.patch(
+            f"/activity/{activity.get_id()}",
+            json={"game_id": make_game("New").get_id(), "platform_id": 999},
+        )
+        assert r.status_code == 404
+        assert Activity.get_by_id(activity.get_id()).get_game() == old
+
+    def test_null_and_empty(self, make_user, make_game, make_platform):
+        user, client = make_user()
+        old = make_game("Old")
+        ps4 = make_platform("ps4")
+        activity = make_activity(user, old, ps4)
+        path = f"/activity/{activity.get_id()}"
+
+        assert client.patch(path, json={"game_id": None}).status_code == 400
+        assert client.patch(path, json={"platform_id": None}).status_code == 400
+        r = client.patch(path, json={})
+        assert r.status_code == 200, r.text
+        unchanged = Activity.get_by_id(activity.get_id())
+        assert unchanged.get_game() == old
+        assert unchanged.get_platform() == ps4

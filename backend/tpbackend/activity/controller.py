@@ -2,6 +2,7 @@ from tpbackend.activity.models import (
     API_Activity,
     API_LiveActivity,
     API_PostActivity,
+    API_PatchActivity,
     API_PostLiveActivity,
 )
 from tpbackend.igdb.controller import get_or_create_game_by_steam_id
@@ -91,8 +92,8 @@ def delete_through_api(user: User, activity_id: int):
         return forbidden("You cannot delete someone else's activity")
 
 
-def set_platform_through_api(
-    user: User, activity_id: int, platform_id: int
+def patch_through_api(
+    user: User, activity_id: int, data: API_PatchActivity
 ) -> API_Activity:
     """same checks as deleting: the user's own activity, hidden ones too"""
     act = ActivityQuery.base(include_hidden=True)
@@ -102,29 +103,33 @@ def set_platform_through_api(
     act = cast(Activity, act)
     if act.get_user() != user:
         return forbidden("You cannot change someone else's activity")
-    platform = Platform_or_none(platform_id)
-    if not platform:
-        return not_found("Platform not found")
-    if platform.get_id() != act.get_platform().get_id():
-        act.set_platform(platform)
-        act.save()
-    return API_Activity.from_activity(act)
+    sent = data.model_fields_set
 
+    # look everything up first, so a bad id changes nothing
+    game = None
+    if "game_id" in sent:
+        if data.game_id is None:
+            return bad_request("game_id cannot be null")
+        game = GameSelect.by_id(data.game_id)
+        if not game:
+            return not_found("Game not found")
 
-def set_game_through_api(user: User, activity_id: int, game_id: int) -> API_Activity:
-    """same checks as changing the platform"""
-    act = ActivityQuery.base(include_hidden=True)
-    act = ActivityQuery.id(act, activity_id).first()
-    if not act:
-        return not_found("Activity not found")
-    act = cast(Activity, act)
-    if act.get_user() != user:
-        return forbidden("You cannot change someone else's activity")
-    game = GameSelect.by_id(game_id)
-    if not game:
-        return not_found("Game not found")
-    if game.get_id() != act.get_game().get_id():
+    platform = None
+    if "platform_id" in sent:
+        if data.platform_id is None:
+            return bad_request("platform_id cannot be null")
+        platform = Platform_or_none(data.platform_id)
+        if not platform:
+            return not_found("Platform not found")
+
+    changed = False
+    if game and game.get_id() != act.get_game().get_id():
         act.set_game(game)
+        changed = True
+    if platform and platform.get_id() != act.get_platform().get_id():
+        act.set_platform(platform)
+        changed = True
+    if changed:
         act.save()
     return API_Activity.from_activity(act)
 
