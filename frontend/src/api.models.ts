@@ -26,6 +26,15 @@ export type GameCover = components["schemas"]["API_GameCover"];
 
 export type IGDBSearchResult = components["schemas"]["IGDB_SearchResult"];
 
+// the settings route isn't in the OpenAPI schema, these mirror backend/tpbackend/user/models.py
+export const PC_PLATFORMS = ["pc", "win", "mac", "linux"] as const;
+export type PCPlatform = (typeof PC_PLATFORMS)[number];
+// only the fields that are given are changed
+export type SettingsPut = {
+  pc_platform?: PCPlatform;
+  show_nsfw?: boolean;
+};
+
 // the charts route isn't in the OpenAPI schema either, see backend/tpbackend/charts/
 export type PlaytimeChart = {
   labels: string[];

@@ -263,10 +263,11 @@ def who_am_i(user: AuthenticatedUser) -> API_AuthenticatedUser:
     return API_AuthenticatedUser.from_user(user)
 
 
+# only for our own frontend's settings page, not part of the public API
 @router.put(
     "/settings",
-    tags=["users", "authenticated"],
     response_model=API_AuthenticatedUser,
+    include_in_schema=False,
 )
 def update_settings(
     user: AuthenticatedUser, data: API_PutSettings

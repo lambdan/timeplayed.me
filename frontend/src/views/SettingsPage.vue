@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { Platform } from "../api.models";
+import { PC_PLATFORMS, type PCPlatform, type Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
-
-// same as PCPlatform in the backend (user/models.py)
-const PC_PLATFORMS = ["pc", "win", "mac", "linux"] as const;
-type PCPlatform = (typeof PC_PLATFORMS)[number];
 
 const { token } = useApiToken();
 const {

@@ -5,6 +5,9 @@ class TestSettings:
     def test_requires_token(self, api):
         assert api.put("/settings", json={}).status_code in (401, 403)
 
+    def test_not_in_openapi(self, api):
+        assert "/settings" not in api.get("/openapi.json").json()["paths"]
+
     def test_who_am_i_has_pc_platform(self, make_user):
         _, client = make_user()
         assert client.get("/who_am_i").json()["pc_platform"] == "pc"

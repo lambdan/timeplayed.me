@@ -157,23 +157,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update Settings */
-        put: operations["update_settings_settings_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/activity": {
         parameters: {
             query?: never;
@@ -919,22 +902,6 @@ export interface components {
              */
             platform_id: number;
         };
-        /**
-         * API_PutSettings
-         * @description leave out what shouldn't change
-         */
-        API_PutSettings: {
-            /**
-             * Pc Platform
-             * @description What PC activity counts as
-             */
-            pc_platform?: ("pc" | "win" | "mac" | "linux") | null;
-            /**
-             * Show Nsfw
-             * @description Show NSFW game titles and covers
-             */
-            show_nsfw?: boolean | null;
-        };
         /** API_User */
         API_User: {
             /** Id */
@@ -1446,39 +1413,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_AuthenticatedUser"];
-                };
-            };
-        };
-    };
-    update_settings_settings_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["API_PutSettings"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["API_AuthenticatedUser"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
