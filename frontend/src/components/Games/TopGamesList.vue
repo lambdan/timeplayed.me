@@ -13,6 +13,8 @@ import { playedFamilyRow } from "../../utils.family";
 const props = withDefaults(
   defineProps<{
     platform?: Platform;
+    /** with platform: also its child platforms */
+    includeChildPlatforms?: boolean;
     user?: User;
     /** only games with names matching this */
     search?: string;
@@ -35,6 +37,7 @@ let latest = 0;
 
 const filters = computed(() => ({
   platform: props.platform?.id,
+  include_child_platforms: props.includeChildPlatforms,
   user: props.user?.id,
   after: props.after?.getTime(),
   before: props.before?.getTime(),

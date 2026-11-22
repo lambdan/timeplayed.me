@@ -13,6 +13,8 @@ const props = defineProps<{
   /** with game: also its child games */
   includeChildren?: boolean;
   platform?: Platform;
+  /** with platform: also its child platforms */
+  includeChildPlatforms?: boolean;
   /** ranked list without a date picker, the range comes from after/before */
   compact?: boolean;
   after?: Date;
@@ -42,6 +44,7 @@ watch(
     props.after,
     props.before,
     props.includeChildren,
+    props.includeChildPlatforms,
   ],
   () => {
     if (!props.compact) return;
@@ -67,6 +70,7 @@ async function fetchTheThings() {
       before: _before.value ? _before.value.getTime() : undefined,
       after: _after.value ? _after.value.getTime() : undefined,
       platform: props.platform ? props.platform.id : undefined,
+      include_child_platforms: props.includeChildPlatforms,
       search: props.search || undefined,
       order: "desc",
       sort: "playtime",

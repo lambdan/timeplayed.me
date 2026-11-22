@@ -858,6 +858,10 @@ export interface components {
             color_secondary: string | null;
             /** Icon */
             icon: string | null;
+            /** Parent Id */
+            parent_id: number | null;
+            /** Children Ids */
+            children_ids: number[];
             /** Created */
             created: number;
             /** Updated */
@@ -879,6 +883,10 @@ export interface components {
             color_secondary: string | null;
             /** Icon */
             icon: string | null;
+            /** Parent Id */
+            parent_id: number | null;
+            /** Children Ids */
+            children_ids: number[];
             /** Created */
             created: number;
             /** Updated */
@@ -1226,6 +1234,8 @@ export interface operations {
                 /** @description When filtering by game, also include its child games (at any depth). */
                 include_children?: boolean;
                 platform?: number | null;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
             };
             header?: never;
             path: {
@@ -1268,6 +1278,8 @@ export interface operations {
                 include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Sort by */
                 sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "game_count" | "platform_count" | "name" | "id";
                 order?: "asc" | "desc";
@@ -1312,6 +1324,8 @@ export interface operations {
                 include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
                 before?: number;
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
@@ -1549,6 +1563,8 @@ export interface operations {
                 include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
             };
             header?: never;
             path?: never;
@@ -1587,6 +1603,8 @@ export interface operations {
                 include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
             };
             header?: never;
             path?: never;
@@ -1887,6 +1905,8 @@ export interface operations {
                 include_children?: boolean;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
                 before?: number;
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
@@ -1969,6 +1989,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Include the playtime of child games (at any depth) in their parent. */
                 include_children?: boolean;
             };
@@ -2012,6 +2034,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Sort by */
                 sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "platform_count" | "name" | "id";
                 order?: "asc" | "desc";
@@ -2056,6 +2080,8 @@ export interface operations {
                 user?: number;
                 /** @description ID of the platform to filter by */
                 platform?: number;
+                /** @description When filtering by platform, also include its child platforms (at any depth). */
+                include_child_platforms?: boolean;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
                 before?: number;
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */
@@ -2338,6 +2364,8 @@ export interface operations {
                 game?: number;
                 /** @description When filtering by game, also include its child games (at any depth). */
                 include_children?: boolean;
+                /** @description Include the playtime of child platforms (at any depth) in their parent. */
+                include_child_platforms?: boolean;
             };
             header?: never;
             path: {
@@ -2381,6 +2409,8 @@ export interface operations {
                 game?: number;
                 /** @description When filtering by game, also include its child games (at any depth). */
                 include_children?: boolean;
+                /** @description Include the playtime of child platforms (at any depth) in their parent. */
+                include_child_platforms?: boolean;
                 /** @description Sort by */
                 sort?: "playtime" | "activity_count" | "last_activity" | "first_activity" | "user_count" | "game_count" | "name" | "id";
                 order?: "asc" | "desc";
@@ -2425,6 +2455,8 @@ export interface operations {
                 game?: number;
                 /** @description When filtering by game, also include its child games (at any depth). */
                 include_children?: boolean;
+                /** @description Include the playtime of child platforms (at any depth) in their parent. Children are then not listed separately, only platforms without a parent are. */
+                include_child_platforms?: boolean;
                 /** @description Timestamp (in milliseconds). Only include activities before this timestamp. */
                 before?: number;
                 /** @description Timestamp (in milliseconds). Only include activities after this timestamp. */

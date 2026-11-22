@@ -36,7 +36,15 @@ const form = ref({
   color_primary: "",
   color_secondary: "",
   icon: "",
+  parent_id: null as number | null,
 });
+
+// a platform can't be under itself, the backend also refuses its children
+const parentOptions = computed(() =>
+  platforms.value
+    .filter((p) => p.id !== selectedId.value)
+    .sort((a, b) => a.display_name.localeCompare(b.display_name)),
+);
 
 // how the badge would look with the unsaved form values
 const preview = computed(() => {
@@ -80,6 +88,7 @@ function resetForm(p: AdminPlatform) {
     color_primary: p.color_primary ? "#" + p.color_primary : "",
     color_secondary: p.color_secondary ? "#" + p.color_secondary : "",
     icon: p.icon ?? "",
+    parent_id: p.parent_id ?? null,
   };
 }
 
@@ -102,6 +111,8 @@ const patch = computed(() => {
   if (preview.value?.color_secondary !== p.color_secondary)
     changed.color_secondary = form.value.color_secondary || null;
   if ((form.value.icon || null) !== p.icon) changed.icon = form.value.icon;
+  if (form.value.parent_id !== p.parent_id)
+    changed.parent_id = form.value.parent_id;
   return changed;
 });
 
@@ -111,6 +122,7 @@ const FIELD_LABELS: Record<keyof AdminPlatformPatch, string> = {
   color_primary: "primary color",
   color_secondary: "secondary color",
   icon: "icon",
+  parent_id: "parent",
 };
 
 const unsavedLabels = computed(() =>
@@ -130,6 +142,8 @@ async function save() {
     const updated = await AdminAPI.patchPlatform(p.id, patch.value);
     // so public pages in this tab show the change
     clearCachedPlatform(updated.id);
+    if (p.parent_id) clearCachedPlatform(p.parent_id);
+    if (updated.parent_id) clearCachedPlatform(updated.parent_id);
     replace(updated);
     select(updated);
     message.value = "Saved";
@@ -234,6 +248,21 @@ onMounted(async () => {
                 class="form-control form-control-sm"
                 :class="{ 'border-warning': 'icon' in patch }"
               />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small mb-0"
+                >Parent (its stats include this platform)</label
+              >
+              <select
+                v-model="form.parent_id"
+                class="form-select form-select-sm"
+                :class="{ 'border-warning': 'parent_id' in patch }"
+              >
+                <option :value="null">None</option>
+                <option v-for="o in parentOptions" :key="o.id" :value="o.id">
+                  {{ o.display_name }} ({{ o.abbreviation }})
+                </option>
+              </select>
             </div>
             <div class="col-6 col-md-3">
               <label class="form-label small mb-0">Primary color</label>

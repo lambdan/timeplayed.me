@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-// arrow button to show/hide the child games under a row
+// arrow button to show/hide the child games or platforms under a row
 const expanded = defineModel<boolean>({ required: true });
 </script>
 

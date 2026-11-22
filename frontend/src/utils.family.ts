@@ -1,9 +1,10 @@
-import type { GameWithStats } from "./api.models";
+import type { GameWithStats, PlatformWithStats } from "./api.models";
 import { TimeplayedAPI } from "./api.client";
 
 export type StatsFilters = {
   user?: number;
   platform?: number;
+  include_child_platforms?: boolean;
   after?: number;
   before?: number;
 };
@@ -34,4 +35,38 @@ export async function playedFamilyRow(
     return playedFamilyRow(played[0]!, filters);
   }
   return { game, expandable: played.length > 0 };
+}
+
+export type PlatformStatsFilters = {
+  user?: number;
+  game?: number;
+  /** with game: also its child games */
+  include_children?: boolean;
+  after?: number;
+  before?: number;
+};
+
+/**
+ * Like playedFamilyRow, for a combined platform (it and its child platforms)
+ */
+export async function playedPlatformFamilyRow(
+  platform: PlatformWithStats,
+  filters: PlatformStatsFilters,
+): Promise<{ platform: PlatformWithStats; expandable: boolean }> {
+  if (platform.children_ids.length === 0) {
+    return { platform, expandable: false };
+  }
+  const [own, children] = await Promise.all([
+    TimeplayedAPI.getPlatformStatsMany([platform.id], filters),
+    TimeplayedAPI.getPlatformStatsMany(platform.children_ids, {
+      ...filters,
+      include_child_platforms: true,
+    }),
+  ]);
+  const ownSeconds = own[0]?.stats.seconds ?? 0;
+  const played = children.filter((c) => c.stats.seconds > 0);
+  if (ownSeconds === 0 && played.length === 1) {
+    return playedPlatformFamilyRow(played[0]!, filters);
+  }
+  return { platform, expandable: played.length > 0 };
 }

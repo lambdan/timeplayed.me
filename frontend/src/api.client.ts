@@ -167,7 +167,10 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async getPlatformStats(platform_id: number) {
+  static async getPlatformStats(
+    platform_id: number,
+    query?: paths["/platform-stats/{platform_id}"]["get"]["parameters"]["query"],
+  ) {
     const { data, error } = await this.client.GET(
       "/platform-stats/{platform_id}",
       {
@@ -175,11 +178,34 @@ export class TimeplayedAPI {
           path: {
             platform_id,
           },
+          query,
         },
       },
     );
     if (error) {
       console.error("Error fetching platform:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  static async getPlatformStatsMany(
+    platform_ids: number[],
+    query?: paths["/platforms-stats/{platform_ids}"]["get"]["parameters"]["query"],
+  ) {
+    const { data, error } = await this.client.GET(
+      "/platforms-stats/{platform_ids}",
+      {
+        params: {
+          path: {
+            platform_ids: platform_ids.join(","),
+          },
+          query,
+        },
+      },
+    );
+    if (error) {
+      console.error("Error fetching platform stats:", error);
       throw error;
     }
     return data;

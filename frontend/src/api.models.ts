@@ -36,6 +36,7 @@ export type PlaytimeChartQuery = {
   game?: number;
   include_children?: boolean;
   platform?: number;
+  include_child_platforms?: boolean;
   before?: number;
   after?: number;
 };

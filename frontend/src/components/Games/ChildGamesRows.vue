@@ -9,7 +9,7 @@ import CalendarBasic from "../CalendarBasic.vue";
 import ExpandToggle from "../Misc/ExpandToggle.vue";
 // rows for its children are this same component, one level deeper
 import ChildGamesRows from "./ChildGamesRows.vue";
-import { playedFamilyRow } from "../../utils.family";
+import { playedFamilyRow, type StatsFilters } from "../../utils.family";
 
 // table rows for the children of a game, each with the playtime of its own children
 // included, and a row for the game itself (without children) so the rows add up to its
@@ -18,12 +18,7 @@ const props = defineProps<{
   parent: GameWithStats;
   depth: number;
   /** same filters as the list the rows are in, e.g. its date range */
-  filters?: {
-    user?: number;
-    platform?: number;
-    after?: number;
-    before?: number;
-  };
+  filters?: StatsFilters;
   /** for TopGamesList: an empty rank cell, name and playtime only, no unplayed games */
   compact?: boolean;
 }>();

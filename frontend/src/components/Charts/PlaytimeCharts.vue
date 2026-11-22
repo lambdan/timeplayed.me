@@ -21,6 +21,8 @@ const props = defineProps<{
   includeChildren?: boolean;
   user?: User;
   platform?: Platform;
+  /** with platform: also its child platforms */
+  includeChildPlatforms?: boolean;
 }>();
 
 const days = ref<DaySeconds[]>([]);
@@ -28,7 +30,7 @@ const loading = ref(true);
 
 let latest = 0;
 watch(
-  () => props.includeChildren,
+  () => [props.includeChildren, props.includeChildPlatforms],
   async () => {
     const request = ++latest;
     loading.value = true;
@@ -37,6 +39,7 @@ watch(
       include_children: props.includeChildren,
       user: props.user?.id,
       platform: props.platform?.id,
+      include_child_platforms: props.includeChildPlatforms,
     });
     if (request !== latest) return; // toggled again meanwhile
     days.value = toDays(byDay);

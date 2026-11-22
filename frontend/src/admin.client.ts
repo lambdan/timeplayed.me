@@ -72,6 +72,7 @@ export type AdminPlatformPatch = Partial<{
   color_primary: string | null;
   color_secondary: string | null;
   icon: string | null;
+  parent_id: number | null;
 }>;
 
 export type AdminOverlapGroup = { keep_id: number; remove_ids: number[] };

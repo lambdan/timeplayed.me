@@ -13,6 +13,8 @@ const props = withDefaults(
     /** with game: also its child games */
     includeChildren?: boolean;
     platform?: Platform;
+    /** with platform: also its child platforms */
+    includeChildPlatforms?: boolean;
     limit?: number;
     showExpand?: boolean;
     showDateRange?: boolean;
@@ -48,6 +50,7 @@ async function fetchActivities(limit?: number) {
     include_children: props.includeChildren,
     user: props.user ? props.user.id : undefined,
     platform: props.platform ? props.platform.id : undefined,
+    include_child_platforms: props.includeChildPlatforms,
     before: _before.value ? _before.value.getTime() : Date.now(),
     after: _after.value ? _after.value.getTime() : undefined,
   });
@@ -81,6 +84,7 @@ async function autoRefresh() {
       include_children: props.includeChildren,
       user: props.user ? props.user.id : undefined,
       platform: props.platform ? props.platform.id : undefined,
+      include_child_platforms: props.includeChildPlatforms,
       after: lastCheck,
       order: "desc",
     });
@@ -157,7 +161,7 @@ onMounted(async () => {
             :activity="a"
             :showUser="!user"
             :showGame="!game || includeChildren"
-            :showPlatform="!platform"
+            :showPlatform="!platform || includeChildPlatforms"
           >
             <!-- muted, the badges are the main thing. shorter on phones -->
             <CalendarBasic
