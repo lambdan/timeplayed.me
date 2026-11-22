@@ -144,3 +144,6 @@ PLAN*.md
 
 # Shared working notes between agents (see CLAUDE.md)
 NOTES.md
+
+# playwright-cli page snapshots
+.playwright-cli/
