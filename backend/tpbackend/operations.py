@@ -10,6 +10,7 @@ from .storage import (
     Game,
     Platform,
     Activity,
+    History,
     LiveActivity,
     db,
 )
@@ -50,6 +51,31 @@ def get_overlapping_activities(
     return overlapping
 
 
+def merge_into(
+    keep: Activity,
+    others: list[Activity],
+    started: datetime.datetime,
+    ended: datetime.datetime,
+):
+    """
+    Makes `keep` span from `started` to `ended`. `others` are merged into it: their
+    history is moved over (so things like where they came from aren't lost), then they're deleted
+    """
+    with db.atomic():
+        for activity in others:
+            keep.add_history(
+                f"overlapped activity id {activity.get_id()} ({activity.get_seconds()} seconds @ {activity.get_datetime().isoformat()})"
+            )
+            History.update(activity=keep).where(History.activity == activity).execute()  # type: ignore
+            activity.delete_instance()
+        if ended != keep.get_ended():
+            keep.set_datetime(ended)
+        seconds = int((ended - started).total_seconds())
+        if seconds != keep.get_seconds():
+            keep.set_seconds(seconds)
+        keep.save()
+
+
 def add_session(
     user: User,
     game: Game,
@@ -58,7 +84,8 @@ def add_session(
     timestamp: datetime.datetime | None = None,
 ) -> tuple[Activity | None, Exception | None]:
     """
-    Adds a new session to the database.
+    Adds a new session to the database. If it overlaps existing activities, the longest
+    of those is extended to cover all of them instead, and the others are merged into it.
     Returns a tuple of (Activity, None) on success, or (None, Exception) on failure.
     """
     if seconds < MINIMUM_SESSION_LENGTH:
@@ -79,7 +106,7 @@ def add_session(
         # now if not provided
         timestamp = timestamp or utils2.now()
 
-        # Merge all overlapping activities into this one
+        started = timestamp - datetime.timedelta(seconds=seconds)
         overlapping_activities = get_overlapping_activities(
             user=user,
             game=game,
@@ -87,17 +114,31 @@ def add_session(
             incoming_ended_dt=timestamp,
             incoming_seconds=seconds,
         )
-        overlap_msgs = []
-        started = timestamp - datetime.timedelta(seconds=seconds)
-        for overlapping_activity in overlapping_activities:
-            overlap_msg = f"overlapped activity id {overlapping_activity.get_id()} ({overlapping_activity.get_seconds()} seconds @ {overlapping_activity.get_datetime().isoformat()})"
-            logger.info(overlap_msg)
-            overlap_msgs.append(overlap_msg)
-            # the merged activity spans from the earliest start to the latest end
-            started = min(started, overlapping_activity.get_started())
-            timestamp = max(timestamp, overlapping_activity.get_ended())
-            overlapping_activity.delete_instance()  # or maybe just hide...
-        seconds = int((timestamp - started).total_seconds())
+        if overlapping_activities:
+            # extend the longest overlapping activity to cover all of them and this session
+            keep = max(overlapping_activities, key=lambda a: a.get_seconds())
+            others = [a for a in overlapping_activities if a.get_id() != keep.get_id()]
+            keep.add_history(
+                f"Merged in an overlapping session ({seconds} seconds @ {timestamp.isoformat()})"
+            )
+            merge_into(
+                keep,
+                others,
+                started=min(
+                    [started] + [a.get_started() for a in overlapping_activities]
+                ),
+                ended=max(
+                    [timestamp] + [a.get_ended() for a in overlapping_activities]
+                ),
+            )
+            logger.info(
+                "Merged session (%s seconds @ %s) and %s other activities into activity id %s",
+                seconds,
+                timestamp.isoformat(),
+                len(others),
+                keep.get_id(),
+            )
+            return keep, None
 
         raw_activity = Activity.create(
             user=user,
@@ -122,12 +163,6 @@ def add_session(
             activity.get_datetime().isoformat(),
             activity.get_hidden(),
         )
-
-        if overlap_msgs:
-            for overlap_msg in overlap_msgs:
-                activity.add_history(overlap_msg)
-            activity.save()
-
         return activity, None
     except Exception as e:
         logger.error("Failed to add session for user %s: %s", user.id, e)
@@ -289,23 +324,12 @@ def merge_overlapping_group(group: list[Activity]) -> Activity:
     earliest start to the latest end. The others are deleted.
     """
     keep = max(group, key=lambda a: a.get_seconds())
-    started = min(a.get_started() for a in group)
-    ended = max(a.get_ended() for a in group)
-
-    with db.atomic():
-        for activity in group:
-            if activity.get_id() == keep.get_id():
-                continue
-            keep.add_history(
-                f"overlapped activity id {activity.get_id()} ({activity.get_seconds()} seconds @ {activity.get_datetime().isoformat()})"
-            )
-            activity.delete_instance()
-        if ended != keep.get_ended():
-            keep.set_datetime(ended)
-        seconds = int((ended - started).total_seconds())
-        if seconds != keep.get_seconds():
-            keep.set_seconds(seconds)
-        keep.save()
+    merge_into(
+        keep,
+        [a for a in group if a.get_id() != keep.get_id()],
+        started=min(a.get_started() for a in group),
+        ended=max(a.get_ended() for a in group),
+    )
 
     logger.info(
         "Merged %s overlapping activities into activity id %s",

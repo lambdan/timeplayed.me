@@ -92,6 +92,9 @@ class TestAddActivity:
             json={"platform_id": platform_id, "game_id": game.get_id(), "seconds": 60},
         )
         assert first.status_code == 200, first.text
+        first_activity = Activity.get_by_id(first.json()["id"])
+        first_activity.add_history("where the first one came from")
+        first_activity.save()
         # second session "ended" just now and was longer, so it covers the first one
         second = client.post(
             "/activity",
@@ -101,11 +104,13 @@ class TestAddActivity:
 
         assert Activity.select().count() == 1
         assert second.json()["seconds"] >= 600
-        activity = Activity.get_by_id(second.json()["id"])
+        # the first one is extended, and keeps its history
+        assert second.json()["id"] == first.json()["id"]
+        history = Activity.get_by_id(first.json()["id"]).get_history()
         assert any(
-            f"overlapped activity id {first.json()['id']}" in h
-            for h in activity.get_history()
+            "Merged in an overlapping session (600 seconds" in h for h in history
         )
+        assert any("where the first one came from" in h for h in history)
 
     def test_all_overlapping_activities_are_merged(
         self, make_user, make_game, platform_id
@@ -141,9 +146,16 @@ class TestAddActivity:
 
         assert Activity.select().count() == 1
         assert long.json()["seconds"] >= 3600
-        history = Activity.get_by_id(long.json()["id"]).get_history()
+        # one of the short ones is extended, the others are merged into it
+        kept_id = long.json()["id"]
+        assert kept_id in short_ids
+        history = Activity.get_by_id(kept_id).get_history()
+        assert any(
+            "Merged in an overlapping session (3600 seconds" in h for h in history
+        )
         for short_id in short_ids:
-            assert any(f"overlapped activity id {short_id}" in h for h in history)
+            if short_id != kept_id:
+                assert any(f"overlapped activity id {short_id}" in h for h in history)
 
     def test_non_overlapping_activity_is_kept(self, make_user, make_game, platform_id):
         user, client = make_user()

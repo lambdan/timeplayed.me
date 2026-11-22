@@ -125,6 +125,8 @@ class TestMergeOverlappingGroup:
         pc = make_platform("pc")
         long = add_activity(user, game, pc, 0, 3600)
         short = add_activity(user, game, pc, 10, 60)
+        short.add_history("where the short one came from")
+        short.save()
 
         merge_overlapping_group(find_overlapping_groups()[0])
 
@@ -135,6 +137,8 @@ class TestMergeOverlappingGroup:
             f"overlapped activity id {short.get_id()}" in h
             for h in merged.get_history()
         )
+        # the merged away activity's history is kept
+        assert any("where the short one came from" in h for h in merged.get_history())
 
 
 def at(hour, minute=0):

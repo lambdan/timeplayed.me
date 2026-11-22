@@ -154,6 +154,10 @@ class TestDiscordPresence:
         [activity] = activities()
         assert activity.get_started() == T0
         assert activity.get_ended() == T0 + minutes(60)
+        # what both sources said is kept
+        history = activity.get_history()
+        assert any("Activity source: Oblivionis" in h for h in history)
+        assert any("Activity source: Discord presence" in h for h in history)
 
     def test_playstation_8_hours_is_dropped(self):
         play(Playing("Game", "ps5", T0), 1, 8 * 60 - 1)
