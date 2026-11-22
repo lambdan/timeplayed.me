@@ -87,6 +87,15 @@ def patch_platform(platform_id: int, data: Admin_PatchPlatform) -> Admin_Platfor
         if icon != platform.get_icon():
             platform.set_icon(icon)
 
+    if "parent_id" in sent and data.parent_id != platform.parent_id:  # type: ignore
+        parent = None
+        if data.parent_id is not None:
+            parent = __get_platform(data.parent_id)
+        try:
+            platform.set_parent(parent)
+        except ValueError as e:
+            return bad_request(str(e))
+
     platform.save()
     return Admin_Platform.from_platform(platform)
 

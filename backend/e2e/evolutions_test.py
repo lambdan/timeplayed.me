@@ -82,7 +82,7 @@ class TestEvolutions:
             "CREATE TABLE \"user\" (id integer PRIMARY KEY, name varchar, permissions text[] DEFAULT '{commands}', default_platform_id integer, pc_platform varchar DEFAULT 'win')"
         )
         scratch.execute_sql(
-            "CREATE TABLE platform (id serial, abbreviation varchar UNIQUE, name varchar, icon varchar, search varchar)"
+            "CREATE TABLE platform (id serial PRIMARY KEY, abbreviation varchar UNIQUE, name varchar, icon varchar, search varchar)"
         )
         scratch.execute_sql(
             "CREATE TABLE history (id serial, timestamp timestamptz DEFAULT now(), game_id integer, user_id integer, platform_id integer, activity_id integer, message text)"

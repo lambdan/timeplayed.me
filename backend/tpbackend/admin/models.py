@@ -292,3 +292,4 @@ class Admin_PatchPlatform(BaseModel):
     color_primary: str | None = None
     color_secondary: str | None = None
     icon: str | None = None
+    parent_id: int | None = None

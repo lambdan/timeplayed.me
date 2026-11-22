@@ -118,7 +118,9 @@ def user_head(user_id: int) -> str:
 
 
 def platform_head(platform_id: int) -> str:
-    query = PlatformStatsQuery.apply_ids(PlatformStatsQuery.base(), [platform_id])
+    query = PlatformStatsQuery.apply_ids(
+        PlatformStatsQuery.base_with_children(), [platform_id]
+    )
     platform = query.get_or_none()
     if platform is None:
         return ""

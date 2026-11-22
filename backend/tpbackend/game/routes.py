@@ -32,6 +32,7 @@ from tpbackend.api.params import (
     sorts,
     query_search,
     query_include_children,
+    query_platform_include_children,
 )
 
 logger = logging.getLogger("games-routes")
@@ -44,6 +45,7 @@ def __get_games_stats(
     after: int | None = None,
     user_id: int | None = None,
     platform_id: int | None = None,
+    include_child_platforms=False,
     sort="id",
     order="asc",
     offset: int | None = None,
@@ -78,7 +80,7 @@ def __get_games_stats(
         query = ActivityQuery.user(query, user_id)
 
     if platform_id:
-        query = ActivityQuery.platform(query, platform_id)
+        query = ActivityQuery.platform(query, platform_id, include_child_platforms)
 
     if search:
         query = GameQuery.search(query, search)
@@ -105,6 +107,7 @@ def get_single_game_stats(
     after=query_ts("after"),
     user=query_id("user"),
     platform=query_id("platform"),
+    include_child_platforms: bool = query_platform_include_children(),
     include_children: bool = query_include_children(),
 ) -> API_GameWithStats:
     x = __get_games_stats(
@@ -113,6 +116,7 @@ def get_single_game_stats(
         after=after,
         user_id=user,
         platform_id=platform,
+        include_child_platforms=include_child_platforms,
         include_children=include_children,
     )
     if len(x) == 0:
@@ -131,6 +135,7 @@ def get_many_games_stats(
     after=query_ts("after"),
     user=query_id("user"),
     platform=query_id("platform"),
+    include_child_platforms: bool = query_platform_include_children(),
     sort=sorts(list(GameStatsQuery.SORTS.keys()), default="id"),
     order: AscDescOrder = "asc",
     include_children: bool = query_include_children(),
@@ -142,6 +147,7 @@ def get_many_games_stats(
         after=after,
         user_id=user,
         platform_id=platform,
+        include_child_platforms=include_child_platforms,
         sort=sort,
         order=order,
         include_children=include_children,
@@ -158,6 +164,7 @@ def get_games_stats(
     limit=limit(),
     user=query_id("user"),
     platform=query_id("platform"),
+    include_child_platforms: bool = query_platform_include_children(),
     before=query_ts("before"),
     after=query_ts("after"),
     sort=sorts(list(GameStatsQuery.SORTS.keys()), default="playtime"),
@@ -176,6 +183,7 @@ def get_games_stats(
         after=after,
         user_id=user,
         platform_id=platform,
+        include_child_platforms=include_child_platforms,
         sort=sort,
         order=order,
         offset=offset,

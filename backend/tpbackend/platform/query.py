@@ -92,6 +92,56 @@ class PlatformStatsQuery:
         )
 
     @staticmethod
+    def family():
+        """
+        CTE with (root_id, platform_id) rows: every platform paired with itself and all
+        its children, at any depth. UNION (not UNION ALL) so it ends even if parents loop
+        """
+        family = Platform.select(
+            Platform.id.alias("root_id"), Platform.id.alias("platform_id")
+        ).cte("platform_family", recursive=True, columns=("root_id", "platform_id"))
+        child = Platform.alias()
+        children = child.select(family.c.root_id, child.id).join(
+            family, on=(child.parent == family.c.platform_id)
+        )
+        return family.union(children)
+
+    @staticmethod
+    def family_ids(platform_id: int):
+        """
+        Subquery with the ids of a platform and all its children (any depth)
+        """
+        family = PlatformStatsQuery.family()
+        return family.select_from(family.c.platform_id).where(
+            family.c.root_id == platform_id
+        )
+
+    @staticmethod
+    def base_with_children():
+        """
+        Like base(), but the stats of every platform include all its children (any depth)
+        """
+        family = PlatformStatsQuery.family()
+        return (
+            Platform.select(Platform, *PlatformStatsQuery.AGGREGATES.values())
+            .join(family, JOIN.LEFT_OUTER, on=(family.c.root_id == Platform.id))
+            .join(
+                Activity,
+                JOIN.LEFT_OUTER,
+                on=(Activity.platform == family.c.platform_id),
+            )
+            .group_by(Platform.id)
+            .with_cte(family)
+        )
+
+    @staticmethod
+    def top_level(query):
+        """
+        Only platforms without a parent
+        """
+        return query.where(Platform.parent.is_null())  # type: ignore
+
+    @staticmethod
     def apply_ids(
         query,
         platform_ids: list[int],

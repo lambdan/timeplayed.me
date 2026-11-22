@@ -17,6 +17,8 @@ class API_Platform(BaseModel):
     color_primary: str | None
     color_secondary: str | None
     icon: str | None
+    parent_id: int | None
+    children_ids: list[int]
     created: int
     updated: int
 
@@ -29,6 +31,8 @@ class API_Platform(BaseModel):
             color_primary=platform.color_primary,
             color_secondary=platform.color_secondary,
             icon=platform.icon,
+            parent_id=platform.parent_id,
+            children_ids=[child.id for child in platform.children],
             created=dt_to_ts(platform.created),
             updated=dt_to_ts(platform.updated),
             display_name=display_name(platform),
@@ -48,6 +52,8 @@ class API_PlatformWithStats(API_Platform):
             color_primary=platform.color_primary,
             color_secondary=platform.color_secondary,
             icon=platform.icon,
+            parent_id=platform.parent_id,
+            children_ids=[child.id for child in platform.children],
             created=dt_to_ts(platform.created),
             updated=dt_to_ts(platform.updated),
             stats=PlatformTotals(

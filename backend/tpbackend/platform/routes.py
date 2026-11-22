@@ -11,6 +11,7 @@ from tpbackend.api.params import (
     path_id,
     query_search,
     query_game_include_children,
+    query_include_child_platforms,
     query_ts,
     query_id,
     sorts,
@@ -29,6 +30,8 @@ def __get_platforms_stats(
     user_id: int | None = None,
     game_id: int | None = None,
     include_children=False,
+    include_child_platforms=False,
+    only_top_level=False,
     sort="id",
     order="asc",
     offset: int | None = None,
@@ -38,7 +41,13 @@ def __get_platforms_stats(
     bf = parseTS(before)
     af = parseTS(after)
 
-    query = PlatformStatsQuery.base()
+    if include_child_platforms:
+        query = PlatformStatsQuery.base_with_children()
+    else:
+        query = PlatformStatsQuery.base()
+
+    if only_top_level:
+        query = PlatformStatsQuery.top_level(query)
     if pids and len(pids) > 0:
         if len(pids) > 100:
             return bad_request("Cannot request more than 100 platforms at once")
@@ -82,6 +91,7 @@ def get_single_platform_stats(
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
+    include_child_platforms: bool = query_include_child_platforms(),
 ) -> API_PlatformWithStats:
     x = __get_platforms_stats(
         pids=[int(platform_id)],
@@ -90,6 +100,7 @@ def get_single_platform_stats(
         user_id=user,
         game_id=game,
         include_children=include_children,
+        include_child_platforms=include_child_platforms,
     )
     if len(x) == 0:
         return not_found("Platform not found")
@@ -108,6 +119,7 @@ def get_many_platforms_stats(
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
+    include_child_platforms: bool = query_include_child_platforms(),
     sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
 ) -> list[API_PlatformWithStats]:
@@ -119,6 +131,7 @@ def get_many_platforms_stats(
         user_id=user,
         game_id=game,
         include_children=include_children,
+        include_child_platforms=include_child_platforms,
         sort=sort,
         order=order,
     )
@@ -135,6 +148,10 @@ def get_platforms_stats(
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
+    include_child_platforms: bool = query_include_child_platforms(
+        "Include the playtime of child platforms (at any depth) in their parent. "
+        "Children are then not listed separately, only platforms without a parent are."
+    ),
     before=query_ts("before"),
     after=query_ts("after"),
     sort=sorts(list(PlatformStatsQuery.SORTS.keys()), "playtime"),
@@ -150,6 +167,9 @@ def get_platforms_stats(
         user_id=user,
         game_id=game,
         include_children=include_children,
+        include_child_platforms=include_child_platforms,
+        # children are counted in their parent
+        only_top_level=include_child_platforms,
         sort=sort,
         order=order,
         offset=offset,

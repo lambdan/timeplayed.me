@@ -67,6 +67,18 @@ def query_game_include_children() -> bool:
     )
 
 
+def query_include_child_platforms(
+    description="Include the playtime of child platforms (at any depth) in their parent.",
+) -> bool:
+    return Query(default=False, description=description)
+
+
+def query_platform_include_children() -> bool:
+    return query_include_child_platforms(
+        "When filtering by platform, also include its child platforms (at any depth)."
+    )
+
+
 def query_search(name: str):
     return Query(
         default=None,

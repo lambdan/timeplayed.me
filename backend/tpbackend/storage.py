@@ -271,6 +271,43 @@ class Platform(IdMixin, HistoryMixin, SearchMixin):
     color_primary = CharField(null=True, column_name="color_primary")
     color_secondary = CharField(null=True, column_name="color_secondary")
     icon = CharField(null=True)
+    # the parent's stats include its children, eg Windows and Steam Deck under PC
+    parent = ForeignKeyField(
+        "self", null=True, default=None, backref="children", on_delete="SET NULL"
+    )
+
+    def get_parent(self) -> "Platform | None":
+        return cast(Platform | None, self.parent)
+
+    def set_parent(self, new_parent: "Platform | None"):
+        if new_parent == self.get_parent():
+            raise ValueError("No change")
+        if new_parent:
+            if self.get_id() == new_parent.get_id():
+                raise ValueError("Platform cannot be its own parent")
+            if any(c.get_id() == new_parent.get_id() for c in self.get_children()):
+                raise ValueError("Platform cannot be parent of a child")
+        old_parent = self.get_parent()
+        old_parent_name = "None"
+        if old_parent:
+            old_parent_name = (
+                f"'{old_parent.get_abbreviation()}' ({old_parent.get_id()})"
+            )
+        self.parent = cast(ForeignKeyField, new_parent)
+        new_parent_name = "None"
+        if new_parent:
+            new_parent_name = (
+                f"'{new_parent.get_abbreviation()}' ({new_parent.get_id()})"
+            )
+        self.add_history(f"Parent changed from {old_parent_name} to {new_parent_name}")
+
+    def get_children(self, recursive=True) -> list["Platform"]:
+        children = []
+        for c in cast(list[Platform], list(self.children)):  # type: ignore
+            children.append(c)
+            if recursive:
+                children.extend(c.get_children())
+        return children
 
     def get_abbreviation(self) -> str:
         return cast(str, self.abbreviation)
