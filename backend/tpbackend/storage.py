@@ -364,6 +364,17 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     pc_platform = CharField(default="pc")
     permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
 
+    @classmethod
+    def from_discord(cls, discord_id: str | int, name: str) -> tuple["User", bool]:
+        """
+        The user with this Discord ID, created with `name` if there is none yet.
+        Discord usernames can change, so only the ID is used to find the user
+        """
+        user = cls.get_or_none(cls.discord_id == str(discord_id))
+        if user:
+            return user, False
+        return cast(User, cls.create(discord_id=str(discord_id), name=name)), True
+
     def get_discord_id(self) -> str | None:
         return cast(str | None, self.discord_id)
 
@@ -395,6 +406,21 @@ class User(IdMixin, HistoryMixin, SearchMixin):
         self.display_name = display_name
         self.add_history(
             f"Display name changed from '{old_display_name}' to '{display_name}'"
+        )
+
+    def sync_name(self, new_name: str):
+        """Keeps the name the same as the Discord username, which can be changed"""
+        new_name = new_name.strip()
+        if not new_name or new_name == self.get_name():
+            return
+        old_name = self.get_name()
+        self.set_name(new_name)
+        self.save()
+        logger.info(
+            "Synced new name for user %s: '%s' -> '%s'",
+            self.get_id(),
+            old_name,
+            new_name,
         )
 
     def sync_display_name(self, new_display_name: str):

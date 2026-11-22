@@ -48,6 +48,17 @@ class TestOblivionisSync:
         assert r.status_code == 200
         assert r.json()["user_id"] == user.get_id()
 
+    def test_existing_user_with_another_name(self, make_user):
+        # Discord usernames can change, Oblivionis may still have the old one
+        user, _ = make_user("newname", discord_id="1234")
+        add_oblivionis_activity("1234", "oldname", "Some Game", 60)
+
+        wait_for(lambda: oblivionis.Activity.select().count() == 0)
+
+        assert User.select().count() == 1
+        assert Activity.get().get_user() == user
+        assert User.get_by_id(user.get_id()).get_name() == "newname"
+
     def test_matches_existing_game_by_alias(self, make_game):
         game = make_game("The Real Name", aliases=["Discord Name"])
         add_oblivionis_activity("1234", "discordguy", "Discord Name", 60)

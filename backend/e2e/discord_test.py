@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from conftest import Api
 from tpbackend.discord.bot import dm_receive
-from tpbackend.storage import DiscordHistory
+from tpbackend.storage import DiscordHistory, User
 
 
 @dataclass
@@ -53,3 +53,17 @@ class TestSensitiveReplies:
         assert reply
         stored = [h.message for h in DiscordHistory.select()]
         assert reply in stored
+
+
+class TestUsernameChange:
+    def test_renamed_user_can_still_use_the_bot(self):
+        dm_receive(FakeMessage("!help"))  # type: ignore
+        renamed = FakeAuthor(name="newname")
+        reply = dm_receive(FakeMessage("!help", author=renamed))  # type: ignore
+
+        assert reply
+        assert User.select().count() == 1
+        user = User.get(User.discord_id == "1234")
+        assert user.get_name() == "newname"
+        messages = [h.message for h in user.get_history_entries()]
+        assert "Name changed from 'discordguy' to 'newname'" in messages

@@ -45,10 +45,9 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Skipping too short session...")
             return True
 
-        user, created = User.get_or_create(
-            discord_id=activity["discord_user_id"], name=activity["discord_user_name"]
+        user, created = User.from_discord(
+            activity["discord_user_id"], activity["discord_user_name"]
         )
-        user = cast(User, user)
         if created:
             logger.info(
                 "Added new user '%s' (id: %s, discord id: %s) to database",
@@ -59,16 +58,17 @@ def parseActivity(activity: PassedActivity) -> bool:
             user.add_history("Created during Oblivionis sync")
             user.save()
 
-        # maybe sync display name
+        # maybe sync names. From Discord, Oblivionis may have an old username
         try:
             user_discord_id = user.get_discord_id()
             if user_discord_id:
                 user_info = bot.get_discord_user(user_discord_id)
                 if user_info:
+                    user.sync_name(user_info.name)
                     user.sync_display_name(user_info.display_name)
         except Exception as e:
             logger.warning(
-                "Failed to sync display name for user '%s' (id: %s) during sync: %s",
+                "Failed to sync names for user '%s' (id: %s) during sync: %s",
                 user.name,
                 user.id,
                 e,

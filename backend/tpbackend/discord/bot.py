@@ -1,5 +1,4 @@
 import logging
-from typing import cast
 import discord
 from tpbackend.permissions import Permission
 from tpbackend.storage import User, DiscordHistory
@@ -8,7 +7,6 @@ from tpbackend.globals import DEBUG
 from .command_list import COMMANDS
 from .commands.help import HelpCommand
 
-import discord
 from discord.ext import commands
 
 logger = logging.getLogger("bot")
@@ -42,20 +40,15 @@ def avatar_from_discord_user_id(id: int | str) -> str:
     return default_avatar_url(id)
 
 
-def user_from_message(message: discord.Message) -> User | None:
-    if message.author is None:
-        return None
-    user, created = User.get_or_create(
-        discord_id=message.author.id,
-        name=message.author.name,
-    )
-    user = cast(User, user)
+def user_from_message(message: discord.Message) -> User:
+    user, created = User.from_discord(message.author.id, message.author.name)
     if created:
         logger.info(
             "Added new user %s %s to database", message.author.id, message.author.name
         )
         user.add_history("Created from DM message")
         user.save()
+    user.sync_name(message.author.name)
     user.sync_display_name(message.author.display_name)
     return user
 
@@ -93,9 +86,6 @@ def dm_receive(message: discord.Message) -> str | None:
         return _ret(None)
 
     user = user_from_message(message)
-    if not user:
-        _err(f"Could not find or create user for message author {message.author}")
-        return _ret(None)
 
     _info(f"User is: {user.id} {user.name}, permissions: {user.permissions}")
     if DEBUG and not user.has_permission(Permission.DEVELOPER):
