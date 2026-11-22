@@ -2,7 +2,6 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 
 # Rules
 
-- Never commit automatically, unless user has given you the OK to do so for this session
 - Code should always be formatted (see Commands below)
 - All tests should always pass
 - Any new feature should have a test added if possible
@@ -24,16 +23,32 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 - API routes should be intuitive and easy to use from code: a plain resource route returns JSON of what's there, and sub-resources get their own path instead of query flags
     - Example: `GET /game/{id}/cover` lists the cover's source, credits and versions; `GET /game/{id}/cover/{version}` redirects to that image, so it can go straight into an `<img src>`
 
+# Git rules/workflow
+
+- Never commit database backups (`storage_v2_*.sql`) or `backend/docker-compose.yml` (it holds the Discord token). Both are gitignored, keep it that way.
+- Never push, tag or make releases (`make release`, `make-release.sh`). The user does that
+- You may commit when all of these hold:
+    - Formatting passes and all tests pass
+    - The change does exactly what was asked, nothing more
+    - It involved no judgment calls the user hasn't seen (design choices, behavior changes, schema changes, anything you'd want to ask about)
+    - Otherwise only stage the edits and ask the user for approval
+- The user commits between turns sometimes. Check `git status` and `git log` before resetting, switching branches or amending.
+- When a task needs several commits, work in chunks: finish one chunk (a fix plus its small follow-ups, or one feature end to end), format and test it, stage exactly its files with `git add`, then commit it or stop for review, per the rule above. Don't build everything first and suggest a split afterwards, and don't stop after every one-line change either.
+- When the user asks for a tweak to a commit that was just made and isn't pushed, amend it instead of adding a "fix" commit.
+
 # Workflow
 
-- When a task needs several commits, work in chunks: finish one chunk (a fix plus its small follow-ups, or one feature end to end), format and test it, stage exactly its files with `git add`, then stop and let the user review and commit. Don't build everything first and suggest a split afterwards, and don't stop after every one-line change either.
-- The user commits between turns. Check `git status` and `git log` before resetting, switching branches or amending.
-- When the user asks for a tweak to a commit that was just made and isn't pushed, amend it instead of adding a "fix" commit.
-- Never commit database backups (`storage_v2_*.sql`) or `backend/docker-compose.yml` (it holds the Discord token). Both are gitignored, keep it that way.
 - Keep `NOTES.md` at the repo root up to date, so several agents (some with small context windows) can hand work over to each other. It's gitignored, don't commit it.
     - Read it before starting work. Create it if it's missing
-    - Update it whenever you finish a chunk, make a decision, or stop partway: the current task, what's done, what's next, decisions and why, and gotchas found along the way
+    - Update it whenever you finish a chunk, make a decision, or stop partway
+    - Always rewrite the whole file, never append to it. It has exactly these sections, each once, in this order:
+        - `## Current task`: what is being worked on, and what's done so far
+        - `## Decisions`: decisions for the current task, and why
+        - `## Next`: the next steps
+        - `## Gotchas`: surprises found along the way that the next agent should know
+    - Don't track what git already knows (uncommitted files, recent commits). Run `git status` and `git log` instead
     - Keep it short and current: point to files (`path:line`) instead of pasting code, and remove things that are finished and committed. Anything that stays true for the whole project belongs in this file instead
+    - Never write secrets (tokens, `backend/docker-compose.yml` contents) or prod user data in it
 
 # Layout
 
