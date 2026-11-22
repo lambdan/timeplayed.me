@@ -34,9 +34,9 @@ function logoutCurrentSession() {
 </script>
 
 <template>
-  <div class="auth-card">
+  <div class="mx-auto" style="max-width: 840px">
     <h1 class="mb-3">Log in</h1>
-    <div class="auth-intro mb-3">
+    <div class="alert alert-secondary">
       Logging in with a token from the Discord bot is
       <strong>completely optional</strong>, but it lets you track playtime
       manually, edit or delete your activities, and change your settings.
@@ -84,7 +84,7 @@ function logoutCurrentSession() {
         Logout
       </button>
     </div>
-    <p class="auth-note mb-0" v-if="authenticatedUser">
+    <p class="text-body-secondary small mt-3 mb-0" v-if="authenticatedUser">
       Clicking logout here only removes your API token from this browser. The
       token (and any other active tokens) still remains valid on the server. To
       invalidate all of your tokens, DM the bot
@@ -92,26 +92,3 @@ function logoutCurrentSession() {
     </p>
   </div>
 </template>
-
-<style scoped>
-.auth-card {
-  max-width: 840px;
-  margin: 0 auto;
-}
-
-.auth-intro {
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: #f8f9fa;
-  color: #334155;
-  border-radius: 0.65rem;
-  padding: 0.85rem 1rem;
-  line-height: 1.45;
-}
-
-.auth-note {
-  margin-top: 0.85rem;
-  color: #6b7280;
-  font-size: 0.92rem;
-  line-height: 1.45;
-}
-</style>
