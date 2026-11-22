@@ -854,6 +854,47 @@ class LiveActivity(IdMixin):
         return dt_to_ts(self.get_started_datetime())
 
 
+class DiscordPresence(IdMixin):
+    """
+    A game a Discord user is playing right now, according to their presence.
+    Game name and platform are as Discord says (like Oblivionis), mapped when the session ends
+    """
+
+    discord_user_id = CharField(unique=True)
+    discord_user_name = CharField()
+    game_name = TextField()
+    platform = CharField()
+    # when the bot first saw them playing it
+    started = DateTimeField()
+    # the earliest start Discord reported, None if it never said
+    discord_started = DateTimeField(null=True)
+    # the last time the bot saw them playing it
+    last_seen = DateTimeField()
+
+    def get_discord_user_id(self) -> str:
+        return cast(str, self.discord_user_id)
+
+    def get_discord_user_name(self) -> str:
+        return cast(str, self.discord_user_name)
+
+    def get_game_name(self) -> str:
+        return cast(str, self.game_name)
+
+    def get_platform(self) -> str:
+        return cast(str, self.platform)
+
+    def get_started(self) -> datetime:
+        return assertTimezone(self.started)
+
+    def get_discord_started(self) -> datetime | None:
+        if self.discord_started is None:
+            return None
+        return assertTimezone(self.discord_started)
+
+    def get_last_seen(self) -> datetime:
+        return assertTimezone(self.last_seen)
+
+
 class DiscordHistory(IdMixin):
     timestamp = DateTimeField(default=lambda: now())
     event = TextField()

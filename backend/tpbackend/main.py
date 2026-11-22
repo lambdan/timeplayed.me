@@ -1,6 +1,7 @@
 import asyncio
 from .oblivionis import storage as oblivionis_storage, sync as oblivionis_sync
 from .discord.bot import bot
+from .discord import presence
 from tpbackend.globals import (
     DISCORD_ENABLED,
     DISCORD_TOKEN,
@@ -36,6 +37,7 @@ async def async_main():
     tasks = [start_api(), clean_loop()]
     if DISCORD_ENABLED:
         tasks.append(start_bot())
+        tasks.append(presence.check_loop())
     if OBLIVIONIS_ENABLED:
         tasks.append(oblivionis_sync.sync_loop())
     await asyncio.gather(*tasks)

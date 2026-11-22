@@ -13,6 +13,8 @@ logger = logging.getLogger("bot")
 
 intents = discord.Intents.default()
 intents.members = True
+# for tracking what members play (presence.py). Privileged, must be enabled for the bot in the Discord developer portal
+intents.presences = True
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 

@@ -34,6 +34,7 @@ TIMEPLAYED_TABLES = [
     "liveactivity",
     "activity",
     "discordhistory",
+    "discordpresence",
     "game",
     '"user"',
     "platform",

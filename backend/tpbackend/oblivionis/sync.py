@@ -30,7 +30,7 @@ class PassedActivity(TypedDict):
     platform: str
 
 
-def get_game_by_name_or_alias_or_create(s: str) -> Game:
+def get_game_by_name_or_alias_or_create(s: str, source: str) -> Game:
     game = GameSelect.by_name_or_alias(s)
     if not game:
         # we'll create it!
@@ -40,12 +40,22 @@ def get_game_by_name_or_alias_or_create(s: str) -> Game:
         logger.info(
             "Added new game '%s' to database (id: %s)", game.get_name(), game.get_id()
         )
-        game.add_history("Created during Oblivionis sync")
+        game.add_history(f"Created during {source} sync")
         game.save()
     return game
 
 
-def parseActivity(activity: PassedActivity) -> bool:
+def parseActivity(
+    activity: PassedActivity,
+    source: str = "Oblivionis",
+    ended: datetime.datetime | None = None,
+    details: str = "",
+) -> bool:
+    """
+    Adds a session that ended `ended` (now if None) from Discord activity: from Oblivionis,
+    or from the bot's own presence tracking (`source` says which, for logs and history).
+    `details` is added to the activity's history
+    """
     try:
         logger.info("Syncing activity: %s", activity)
         if activity["duration"] < MINIMUM_SESSION_LENGTH:
@@ -62,7 +72,7 @@ def parseActivity(activity: PassedActivity) -> bool:
                 user.id,
                 user.discord_id,
             )
-            user.add_history("Created during Oblivionis sync")
+            user.add_history(f"Created during {source} sync")
             user.save()
 
         # maybe sync names. From Discord, Oblivionis may have an old username
@@ -95,14 +105,14 @@ def parseActivity(activity: PassedActivity) -> bool:
         ):
             logger.warning("Skipping PlayStation session of exactly 8 hours...")
             user.add_history(
-                f"Dropped Oblivionis activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}')"
+                f"Dropped {source} activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}')"
             )
             user.save()
             return True
 
         incoming_game = activity["game_name"]
         game_name = incoming_game.removesuffix(" with Medal").strip()
-        game = get_game_by_name_or_alias_or_create(game_name)
+        game = get_game_by_name_or_alias_or_create(game_name, source)
 
         # Discord activity is always on some platform, pc if it didn't say
         incoming_platform = activity["platform"]
@@ -113,14 +123,14 @@ def parseActivity(activity: PassedActivity) -> bool:
         platform, created = Platform.get_or_create(abbreviation=platform_abbr)
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)
-            platform.add_history("Created during Oblivionis sync")
+            platform.add_history(f"Created during {source} sync")
             platform.save()
 
         success = operations.add_session(
             user=user,
             game=game,
-            # #62: Discord timestamps cant be trusted... passing None to let it default to now
-            # timestamp=activity["dt"],
+            # #62: Discord timestamps cant be trusted, so the end is our own clock (now if None)
+            timestamp=ended,
             seconds=activity["duration"],
             platform=platform,
         )
@@ -128,7 +138,7 @@ def parseActivity(activity: PassedActivity) -> bool:
             logger.info("Activity synced successfully")
             created_activity = success[0]
             created_activity.add_history(
-                f"Activity source: Oblivionis (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}')"
+                f"Activity source: {source} (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}'{details})"
             )
             created_activity.save()
             return True
