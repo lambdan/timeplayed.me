@@ -19,8 +19,6 @@ const topReady = ref(false);
   <div class="row g-4">
     <div class="col-12">
       <div class="card h-100">
-        <h1 class="card-header">Playtime Tracker</h1>
-
         <div class="card-body text-start">
           <p class="lead">
             Track your playtime across all your games, on any platform.
