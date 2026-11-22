@@ -93,7 +93,7 @@ def get_games(
 
 
 @router.post("/game", response_model=Admin_GameDetails)
-def add_game(data: Admin_PostGame, admin: AdminUser) -> Admin_GameDetails:
+def add_game(data: Admin_PostGame) -> Admin_GameDetails:
     name = data.name.strip()
     if not name:
         return bad_request("Name cannot be empty")
@@ -103,7 +103,7 @@ def add_game(data: Admin_PostGame, admin: AdminUser) -> Admin_GameDetails:
             f"Game with that name and no release year already exists (id: {existing.get_id()})"
         )
     game = cast(Game, Game.create(name=name))
-    game.add_history(f"Game added by admin {admin.get_name()}")
+    game.add_history("Game added")
     game.save()
     return Admin_GameDetails.from_game(game)
 
@@ -114,9 +114,7 @@ def get_game(game_id: int) -> Admin_GameDetails:
 
 
 @router.patch("/game/{game_id}", response_model=Admin_GameDetails)
-def patch_game(
-    game_id: int, data: Admin_PatchGame, admin: AdminUser
-) -> Admin_GameDetails:
+def patch_game(game_id: int, data: Admin_PatchGame) -> Admin_GameDetails:
     game = __get_game(game_id)
     sent = data.model_fields_set
 
@@ -171,8 +169,6 @@ def patch_game(
         if hidden_changed:
             game.set_hidden(data.hidden)
 
-    if game.pending_history:
-        game.add_history(f"Edited by admin {admin.get_name()}")
     game.save()
     if hidden_changed:
         sync_activities_hidden(game)

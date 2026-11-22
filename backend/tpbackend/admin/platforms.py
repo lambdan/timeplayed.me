@@ -40,22 +40,20 @@ def get_platforms() -> list[Admin_Platform]:
 
 
 @router.post("/platform", response_model=Admin_Platform)
-def add_platform(data: Admin_PostPlatform, admin: AdminUser) -> Admin_Platform:
+def add_platform(data: Admin_PostPlatform) -> Admin_Platform:
     abbreviation = data.abbreviation.strip().lower()
     if not abbreviation:
         return bad_request("Abbreviation cannot be empty")
     if Platform.get_or_none(Platform.abbreviation == abbreviation):  # type: ignore
         return bad_request("Platform with that abbreviation already exists")
     platform = cast(Platform, Platform.create(abbreviation=abbreviation))
-    platform.add_history(f"Platform added by admin {admin.get_name()}")
+    platform.add_history("Platform added")
     platform.save()
     return Admin_Platform.from_platform(platform)
 
 
 @router.patch("/platform/{platform_id}", response_model=Admin_Platform)
-def patch_platform(
-    platform_id: int, data: Admin_PatchPlatform, admin: AdminUser
-) -> Admin_Platform:
+def patch_platform(platform_id: int, data: Admin_PatchPlatform) -> Admin_Platform:
     platform = __get_platform(platform_id)
     sent = data.model_fields_set
 
@@ -89,8 +87,6 @@ def patch_platform(
         if icon != platform.get_icon():
             platform.set_icon(icon)
 
-    if platform.pending_history:
-        platform.add_history(f"Edited by admin {admin.get_name()}")
     platform.save()
     return Admin_Platform.from_platform(platform)
 

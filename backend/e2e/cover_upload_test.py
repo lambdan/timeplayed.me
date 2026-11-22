@@ -98,7 +98,9 @@ class TestCoverUpload:
         assert r.status_code == 200
         assert r.json()["uploaded_cover"] is None
         assert api.get(f"/game/{game.get_id()}/cover").json()["source"] == "None"
-        assert "Uploaded cover removed" in "\n".join(r.json()["history"])
+        assert any(
+            h["message"] == "Uploaded cover removed" for h in r.json()["history"]
+        )
 
     def test_url_that_fails(self, admin, make_game):
         _, client = admin

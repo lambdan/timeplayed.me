@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from peewee import (
     BlobField,
     fn,
+    JOIN,
     BooleanField,
     CharField,
     DateTimeField,
@@ -19,6 +20,7 @@ from peewee import (
     UUIDField,
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
+from tpbackend.history_actor import get_history_actor
 from tpbackend.permissions import DEFAULT_PERMISSIONS
 
 from tpbackend.utils2 import dt_to_ts, js_iso, now_iso, assertTimezone, now
@@ -118,6 +120,7 @@ class HistoryMixin(BaseModel):
                 game=game,
                 user=user,
                 platform=platform,
+                actor=h["actor"],
                 message=h["message"],
                 timestamp=h["timestamp"],
             )
@@ -132,13 +135,23 @@ class HistoryMixin(BaseModel):
         # hmm, could just return latest history...
         return assertTimezone(self.updated)
 
+    def get_history_entries(self) -> list["History"]:
+        # backref, with the actor joined in so it's one query
+        Actor = User.alias()
+        query = (
+            self.history.select(History, Actor)  # type: ignore
+            .join(Actor, JOIN.LEFT_OUTER, on=(History.actor == Actor.id))  # type: ignore
+            .order_by(History.timestamp, History.id)
+        )
+        return list(query)
+
     def get_history(self) -> list[str]:
-        # backref
-        entries = self.history  # type: ignore
-        return [f"[{js_iso(entry.timestamp)}] {entry.message}" for entry in entries]
+        return [str(entry) for entry in self.get_history_entries()]
 
     def add_history(self, message: str):
-        self.pending_history.append({"message": message, "timestamp": now()})
+        self.pending_history.append(
+            {"message": message, "timestamp": now(), "actor": get_history_actor()}
+        )
 
 
 class SearchMixin(BaseModel):
@@ -791,7 +804,18 @@ class History(IdMixin):
     user = ForeignKeyField(User, backref="history", null=True)
     platform = ForeignKeyField(Platform, backref="history", null=True)
     activity = ForeignKeyField(Activity, backref="history", null=True)
+    # who made the change. None when nobody did, eg Oblivionis sync
+    actor = ForeignKeyField(User, backref="+", null=True, on_delete="SET NULL")
     message = TextField()
+
+    def get_actor(self) -> User | None:
+        return cast(User | None, self.actor)
+
+    def __str__(self) -> str:
+        actor = self.get_actor()
+        if actor:
+            return f"[{js_iso(self.timestamp)}] {actor.get_name()}: {self.message}"  # type: ignore
+        return f"[{js_iso(self.timestamp)}] {self.message}"  # type: ignore
 
 
 class Token(IdMixin):

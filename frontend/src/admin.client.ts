@@ -13,7 +13,14 @@ export type AdminPermission = { name: string; description: string };
 // current: the token this browser is logged in with
 export type AdminTokenInfo = { id: number; created: number; current: boolean };
 export type AdminUser = AuthenticatedUser & { activity_count: number };
-export type AdminUserDetails = AdminUser & { history: string[] };
+export type AdminHistory = {
+  timestamp: number;
+  // who made the change, null if nobody did (eg Oblivionis sync)
+  actor_id: number | null;
+  actor_name: string | null;
+  message: string;
+};
+export type AdminUserDetails = AdminUser & { history: AdminHistory[] };
 
 export type AdminDiscordHistory = {
   id: number;
@@ -23,7 +30,7 @@ export type AdminDiscordHistory = {
 };
 
 export type AdminActivity = Activity & { hidden: boolean };
-export type AdminActivityDetails = AdminActivity & { history: string[] };
+export type AdminActivityDetails = AdminActivity & { history: AdminHistory[] };
 export type AdminActivityPatch = Partial<{
   game_id: number;
   platform_id: number;
@@ -41,7 +48,7 @@ export type AdminGame = Game & {
   activity_count: number;
   last_activity: number | null;
 };
-export type AdminGameDetails = AdminGame & { history: string[] };
+export type AdminGameDetails = AdminGame & { history: AdminHistory[] };
 export type AdminGamePatch = Partial<{
   name: string;
   cover_disabled: boolean;
@@ -57,7 +64,7 @@ export type AdminGameMissing =
 export type AdminPlatform = Platform & {
   activity_count: number;
   last_activity: number | null;
-  history: string[];
+  history: AdminHistory[];
 };
 export type AdminPlatformPatch = Partial<{
   abbreviation: string;

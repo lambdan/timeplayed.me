@@ -1,3 +1,4 @@
+from tpbackend import history_actor
 from tpbackend.permissions import DEFAULT_PERMISSIONS, DESCRIPTIONS, Permission
 from tpbackend.storage import Game, Platform, User
 
@@ -45,3 +46,25 @@ class TestGameLabel:
 
     def test_without_year(self):
         assert Game(name="Vice City").get_label() == "Vice City"
+
+
+class TestHistoryActor:
+    def test_none_outside_requests(self):
+        g = Game(name="A")
+        g.add_history("synced")
+        assert g.pending_history[0]["actor"] is None
+
+    def test_from_request(self):
+        holder_token = history_actor._holder.set(history_actor._Holder())
+        try:
+            actor = User(name="admin")
+            history_actor.set_history_actor(actor)
+            g = Game(name="A")
+            g.add_history("edited")
+            assert g.pending_history[0]["actor"] is actor
+        finally:
+            history_actor._holder.reset(holder_token)
+
+    def test_set_outside_requests_does_nothing(self):
+        history_actor.set_history_actor(User(name="admin"))
+        assert history_actor.get_history_actor() is None

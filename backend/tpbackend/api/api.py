@@ -11,6 +11,7 @@ from tpbackend.charts.routes import router as charts_router
 from tpbackend.activity.routes import router as activity_router
 from tpbackend.admin.routes import router as admin_router
 from tpbackend.files.routes import router as files_router
+from tpbackend.history_actor import HistoryActorMiddleware
 from .misc import misc_router
 from .sitemap import sitemap_router
 from .head import head_router
@@ -25,6 +26,7 @@ class VersionInfo(BaseModel):
 
 def create_app():
     app = FastAPI(title="timeplayed", version=__version__, root_path="/api")
+    app.add_middleware(HistoryActorMiddleware)
     api_router = APIRouter()
 
     api_router.include_router(misc_router)

@@ -38,6 +38,11 @@ class TestOblivionisSync:
         assert activity.get_seconds() == 120
         # pc gets mapped to the users pc platform
         assert activity.get_platform().get_abbreviation() == "pc"
+        # nobody made these, the sync did
+        for model in [user, game, activity]:
+            entries = model.get_history_entries()
+            assert entries
+            assert all(h.get_actor() is None for h in entries)
 
         r = api.get(f"/activity/{activity.get_id()}")
         assert r.status_code == 200

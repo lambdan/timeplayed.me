@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tpbackend.__version__ import __version__
 from tpbackend.storage import Token, User
 from tpbackend.api.responses import forbidden, unauthorized
+from tpbackend.history_actor import set_history_actor
 from tpbackend.permissions import Permission
 from tpbackend.user.tokens import lookup_token, lookup_user
 import logging
@@ -20,6 +21,8 @@ def authenticate(credentials: HTTPAuthorizationCredentials = Depends(security)) 
     token = credentials.credentials
     user = lookup_user(token)
     if user:
+        # changes made in this request are theirs
+        set_history_actor(user)
         return user
     return unauthorized()
 

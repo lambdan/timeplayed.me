@@ -65,7 +65,9 @@ class TestAdminUsers:
         assert user.get_display_name() == "Test"
         assert user.get_discord_id() is None
         assert user.get_permissions() == DEFAULT_PERMISSIONS
-        assert any("User added by admin admin" in h for h in r.json()["history"])
+        added = r.json()["history"][-1]
+        assert added["message"] == "User added"
+        assert added["actor_name"] == "admin"
 
     def test_add_empty_name(self, admin):
         _, client = admin
@@ -106,7 +108,7 @@ class TestAdminUsers:
         assert r.status_code == 200, r.text
         assert bob_client.get("/who_am_i").status_code == 401
         history = User.get_by_id(bob.get_id()).get_history()
-        assert any(f"Token {token_id} revoked by admin admin" in h for h in history)
+        assert any(f"admin: Token {token_id} revoked" in h for h in history)
 
     def test_revoke_token_of_other_user(self, admin, make_user):
         _, client = admin
@@ -139,7 +141,9 @@ class TestAdminUsers:
             "commands",
             "developer",
         ]
-        assert any("Added permission 'developer'" in h for h in r.json()["history"])
+        assert any(
+            h["message"] == "Added permission 'developer'" for h in r.json()["history"]
+        )
 
     def test_set_invalid_permission(self, admin, make_user):
         _, client = admin
@@ -213,7 +217,9 @@ class TestAdminActivities:
         assert activity.get_game() == new_game
         assert activity.get_seconds() == 600
         assert activity.get_ended() == ended
-        assert any("Edited by admin admin" in h for h in activity.get_history())
+        changed = [h for h in activity.get_history_entries() if "changed" in h.message]
+        assert len(changed) == 3
+        assert all(h.get_actor().get_name() == "admin" for h in changed)
 
     def test_patch_too_short(self, admin, make_game, make_platform):
         user, client = admin
@@ -337,7 +343,7 @@ class TestAdminGames:
         assert r.status_code == 200, r.text
         assert r.json()["cover_disabled"] is True
         assert any(
-            "Cover disabled changed from False to True" in h
+            h["message"] == "Cover disabled changed from False to True"
             for h in r.json()["history"]
         )
         assert Game.get_by_id(game.get_id()).get_cover_disabled() is True
@@ -355,7 +361,10 @@ class TestAdminGames:
         assert r.status_code == 200, r.text
         assert r.json()["nsfw"] is True
         assert r.json()["own_nsfw"] is True
-        assert any("NSFW changed from False to True" in h for h in r.json()["history"])
+        assert any(
+            h["message"] == "NSFW changed from False to True"
+            for h in r.json()["history"]
+        )
 
         r = client.patch(f"/admin/game/{game.get_id()}", json={"nsfw": None})
         assert r.status_code == 400

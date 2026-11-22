@@ -31,7 +31,10 @@ class TestSetActivityPlatform:
         assert r.json()["platform_id"] == ps5.get_id()
         changed = Activity.get_by_id(activity.get_id())
         assert changed.get_platform() == ps5
-        assert any("Platform changed from 'ps4'" in h for h in changed.get_history())
+        assert any(
+            f"{user.get_name()}: Platform changed from 'ps4'" in h
+            for h in changed.get_history()
+        )
 
     def test_hidden_activity(self, make_user, make_game, make_platform):
         user, client = make_user()

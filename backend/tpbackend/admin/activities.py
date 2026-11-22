@@ -67,7 +67,7 @@ def get_activity(activity_id: int) -> Admin_ActivityDetails:
 
 @router.patch("/activity/{activity_id}", response_model=Admin_ActivityDetails)
 def patch_activity(
-    activity_id: int, data: Admin_PatchActivity, admin: AdminUser
+    activity_id: int, data: Admin_PatchActivity
 ) -> Admin_ActivityDetails:
     activity = __get_activity(activity_id)
     sent = data.model_fields_set
@@ -120,8 +120,6 @@ def patch_activity(
         if data.hidden != activity.get_hidden():
             activity.set_hidden(data.hidden)
 
-    if activity.pending_history:
-        activity.add_history(f"Edited by admin {admin.get_name()}")
     activity.save()
     return Admin_ActivityDetails.from_activity(activity)
 

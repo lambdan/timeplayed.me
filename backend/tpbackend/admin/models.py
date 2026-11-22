@@ -4,7 +4,15 @@ from pydantic import BaseModel, Field
 from tpbackend.activity.models import API_Activity
 from tpbackend.game.models import API_Game
 from tpbackend.platform.models import API_Platform
-from tpbackend.storage import Activity, DiscordHistory, Game, Platform, User
+from tpbackend.storage import (
+    Activity,
+    DiscordHistory,
+    Game,
+    History,
+    HistoryMixin,
+    Platform,
+    User,
+)
 from tpbackend.user.models import API_AuthenticatedUser
 from tpbackend.utils2 import dt_to_ts
 
@@ -26,6 +34,33 @@ def last_activity(**where) -> int | None:
     if not newest:
         return None
     return dt_to_ts(newest)
+
+
+class Admin_History(BaseModel):
+    timestamp: int
+    actor_id: int | None = Field(description="Who made the change, null if nobody did")
+    actor_name: str | None
+    message: str
+
+    @classmethod
+    def from_history(cls, entry: History):
+        actor_id = None
+        actor_name = None
+        actor = entry.get_actor()
+        if actor:
+            actor_id = actor.get_id()
+            # admins see the real name, even if it's hidden on the site
+            actor_name = actor.get_name()
+        return cls(
+            timestamp=dt_to_ts(entry.timestamp),  # type: ignore
+            actor_id=actor_id,
+            actor_name=actor_name,
+            message=entry.message,  # type: ignore
+        )
+
+
+def history_of(model: HistoryMixin) -> list[Admin_History]:
+    return [Admin_History.from_history(h) for h in model.get_history_entries()]
 
 
 def by_last_activity(query, model, activity_field):
@@ -51,13 +86,13 @@ class Admin_User(API_AuthenticatedUser):
 
 
 class Admin_UserDetails(Admin_User):
-    history: list[str]
+    history: list[Admin_History]
 
     @classmethod
     def from_user(cls, user: User):
         return cls(
             **Admin_User.from_user(user).model_dump(),
-            history=user.get_history(),
+            history=history_of(user),
         )
 
 
@@ -89,13 +124,13 @@ class Admin_Activity(API_Activity):
 
 
 class Admin_ActivityDetails(Admin_Activity):
-    history: list[str]
+    history: list[Admin_History]
 
     @classmethod
     def from_activity(cls, activity: Activity):
         return cls(
             **Admin_Activity.from_activity(activity).model_dump(),
-            history=activity.get_history(),
+            history=history_of(activity),
         )
 
 
@@ -127,20 +162,20 @@ class Admin_Game(API_Game):
 
 
 class Admin_GameDetails(Admin_Game):
-    history: list[str]
+    history: list[Admin_History]
 
     @classmethod
     def from_game(cls, game: Game):
         return cls(
             **Admin_Game.from_game(game).model_dump(),
-            history=game.get_history(),
+            history=history_of(game),
         )
 
 
 class Admin_Platform(API_Platform):
     activity_count: int
     last_activity: int | None
-    history: list[str]
+    history: list[Admin_History]
 
     @classmethod
     def from_platform(cls, platform: Platform):
@@ -148,7 +183,7 @@ class Admin_Platform(API_Platform):
             **API_Platform.from_platform(platform).model_dump(),
             activity_count=activity_count(platform=platform),
             last_activity=last_activity(platform=platform),
-            history=platform.get_history(),
+            history=history_of(platform),
         )
 
 
