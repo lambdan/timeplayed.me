@@ -36,11 +36,10 @@ function logoutCurrentSession() {
 <template>
   <div class="mx-auto" style="max-width: 840px">
     <h1 class="mb-3">Log in</h1>
-    <div class="alert alert-secondary">
-      Logging in with a token from the Discord bot is
-      <strong>completely optional</strong>, but it lets you track playtime
-      manually, edit or delete your activities, and change your settings.
-    </div>
+    <p>
+      Log in to track playtime manually, edit or delete your activities, and
+      change your settings.
+    </p>
 
     <div v-if="authenticatedUser" class="alert alert-success mb-3">
       Signed in as
@@ -68,7 +67,8 @@ function logoutCurrentSession() {
       </div>
 
       <p class="text-secondary mt-3 mb-0">
-        Get a token by sending <code>!token</code> to the bot in Discord.
+        Get a token by sending <code>!token</code> as a direct message to the
+        bot in Discord.
       </p>
       <div v-if="authError" class="alert alert-danger mt-3 mb-0">
         {{ authError }}
