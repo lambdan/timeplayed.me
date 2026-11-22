@@ -30,6 +30,10 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 - The user commits between turns. Check `git status` and `git log` before resetting, switching branches or amending.
 - When the user asks for a tweak to a commit that was just made and isn't pushed, amend it instead of adding a "fix" commit.
 - Never commit database backups (`storage_v2_*.sql`) or `backend/docker-compose.yml` (it holds the Discord token). Both are gitignored, keep it that way.
+- Keep `NOTES.md` at the repo root up to date, so several agents (some with small context windows) can hand work over to each other. It's gitignored, don't commit it.
+    - Read it before starting work. Create it if it's missing
+    - Update it whenever you finish a chunk, make a decision, or stop partway: the current task, what's done, what's next, decisions and why, and gotchas found along the way
+    - Keep it short and current: point to files (`path:line`) instead of pasting code, and remove things that are finished and committed. Anything that stays true for the whole project belongs in this file instead
 
 # Layout
 

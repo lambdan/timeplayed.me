@@ -141,3 +141,6 @@ backend/docker-compose.yml
 PLAN*.md
 *.swp
 
+
+# Shared working notes between agents (see CLAUDE.md)
+NOTES.md
