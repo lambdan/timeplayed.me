@@ -5,6 +5,7 @@ Timeplayed is a service that tracks playtime. It originally only tracked through
 - Code should always be formatted (see Commands below)
 - All tests should always pass
 - Any new feature should have a test added if possible
+- For every change, ask what happens to existing data and existing users (rows already in prod, stored permission arrays, API clients). New defaults only apply to new rows, so existing ones may need an evolution. Tests that only create fresh users won't catch this
 - Never make any write requests to production without permission (reads are OK)
 - Don't be cute. Timeplayed primary function is numbers and statistics. Think last.fm, but for playtime.
     - As an example, if you're making a "top played games" list, don't put in any "What kept you busy" paragraph. Just put a title (Top played games) and list the games!
