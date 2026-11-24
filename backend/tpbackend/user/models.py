@@ -63,6 +63,10 @@ class API_PutSettings(BaseModel):
     show_nsfw: bool | None = Field(
         default=None, description="Show NSFW game titles and covers"
     )
+    move_pc_activity: bool | None = Field(
+        default=None,
+        description="Also move the user's activity on 'pc' (unknown OS) to the new pc_platform, needs manual_activity",
+    )
 
 
 class API_UserWithStats(API_User):

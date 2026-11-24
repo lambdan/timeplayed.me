@@ -33,6 +33,8 @@ export type PCPlatform = (typeof PC_PLATFORMS)[number];
 export type SettingsPut = {
   pc_platform?: PCPlatform;
   show_nsfw?: boolean;
+  // also move activity on "pc" (unknown OS) to the new pc_platform
+  move_pc_activity?: boolean;
 };
 
 // the charts route isn't in the OpenAPI schema either, see backend/tpbackend/charts/

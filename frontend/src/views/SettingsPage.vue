@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { PC_PLATFORMS, type PCPlatform, type Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { useApiToken } from "../composables/useApiToken";
@@ -15,6 +15,9 @@ const {
 const platforms = ref<Platform[]>([]);
 const pcPlatform = ref<PCPlatform>();
 const showNsfw = ref(false);
+// activity still on "Unknown", offered to move when picking an OS for the first time
+const pcActivityCount = ref(0);
+const movePcActivity = ref(false);
 const saving = ref(false);
 const saved = ref(false);
 const error = ref("");
@@ -28,6 +31,26 @@ watch(
   },
   { immediate: true },
 );
+
+const canMovePcActivity = computed(
+  () =>
+    authenticatedUser.value?.pc_platform === "pc" &&
+    !!authenticatedUser.value?.permissions.includes("manual_activity") &&
+    pcPlatform.value !== "pc" &&
+    pcActivityCount.value > 0,
+);
+
+async function loadPcActivityCount() {
+  pcActivityCount.value = 0;
+  const user = authenticatedUser.value;
+  const pc = platforms.value.find((p) => p.abbreviation === "pc");
+  if (!user || user.pc_platform !== "pc" || !pc) return;
+  const totals = await TimeplayedAPI.getTotals({
+    users: String(user.id),
+    platforms: String(pc.id),
+  });
+  pcActivityCount.value = totals.activity_count;
+}
 
 function pcPlatformName(abbreviation: string) {
   const platform = platforms.value.find((p) => p.abbreviation === abbreviation);
@@ -43,7 +66,9 @@ async function save() {
     await TimeplayedAPI.updateSettings(token.value, {
       pc_platform: pcPlatform.value,
       show_nsfw: showNsfw.value,
+      move_pc_activity: canMovePcActivity.value && movePcActivity.value,
     });
+    movePcActivity.value = false;
     await refreshAuthenticatedUser();
     saved.value = true;
   } catch (e: any) {
@@ -62,6 +87,7 @@ onMounted(async () => {
     offset += 100;
   }
   platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
+  watch(authenticatedUser, loadPcActivityCount, { immediate: true });
 });
 </script>
 
@@ -83,6 +109,19 @@ onMounted(async () => {
           </option>
         </select>
         <div class="form-text">Count Discord PC activity under this OS.</div>
+        <div v-if="canMovePcActivity && pcPlatform" class="form-check mt-2">
+          <input
+            id="move-pc-activity"
+            v-model="movePcActivity"
+            class="form-check-input"
+            type="checkbox"
+          />
+          <label for="move-pc-activity" class="form-check-label">
+            Also move my {{ pcActivityCount }}
+            {{ pcActivityCount === 1 ? "activity" : "activities" }} on Unknown
+            to {{ pcPlatformName(pcPlatform) }}
+          </label>
+        </div>
       </div>
 
       <hr />

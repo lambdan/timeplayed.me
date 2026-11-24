@@ -7,9 +7,10 @@ from tpbackend.user.models import (
     API_UserWithStats,
     API_User,
 )
-from tpbackend.api.responses import bad_request, not_found
+from tpbackend.api.responses import bad_request, forbidden, not_found
 from tpbackend.api.auth import AuthenticatedUser, authenticate
 from tpbackend.permissions import Permission
+from tpbackend.storage import Platform, User, db
 import logging
 from fastapi import APIRouter, Path
 from tpbackend.api.params import (
@@ -272,8 +273,22 @@ def who_am_i(user: AuthenticatedUser) -> API_AuthenticatedUser:
 def update_settings(
     user: AuthenticatedUser, data: API_PutSettings
 ) -> API_AuthenticatedUser:
+    # check everything first, so a bad request changes nothing
+    if data.move_pc_activity:
+        if not user.has_permission(Permission.MANUAL_ACTIVITY):
+            return forbidden("You cannot change the platform of your activity")
+        # what the user's pc_platform will be after this request
+        new_pc_platform = user.get_pc_platform()
+        if data.pc_platform is not None:
+            new_pc_platform = data.pc_platform
+        if new_pc_platform == "pc":
+            return bad_request("Pick an operating system to move the activity to")
+
     if data.pc_platform is not None and data.pc_platform != user.get_pc_platform():
         user.set_pc_platform(data.pc_platform)
+
+    if data.move_pc_activity:
+        move_pc_activity(user)
 
     if data.show_nsfw is True:
         user.add_permission(Permission.SHOW_NSFW)
@@ -282,3 +297,29 @@ def update_settings(
 
     user.save()
     return API_AuthenticatedUser.from_user(user)
+
+
+def move_pc_activity(user: User):
+    """moves the user's activity on 'pc' (unknown OS) to their pc_platform, hidden activity too"""
+    pc = Platform.get_or_none(Platform.abbreviation == "pc")
+    if not pc:
+        return
+    target, _ = Platform.get_or_create(abbreviation=user.get_pc_platform())
+    query = ActivityQuery.base(include_hidden=True)
+    query = ActivityQuery.user(query, user)
+    query = ActivityQuery.platform(query, pc)
+    with db.atomic():
+        moved = 0
+        for activity in query:
+            activity.set_platform(target)
+            activity.save()
+            moved += 1
+        user.add_history(
+            f"Moved {moved} activities from 'pc' to '{target.get_abbreviation()}'"
+        )
+    logger.info(
+        "Moved %s activities of user %s from pc to %s",
+        moved,
+        user.get_id(),
+        target.get_abbreviation(),
+    )
