@@ -217,8 +217,12 @@ function errorMessage(err: any, fallback: string): string {
 const now = ref(Date.now());
 const timer = window.setInterval(() => (now.value = Date.now()), 1000);
 onUnmounted(() => window.clearInterval(timer));
+// right after starting, `now` (or this device's clock) can be a bit behind the
+// server's start time, which would show as -1:-1:-1
 const elapsedSeconds = computed(() =>
-  liveActivity.value ? (now.value - liveActivity.value.started) / 1000 : 0,
+  liveActivity.value
+    ? Math.max(0, (now.value - liveActivity.value.started) / 1000)
+    : 0,
 );
 
 async function start() {
