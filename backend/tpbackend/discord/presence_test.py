@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import discord
 
+from tpbackend.discord import presence
 from tpbackend.discord.presence import Playing, playing_from_activities
 
 START = datetime.datetime(2026, 11, 22, 12, 0, tzinfo=datetime.UTC)
@@ -45,3 +46,16 @@ def test_no_start():
         [SimpleNamespace(name="A", type=discord.ActivityType.playing)]
     )
     assert playing == Playing("A", "pc", None)
+
+
+def test_members_skips_bots_and_duplicates(monkeypatch):
+    alice = SimpleNamespace(id=1, bot=False)
+    bot_member = SimpleNamespace(id=2, bot=True)
+    bob = SimpleNamespace(id=3, bot=False)
+    guilds = [
+        SimpleNamespace(members=[alice, bot_member]),
+        # alice is in both servers
+        SimpleNamespace(members=[bob, alice]),
+    ]
+    monkeypatch.setattr(presence, "bot", SimpleNamespace(guilds=guilds))
+    assert list(presence.members()) == [alice, bob]

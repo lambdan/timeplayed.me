@@ -4,7 +4,14 @@ import pytest
 
 from conftest import Api
 from tpbackend.permissions import DEFAULT_PERMISSIONS, DESCRIPTIONS, Permission
-from tpbackend.storage import Activity, DiscordHistory, Game, Platform, User
+from tpbackend.storage import (
+    Activity,
+    DiscordHistory,
+    DiscordPresence,
+    Game,
+    Platform,
+    User,
+)
 
 UTC = datetime.timezone.utc
 
@@ -571,3 +578,60 @@ class TestAdminPlatforms:
         add_activity(user, make_game(), platform)
         r = client.delete(f"/admin/platform/{platform.get_id()}")
         assert r.status_code == 400
+
+
+class TestAdminPresence:
+    def test_tracked_sessions(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob", discord_id="555", permissions=[])
+        t0 = datetime.datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
+        DiscordPresence.create(
+            discord_user_id="555",
+            discord_user_name="bob_discord",
+            game_name="Some Game",
+            platform="ps5",
+            started=t0 + datetime.timedelta(minutes=1),
+            discord_started=t0,
+            last_seen=t0 + datetime.timedelta(minutes=30),
+        )
+        # no user yet
+        DiscordPresence.create(
+            discord_user_id="666",
+            discord_user_name="alice_discord",
+            game_name="Other Game",
+            platform="pc",
+            started=t0,
+            last_seen=t0,
+        )
+
+        r = client.get("/admin/presence")
+        assert r.status_code == 200, r.text
+        data = r.json()
+        # no Discord in the e2e environment
+        assert data["connected"] is False
+        assert data["last_checked"] is None
+        alice, bob_member = data["members"]
+        assert alice == {
+            "discord_user_id": "666",
+            "discord_user_name": "alice_discord",
+            "user_id": None,
+            "synced": True,
+            "tracked": {
+                "game_name": "Other Game",
+                "platform": "pc",
+                "started": int(t0.timestamp() * 1000),
+                "discord_started": None,
+                "last_seen": int(t0.timestamp() * 1000),
+            },
+            "activities": [],
+        }
+        assert bob_member["user_id"] == bob.get_id()
+        # no oblivionis_sync
+        assert bob_member["synced"] is False
+        assert bob_member["tracked"]["discord_started"] == int(t0.timestamp() * 1000)
+
+    def test_nothing_tracked(self, admin):
+        _, client = admin
+        r = client.get("/admin/presence")
+        assert r.status_code == 200, r.text
+        assert r.json()["members"] == []

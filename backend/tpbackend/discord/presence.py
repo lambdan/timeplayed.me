@@ -26,6 +26,9 @@ CHECK_INTERVAL_SECONDS = 60
 # so they may have stopped any time since it was last seen
 STALE_AFTER = datetime.timedelta(minutes=5)
 
+# when check_loop last checked everyone without failing, shown on the admin page
+last_checked: datetime.datetime | None = None
+
 
 @dataclass
 class Playing:
@@ -150,21 +153,31 @@ def update(
         )
 
 
+def members():
+    """
+    Every member the bot sees (not bots), once even if they're in several servers
+    """
+    seen = set()
+    for guild in bot.guilds:
+        for member in guild.members:
+            if member.bot or member.id in seen:
+                continue
+            seen.add(member.id)
+            yield member
+
+
 def check_all(now: datetime.datetime):
     tracked = {
         p.get_discord_user_id(): p.get_discord_user_name()
         for p in DiscordPresence.select()
     }
     checked = set()
-    for guild in bot.guilds:
-        for member in guild.members:
-            discord_user_id = str(member.id)
-            if member.bot or discord_user_id in checked:
-                continue
-            checked.add(discord_user_id)
-            playing = playing_from_activities(member.activities)
-            if playing or discord_user_id in tracked:
-                update(discord_user_id, member.name, playing, now)
+    for member in members():
+        discord_user_id = str(member.id)
+        checked.add(discord_user_id)
+        playing = playing_from_activities(member.activities)
+        if playing or discord_user_id in tracked:
+            update(discord_user_id, member.name, playing, now)
     # not in any server anymore, so not playing
     for discord_user_id, discord_user_name in tracked.items():
         if discord_user_id not in checked:
@@ -172,10 +185,13 @@ def check_all(now: datetime.datetime):
 
 
 async def check_loop():
+    global last_checked
     await bot.wait_until_ready()
     while True:
         try:
-            check_all(utils2.now())
+            now = utils2.now()
+            check_all(now)
+            last_checked = now
         except Exception as e:
             logger.error("Checking presences failed: %s", e)
         await asyncio.sleep(CHECK_INTERVAL_SECONDS)

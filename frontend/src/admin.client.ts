@@ -77,6 +77,43 @@ export type AdminPlatformPatch = Partial<{
 
 export type AdminOverlapGroup = { keep_id: number; remove_ids: number[] };
 
+// an activity in someone's Discord presence, as Discord gives it
+export type AdminDiscordActivity = {
+  type: string; // playing, streaming, listening, watching or competing
+  name: string | null;
+  details: string | null;
+  state: string | null;
+  platform: string | null;
+  start: number | null;
+};
+// a session the presence tracker is tracking
+export type AdminTrackedPresence = {
+  game_name: string;
+  platform: string;
+  // when the bot first saw them playing it
+  started: number;
+  // the earliest start Discord reported
+  discord_started: number | null;
+  last_seen: number;
+};
+export type AdminPresenceMember = {
+  discord_user_id: string;
+  discord_user_name: string;
+  // null if they have no user yet, it's created when a session is stored
+  user_id: number | null;
+  // their sessions are stored: has oblivionis_sync, or gets it when created
+  synced: boolean;
+  tracked: AdminTrackedPresence | null;
+  // empty if the bot doesn't see them in any server
+  activities: AdminDiscordActivity[];
+};
+export type AdminPresence = {
+  connected: boolean;
+  // null if not checked since the backend started
+  last_checked: number | null;
+  members: AdminPresenceMember[];
+};
+
 // the public IGDB search gives the same
 export type { IGDBSearchResult };
 // the parts we use of IGDB_GameInfo in backend/tpbackend/igdb/models.py
@@ -330,6 +367,12 @@ export class AdminAPI {
 
   static deletePlatform(id: number) {
     return request<string>("DELETE", `/platform/${id}`);
+  }
+
+  /////////////// PRESENCE //////////////////
+
+  static getPresence() {
+    return request<AdminPresence>("GET", "/presence");
   }
 
   /////////////// MISC //////////////////

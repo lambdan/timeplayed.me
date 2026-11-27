@@ -305,6 +305,12 @@ def dt_to_ts(dt: datetime.datetime) -> int:
     return int(dt.timestamp() * 1000)
 
 
+def dt_to_ts_or_none(dt: datetime.datetime | None) -> int | None:
+    if dt is None:
+        return None
+    return dt_to_ts(dt)
+
+
 def ts_to_dt(ts: int | float) -> datetime.datetime:
     if isinstance(ts, float):
         return ts_to_dt(int(ts * 1000))

@@ -5,6 +5,7 @@ from tpbackend.admin.activities import router as activities_router
 from tpbackend.admin.games import router as games_router
 from tpbackend.admin.misc import router as misc_router
 from tpbackend.admin.platforms import router as platforms_router
+from tpbackend.admin.presence import router as presence_router
 from tpbackend.admin.users import router as users_router
 
 # not in swagger, and every route requires admin permission
@@ -16,4 +17,5 @@ router.include_router(users_router)
 router.include_router(activities_router)
 router.include_router(games_router)
 router.include_router(platforms_router)
+router.include_router(presence_router)
 router.include_router(misc_router)

@@ -7,6 +7,7 @@ from tpbackend.platform.models import API_Platform
 from tpbackend.storage import (
     Activity,
     DiscordHistory,
+    DiscordPresence,
     Game,
     History,
     HistoryMixin,
@@ -14,7 +15,7 @@ from tpbackend.storage import (
     User,
 )
 from tpbackend.user.models import API_AuthenticatedUser
-from tpbackend.utils2 import dt_to_ts
+from tpbackend.utils2 import dt_to_ts, dt_to_ts_or_none
 
 
 def activity_count(**where) -> int:
@@ -293,3 +294,74 @@ class Admin_PatchPlatform(BaseModel):
     color_secondary: str | None = None
     icon: str | None = None
     parent_id: int | None = None
+
+
+class Admin_DiscordActivity(BaseModel):
+    """an activity in someone's Discord presence, as Discord gives it"""
+
+    type: str = Field(
+        description="playing, streaming, listening, watching or competing"
+    )
+    name: str | None
+    details: str | None
+    state: str | None
+    platform: str | None
+    start: int | None = Field(description="When Discord says it started")
+
+    @classmethod
+    def from_activity(cls, activity):
+        return cls(
+            type=activity.type.name,
+            name=activity.name,
+            details=getattr(activity, "details", None),
+            state=getattr(activity, "state", None),
+            platform=getattr(activity, "platform", None),
+            start=dt_to_ts_or_none(getattr(activity, "start", None)),
+        )
+
+
+class Admin_TrackedPresence(BaseModel):
+    """a session the presence tracker is tracking, see DiscordPresence"""
+
+    game_name: str
+    platform: str
+    started: int = Field(description="When the bot first saw them playing it")
+    discord_started: int | None = Field(
+        description="The earliest start Discord reported"
+    )
+    last_seen: int
+
+    @classmethod
+    def from_presence(cls, presence: DiscordPresence):
+        return cls(
+            game_name=presence.get_game_name(),
+            platform=presence.get_platform(),
+            started=dt_to_ts(presence.get_started()),
+            discord_started=dt_to_ts_or_none(presence.get_discord_started()),
+            last_seen=dt_to_ts(presence.get_last_seen()),
+        )
+
+
+class Admin_PresenceMember(BaseModel):
+    discord_user_id: str
+    discord_user_name: str
+    user_id: int | None = Field(
+        description="Null if they have no user yet, it's created when a session is stored"
+    )
+    synced: bool = Field(
+        description="Their sessions are stored: the user has oblivionis_sync, or gets it when created"
+    )
+    tracked: Admin_TrackedPresence | None
+    activities: list[Admin_DiscordActivity] = Field(
+        description="Empty if the bot doesn't see them in any server"
+    )
+
+
+class Admin_Presence(BaseModel):
+    connected: bool = Field(description="The bot is logged in to Discord")
+    last_checked: int | None = Field(
+        description="When everyone's presence was last checked, null if not since the backend started"
+    )
+    members: list[Admin_PresenceMember] = Field(
+        description="Everyone who is playing something or has a tracked session"
+    )
