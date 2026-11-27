@@ -41,6 +41,11 @@ const unsavedPermissions = computed(() =>
     .map((p) => (permissions.value.includes(p.name) ? "+" : "−") + p.name),
 );
 useUnsavedChanges("permissions", () => unsavedPermissions.value);
+const discordId = ref("");
+const discordIdChanged = computed(
+  () => discordId.value.trim() !== (selected.value?.discord_id ?? ""),
+);
+useUnsavedChanges("user", () => (discordIdChanged.value ? ["Discord ID"] : []));
 const discordHistory = ref<AdminDiscordHistory[]>([]);
 // only the newest page is fetched, a full page means there's more
 const discordHistoryCount = computed(() =>
@@ -89,6 +94,7 @@ async function loadSelected() {
     error.value = "";
     selected.value = await AdminAPI.getUser(id);
     permissions.value = [...selected.value.permissions];
+    discordId.value = selected.value.discord_id ?? "";
     discordHistory.value = await AdminAPI.getDiscordHistory(id);
     tokens.value = await AdminAPI.getTokens(id);
   } catch (e: any) {
@@ -133,6 +139,23 @@ async function savePermissions() {
       permissions.value,
     );
     message.value = "Permissions saved";
+    fetchUsers();
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
+
+async function saveDiscordId() {
+  if (!selected.value) return;
+  try {
+    error.value = "";
+    message.value = "";
+    selected.value = await AdminAPI.setDiscordId(
+      selected.value.id,
+      discordId.value.trim() || null,
+    );
+    discordId.value = selected.value.discord_id ?? "";
+    message.value = "Discord ID saved";
     fetchUsers();
   } catch (e: any) {
     error.value = e.message;
@@ -265,7 +288,28 @@ onMounted(async () => {
             <dt class="col-sm-3">ID</dt>
             <dd class="col-sm-9">{{ selected.id }}</dd>
             <dt class="col-sm-3">Discord ID</dt>
-            <dd class="col-sm-9">{{ selected.discord_id ?? "-" }}</dd>
+            <dd class="col-sm-9">
+              <div class="input-group input-group-sm">
+                <input
+                  v-model="discordId"
+                  class="form-control font-monospace"
+                  :class="{ 'border-warning': discordIdChanged }"
+                  inputmode="numeric"
+                  placeholder="None"
+                  @keydown.enter.prevent="saveDiscordId"
+                />
+                <button
+                  class="btn btn-outline-primary"
+                  :disabled="!discordIdChanged"
+                  @click="saveDiscordId"
+                >
+                  Save
+                </button>
+              </div>
+              <div v-if="message" class="text-success small">
+                {{ message }}
+              </div>
+            </dd>
             <dt class="col-sm-3">Created</dt>
             <dd class="col-sm-9">{{ formatDate(selected.created) }}</dd>
             <dt class="col-sm-3">Activities</dt>

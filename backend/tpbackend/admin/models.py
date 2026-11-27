@@ -216,6 +216,12 @@ class Admin_SetPermissions(BaseModel):
     permissions: list[str]
 
 
+class Admin_SetDiscordId(BaseModel):
+    """null or empty removes it"""
+
+    discord_id: str | None
+
+
 class Admin_PatchActivity(BaseModel):
     """only fields that are sent are changed"""
 

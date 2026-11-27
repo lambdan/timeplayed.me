@@ -211,6 +211,12 @@ export class AdminAPI {
     });
   }
 
+  static setDiscordId(id: number, discord_id: string | null) {
+    return request<AdminUserDetails>("PUT", `/user/${id}/discord_id`, {
+      body: { discord_id },
+    });
+  }
+
   static generateToken(id: number) {
     return request<{ token: string }>("POST", `/user/${id}/token`);
   }

@@ -7,6 +7,7 @@ from tpbackend.admin.models import (
     Admin_DiscordHistory,
     Admin_Permission,
     Admin_PostUser,
+    Admin_SetDiscordId,
     Admin_SetPermissions,
     Admin_Token,
     Admin_TokenInfo,
@@ -85,6 +86,27 @@ def set_permissions(
             user.remove_permission(permission)
     for permission in data.permissions:
         user.add_permission(permission)
+    user.save()
+    return Admin_UserDetails.from_user(user)
+
+
+@router.put("/user/{user_id}/discord_id", response_model=Admin_UserDetails)
+def set_discord_id(user_id: int, data: Admin_SetDiscordId) -> Admin_UserDetails:
+    """eg when someone lost their old Discord account"""
+    user = __get_user(user_id)
+    discord_id = (data.discord_id or "").strip() or None
+    # isdigit alone also accepts eg "²"
+    if discord_id is not None and not (discord_id.isascii() and discord_id.isdigit()):
+        return bad_request("Discord ID must be a number")
+    if discord_id == user.get_discord_id():
+        return Admin_UserDetails.from_user(user)
+    if discord_id is not None:
+        other = User.get_or_none(User.discord_id == discord_id)  # type: ignore
+        if other:
+            return bad_request(
+                f"User {other.get_id()} '{other.get_name()}' already has that Discord ID"
+            )
+    user.set_discord_id(discord_id)
     user.save()
     return Admin_UserDetails.from_user(user)
 

@@ -183,6 +183,58 @@ class TestAdminUsers:
         user, client = admin
         assert client.delete(f"/admin/user/{user.get_id()}").status_code == 400
 
+    def test_set_discord_id(self, admin, make_user):
+        admin_user, client = admin
+        bob, _ = make_user(name="bob", discord_id="555")
+        r = client.put(
+            f"/admin/user/{bob.get_id()}/discord_id", json={"discord_id": " 666 "}
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["discord_id"] == "666"
+        assert User.get_by_id(bob.get_id()).get_discord_id() == "666"
+        entry = r.json()["history"][-1]
+        assert entry["message"] == "Discord ID changed from '555' to '666'"
+        assert entry["actor_id"] == admin_user.get_id()
+
+    def test_remove_discord_id(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob", discord_id="555")
+        r = client.put(
+            f"/admin/user/{bob.get_id()}/discord_id", json={"discord_id": ""}
+        )
+        assert r.status_code == 200, r.text
+        assert User.get_by_id(bob.get_id()).get_discord_id() is None
+
+    def test_set_discord_id_unchanged_adds_no_history(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob", discord_id="555")
+        r = client.put(
+            f"/admin/user/{bob.get_id()}/discord_id", json={"discord_id": "555"}
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["history"] == []
+
+    @pytest.mark.parametrize("discord_id", ["abc", "12 34", "²"])
+    def test_set_invalid_discord_id(self, admin, make_user, discord_id):
+        _, client = admin
+        bob, _ = make_user(name="bob", discord_id="555")
+        r = client.put(
+            f"/admin/user/{bob.get_id()}/discord_id", json={"discord_id": discord_id}
+        )
+        assert r.status_code == 400
+        assert User.get_by_id(bob.get_id()).get_discord_id() == "555"
+
+    def test_set_discord_id_taken(self, admin, make_user):
+        _, client = admin
+        bob, _ = make_user(name="bob", discord_id="555")
+        make_user(name="alice", discord_id="666")
+        r = client.put(
+            f"/admin/user/{bob.get_id()}/discord_id", json={"discord_id": "666"}
+        )
+        assert r.status_code == 400
+        assert "alice" in r.text
+        assert User.get_by_id(bob.get_id()).get_discord_id() == "555"
+
     def test_discord_history(self, admin, make_user):
         _, client = admin
         bob, _ = make_user(name="bob", discord_id="555")
