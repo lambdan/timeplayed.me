@@ -208,6 +208,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/playing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Playing
+         * @description Everyone playing something right now, from manual tracking and Discord, newest first.
+         *     The same user, game and platform from both is listed once, with the earliest start
+         */
+        get: operations["get_playing_playing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activity/live": {
         parameters: {
             query?: never;
@@ -855,6 +876,29 @@ export interface components {
             /** Updated */
             updated: number;
             stats: components["schemas"]["PlatformTotals"];
+        };
+        /**
+         * API_Playing
+         * @description Someone playing a game right now, from manual tracking or their Discord presence
+         */
+        API_Playing: {
+            /** User Id */
+            user_id: number;
+            /** Game Id */
+            game_id: number;
+            /** Platform Id */
+            platform_id: number;
+            /**
+             * Started
+             * @description Timestamp of when they started in milliseconds since epoch
+             */
+            started: number;
+            /**
+             * Source
+             * @description manual: manual tracking or the API, discord: their Discord presence
+             * @enum {string}
+             */
+            source: "manual" | "discord";
         };
         /** API_PostActivity */
         API_PostActivity: {
@@ -1526,6 +1570,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_playing_playing_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["API_Playing"][];
                 };
             };
         };

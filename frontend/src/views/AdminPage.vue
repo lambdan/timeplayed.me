@@ -13,7 +13,7 @@ import AdminUsers from "../components/Admin/AdminUsers.vue";
 import AdminGames from "../components/Admin/AdminGames.vue";
 import AdminActivities from "../components/Admin/AdminActivities.vue";
 import AdminPlatforms from "../components/Admin/AdminPlatforms.vue";
-import AdminPresence from "../components/Admin/AdminPresence.vue";
+import AdminPlaying from "../components/Admin/AdminPlaying.vue";
 import AdminMaintenance from "../components/Admin/AdminMaintenance.vue";
 
 // covers first, it's what's used the most
@@ -23,7 +23,7 @@ const TABS = [
   { id: "games", label: "Games", icon: "bi-controller" },
   { id: "activities", label: "Activities", icon: "bi-clock-history" },
   { id: "platforms", label: "Platforms", icon: "bi-display" },
-  { id: "presence", label: "Presence", icon: "bi-broadcast" },
+  { id: "playing", label: "Playing now", icon: "bi-broadcast" },
   { id: "maintenance", label: "Maintenance", icon: "bi-tools" },
 ];
 
@@ -78,7 +78,7 @@ onBeforeRouteLeave(() => confirmDiscard());
         <AdminGames v-else-if="tab === 'games'" />
         <AdminActivities v-else-if="tab === 'activities'" />
         <AdminPlatforms v-else-if="tab === 'platforms'" />
-        <AdminPresence v-else-if="tab === 'presence'" />
+        <AdminPlaying v-else-if="tab === 'playing'" />
         <AdminMaintenance v-else-if="tab === 'maintenance'" />
       </template>
     </div>

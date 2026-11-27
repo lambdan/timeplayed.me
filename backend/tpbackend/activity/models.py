@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from tpbackend.common.models import BaseTotals
@@ -61,6 +63,22 @@ class API_LiveActivity(BaseModel):
             game_id=live_activity.get_game().get_id(),
             platform_id=live_activity.get_platform().get_id(),
         )
+
+
+class API_Playing(BaseModel):
+    """
+    Someone playing a game right now, from manual tracking or their Discord presence
+    """
+
+    user_id: int
+    game_id: int
+    platform_id: int
+    started: int = Field(
+        description="Timestamp of when they started in milliseconds since epoch"
+    )
+    source: Literal["manual", "discord"] = Field(
+        description="manual: manual tracking or the API, discord: their Discord presence"
+    )
 
 
 class Total(BaseTotals):

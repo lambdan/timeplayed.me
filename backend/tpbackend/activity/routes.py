@@ -22,13 +22,15 @@ from tpbackend.storage import Activity
 from tpbackend.activity.models import (
     API_Activity,
     API_LiveActivity,
+    API_Playing,
     API_PostActivity,
     API_PostLiveActivity,
     API_PatchActivity,
     Total,
 )
 from tpbackend.activity.query import ActivityQuery
-from tpbackend.utils2 import parse_csv, clamp, validateTS, dt_to_ts
+from tpbackend.activity.playing import playing_now
+from tpbackend.utils2 import parse_csv, clamp, validateTS, dt_to_ts, now
 from tpbackend.api.params import AscDescOrder, path_csv, query_csv, offset, limit
 from tpbackend.api.responses import bad_request, not_found
 from peewee import fn
@@ -110,6 +112,15 @@ def get_oldest_activity(
     if not x:
         raise not_found("No activity found")
     return x
+
+
+@router.get("/playing", tags=["activities", "live"], response_model=list[API_Playing])
+def get_playing() -> list[API_Playing]:
+    """
+    Everyone playing something right now, from manual tracking and Discord, newest first.
+    The same user, game and platform from both is listed once, with the earliest start
+    """
+    return playing_now(now())
 
 
 @router.get(

@@ -30,6 +30,21 @@ class PassedActivity(TypedDict):
     platform: str
 
 
+def game_name(incoming: str) -> str:
+    """the name a game from Discord is looked up by"""
+    return incoming.removesuffix(" with Medal").strip()
+
+
+def platform_abbreviation(user: User, incoming: str | None) -> str:
+    """the platform a session from Discord goes on"""
+    # Discord activity is always on some platform, pc if it didn't say
+    abbreviation = incoming or "pc"
+    if abbreviation == "pc":
+        # apply users set pc platform (pc/win/mac/linux)
+        abbreviation = user.get_pc_platform() or "pc"
+    return abbreviation
+
+
 def get_game_by_name_or_alias_or_create(s: str, source: str) -> Game:
     game = GameSelect.by_name_or_alias(s)
     if not game:
@@ -111,16 +126,12 @@ def parseActivity(
             return True
 
         incoming_game = activity["game_name"]
-        game_name = incoming_game.removesuffix(" with Medal").strip()
-        game = get_game_by_name_or_alias_or_create(game_name, source)
+        game = get_game_by_name_or_alias_or_create(game_name(incoming_game), source)
 
-        # Discord activity is always on some platform, pc if it didn't say
         incoming_platform = activity["platform"]
-        platform_abbr = incoming_platform or "pc"
-        if platform_abbr == "pc":
-            # apply users set pc platform (pc/win/mac/linux)
-            platform_abbr = user.get_pc_platform() or "pc"
-        platform, created = Platform.get_or_create(abbreviation=platform_abbr)
+        platform, created = Platform.get_or_create(
+            abbreviation=platform_abbreviation(user, incoming_platform)
+        )
         if created:
             logger.info("Added new platform %s to database", platform.abbreviation)
             platform.add_history(f"Created during {source} sync")

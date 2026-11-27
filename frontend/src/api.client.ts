@@ -460,6 +460,15 @@ export class TimeplayedAPI {
     return data;
   }
 
+  static async getPlaying() {
+    const { data, error } = await this.client.GET("/playing");
+    if (error) {
+      console.error("Error fetching who is playing:", error);
+      throw error;
+    }
+    return data;
+  }
+
   static async getNewestActivity(
     query: paths["/activity/newest"]["get"]["parameters"]["query"],
   ) {

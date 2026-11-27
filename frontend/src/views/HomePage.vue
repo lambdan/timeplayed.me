@@ -8,7 +8,7 @@ import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import { getRecapYear } from "../utils";
 
 const recapYear = ref(getRecapYear());
-// date range for the top lists next to recent activity, set by their picker
+// date range for the top lists next to the activity card, set by their picker
 const topAfter = ref<Date>();
 const topBefore = ref<Date>();
 // lists wait for the pickers first range, otherwise they'd fetch all time first
@@ -63,9 +63,9 @@ const topReady = ref(false);
       </marquee>
     </div>
 
-    <!-- recent activity, and what's been played the most lately next to it -->
+    <!-- who's playing now and recent activity, and what's been played the most lately next to it -->
     <div class="col-lg-8">
-      <RecentActivityCard :limit="25" />
+      <RecentActivityCard :limit="25" showPlaying />
     </div>
     <div class="col-lg-4">
       <!-- one card, the picker applies to everything in it -->

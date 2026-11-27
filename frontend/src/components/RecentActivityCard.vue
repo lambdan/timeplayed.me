@@ -5,6 +5,7 @@ import { TimeplayedAPI } from "../api.client";
 import DateRangerPicker from "./Misc/DateRangerPicker.vue";
 import CalendarBasic from "./CalendarBasic.vue";
 import ActivityRow from "./ActivityRow.vue";
+import PlayingNowRows from "./PlayingNowRows.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -18,6 +19,8 @@ const props = withDefaults(
     limit?: number;
     showExpand?: boolean;
     showDateRange?: boolean;
+    /** who's playing right now at the top, for the front page (it isn't filtered) */
+    showPlaying?: boolean;
   }>(),
   {
     showExpand: false,
@@ -28,6 +31,7 @@ const props = withDefaults(
 );
 
 const fetching = ref(false);
+const playingRows = ref<InstanceType<typeof PlayingNowRows>>();
 const FAKE_SLEEP = 500;
 
 const activities = ref<Activity[]>([]);
@@ -98,6 +102,10 @@ async function autoRefresh() {
       seen.value.add(activity.id);
     }
     total.value += data.length;
+    if (data.length) {
+      // a session that ended is stored now, so it's not playing anymore
+      playingRows.value?.load();
+    }
     lastCheck = Date.now();
     sortByRecent();
     await new Promise((resolve) => setTimeout(resolve, FAKE_SLEEP));
@@ -128,7 +136,7 @@ onMounted(async () => {
 <template>
   <div class="card">
     <h2 class="card-header">
-      Recent activity
+      Activity
 
       <span
         v-if="fetching"
@@ -154,7 +162,12 @@ onMounted(async () => {
 
       <!-- columns that would just repeat the page (like the game on a game page) are left out -->
       <table class="table table-sm table-hover table-responsive align-middle">
-        <tbody>
+        <tbody v-if="showPlaying">
+          <PlayingNowRows ref="playingRows" />
+        </tbody>
+        <tbody
+          :class="{ 'table-group-divider': showPlaying && playingRows?.count }"
+        >
           <ActivityRow
             v-for="a in activities"
             :key="a.id"

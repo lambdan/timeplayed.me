@@ -5,6 +5,7 @@ from fastapi import APIRouter
 
 from tpbackend.admin.models import (
     Admin_DiscordActivity,
+    Admin_LiveActivity,
     Admin_Presence,
     Admin_PresenceMember,
     Admin_TrackedPresence,
@@ -12,8 +13,9 @@ from tpbackend.admin.models import (
 from tpbackend.discord import presence
 from tpbackend.discord.bot import bot
 from tpbackend.permissions import Permission
-from tpbackend.storage import DiscordPresence, User
-from tpbackend.utils2 import dt_to_ts_or_none
+from tpbackend.storage import DiscordPresence, LiveActivity, User
+from tpbackend.api.responses import not_found
+from tpbackend.utils2 import dt_to_ts_or_none, js_iso
 
 router = APIRouter()
 
@@ -70,3 +72,30 @@ def get_presence() -> Admin_Presence:
         last_checked=dt_to_ts_or_none(presence.last_checked),
         members=members,
     )
+
+
+@router.get("/live", response_model=list[Admin_LiveActivity])
+def get_live_activities() -> list[Admin_LiveActivity]:
+    """running manual tracking sessions, newest first"""
+    return [
+        Admin_LiveActivity.from_live_activity(live)
+        for live in LiveActivity.select().order_by(LiveActivity.started.desc())
+    ]
+
+
+@router.delete("/live/{live_activity_id}")
+def discard_live_activity(live_activity_id: int):
+    """
+    For a session someone forgot to stop: it's removed and nothing is stored, since
+    stopping it would store all the time it was left running
+    """
+    live = LiveActivity.get_or_none(LiveActivity.id == live_activity_id)
+    if not live:
+        return not_found("Live activity not found")
+    user = live.get_user()
+    user.add_history(
+        f"Manual tracking discarded by admin (game: '{live.get_game().get_name()}', platform: '{live.get_platform().get_abbreviation()}', started: {js_iso(live.get_started_datetime())})"
+    )
+    user.save()
+    live.delete_instance()
+    return "Discarded"

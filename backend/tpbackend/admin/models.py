@@ -11,9 +11,11 @@ from tpbackend.storage import (
     Game,
     History,
     HistoryMixin,
+    LiveActivity,
     Platform,
     User,
 )
+from tpbackend.permissions import Permission
 from tpbackend.user.models import API_AuthenticatedUser
 from tpbackend.utils2 import dt_to_ts, dt_to_ts_or_none
 
@@ -367,3 +369,37 @@ class Admin_Presence(BaseModel):
     members: list[Admin_PresenceMember] = Field(
         description="Everyone who is playing something or has a tracked session"
     )
+
+
+class Admin_LiveActivity(BaseModel):
+    """a manual tracking session that's running"""
+
+    id: int
+    user_id: int
+    user_name: str
+    game_id: int
+    game_name: str
+    platform_id: int
+    platform_abbreviation: str
+    started: int
+    manual_activity: bool = Field(
+        description="The user has manual_activity, without it they can't stop it"
+    )
+
+    @classmethod
+    def from_live_activity(cls, live: LiveActivity):
+        user = live.get_user()
+        game = live.get_game()
+        platform = live.get_platform()
+        return cls(
+            id=live.get_id(),
+            user_id=user.get_id(),
+            # admins see the real name, even if it's hidden on the site
+            user_name=user.get_name(),
+            game_id=game.get_id(),
+            game_name=game.get_name(),
+            platform_id=platform.get_id(),
+            platform_abbreviation=platform.get_abbreviation(),
+            started=live.get_started_timestamp(),
+            manual_activity=user.has_permission(Permission.MANUAL_ACTIVITY),
+        )

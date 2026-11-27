@@ -108,6 +108,19 @@ export type AdminPresenceMember = {
   // empty if the bot doesn't see them in any server
   activities: AdminDiscordActivity[];
 };
+// a manual tracking session that's running
+export type AdminLiveActivity = {
+  id: number;
+  user_id: number;
+  user_name: string;
+  game_id: number;
+  game_name: string;
+  platform_id: number;
+  platform_abbreviation: string;
+  started: number;
+  // without manual_activity they can't stop it
+  manual_activity: boolean;
+};
 export type AdminPresence = {
   connected: boolean;
   // null if not checked since the backend started
@@ -370,10 +383,19 @@ export class AdminAPI {
     return request<string>("DELETE", `/platform/${id}`);
   }
 
-  /////////////// PRESENCE //////////////////
+  /////////////// PLAYING NOW //////////////////
 
   static getPresence() {
     return request<AdminPresence>("GET", "/presence");
+  }
+
+  static getLiveActivities() {
+    return request<AdminLiveActivity[]>("GET", "/live");
+  }
+
+  // removes it without storing anything, for sessions someone forgot to stop
+  static discardLiveActivity(id: number) {
+    return request<string>("DELETE", `/live/${id}`);
   }
 
   /////////////// MISC //////////////////

@@ -11,6 +11,7 @@ export type ActivitiesQuery =
   paths["/activities"]["get"]["parameters"]["query"];
 
 export type LiveActivity = components["schemas"]["API_LiveActivity"];
+export type Playing = components["schemas"]["API_Playing"];
 export type LiveActivityPost =
   paths["/activity/live"]["post"]["requestBody"]["content"]["application/json"];
 export type ActivityPost =

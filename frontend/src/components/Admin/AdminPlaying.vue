@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import {
   AdminAPI,
+  type AdminLiveActivity,
   type AdminPresence,
   type AdminTrackedPresence,
 } from "../../admin.client";
@@ -12,11 +13,30 @@ import DurationBadge from "../Badges/DurationBadge.vue";
 // same as STALE_AFTER in backend/tpbackend/discord/presence.py
 const STALE_AFTER_MS = 5 * 60 * 1000;
 
+const live = ref<AdminLiveActivity[]>();
 const presence = ref<AdminPresence>();
 const error = ref("");
 const loading = ref(false);
 // when it was fetched, so durations and "ago" are up to then
 const fetched = ref(0);
+
+// discard needs a second click
+const discardArmed = ref<number>();
+
+async function discard(id: number) {
+  if (discardArmed.value !== id) {
+    discardArmed.value = id;
+    return;
+  }
+  discardArmed.value = undefined;
+  try {
+    error.value = "";
+    await AdminAPI.discardLiveActivity(id);
+    live.value = live.value?.filter((l) => l.id !== id);
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
 
 const trackedCount = computed(
   () => presence.value?.members.reduce((n, m) => n + m.tracked.length, 0) ?? 0,
@@ -26,7 +46,10 @@ async function load() {
   loading.value = true;
   try {
     error.value = "";
-    presence.value = await AdminAPI.getPresence();
+    [live.value, presence.value] = await Promise.all([
+      AdminAPI.getLiveActivities(),
+      AdminAPI.getPresence(),
+    ]);
     fetched.value = Date.now();
   } catch (e: any) {
     error.value = e.message;
@@ -56,6 +79,80 @@ onMounted(load);
   <div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
+    <div class="d-flex align-items-center mb-2">
+      <h5 class="mb-0 me-auto">Manual tracking</h5>
+      <button
+        class="btn btn-outline-primary btn-sm"
+        :disabled="loading"
+        @click="load"
+      >
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+    </div>
+    <template v-if="live">
+      <div v-if="live.length === 0" class="text-body-secondary mb-4">
+        Nobody is tracking manually
+      </div>
+      <div v-else class="table-responsive mb-4">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Game</th>
+              <th>Platform</th>
+              <th class="d-none d-md-table-cell">Started</th>
+              <th>Duration</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="l in live" :key="l.id">
+              <td class="text-nowrap">
+                <a :href="`/admin?tab=users&id=${l.user_id}`">{{
+                  l.user_name
+                }}</a>
+                <span
+                  v-if="!l.manual_activity"
+                  class="badge text-bg-warning ms-1"
+                  title="Without manual_activity they can't stop it"
+                  >No manual_activity</span
+                >
+              </td>
+              <td>
+                <a :href="`/admin?tab=games&id=${l.game_id}`">{{
+                  l.game_name
+                }}</a>
+              </td>
+              <td>{{ l.platform_abbreviation }}</td>
+              <td class="text-nowrap d-none d-md-table-cell">
+                {{ formatDate(l.started) }}
+              </td>
+              <td>
+                <DurationBadge
+                  :seconds="Math.round((fetched - l.started) / 1000)"
+                />
+              </td>
+              <td class="text-end text-nowrap">
+                <button
+                  class="btn btn-sm"
+                  :class="
+                    discardArmed === l.id ? 'btn-danger' : 'btn-outline-danger'
+                  "
+                  title="Discard: removes it without storing an activity"
+                  aria-label="Discard"
+                  @click="discard(l.id)"
+                >
+                  <i class="bi bi-stop-fill"></i>
+                  {{ discardArmed === l.id ? "Really discard?" : "" }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
+
+    <h5>Discord presence</h5>
     <p class="text-body-secondary small">
       Everyone the bot sees playing something, and the sessions it tracks.
       Presences are checked every minute and on every change. Every "playing"
@@ -83,13 +180,6 @@ onMounted(load);
         >
         <span class="small">{{ trackedCount }} tracked</span>
       </template>
-      <button
-        class="btn btn-outline-primary btn-sm ms-auto"
-        :disabled="loading"
-        @click="load"
-      >
-        <i class="bi bi-arrow-clockwise"></i> Refresh
-      </button>
     </div>
 
     <template v-if="presence">
