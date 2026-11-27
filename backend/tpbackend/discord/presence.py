@@ -1,8 +1,9 @@
 """
 Tracks what Discord users play from their presence, like Oblivionis does, but persistent:
 the session is stored when they start playing and checked every minute, so a session
-survives the bot restarting. Sessions go through the same path as the Oblivionis sync,
-so when both see the same session, the overlap check merges them
+survives the bot restarting. Every game they play at the same time is tracked (Oblivionis
+only tracks the first). Sessions go through the same path as the Oblivionis sync, so when
+both see the same session, the overlap check merges them
 """
 
 import asyncio
@@ -38,10 +39,12 @@ class Playing:
     started: datetime.datetime | None
 
 
-def playing_from_activities(activities) -> Playing | None:
+def playing_from_activities(activities) -> list[Playing]:
     """
-    The game in a member's activities, mapped like Oblivionis does
+    The games in a member's activities, mapped like Oblivionis does. They can play several
+    at the same time, each game and platform is in it once
     """
+    playing = []
     for activity in activities:
         if activity.type != discord.ActivityType.playing:
             continue
@@ -55,8 +58,17 @@ def playing_from_activities(activities) -> Playing | None:
         if platform == "desktop":
             # Some games say "desktop", lets just lump it together with "pc"
             platform = "pc"
-        return Playing(game_name, platform, getattr(activity, "start", None))
-    return None
+        if any(p.game_name == game_name and p.platform == platform for p in playing):
+            continue
+        playing.append(Playing(game_name, platform, getattr(activity, "start", None)))
+    return playing
+
+
+def is_same_game(presence: DiscordPresence, playing: Playing) -> bool:
+    return (
+        presence.get_game_name() == playing.game_name
+        and presence.get_platform() == playing.platform
+    )
 
 
 def close(presence: DiscordPresence, ended: datetime.datetime, reason: str):
@@ -100,55 +112,56 @@ def close(presence: DiscordPresence, ended: datetime.datetime, reason: str):
 def update(
     discord_user_id: str,
     discord_user_name: str,
-    playing: Playing | None,
+    playing: list[Playing],
     now: datetime.datetime,
 ):
     """
-    What the user is playing right now (None if nothing). Starts, keeps or ends their session
+    What the user is playing right now (empty if nothing). Starts, keeps or ends a session
+    for each game
     """
-    presence = DiscordPresence.get_or_none(
+    sessions = []
+    for presence in DiscordPresence.select().where(
         DiscordPresence.discord_user_id == discord_user_id
-    )
-
-    if presence and now - presence.get_last_seen() > STALE_AFTER:
-        close(presence, presence.get_last_seen(), "not seen since, bot was down")
-        presence = None
-
-    if (
-        presence
-        and playing
-        and presence.get_game_name() == playing.game_name
-        and presence.get_platform() == playing.platform
     ):
-        # same game again: keep our start, and Discord's earliest. Some games reset
+        if now - presence.get_last_seen() > STALE_AFTER:
+            close(presence, presence.get_last_seen(), "not seen since, bot was down")
+        else:
+            sessions.append(presence)
+
+    new_games = [
+        game
+        for game in playing
+        if not any(is_same_game(presence, game) for presence in sessions)
+    ]
+
+    for presence in sessions:
+        game = next((g for g in playing if is_same_game(presence, g)), None)
+        if game is None:
+            reason = "started something else" if new_games else "stopped playing"
+            close(presence, now, reason)
+            continue
+        # still playing: keep our start, and Discord's earliest. Some games reset
         # Discord's start mid-session, and Discord doesn't always say
         discord_started = presence.get_discord_started()
-        if playing.started and (
-            discord_started is None or playing.started < discord_started
-        ):
-            presence.discord_started = playing.started
+        if game.started and (discord_started is None or game.started < discord_started):
+            presence.discord_started = game.started
         presence.last_seen = now
         presence.save()
-        return
 
-    if presence:
-        reason = "started something else" if playing else "stopped playing"
-        close(presence, now, reason)
-
-    if playing:
+    for game in new_games:
         logger.info(
             "%s started playing %s (%s)",
             discord_user_name,
-            playing.game_name,
-            playing.platform,
+            game.game_name,
+            game.platform,
         )
         DiscordPresence.create(
             discord_user_id=discord_user_id,
             discord_user_name=discord_user_name,
-            game_name=playing.game_name,
-            platform=playing.platform,
+            game_name=game.game_name,
+            platform=game.platform,
             started=now,
-            discord_started=playing.started,
+            discord_started=game.started,
             last_seen=now,
         )
 
@@ -181,7 +194,7 @@ def check_all(now: datetime.datetime):
     # not in any server anymore, so not playing
     for discord_user_id, discord_user_name in tracked.items():
         if discord_user_id not in checked:
-            update(discord_user_id, discord_user_name, None, now)
+            update(discord_user_id, discord_user_name, [], now)
 
 
 async def check_loop():

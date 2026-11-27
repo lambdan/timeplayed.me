@@ -103,7 +103,8 @@ export type AdminPresenceMember = {
   user_id: number | null;
   // their sessions are stored: has oblivionis_sync, or gets it when created
   synced: boolean;
-  tracked: AdminTrackedPresence | null;
+  // a session for each game they're playing, oldest first
+  tracked: AdminTrackedPresence[];
   // empty if the bot doesn't see them in any server
   activities: AdminDiscordActivity[];
 };

@@ -594,6 +594,15 @@ class TestAdminPresence:
             discord_started=t0,
             last_seen=t0 + datetime.timedelta(minutes=30),
         )
+        # a second game at the same time
+        DiscordPresence.create(
+            discord_user_id="555",
+            discord_user_name="bob_discord",
+            game_name="Overlay",
+            platform="pc",
+            started=t0 + datetime.timedelta(minutes=5),
+            last_seen=t0 + datetime.timedelta(minutes=30),
+        )
         # no user yet
         DiscordPresence.create(
             discord_user_id="666",
@@ -616,19 +625,26 @@ class TestAdminPresence:
             "discord_user_name": "alice_discord",
             "user_id": None,
             "synced": True,
-            "tracked": {
-                "game_name": "Other Game",
-                "platform": "pc",
-                "started": int(t0.timestamp() * 1000),
-                "discord_started": None,
-                "last_seen": int(t0.timestamp() * 1000),
-            },
+            "tracked": [
+                {
+                    "game_name": "Other Game",
+                    "platform": "pc",
+                    "started": int(t0.timestamp() * 1000),
+                    "discord_started": None,
+                    "last_seen": int(t0.timestamp() * 1000),
+                }
+            ],
             "activities": [],
         }
         assert bob_member["user_id"] == bob.get_id()
         # no oblivionis_sync
         assert bob_member["synced"] is False
-        assert bob_member["tracked"]["discord_started"] == int(t0.timestamp() * 1000)
+        # oldest first
+        assert [t["game_name"] for t in bob_member["tracked"]] == [
+            "Some Game",
+            "Overlay",
+        ]
+        assert bob_member["tracked"][0]["discord_started"] == int(t0.timestamp() * 1000)
 
     def test_nothing_tracked(self, admin):
         _, client = admin

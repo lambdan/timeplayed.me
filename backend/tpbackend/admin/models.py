@@ -351,7 +351,9 @@ class Admin_PresenceMember(BaseModel):
     synced: bool = Field(
         description="Their sessions are stored: the user has oblivionis_sync, or gets it when created"
     )
-    tracked: Admin_TrackedPresence | None
+    tracked: list[Admin_TrackedPresence] = Field(
+        description="A session for each game they're playing, oldest first"
+    )
     activities: list[Admin_DiscordActivity] = Field(
         description="Empty if the bot doesn't see them in any server"
     )

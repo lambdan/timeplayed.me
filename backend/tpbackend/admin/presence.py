@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import discord
 from fastapi import APIRouter
 
@@ -22,11 +24,11 @@ def get_presence() -> Admin_Presence:
     What the presence tracker sees right now: the sessions it tracks, and the Discord
     activities of everyone playing something
     """
-    tracked = {p.get_discord_user_id(): p for p in DiscordPresence.select()}
-    names = {
-        discord_user_id: p.get_discord_user_name()
-        for discord_user_id, p in tracked.items()
-    }
+    tracked = defaultdict(list)
+    names = {}
+    for p in DiscordPresence.select().order_by(DiscordPresence.started):
+        tracked[p.get_discord_user_id()].append(Admin_TrackedPresence.from_presence(p))
+        names[p.get_discord_user_id()] = p.get_discord_user_name()
     activities = {}
     # read from the bot's cache in the thread pool, which is fine for a snapshot:
     # discord.py replaces a member's activities instead of changing them
@@ -50,11 +52,6 @@ def get_presence() -> Admin_Presence:
     members = []
     for discord_user_id, name in names.items():
         user = users.get(discord_user_id)
-        tracked_presence = None
-        if discord_user_id in tracked:
-            tracked_presence = Admin_TrackedPresence.from_presence(
-                tracked[discord_user_id]
-            )
         members.append(
             Admin_PresenceMember(
                 discord_user_id=discord_user_id,
@@ -62,7 +59,7 @@ def get_presence() -> Admin_Presence:
                 user_id=user.get_id() if user else None,
                 # new users get it by default
                 synced=not user or user.has_permission(Permission.OBLIVIONIS_SYNC),
-                tracked=tracked_presence,
+                tracked=tracked.get(discord_user_id, []),
                 activities=activities.get(discord_user_id, []),
             )
         )

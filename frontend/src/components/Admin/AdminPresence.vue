@@ -19,7 +19,7 @@ const loading = ref(false);
 const fetched = ref(0);
 
 const trackedCount = computed(
-  () => presence.value?.members.filter((m) => m.tracked).length ?? 0,
+  () => presence.value?.members.reduce((n, m) => n + m.tracked.length, 0) ?? 0,
 );
 
 async function load() {
@@ -58,8 +58,8 @@ onMounted(load);
 
     <p class="text-body-secondary small">
       Everyone the bot sees playing something, and the sessions it tracks.
-      Presences are checked every minute and on every change. When someone has
-      several "playing" activities, the first one is tracked.
+      Presences are checked every minute and on every change. Every "playing"
+      activity is tracked, also when someone has several at the same time.
     </p>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -122,31 +122,35 @@ onMounted(load);
             >
           </div>
 
-          <div v-if="m.tracked" class="small mt-1">
+          <div
+            v-for="t in m.tracked"
+            :key="`${t.game_name}|${t.platform}`"
+            class="small mt-1"
+          >
             <div class="d-flex flex-wrap align-items-center gap-2">
               <span>
-                Tracking <strong>{{ m.tracked.game_name }}</strong> ({{
-                  m.tracked.platform
-                }})
+                Tracking <strong>{{ t.game_name }}</strong> ({{ t.platform }})
               </span>
-              <DurationBadge :seconds="seconds(m.tracked)" />
-              <span v-if="stale(m.tracked)" class="badge text-bg-warning"
+              <DurationBadge :seconds="seconds(t)" />
+              <span v-if="stale(t)" class="badge text-bg-warning"
                 >Stale, ends at last seen</span
               >
             </div>
             <div class="text-body-secondary">
-              First seen {{ formatDate(m.tracked.started) }}, Discord start
-              {{
-                m.tracked.discord_started
-                  ? formatDate(m.tracked.discord_started)
-                  : "-"
-              }}, last seen
-              <span :title="formatDate(m.tracked.last_seen)">{{
-                timeAgo(m.tracked.last_seen)
+              First seen {{ formatDate(t.started) }}, Discord start
+              {{ t.discord_started ? formatDate(t.discord_started) : "-" }},
+              last seen
+              <span :title="formatDate(t.last_seen)">{{
+                timeAgo(t.last_seen)
               }}</span>
             </div>
           </div>
-          <div v-else class="small mt-1 text-warning-emphasis">Not tracked</div>
+          <div
+            v-if="m.tracked.length === 0"
+            class="small mt-1 text-warning-emphasis"
+          >
+            Not tracked
+          </div>
 
           <ul v-if="m.activities.length" class="small mb-0 mt-1 ps-3">
             <li v-for="(a, i) in m.activities" :key="i">

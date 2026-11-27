@@ -856,11 +856,12 @@ class LiveActivity(IdMixin):
 
 class DiscordPresence(IdMixin):
     """
-    A game a Discord user is playing right now, according to their presence.
+    A game a Discord user is playing right now, according to their presence. One per game
+    and platform, they can play several at the same time.
     Game name and platform are as Discord says (like Oblivionis), mapped when the session ends
     """
 
-    discord_user_id = CharField(unique=True)
+    discord_user_id = CharField()
     discord_user_name = CharField()
     game_name = TextField()
     platform = CharField()
@@ -870,6 +871,9 @@ class DiscordPresence(IdMixin):
     discord_started = DateTimeField(null=True)
     # the last time the bot saw them playing it
     last_seen = DateTimeField()
+
+    class Meta:
+        indexes = ((("discord_user_id", "game_name", "platform"), True),)
 
     def get_discord_user_id(self) -> str:
         return cast(str, self.discord_user_id)
