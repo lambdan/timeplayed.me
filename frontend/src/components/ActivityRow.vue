@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Activity } from "../api.models";
-import { formatDuration } from "../utils";
-import { heatBadgeStyle } from "../utils.heat";
 import { useLookups } from "../composables/useLookups";
+import DurationBadge from "./Badges/DurationBadge.vue";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import CroppedCover from "./Games/CroppedCover.vue";
 import GameName from "./Games/GameName.vue";
@@ -66,17 +65,11 @@ const shown = () => props.seconds ?? props.activity.seconds;
       />
     </td>
     <td class="text-nowrap px-md-3" style="width: 1%">
-      <!-- colored by length, same scale as the recap heatmap -->
-      <a
+      <DurationBadge
+        :seconds="shown()"
         :href="`/activity/${activity.id}`"
-        class="badge fw-semibold text-decoration-none"
-        :style="{
-          ...heatBadgeStyle(shown()),
-          fontVariantNumeric: 'tabular-nums',
-        }"
         :title="`${activity.seconds} seconds`"
-        >{{ formatDuration(shown(), true) }}</a
-      >
+      />
     </td>
     <td class="text-nowrap" style="width: 1%">
       <slot />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from "vue";
-import { formatDuration } from "../utils";
+import DurationBadge from "../components/Badges/DurationBadge.vue";
 import GameCover from "../components/Games/GameCover.vue";
 import CroppedCover from "../components/Games/CroppedCover.vue";
 import GamePicker from "../components/Games/GamePicker.vue";
@@ -384,9 +384,7 @@ watch(
               :href="`/platform/${platform.id}`"
               >{{ platform.display_name }}</a
             >
-            <div class="fs-2 font-monospace text-success">
-              {{ formatDuration(elapsedSeconds, true) }}
-            </div>
+            <DurationBadge :seconds="elapsedSeconds" class="fs-2" />
           </div>
         </div>
         <div class="d-grid gap-2">

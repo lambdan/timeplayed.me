@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { formatDuration } from "../utils";
 import { usePageTitle } from "../composables/usePageTitle";
-import { heatBadgeStyle } from "../utils.heat";
+import DurationBadge from "../components/Badges/DurationBadge.vue";
 import GameCover from "../components/Games/GameCover.vue";
 import GameName from "../components/Games/GameName.vue";
 import GamePicker from "../components/Games/GamePicker.vue";
@@ -211,15 +210,7 @@ onMounted(async () => {
                   <!-- width 1%: only as wide as the labels -->
                   <th class="text-nowrap pe-4" style="width: 1%">Duration</th>
                   <td :title="activity.seconds + ' seconds'">
-                    <!-- colored by length, same as activity rows and the recap heatmap -->
-                    <span
-                      class="badge fw-semibold"
-                      :style="{
-                        ...heatBadgeStyle(activity.seconds),
-                        fontVariantNumeric: 'tabular-nums',
-                      }"
-                      >{{ formatDuration(activity.seconds, true) }}</span
-                    >
+                    <DurationBadge :seconds="activity.seconds" />
                   </td>
                 </tr>
                 <tr>
