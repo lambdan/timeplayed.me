@@ -15,7 +15,8 @@ const {
 const platforms = ref<Platform[]>([]);
 const pcPlatform = ref<PCPlatform>();
 const showNsfw = ref(false);
-// activity still on "Unknown", offered to move when picking an OS for the first time
+// activity still on "Unknown", offered to move when picking an OS for the first time.
+// Only what the user can see, the backend moves their hidden activity too
 const pcActivityCount = ref(0);
 const movePcActivity = ref(false);
 const saving = ref(false);
@@ -51,6 +52,8 @@ async function loadPcActivityCount() {
   });
   pcActivityCount.value = totals.activity_count;
 }
+// needs both the user and the platforms (to find "pc"), whichever arrives last
+watch([authenticatedUser, platforms], loadPcActivityCount);
 
 function pcPlatformName(abbreviation: string) {
   const platform = platforms.value.find((p) => p.abbreviation === abbreviation);
@@ -79,15 +82,17 @@ async function save() {
 }
 
 onMounted(async () => {
+  const all: Platform[] = [];
   let offset = 0;
   while (true) {
     const incoming = await TimeplayedAPI.getPlatforms({ offset, limit: 100 });
-    platforms.value.push(...incoming);
+    all.push(...incoming);
     if (incoming.length < 100) break;
     offset += 100;
   }
-  platforms.value.sort((a, b) => a.display_name.localeCompare(b.display_name));
-  watch(authenticatedUser, loadPcActivityCount, { immediate: true });
+  all.sort((a, b) => a.display_name.localeCompare(b.display_name));
+  // set all at once, so the watch on platforms sees it
+  platforms.value = all;
 });
 </script>
 

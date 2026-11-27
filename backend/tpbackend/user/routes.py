@@ -310,12 +310,16 @@ def move_pc_activity(user: User):
     query = ActivityQuery.platform(query, pc)
     with db.atomic():
         moved = 0
+        # users can't see hidden activity, so the settings page only counts the others
+        hidden = 0
         for activity in query:
             activity.set_platform(target)
             activity.save()
             moved += 1
+            if activity.get_hidden():
+                hidden += 1
         user.add_history(
-            f"Moved {moved} activities from 'pc' to '{target.get_abbreviation()}'"
+            f"Moved {moved} activities ({hidden} hidden) from 'pc' to '{target.get_abbreviation()}'"
         )
     logger.info(
         "Moved %s activities of user %s from pc to %s",

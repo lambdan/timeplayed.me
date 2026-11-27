@@ -43,9 +43,12 @@ export function heatLevel(seconds: number): number {
 /** background + readable text color, for badges */
 export function heatBadgeStyle(seconds: number) {
   const level = heatLevel(seconds);
+  // dark text on the yellows, white on the oranges and reds
+  let color = level >= 5 ? "#fff" : "#212529";
+  // the empty gray follows the theme, so its text has to as well
+  if (level === 0) color = "var(--bs-body-color)";
   return {
     background: HEAT_COLORS[level],
-    // dark text on the yellows, white on the oranges and reds
-    color: level >= 5 ? "#fff" : "#212529",
+    color,
   };
 }

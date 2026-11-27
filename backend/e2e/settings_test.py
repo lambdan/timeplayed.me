@@ -98,7 +98,7 @@ class TestMovePcActivity:
             for h in Activity.get_by_id(mine.get_id()).get_history()
         )
         assert any(
-            "Moved 2 activities from 'pc' to 'win'" in h
+            "Moved 2 activities (1 hidden) from 'pc' to 'win'" in h
             for h in User.get_by_id(user.get_id()).get_history()
         )
 
