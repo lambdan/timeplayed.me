@@ -106,7 +106,7 @@ export type AdminPresenceMember = {
   discord_user_name: string;
   // null if they have no user yet, it's created when a session is stored
   user_id: number | null;
-  // their sessions are stored: has oblivionis_sync, or gets it when created
+  // their sessions are stored: has discord_tracking, or gets it when created
   synced: boolean;
   // a session for each game they're playing, oldest first
   tracked: AdminTrackedPresence[];

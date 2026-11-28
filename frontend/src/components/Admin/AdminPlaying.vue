@@ -208,7 +208,7 @@ onMounted(load);
             >
             <span v-else class="small text-body-secondary">no user yet</span>
             <span v-if="!m.synced" class="badge text-bg-warning"
-              >Not stored (no oblivionis_sync)</span
+              >Not stored (no discord_tracking)</span
             >
           </div>
 
