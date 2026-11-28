@@ -41,6 +41,12 @@ const form = ref({
   color_primary: "",
   color_secondary: "",
 });
+// colors picked from the cover, best first, and which one is in the form
+const coverColors = ref<{ color_primary: string; color_secondary: string }[]>(
+  [],
+);
+const coverColorIndex = ref(0);
+
 const igdbId = ref("");
 const newAlias = ref("");
 const igdbQuery = ref("");
@@ -61,6 +67,8 @@ function toNumberOrNull(value: string | number): number | null {
 
 function setGame(g: AdminGameDetails) {
   game.value = g;
+  // the cover may have changed, picked again on the next click
+  coverColors.value = [];
   form.value = {
     name: g.name,
     release_year: g.release_year?.toString() ?? "",
@@ -175,14 +183,25 @@ function save() {
   }, "Saved");
 }
 
-/** fills in the colors picked from the cover, saved like the other fields */
+/**
+ * fills in the colors picked from the cover, saved like the other fields.
+ * Each click tries the next one
+ */
 async function colorsFromCover() {
   const g = game.value;
   if (!g) return;
   try {
     error.value = "";
     message.value = "";
-    const colors = await AdminAPI.getCoverColors(g.id);
+    if (coverColors.value.length === 0) {
+      coverColors.value = await AdminAPI.getCoverColors(g.id);
+      coverColorIndex.value = 0;
+    } else {
+      coverColorIndex.value =
+        (coverColorIndex.value + 1) % coverColors.value.length;
+    }
+    const colors = coverColors.value[coverColorIndex.value];
+    if (!colors) return;
     form.value.color_primary = "#" + colors.color_primary;
     form.value.color_secondary = "#" + colors.color_secondary;
   } catch (e: any) {
@@ -483,6 +502,9 @@ onMounted(async () => {
                 @click="colorsFromCover"
               >
                 Colors from cover
+                <span v-if="coverColors.length > 1"
+                  >({{ coverColorIndex + 1 }}/{{ coverColors.length }})</span
+                >
               </button>
             </div>
             <div
