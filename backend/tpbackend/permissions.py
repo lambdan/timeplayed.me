@@ -25,7 +25,7 @@ DESCRIPTIONS: dict[Permission, str] = {
     Permission.HIDE_PLAYING: "Left out of now playing, set by the user in settings",
     Permission.MANUAL_ACTIVITY: "Can add activity and change its game or platform (manual tracking page, activity page, API)",
     Permission.OBLIVIONIS_SYNC: "Oblivionis activity is synced for this user",
-    Permission.PRIVATE: "User page only visible to the user, elsewhere their activity is under 'Private', set by the user in settings",
+    Permission.PRIVATE: "Left out of everything public, only the user sees their own user page, set by the user in settings",
     Permission.SHOW_NSFW: "Sees NSFW game titles and covers on the site (otherwise censored), set by the user in settings",
 }
 
