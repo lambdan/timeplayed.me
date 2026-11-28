@@ -5,6 +5,7 @@ import type { UserWithStats } from "../api.models";
 import AdminEditLink from "./Misc/AdminEditLink.vue";
 import InfoStatTiles from "./Misc/InfoStatTiles.vue";
 import PlayingNowTiles from "./Users/PlayingNowTiles.vue";
+import { tileBackground, tileTextColor } from "../tileStyle";
 
 defineProps<{ user: UserWithStats }>();
 
@@ -44,6 +45,8 @@ const recapYear = getRecapYear();
               { label: 'Games', value: user.stats.game_count },
               { label: 'Platforms', value: user.stats.platform_count },
             ]"
+            :background="tileBackground(user)"
+            :color="tileTextColor(user)"
           >
             <PlayingNowTiles :userId="user.id" />
           </InfoStatTiles>

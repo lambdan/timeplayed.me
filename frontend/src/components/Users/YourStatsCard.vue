@@ -10,7 +10,7 @@ import { TimeplayedAPI } from "../../api.client";
 import { useAuthenticatedUser } from "../../composables/useAuthenticatedUser";
 import InfoStatTiles from "../Misc/InfoStatTiles.vue";
 import { platformBackground, platformTextColor } from "../../platformStyle";
-import { gameBackground, gameTextColor } from "../../gameStyle";
+import { tileBackground, tileTextColor } from "../../tileStyle";
 
 // the logged in user's stats for one game or platform. Hidden if they haven't played it
 const props = defineProps<{
@@ -26,12 +26,12 @@ const { authenticatedUser } = useAuthenticatedUser();
 // the game's or platform's colors, like the rest of the page
 const background = computed(() => {
   if (props.platform) return platformBackground(props.platform);
-  if (props.game) return gameBackground(props.game);
+  if (props.game) return tileBackground(props.game);
   return undefined;
 });
 const color = computed(() => {
   if (props.platform) return platformTextColor(props.platform);
-  if (props.game) return gameTextColor(props.game);
+  if (props.game) return tileTextColor(props.game);
   return undefined;
 });
 const gameStats = ref<GameWithStats["stats"]>();

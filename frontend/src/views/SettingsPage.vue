@@ -4,6 +4,8 @@ import { PC_PLATFORMS, type PCPlatform, type Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
+import RecapStatTile from "../components/Recap/RecapStatTile.vue";
+import { tileBackground, tileTextColor } from "../tileStyle";
 
 const { token } = useApiToken();
 const {
@@ -18,6 +20,13 @@ const showNsfw = ref(false);
 const anonymous = ref(false);
 const hidePlaying = ref(false);
 const isPrivate = ref(false);
+// as "#rrggbb" for the color inputs, "" for none
+const colorPrimary = ref("");
+const colorSecondary = ref("");
+const previewColors = computed(() => ({
+  color_primary: colorPrimary.value.replace("#", "") || null,
+  color_secondary: colorSecondary.value.replace("#", "") || null,
+}));
 // activity still on "Unknown", offered to move when picking an OS for the first time.
 // Only what the user can see, the backend moves their hidden activity too
 const pcActivityCount = ref(0);
@@ -35,6 +44,10 @@ watch(
     anonymous.value = !!user?.permissions.includes("anonymous");
     hidePlaying.value = !!user?.permissions.includes("hide_playing");
     isPrivate.value = !!user?.permissions.includes("private");
+    colorPrimary.value = user?.color_primary ? "#" + user.color_primary : "";
+    colorSecondary.value = user?.color_secondary
+      ? "#" + user.color_secondary
+      : "";
   },
   { immediate: true },
 );
@@ -83,6 +96,8 @@ async function save() {
       anonymous: anonymous.value,
       hide_playing: hidePlaying.value,
       private: isPrivate.value,
+      color_primary: colorPrimary.value,
+      color_secondary: colorSecondary.value,
       move_pc_activity: canMovePcActivity.value && movePcActivity.value,
     });
     movePcActivity.value = false;
@@ -160,6 +175,58 @@ onMounted(async () => {
           Show titles and covers of NSFW games. When off, titles are scrambled
           and covers are blurred.
         </div>
+      </div>
+
+      <hr />
+
+      <div class="mb-3">
+        <label class="form-label">Colors</label>
+        <div class="row g-2 align-items-end">
+          <div class="col-auto">
+            <label for="color-primary" class="form-label small mb-0"
+              >Background</label
+            >
+            <input
+              id="color-primary"
+              v-model="colorPrimary"
+              class="form-control form-control-color"
+              type="color"
+            />
+          </div>
+          <div class="col-auto">
+            <label for="color-secondary" class="form-label small mb-0"
+              >Text</label
+            >
+            <input
+              id="color-secondary"
+              v-model="colorSecondary"
+              class="form-control form-control-color"
+              type="color"
+            />
+          </div>
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              @click="
+                colorPrimary = '';
+                colorSecondary = '';
+              "
+            >
+              Default
+            </button>
+          </div>
+          <div class="col-12 col-sm">
+            <RecapStatTile
+              label="Playtime"
+              value="123h"
+              :small="true"
+              :background="tileBackground(previewColors)"
+              :color="tileTextColor(previewColors)"
+            />
+          </div>
+        </div>
+        <div class="form-text">For the tiles on your user page.</div>
       </div>
 
       <hr />

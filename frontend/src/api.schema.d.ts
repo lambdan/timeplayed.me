@@ -678,6 +678,16 @@ export interface components {
              * @description Discord display name
              */
             display_name: string;
+            /**
+             * Color Primary
+             * @description Background for the user's tiles, hex without #. Set by the user
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Text on color_primary
+             */
+            color_secondary: string | null;
             /** Created */
             created: number;
             /** Updated */
@@ -988,6 +998,16 @@ export interface components {
              * @description Discord display name
              */
             display_name: string;
+            /**
+             * Color Primary
+             * @description Background for the user's tiles, hex without #. Set by the user
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Text on color_primary
+             */
+            color_secondary: string | null;
             /** Created */
             created: number;
             /** Updated */
@@ -1012,6 +1032,16 @@ export interface components {
              * @description Discord display name
              */
             display_name: string;
+            /**
+             * Color Primary
+             * @description Background for the user's tiles, hex without #. Set by the user
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Text on color_primary
+             */
+            color_secondary: string | null;
             /** Created */
             created: number;
             /** Updated */

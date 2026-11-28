@@ -8,7 +8,7 @@ import { TimeplayedAPI } from "../api.client";
 import GameAliases from "./Games/GameAliases.vue";
 import InfoStatTiles from "./Misc/InfoStatTiles.vue";
 import GameIds from "./Games/GameIds.vue";
-import { gameBackground, gameTextColor } from "../gameStyle";
+import { tileBackground, tileTextColor } from "../tileStyle";
 
 const props = defineProps<{
   game: GameWithStats;
@@ -59,8 +59,8 @@ onMounted(async () => {
               { label: 'Users', value: stats.user_count },
               { label: 'Platforms', value: stats.platform_count },
             ]"
-            :background="gameBackground(game)"
-            :color="gameTextColor(game)"
+            :background="tileBackground(game)"
+            :color="tileTextColor(game)"
           />
           <GameAliases :game="game" class="mt-2" />
         </div>
