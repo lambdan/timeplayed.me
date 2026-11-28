@@ -478,8 +478,12 @@ export class TimeplayedAPI {
     return data;
   }
 
-  static async getPlaying() {
-    const { data, error } = await this.client.GET("/playing");
+  static async getPlaying(
+    query: paths["/playing"]["get"]["parameters"]["query"] = {},
+  ) {
+    const { data, error } = await this.client.GET("/playing", {
+      params: { query },
+    });
     if (error) {
       console.error("Error fetching who is playing:", error);
       throw error;

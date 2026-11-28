@@ -1585,7 +1585,10 @@ export interface operations {
     };
     get_playing_playing_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description ID of the user to filter by */
+                user?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1599,6 +1602,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["API_Playing"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

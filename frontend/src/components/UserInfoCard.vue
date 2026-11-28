@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { formatDuration, getRecapYear } from "../utils";
+import { getRecapYear } from "../utils";
 import DiscordAvatar from "./DiscordAvatar.vue";
 import type { UserWithStats } from "../api.models";
-import CalendarBasic from "./CalendarBasic.vue";
 import AdminEditLink from "./Misc/AdminEditLink.vue";
+import InfoStatTiles from "./Misc/InfoStatTiles.vue";
+import PlayingNowTiles from "./Users/PlayingNowTiles.vue";
 
 defineProps<{ user: UserWithStats }>();
 
@@ -13,7 +14,16 @@ const recapYear = getRecapYear();
 <template>
   <div class="card">
     <h1 class="card-header d-flex align-items-center gap-2">
-      <span class="me-auto">{{ user.display_name }}</span>
+      <div class="me-auto">
+        {{ user.display_name }}
+        <!-- the display name is the title already -->
+        <span
+          v-if="user.name !== user.display_name"
+          class="text-muted d-block"
+          style="font-size: 0.5em"
+          >{{ user.name }}</span
+        >
+      </div>
       <AdminEditLink tab="users" :id="user.id" />
       <a
         v-if="recapYear"
@@ -28,61 +38,15 @@ const recapYear = getRecapYear();
           <DiscordAvatar :user="user" :maxWidth="200" />
         </div>
         <div class="col">
-          <table class="table table-sm table-hover mb-0">
-            <tbody>
-              <!-- the display name is in the header already -->
-              <tr v-if="user.name !== user.display_name">
-                <th class="text-nowrap">Username</th>
-                <td class="text-break">{{ user.name }}</td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Playtime</th>
-                <td>{{ formatDuration(user.stats.seconds) }}</td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Activities</th>
-                <td>{{ user.stats.activity_count }}</td>
-              </tr>
-              <tr v-if="user.stats.activity_count > 0">
-                <th class="text-nowrap">Average session</th>
-                <td>
-                  {{
-                    formatDuration(
-                      user.stats.seconds / user.stats.activity_count,
-                    )
-                  }}
-                </td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Games</th>
-                <td>{{ user.stats.game_count }}</td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Platforms</th>
-                <td>{{ user.stats.platform_count }}</td>
-              </tr>
-              <tr v-if="user.stats.first_activity">
-                <th class="text-nowrap">First played</th>
-                <td>
-                  <CalendarBasic
-                    :date="user.stats.first_activity"
-                    :absolute="true"
-                    :showIcon="false"
-                  />
-                </td>
-              </tr>
-              <tr v-if="user.stats.last_activity">
-                <th class="text-nowrap">Last played</th>
-                <td>
-                  <CalendarBasic
-                    :date="user.stats.last_activity"
-                    :absolute="true"
-                    :showIcon="false"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <InfoStatTiles
+            :stats="user.stats"
+            :counts="[
+              { label: 'Games', value: user.stats.game_count },
+              { label: 'Platforms', value: user.stats.platform_count },
+            ]"
+          >
+            <PlayingNowTiles :userId="user.id" />
+          </InfoStatTiles>
         </div>
       </div>
     </div>

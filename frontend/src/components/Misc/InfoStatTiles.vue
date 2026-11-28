@@ -22,6 +22,8 @@ defineProps<{
 
 <template>
   <div class="row row-cols-2 g-2" :class="{ 'row-cols-xl-3': !narrow }">
+    <!-- tiles before the totals, like what a user is playing now -->
+    <slot />
     <div class="col">
       <RecapStatTile
         label="Playtime"
