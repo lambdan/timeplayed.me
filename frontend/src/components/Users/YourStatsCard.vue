@@ -34,7 +34,9 @@ const counts = computed(() => {
   if (platformStats.value) {
     tiles.push({ label: "Games", value: platformStats.value.game_count });
   }
-  if (stats.value && props.totalSeconds) {
+  // private users' playtime isn't part of the total, so their share makes no sense
+  const isPrivate = !!authenticatedUser.value?.permissions.includes("private");
+  if (stats.value && props.totalSeconds && !isPrivate) {
     const percent = (stats.value.seconds / props.totalSeconds) * 100;
     tiles.push({
       label: "Share",
