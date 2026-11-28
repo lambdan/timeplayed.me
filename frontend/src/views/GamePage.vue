@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
@@ -12,6 +12,7 @@ import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { usePageTitle } from "../composables/usePageTitle";
+import { setPageTheme } from "../pageTheme";
 
 const route = useRoute();
 const setTitle = usePageTitle();
@@ -25,6 +26,10 @@ const topAfter = ref<Date>();
 const topBefore = ref<Date>();
 // lists wait for the pickers first range
 const topReady = ref(false);
+
+// the whole page in the game's colors
+watch(game, (g) => setPageTheme(g?.color_primary ?? null));
+onUnmounted(() => setPageTheme(null));
 
 onMounted(async () => {
   const gameId = route.params.id as string;
