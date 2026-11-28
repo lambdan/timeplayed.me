@@ -5,7 +5,7 @@ import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
-import GameMetadataCard from "../components/Games/GameMetadataCard.vue";
+import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import ChildGamesCard from "../components/Games/ChildGamesCard.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
@@ -51,11 +51,22 @@ onMounted(async () => {
 <template>
   <template v-if="game">
     <div class="row g-4">
-      <div class="col-lg-8">
-        <GameInfoCard class="h-100" :game="game" :familyStats="familyStats" />
-      </div>
-      <div class="col-lg-4">
-        <GameMetadataCard class="h-100" :game="game" />
+      <!-- own row, so the info card is full width when the user's stats are hidden -->
+      <div class="col-12">
+        <div class="row g-4">
+          <div class="col-lg">
+            <GameInfoCard
+              class="h-100"
+              :game="game"
+              :familyStats="familyStats"
+            />
+          </div>
+          <YourStatsCard
+            class="col-lg-4"
+            :game="game"
+            :includeChildren="withChildren"
+          />
+        </div>
       </div>
 
       <div v-if="game.children_ids.length > 0" class="col-12">

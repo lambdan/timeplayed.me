@@ -7,7 +7,7 @@ import AdminEditLink from "./Misc/AdminEditLink.vue";
 import type { Game, GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "./CalendarBasic.vue";
-import YourStatsTable from "./Users/YourStatsTable.vue";
+import GameMetadataRows from "./Games/GameMetadataRows.vue";
 
 const props = defineProps<{
   game: GameWithStats;
@@ -123,9 +123,9 @@ onMounted(async () => {
                   />
                 </td>
               </tr>
+              <GameMetadataRows :game="game" />
             </tbody>
           </table>
-          <YourStatsTable :game="game" :includeChildren="withChildren" />
         </div>
       </div>
     </div>

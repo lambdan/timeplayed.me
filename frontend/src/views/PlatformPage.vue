@@ -5,8 +5,7 @@ import type { Platform, PlatformWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import AdminEditLink from "../components/Misc/AdminEditLink.vue";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
-import PlatformMetadataCard from "../components/Platforms/PlatformMetadataCard.vue";
-import YourStatsTable from "../components/Users/YourStatsTable.vue";
+import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
@@ -59,113 +58,116 @@ onMounted(async () => {
 
   <template v-else>
     <div class="row g-4">
-      <div class="col-lg-8">
-        <div class="card h-100">
-          <h1 class="card-header d-flex align-items-center gap-2">
-            <div class="me-auto">
-              {{ platform.display_name }}
-              <span
-                class="text-muted d-block"
-                style="font-size: 0.5em"
-                v-if="parent"
-              >
-                Counted in
-                <a :href="'/platform/' + parent.id">{{
-                  parent.display_name
-                }}</a>
-              </span>
-            </div>
-            <AdminEditLink tab="platforms" :id="platform.id" />
-          </h1>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-12 col-sm-auto text-center">
-                <PlatformBadge :platform="platform" class="fs-4" />
-              </div>
-              <div class="col">
-                <table class="table table-sm table-hover mb-0">
-                  <tbody>
-                    <tr>
-                      <th class="text-nowrap">Playtime</th>
-                      <td>
-                        {{ formatDuration(stats.seconds) }}
-                        <span
-                          v-if="withChildren"
-                          class="text-muted"
-                          title="Combined total"
-                          >*</span
-                        >
-                      </td>
-                    </tr>
-                    <tr>
-                      <th class="text-nowrap">Activities</th>
-                      <td>
-                        {{ stats.activity_count }}
-                        <span
-                          v-if="withChildren"
-                          class="text-muted"
-                          title="Combined total"
-                          >*</span
-                        >
-                      </td>
-                    </tr>
-                    <tr>
-                      <th class="text-nowrap">Games</th>
-                      <td>
-                        {{ stats.game_count }}
-                        <span
-                          v-if="withChildren"
-                          class="text-muted"
-                          title="Combined total"
-                          >*</span
-                        >
-                      </td>
-                    </tr>
-                    <tr>
-                      <th class="text-nowrap">Users</th>
-                      <td>
-                        {{ stats.user_count }}
-                        <span
-                          v-if="withChildren"
-                          class="text-muted"
-                          title="Combined total"
-                          >*</span
-                        >
-                      </td>
-                    </tr>
-                    <tr v-if="stats.first_activity">
-                      <th class="text-nowrap">First played</th>
-                      <td>
-                        <CalendarBasic
-                          :date="stats.first_activity"
-                          :showIcon="false"
-                          :absolute="true"
-                        />
-                      </td>
-                    </tr>
-                    <tr v-if="stats.last_activity">
-                      <th class="text-nowrap">Last played</th>
-                      <td>
-                        <CalendarBasic
-                          :date="stats.last_activity"
-                          :showIcon="false"
-                          :absolute="true"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <YourStatsTable
-                  :platform="platform"
-                  :includeChildren="withChildren"
-                />
+      <!-- own row, so the info card is full width when the user's stats are hidden -->
+      <div class="col-12">
+        <div class="row g-4">
+          <div class="col-lg">
+            <div class="card h-100">
+              <h1 class="card-header d-flex align-items-center gap-2">
+                <div class="me-auto">
+                  {{ platform.display_name }}
+                  <span
+                    class="text-muted d-block"
+                    style="font-size: 0.5em"
+                    v-if="parent"
+                  >
+                    Counted in
+                    <a :href="'/platform/' + parent.id">{{
+                      parent.display_name
+                    }}</a>
+                  </span>
+                </div>
+                <AdminEditLink tab="platforms" :id="platform.id" />
+              </h1>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12 col-sm-auto text-center">
+                    <PlatformBadge :platform="platform" class="fs-4" />
+                  </div>
+                  <div class="col">
+                    <table class="table table-sm table-hover mb-0">
+                      <tbody>
+                        <tr>
+                          <th class="text-nowrap">Playtime</th>
+                          <td>
+                            {{ formatDuration(stats.seconds) }}
+                            <span
+                              v-if="withChildren"
+                              class="text-muted"
+                              title="Combined total"
+                              >*</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-nowrap">Activities</th>
+                          <td>
+                            {{ stats.activity_count }}
+                            <span
+                              v-if="withChildren"
+                              class="text-muted"
+                              title="Combined total"
+                              >*</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-nowrap">Games</th>
+                          <td>
+                            {{ stats.game_count }}
+                            <span
+                              v-if="withChildren"
+                              class="text-muted"
+                              title="Combined total"
+                              >*</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="text-nowrap">Users</th>
+                          <td>
+                            {{ stats.user_count }}
+                            <span
+                              v-if="withChildren"
+                              class="text-muted"
+                              title="Combined total"
+                              >*</span
+                            >
+                          </td>
+                        </tr>
+                        <tr v-if="stats.first_activity">
+                          <th class="text-nowrap">First played</th>
+                          <td>
+                            <CalendarBasic
+                              :date="stats.first_activity"
+                              :showIcon="false"
+                              :absolute="true"
+                            />
+                          </td>
+                        </tr>
+                        <tr v-if="stats.last_activity">
+                          <th class="text-nowrap">Last played</th>
+                          <td>
+                            <CalendarBasic
+                              :date="stats.last_activity"
+                              :showIcon="false"
+                              :absolute="true"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <YourStatsCard
+            class="col-lg-4"
+            :platform="platform"
+            :includeChildren="withChildren"
+          />
         </div>
-      </div>
-      <div class="col-lg-4">
-        <PlatformMetadataCard class="h-100" :platform="platform" />
       </div>
 
       <div v-if="withChildren" class="col-12">
