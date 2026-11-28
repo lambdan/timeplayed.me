@@ -144,6 +144,17 @@ class TestPlaying:
         r = api.get("/playing")
         assert [p["user_id"] for p in r.json()] == [bob.get_id(), alice.get_id()]
 
+    def test_one_user(self, api, make_user, make_game, ps5):
+        alice, _ = make_user(name="alice")
+        bob, _ = make_user(name="bob")
+        game = make_game()
+        for user in (alice, bob):
+            LiveActivity.create(user=user, game=game, platform=ps5, started=now())
+
+        r = api.get("/playing", params={"user": bob.get_id()})
+        assert r.status_code == 200, r.text
+        assert [p["user_id"] for p in r.json()] == [bob.get_id()]
+
 
 class TestAdminLive:
     def test_list(self, make_user, make_game, ps5):

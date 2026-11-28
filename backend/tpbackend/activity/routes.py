@@ -125,12 +125,16 @@ def get_oldest_activity(
 
 
 @router.get("/playing", tags=["activities", "live"], response_model=list[API_Playing])
-def get_playing() -> list[API_Playing]:
+def get_playing(viewer: OptionalUser, user=query_id("user")) -> list[API_Playing]:
     """
     Everyone playing something right now, from manual tracking and Discord, newest first.
     The same user, game and platform from both is listed once, with the earliest start
     """
-    return playing_now(now())
+    # 404 for private users, but to themselves
+    check_user_filter(user, viewer)
+    if user is not None:
+        user = int(user)
+    return playing_now(now(), user)
 
 
 @router.get(

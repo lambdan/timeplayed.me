@@ -163,6 +163,8 @@ class TestHidePlaying:
             r = client.get("/playing")
             assert r.status_code == 200, r.text
             assert [p["user_id"] for p in r.json()] == [shown.get_id()]
+            r = client.get("/playing", params={"user": hidden.get_id()})
+            assert r.json() == []
 
 
 class TestPrivate:
@@ -289,6 +291,13 @@ class TestPrivate:
         )
         assert api.get("/playing").json() == []
         assert world["client"].get("/playing").json() == []
+
+        # but on their own page
+        uid = world["private"].get_id()
+        r = api.get("/playing", params={"user": uid})
+        assert r.status_code == 404
+        r = world["client"].get("/playing", params={"user": uid})
+        assert [p["user_id"] for p in r.json()] == [uid]
 
     def test_not_in_sitemap(self, api, world):
         r = api.get("/sitemap.xml")

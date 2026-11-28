@@ -16,8 +16,14 @@ from tpbackend.storage import DiscordPresence, Game, LiveActivity, Platform, Use
 from tpbackend.utils2 import dt_to_ts
 
 
-def playing_now(now: datetime.datetime) -> list[API_Playing]:
-    """newest first, each user, game and platform once"""
+def playing_now(
+    now: datetime.datetime, user_id: int | None = None
+) -> list[API_Playing]:
+    """
+    newest first, each user, game and platform once. user_id: only that user, then
+    private users are there too (it's their own page, check_user_filter is up to the
+    caller)
+    """
     playing: dict[tuple[int, int, int], API_Playing] = {}
 
     def add(
@@ -27,11 +33,11 @@ def playing_now(now: datetime.datetime) -> list[API_Playing]:
         started: datetime.datetime,
         source: Literal["manual", "discord"],
     ):
-        if game.get_hidden():
+        if game.get_hidden() or user.has_permission(Permission.HIDE_PLAYING):
             return
-        if user.has_permission(Permission.HIDE_PLAYING) or user.has_permission(
-            Permission.PRIVATE
-        ):
+        if user_id is not None and user.get_id() != user_id:
+            return
+        if user_id is None and user.has_permission(Permission.PRIVATE):
             return
         key = (user.get_id(), game.get_id(), platform.get_id())
         started_ts = dt_to_ts(started)
