@@ -56,6 +56,16 @@ class TestHideAvatar:
         make_user(discord_id="1234")
         assert controller.get_avatar_url("1234") == "https://real"
 
+    def test_unknown_avatar_not_cached(self, make_user, monkeypatch):
+        cached = []
+        monkeypatch.setattr(controller, "avatar_from_discord_user_id", lambda _: None)
+        monkeypatch.setattr(
+            controller, "cache_set", lambda *args, **kw: cached.append(args)
+        )
+        make_user(discord_id="1234")
+        assert controller.get_avatar_url("1234") == default_avatar_url("1234")
+        assert cached == []
+
     def test_avatar_hidden(self, make_user, monkeypatch):
         monkeypatch.setattr(
             controller, "avatar_from_discord_user_id", lambda _: "https://real"

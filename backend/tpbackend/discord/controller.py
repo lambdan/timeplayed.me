@@ -14,5 +14,8 @@ def get_avatar_url(discord_user_id: str | int) -> str:
     if cached:
         return cached.decode("utf-8")  # type: ignore
     url = avatar_from_discord_user_id(discord_user_id)
+    if url is None:
+        # not cached, so the real one shows once the bot knows them
+        return default_avatar_url(discord_user_id)
     cache_set(cache_key, url, ex=3600)
     return url
