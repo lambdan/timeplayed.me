@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import "bootstrap-icons/font/bootstrap-icons.css";
 import type { Platform } from "../../api.models.ts";
+import {
+  platformBackground,
+  platformIcon,
+  platformTextColor,
+} from "../../platformStyle";
 
 const props = withDefaults(
   defineProps<{
@@ -20,30 +25,6 @@ function displayedText() {
   }
   return props.platform.name || props.platform.abbreviation;
 }
-
-function getBackgroundColor() {
-  const apiPrimary = props.platform.color_primary;
-  if (apiPrimary) {
-    return "#" + apiPrimary;
-  }
-  return "#6c757d"; // bg-secondary
-}
-
-function getTextColor() {
-  const apiSecondary = props.platform.color_secondary;
-  if (apiSecondary) {
-    return "#" + apiSecondary;
-  }
-  return "#ffffff"; // text-white
-}
-
-function getIcon() {
-  const apiIcon = props.platform.icon;
-  if (apiIcon) {
-    return "bi-" + apiIcon;
-  }
-  return "bi-controller";
-}
 </script>
 
 <template>
@@ -53,10 +34,13 @@ function getIcon() {
     :title="displayedText()"
   >
     <span
-      :style="{ backgroundColor: getBackgroundColor(), color: getTextColor() }"
+      :style="{
+        backgroundColor: platformBackground(platform),
+        color: platformTextColor(platform),
+      }"
       class="badge"
     >
-      <i :class="['bi', getIcon()]"></i>
+      <i :class="['bi', platformIcon(platform)]"></i>
       <span v-if="showName || showAbbreviation"
         > 
         {{ displayedText() }}

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { formatDuration } from "../utils";
 import GameCover from "./Games/GameCover.vue";
 import GameName from "./Games/GameName.vue";
 import AdminEditLink from "./Misc/AdminEditLink.vue";
 import type { Game, GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
-import CalendarBasic from "./CalendarBasic.vue";
-import GameMetadataRows from "./Games/GameMetadataRows.vue";
+import GameAliases from "./Games/GameAliases.vue";
+import InfoStatTiles from "./Misc/InfoStatTiles.vue";
 import GameIds from "./Games/GameIds.vue";
 
 const props = defineProps<{
@@ -54,79 +53,17 @@ onMounted(async () => {
           />
         </div>
         <div class="col">
-          <table class="table table-sm table-hover mb-0">
-            <tbody>
-              <tr>
-                <th class="text-nowrap">Playtime</th>
-                <td>
-                  {{ formatDuration(stats.seconds) }}
-                  <span
-                    v-if="withChildren"
-                    class="text-muted"
-                    title="Combined total"
-                    >*</span
-                  >
-                </td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Activities</th>
-                <td>
-                  {{ stats.activity_count }}
-                  <span
-                    v-if="withChildren"
-                    class="text-muted"
-                    title="Combined total"
-                    >*</span
-                  >
-                </td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Users</th>
-                <td>
-                  {{ stats.user_count }}
-                  <span
-                    v-if="withChildren"
-                    class="text-muted"
-                    title="Combined total"
-                    >*</span
-                  >
-                </td>
-              </tr>
-              <tr>
-                <th class="text-nowrap">Platforms</th>
-                <td>
-                  {{ stats.platform_count }}
-                  <span
-                    v-if="withChildren"
-                    class="text-muted"
-                    title="Combined total"
-                    >*</span
-                  >
-                </td>
-              </tr>
-              <tr v-if="stats.first_activity">
-                <th class="text-nowrap">First played</th>
-                <td>
-                  <CalendarBasic
-                    :date="stats.first_activity"
-                    :showIcon="false"
-                    :absolute="true"
-                  />
-                </td>
-              </tr>
-              <tr v-if="stats.last_activity">
-                <th class="text-nowrap">Last played</th>
-                <td>
-                  <CalendarBasic
-                    :date="stats.last_activity"
-                    :showIcon="false"
-                    :absolute="true"
-                  />
-                </td>
-              </tr>
-              <GameMetadataRows :game="game" />
-            </tbody>
-          </table>
+          <InfoStatTiles
+            :stats="stats"
+            :counts="[
+              { label: 'Users', value: stats.user_count },
+              { label: 'Platforms', value: stats.platform_count },
+            ]"
+            :combinedNote="
+              withChildren ? 'Including the games in the breakdown' : undefined
+            "
+          />
+          <GameAliases :game="game" class="mt-2" />
         </div>
       </div>
     </div>

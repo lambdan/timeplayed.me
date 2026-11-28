@@ -4,16 +4,19 @@ import { useRoute } from "vue-router";
 import type { Platform, PlatformWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import AdminEditLink from "../components/Misc/AdminEditLink.vue";
-import PlatformBadge from "../components/Badges/PlatformBadge.vue";
+import InfoStatTiles from "../components/Misc/InfoStatTiles.vue";
+import {
+  platformBackground,
+  platformIcon,
+  platformTextColor,
+} from "../platformStyle";
 import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
-import CalendarBasic from "../components/CalendarBasic.vue";
 import ChildPlatformsCard from "../components/Platforms/ChildPlatformsCard.vue";
-import { formatDuration } from "../utils";
 import { usePageTitle } from "../composables/usePageTitle";
 
 const route = useRoute();
@@ -65,6 +68,7 @@ onMounted(async () => {
             <div class="card h-100">
               <h1 class="card-header d-flex align-items-center gap-2">
                 <div class="me-auto">
+                  <i :class="['bi', platformIcon(platform)]"></i>
                   {{ platform.display_name }}
                   <span
                     class="text-muted d-block"
@@ -80,85 +84,20 @@ onMounted(async () => {
                 <AdminEditLink tab="platforms" :id="platform.id" />
               </h1>
               <div class="card-body">
-                <div class="row g-3">
-                  <div class="col-12 col-sm-auto text-center">
-                    <PlatformBadge :platform="platform" class="fs-4" />
-                  </div>
-                  <div class="col">
-                    <table class="table table-sm table-hover mb-0">
-                      <tbody>
-                        <tr>
-                          <th class="text-nowrap">Playtime</th>
-                          <td>
-                            {{ formatDuration(stats.seconds) }}
-                            <span
-                              v-if="withChildren"
-                              class="text-muted"
-                              title="Combined total"
-                              >*</span
-                            >
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-nowrap">Activities</th>
-                          <td>
-                            {{ stats.activity_count }}
-                            <span
-                              v-if="withChildren"
-                              class="text-muted"
-                              title="Combined total"
-                              >*</span
-                            >
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-nowrap">Games</th>
-                          <td>
-                            {{ stats.game_count }}
-                            <span
-                              v-if="withChildren"
-                              class="text-muted"
-                              title="Combined total"
-                              >*</span
-                            >
-                          </td>
-                        </tr>
-                        <tr>
-                          <th class="text-nowrap">Users</th>
-                          <td>
-                            {{ stats.user_count }}
-                            <span
-                              v-if="withChildren"
-                              class="text-muted"
-                              title="Combined total"
-                              >*</span
-                            >
-                          </td>
-                        </tr>
-                        <tr v-if="stats.first_activity">
-                          <th class="text-nowrap">First played</th>
-                          <td>
-                            <CalendarBasic
-                              :date="stats.first_activity"
-                              :showIcon="false"
-                              :absolute="true"
-                            />
-                          </td>
-                        </tr>
-                        <tr v-if="stats.last_activity">
-                          <th class="text-nowrap">Last played</th>
-                          <td>
-                            <CalendarBasic
-                              :date="stats.last_activity"
-                              :showIcon="false"
-                              :absolute="true"
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <InfoStatTiles
+                  :stats="stats"
+                  :counts="[
+                    { label: 'Games', value: stats.game_count },
+                    { label: 'Users', value: stats.user_count },
+                  ]"
+                  :background="platformBackground(platform)"
+                  :color="platformTextColor(platform)"
+                  :combinedNote="
+                    withChildren
+                      ? 'Including the platforms in the breakdown'
+                      : undefined
+                  "
+                />
               </div>
             </div>
           </div>

@@ -8,6 +8,11 @@ const props = defineProps<{
   /** % change vs previous year */
   change?: number;
   previousYear?: number;
+  /** smaller value and padding, for the game and platform info cards */
+  small?: boolean;
+  /** colors instead of the default tile background, like a platform's */
+  background?: string;
+  color?: string;
 }>();
 
 const changeText = computed(() => {
@@ -18,13 +23,29 @@ const changeText = computed(() => {
 </script>
 
 <template>
-  <div class="border rounded bg-body-tertiary p-3 h-100">
-    <div class="small text-uppercase fw-semibold text-body-secondary">
+  <div
+    class="rounded h-100"
+    :class="[
+      small ? 'p-2' : 'p-3',
+      background ? '' : 'border bg-body-tertiary',
+    ]"
+    :style="background ? { backgroundColor: background, color } : undefined"
+  >
+    <div
+      class="small text-uppercase fw-semibold"
+      :class="background ? 'opacity-75' : 'text-body-secondary'"
+    >
       {{ label }}
     </div>
-    <div class="fs-2 fw-bold lh-sm">{{ value }}</div>
+    <div class="fw-bold lh-sm" :class="small ? 'fs-4' : 'fs-2'">
+      {{ value }}
+    </div>
     <!-- slot for subs with links in them -->
-    <div v-if="sub || $slots.default" class="small text-body-secondary">
+    <div
+      v-if="sub || $slots.default"
+      class="small"
+      :class="background ? 'opacity-75' : 'text-body-secondary'"
+    >
       <slot>{{ sub }}</slot>
     </div>
     <div
