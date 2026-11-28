@@ -36,3 +36,11 @@ class TestNewUser:
         activity, error = add_session(user=user, game=game, seconds=60, platform=ps5)
         assert error is None and activity
         assert activity.get_platform() == ps5
+
+
+class TestUsers:
+    def test_everyone_by_default(self, api, make_user):
+        ids = [make_user(name=f"user{i}")[0].get_id() for i in range(3)]
+        r = api.get("/users")
+        assert r.status_code == 200, r.text
+        assert [u["id"] for u in r.json()] == ids

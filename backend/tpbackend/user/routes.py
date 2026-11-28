@@ -242,7 +242,7 @@ def get_many_users(
 )
 def get_users(
     offset=offset(),
-    limit=offset(),
+    limit=limit(),
     sort=sorts(list(UserQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
     search=query_search("users"),
