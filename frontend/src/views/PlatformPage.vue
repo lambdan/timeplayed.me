@@ -6,6 +6,7 @@ import { TimeplayedAPI } from "../api.client";
 import AdminEditLink from "../components/Misc/AdminEditLink.vue";
 import PlatformBadge from "../components/Badges/PlatformBadge.vue";
 import PlatformMetadataCard from "../components/Platforms/PlatformMetadataCard.vue";
+import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
@@ -159,8 +160,9 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="col-lg-4">
-        <PlatformMetadataCard class="h-100" :platform="platform" />
+      <div class="col-lg-4 d-flex flex-column gap-4">
+        <YourStatsCard :platform="platform" :includeChildren="withChildren" />
+        <PlatformMetadataCard class="flex-grow-1" :platform="platform" />
       </div>
 
       <div v-if="withChildren" class="col-12">

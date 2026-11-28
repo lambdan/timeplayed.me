@@ -6,6 +6,7 @@ import GameInfoCard from "../components/GameInfoCard.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
 import TopPlatformsList from "../components/Platforms/TopPlatformsList.vue";
 import GameMetadataCard from "../components/Games/GameMetadataCard.vue";
+import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import ChildGamesCard from "../components/Games/ChildGamesCard.vue";
 import DateRangerPicker from "../components/Misc/DateRangerPicker.vue";
 import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
@@ -54,8 +55,9 @@ onMounted(async () => {
       <div class="col-lg-8">
         <GameInfoCard class="h-100" :game="game" :familyStats="familyStats" />
       </div>
-      <div class="col-lg-4">
-        <GameMetadataCard class="h-100" :game="game" />
+      <div class="col-lg-4 d-flex flex-column gap-4">
+        <YourStatsCard :game="game" :includeChildren="withChildren" />
+        <GameMetadataCard class="flex-grow-1" :game="game" />
       </div>
 
       <div v-if="game.children_ids.length > 0" class="col-12">
