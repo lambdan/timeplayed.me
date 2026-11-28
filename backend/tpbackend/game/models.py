@@ -24,9 +24,15 @@ class API_Game(BaseModel):
     updated: int
     children_ids: list[int]
     parent_id: int | None
+    color_primary: str | None = Field(
+        description="Background for the game's tiles, hex without #. The parent's if the game "
+        "has none"
+    )
+    color_secondary: str | None = Field(description="Text on color_primary")
 
     @classmethod
     def from_game(cls, game):
+        color_primary, color_secondary = game.get_colors()
         return cls(
             id=game.id,
             name=game.name,
@@ -41,6 +47,8 @@ class API_Game(BaseModel):
             updated=dt_to_ts(game.updated),
             children_ids=[child.id for child in game.children],
             parent_id=game.parent_id,
+            color_primary=color_primary,
+            color_secondary=color_secondary,
         )
 
 
@@ -49,6 +57,7 @@ class API_GameWithStats(API_Game):
 
     @classmethod
     def from_game(cls, game):
+        color_primary, color_secondary = game.get_colors()
         return cls(
             id=game.id,
             name=game.name,
@@ -63,6 +72,8 @@ class API_GameWithStats(API_Game):
             updated=dt_to_ts(game.updated),
             children_ids=[child.id for child in game.children],
             parent_id=game.parent_id,
+            color_primary=color_primary,
+            color_secondary=color_secondary,
             stats=GameStats(
                 seconds=game.total_seconds,
                 activity_count=game.activity_count,

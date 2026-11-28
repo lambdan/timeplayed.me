@@ -154,12 +154,20 @@ class Admin_Game(API_Game):
     activity_count: int
     last_activity: int | None
     uploaded_cover: str | None = Field(description="ImageFile id of the uploaded cover")
+    own_color_primary: str | None = Field(
+        description="Set on this game, not inherited from a parent"
+    )
+    own_color_secondary: str | None = Field(
+        description="Set on this game, not inherited from a parent"
+    )
 
     @classmethod
     def from_game(cls, game: Game):
         return cls(
             **API_Game.from_game(game).model_dump(),
             uploaded_cover=uploaded_cover_id(game),
+            own_color_primary=game.get_color_primary(),
+            own_color_secondary=game.get_color_secondary(),
             # own hidden, not inherited from parent, that's what can be toggled
             hidden=bool(game.hidden),
             own_nsfw=bool(game.nsfw),
@@ -272,6 +280,15 @@ class Admin_PatchGame(BaseModel):
     parent_id: int | None = None
     steam_id: int | None = None
     hidden: bool | None = None
+    color_primary: str | None = Field(default=None, description="Hex, # is optional")
+    color_secondary: str | None = Field(default=None, description="Hex, # is optional")
+
+
+class Admin_GameColors(BaseModel):
+    """colors picked from the game's cover, for the admin to set"""
+
+    color_primary: str
+    color_secondary: str
 
 
 class Admin_CoverUrl(BaseModel):

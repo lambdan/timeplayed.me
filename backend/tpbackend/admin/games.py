@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Literal, cast
 
 from fastapi import APIRouter, Query, Request
@@ -7,6 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 from tpbackend.admin.models import (
     Admin_Alias,
     Admin_Game,
+    Admin_GameColors,
     Admin_GameDetails,
     Admin_MergeGame,
     Admin_MergePreview,
@@ -31,7 +33,10 @@ from tpbackend.operations import (
     merge_games,
     sync_activities_hidden,
 )
+from tpbackend.files.colors import pick_color, text_color
 from tpbackend.files.images import get_image, get_versions, store_upload
+from tpbackend.files.storage import storage
+from tpbackend.game.cover import ORIGINAL, find_cover
 from tpbackend.storage import Activity, Game, ImageFile, LiveActivity
 from tpbackend.utils2 import clamp, ts_to_dt
 
@@ -108,6 +113,26 @@ def add_game(data: Admin_PostGame) -> Admin_GameDetails:
     return Admin_GameDetails.from_game(game)
 
 
+def __color(color: str | None) -> str | None:
+    """colors are stored as hex without #"""
+    if color is None:
+        return None
+    return color.strip().lstrip("#").lower() or None
+
+
+@router.get("/game/{game_id}/cover/colors", response_model=Admin_GameColors)
+def get_cover_colors(game_id: int) -> Admin_GameColors:
+    """colors picked from the cover the game shows (its parent's too), nothing is saved"""
+    image = find_cover(__get_game(game_id)).versions.get(ORIGINAL)
+    if not image:
+        return not_found("Game has no cover")
+    data = storage.load(image.get_id())
+    if data is None:
+        return not_found("Cover image is missing")
+    primary = pick_color(data)
+    return Admin_GameColors(color_primary=primary, color_secondary=text_color(primary))
+
+
 @router.get("/game/{game_id}", response_model=Admin_GameDetails)
 def get_game(game_id: int) -> Admin_GameDetails:
     return Admin_GameDetails.from_game(__get_game(game_id))
@@ -142,6 +167,16 @@ def patch_game(game_id: int, data: Admin_PatchGame) -> Admin_GameDetails:
         if data.nsfw is None:
             return bad_request("nsfw cannot be null")
         game.set_nsfw(data.nsfw)
+
+    for field in ("color_primary", "color_secondary"):
+        if field in sent:
+            color = __color(getattr(data, field))
+            if color and not re.fullmatch("[0-9a-f]{6}", color):
+                return bad_request(f"{field} must be a hex color like #1a2b3c")
+            if field == "color_primary":
+                game.set_color_primary(color)
+            else:
+                game.set_color_secondary(color)
 
     if "steam_id" in sent and data.steam_id != game.steam_id:
         if data.steam_id is not None:

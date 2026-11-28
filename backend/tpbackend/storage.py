@@ -524,6 +524,9 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
     aliases = ArrayField(TextField, default=lambda: [])  # type: ignore
     release_year = IntegerField(null=True, default=None)
     parent = ForeignKeyField("self", null=True, default=None, backref="children")
+    # for the game's tiles, like a platform's: background and text, hex without #
+    color_primary = CharField(null=True, default=None)
+    color_secondary = CharField(null=True, default=None)
 
     def has_cover_art(self) -> bool:
         # turned off counts too, there is nothing to look for
@@ -641,6 +644,36 @@ class Game(IdMixin, HistoryMixin, SearchMixin, HiddenMixin):
         self.nsfw = cast(BooleanField, nsfw)
         if old_nsfw != nsfw:
             self.add_history(f"NSFW changed from {old_nsfw} to {nsfw}")
+
+    def get_color_primary(self) -> str | None:
+        return cast(str | None, self.color_primary)
+
+    def set_color_primary(self, color: str | None):
+        old_color = self.get_color_primary()
+        self.color_primary = color
+        if old_color != color:
+            self.add_history(f"Primary color changed from '{old_color}' to '{color}'")
+
+    def get_color_secondary(self) -> str | None:
+        return cast(str | None, self.color_secondary)
+
+    def set_color_secondary(self, color: str | None):
+        old_color = self.get_color_secondary()
+        self.color_secondary = color
+        if old_color != color:
+            self.add_history(f"Secondary color changed from '{old_color}' to '{color}'")
+
+    def get_colors(self) -> tuple[str | None, str | None]:
+        """
+        primary and secondary color: the game's own, else the parent's. Both from the
+        same game, a game with only one of them set doesn't mix with the parent's
+        """
+        if self.get_color_primary() or self.get_color_secondary():
+            return self.get_color_primary(), self.get_color_secondary()
+        parent = self.get_parent()
+        if parent:
+            return parent.get_colors()
+        return None, None
 
     def get_aliases(self) -> list[str]:
         if not self.aliases:
