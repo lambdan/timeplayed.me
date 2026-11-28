@@ -37,7 +37,7 @@ export type SettingsPut = {
   anonymous?: boolean;
   hide_playing?: boolean;
   private?: boolean;
-  // tile colors on the user page, hex (# optional), "" removes
+  // the user page's theme, hex (# optional), "" removes
   color_primary?: string;
   color_secondary?: string;
   // also move activity on "pc" (unknown OS) to the new pc_platform

@@ -23,8 +23,6 @@ const props = defineProps<{
   platform?: Platform;
   /** with platform: also its child platforms */
   includeChildPlatforms?: boolean;
-  /** instead of the default chart color, like a game's */
-  color?: string;
 }>();
 
 const days = ref<DaySeconds[]>([]);
@@ -69,7 +67,6 @@ const total = computed(() =>
         :labels="total.labels"
         :values="total.totals"
         unit="hours"
-        :color="color"
         :aspectRatio="4"
       />
     </div>
@@ -80,7 +77,6 @@ const total = computed(() =>
         :labels="months.map(monthLabel)"
         :values="hoursPerMonth(days, months)"
         unit="hours"
-        :color="color"
       />
     </div>
     <div class="col-lg-6">
@@ -90,7 +86,6 @@ const total = computed(() =>
         :labels="WEEKDAYS"
         :values="hoursPerWeekday(days)"
         unit="hours"
-        :color="color"
       />
     </div>
   </div>

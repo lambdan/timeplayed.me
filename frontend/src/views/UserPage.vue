@@ -10,6 +10,8 @@ import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { UserWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { usePageTitle } from "../composables/usePageTitle";
+import { themeColor } from "../pageTheme";
+import { usePageColors } from "../composables/usePageColors";
 
 const route = useRoute();
 const setTitle = usePageTitle();
@@ -21,6 +23,16 @@ const topAfter = ref<Date>();
 const topBefore = ref<Date>();
 // lists wait for the pickers first range
 const topReady = ref(false);
+// the user's colors, the default page if they have none
+usePageColors(() => {
+  if (notFound.value) return null;
+  if (!user.value) return undefined;
+  if (!user.value.color_primary) return null;
+  return {
+    primary: themeColor(user.value.color_primary),
+    secondary: themeColor(user.value.color_secondary),
+  };
+});
 
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);

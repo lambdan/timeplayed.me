@@ -9,7 +9,6 @@ import type {
 import { TimeplayedAPI } from "../../api.client";
 import { useAuthenticatedUser } from "../../composables/useAuthenticatedUser";
 import InfoStatTiles from "../Misc/InfoStatTiles.vue";
-import { platformBackground, platformTextColor } from "../../platformStyle";
 
 // the logged in user's stats for one game or platform. Hidden if they haven't played it
 const props = defineProps<{
@@ -22,15 +21,6 @@ const props = defineProps<{
 }>();
 
 const { authenticatedUser } = useAuthenticatedUser();
-// the platform's colors, like the rest of its page. A game's page is themed instead
-const background = computed(() => {
-  if (props.platform) return platformBackground(props.platform);
-  return undefined;
-});
-const color = computed(() => {
-  if (props.platform) return platformTextColor(props.platform);
-  return undefined;
-});
 const gameStats = ref<GameWithStats["stats"]>();
 const platformStats = ref<PlatformWithStats["stats"]>();
 const stats = computed(() => gameStats.value ?? platformStats.value);
@@ -96,13 +86,7 @@ watch(
     <div class="card h-100">
       <h2 class="card-header">Your stats</h2>
       <div class="card-body">
-        <InfoStatTiles
-          :stats="stats"
-          :counts="counts"
-          :narrow="true"
-          :background="background"
-          :color="color"
-        />
+        <InfoStatTiles :stats="stats" :counts="counts" :narrow="true" />
       </div>
     </div>
   </div>

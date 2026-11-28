@@ -1,4 +1,7 @@
-// a page themed from a color (like a game's): Bootstrap's dark theme greys replaced by it
+// pages with colors of their own (games, platforms, users) themed from them:
+// Bootstrap's dark theme greys replaced by the primary color, the charts in the secondary
+
+import { computed, ref, watchEffect } from "vue";
 
 type RGB = [number, number, number];
 
@@ -67,10 +70,7 @@ function contrast(a: RGB, b: RGB): number {
  * if it can be read on the cards. Many are black or white text colors for tiles,
  * black can't be read on a dark page
  */
-export function pageAccent(
-  primary: string,
-  secondary: string | null,
-): string | null {
+function pageAccent(primary: string, secondary: string | null): string | null {
   if (!secondary) return null;
   const card = lighter(pageBackground(parse(primary)), CARD_LIGHTER);
   if (contrast(parse(secondary), card) < MIN_CONTRAST) return null;
@@ -95,14 +95,38 @@ function pageTheme(primary: string): Record<string, string> {
   };
 }
 
-/** themes the whole page (the body), or back to the default with null */
-export function setPageTheme(primary: string | null) {
+/** a primary and secondary color, as "#rrggbb", null for none */
+export type ThemeColors = { primary: string | null; secondary: string | null };
+
+// the page's own, null for the default
+const pageColors = ref<ThemeColors | null>(null);
+
+/** "#rrggbb" from an API color ("rrggbb" or null), null for none */
+export function themeColor(color: string | null | undefined): string | null {
+  return color ? "#" + color : null;
+}
+
+/** the page's own colors, null for the default */
+export function setPageColors(colors: ThemeColors | null) {
+  pageColors.value = colors;
+}
+
+/** the chart color, undefined for the default */
+export const chartColor = computed(() => {
+  const primary = pageColors.value?.primary;
+  if (!primary) return undefined;
+  return pageAccent(primary, pageColors.value?.secondary ?? null) ?? undefined;
+});
+
+// themes the whole page (the body)
+watchEffect(() => {
   const style = document.body.style;
   for (const property of Object.keys(pageTheme("#000000"))) {
     style.removeProperty(property);
   }
+  const primary = pageColors.value?.primary;
   if (!primary) return;
   for (const [property, value] of Object.entries(pageTheme(primary))) {
     style.setProperty(property, value);
   }
-}
+});

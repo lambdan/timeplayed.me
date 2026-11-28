@@ -1,3 +1,4 @@
+import { setPageColors } from "../pageTheme";
 import { createRouter, createWebHistory, START_LOCATION } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import HomePage from "../views/HomePage.vue";
@@ -49,7 +50,11 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Manual Tracking" },
   },
   { path: "/admin", component: AdminPage, meta: { title: "Admin" } },
-  { path: "/settings", component: SettingsPage, meta: { title: "Settings" } },
+  {
+    path: "/settings",
+    component: SettingsPage,
+    meta: { title: "Settings" },
+  },
 
   // Dynamic pages
 
@@ -63,13 +68,13 @@ const routes: RouteRecordRaw[] = [
     path: "/user/:id",
     name: "UserPage",
     component: UserPage,
-    meta: { title: "User" },
+    meta: { ownColors: true, title: "User" },
   },
   {
     path: "/game/:id",
     name: "GamePage",
     component: GamePage,
-    meta: { title: "Game" },
+    meta: { ownColors: true, title: "Game" },
   },
   {
     path: "/game_igdb/:id",
@@ -81,7 +86,7 @@ const routes: RouteRecordRaw[] = [
     path: "/platform/:id",
     name: "PlatformPage",
     component: PlatformPage,
-    meta: { title: "Platform" },
+    meta: { ownColors: true, title: "Platform" },
   },
   {
     path: "/user/:id/recap/:year",
@@ -97,6 +102,8 @@ export const router = createRouter({
 });
 
 router.afterEach((to, from) => {
+  // pages with their own colors set them when they're loaded
+  if (!to.meta.ownColors) setPageColors(null);
   // The server sends page specific <head> tags for the first page (see index.html).
   // After navigating to another page they would describe the wrong page, so remove them
   if (from !== START_LOCATION && from.path !== to.path) {

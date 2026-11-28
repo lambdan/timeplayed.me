@@ -4,8 +4,6 @@ import { PC_PLATFORMS, type PCPlatform, type Platform } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { useApiToken } from "../composables/useApiToken";
 import { useAuthenticatedUser } from "../composables/useAuthenticatedUser";
-import RecapStatTile from "../components/Recap/RecapStatTile.vue";
-import { tileBackground, tileTextColor } from "../tileStyle";
 
 const { token } = useApiToken();
 const {
@@ -23,10 +21,6 @@ const isPrivate = ref(false);
 // as "#rrggbb" for the color inputs, "" for none
 const colorPrimary = ref("");
 const colorSecondary = ref("");
-const previewColors = computed(() => ({
-  color_primary: colorPrimary.value.replace("#", "") || null,
-  color_secondary: colorSecondary.value.replace("#", "") || null,
-}));
 // activity still on "Unknown", offered to move when picking an OS for the first time.
 // Only what the user can see, the backend moves their hidden activity too
 const pcActivityCount = ref(0);
@@ -184,7 +178,7 @@ onMounted(async () => {
         <div class="row g-2 align-items-end">
           <div class="col-auto">
             <label for="color-primary" class="form-label small mb-0"
-              >Background</label
+              >Page</label
             >
             <input
               id="color-primary"
@@ -195,7 +189,7 @@ onMounted(async () => {
           </div>
           <div class="col-auto">
             <label for="color-secondary" class="form-label small mb-0"
-              >Text</label
+              >Charts</label
             >
             <input
               id="color-secondary"
@@ -216,17 +210,11 @@ onMounted(async () => {
               Default
             </button>
           </div>
-          <div class="col-12 col-sm">
-            <RecapStatTile
-              label="Playtime"
-              value="123h"
-              :small="true"
-              :background="tileBackground(previewColors)"
-              :color="tileTextColor(previewColors)"
-            />
-          </div>
         </div>
-        <div class="form-text">For the tiles on your user page.</div>
+        <div class="form-text">
+          Your user page in your colors. Chart colors that are hard to read
+          aren't used.
+        </div>
       </div>
 
       <hr />

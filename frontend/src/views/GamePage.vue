@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import RecentActivityCard from "../components/RecentActivityCard.vue";
 import { useRoute } from "vue-router";
 import GameInfoCard from "../components/GameInfoCard.vue";
@@ -12,7 +12,8 @@ import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { usePageTitle } from "../composables/usePageTitle";
-import { pageAccent, setPageTheme } from "../pageTheme";
+import { themeColor } from "../pageTheme";
+import { usePageColors } from "../composables/usePageColors";
 
 const route = useRoute();
 const setTitle = usePageTitle();
@@ -27,18 +28,13 @@ const topBefore = ref<Date>();
 // lists wait for the pickers first range
 const topReady = ref(false);
 
-// the whole page in the game's colors, the charts in the secondary color if it can be read
-const primary = computed(() =>
-  game.value?.color_primary ? "#" + game.value.color_primary : null,
-);
-const secondary = computed(() =>
-  game.value?.color_secondary ? "#" + game.value.color_secondary : null,
-);
-watch(game, () => setPageTheme(primary.value));
-onUnmounted(() => setPageTheme(null));
-const chartColor = computed(() => {
-  if (!primary.value) return undefined;
-  return pageAccent(primary.value, secondary.value) ?? undefined;
+// the game's colors, the default ones if it has none (never the site's)
+usePageColors(() => {
+  if (!game.value) return undefined;
+  return {
+    primary: themeColor(game.value.color_primary),
+    secondary: themeColor(game.value.color_secondary),
+  };
 });
 
 onMounted(async () => {
@@ -134,11 +130,7 @@ onMounted(async () => {
         </div>
       </div>
       <div class="col-12">
-        <PlaytimeCharts
-          :game="game"
-          :includeChildren="withChildren"
-          :color="chartColor"
-        />
+        <PlaytimeCharts :game="game" :includeChildren="withChildren" />
       </div>
     </div>
   </template>

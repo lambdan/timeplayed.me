@@ -5,11 +5,9 @@ import type { Platform, PlatformWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import AdminEditLink from "../components/Misc/AdminEditLink.vue";
 import InfoStatTiles from "../components/Misc/InfoStatTiles.vue";
-import {
-  platformBackground,
-  platformIcon,
-  platformTextColor,
-} from "../platformStyle";
+import { platformIcon } from "../platformStyle";
+import { themeColor } from "../pageTheme";
+import { usePageColors } from "../composables/usePageColors";
 import YourStatsCard from "../components/Users/YourStatsCard.vue";
 import TopGamesList from "../components/Games/TopGamesList.vue";
 import TopPlayersCard from "../components/Users/TopPlayersCard.vue";
@@ -35,6 +33,14 @@ const topAfter = ref<Date>();
 const topBefore = ref<Date>();
 // lists wait for the pickers first range
 const topReady = ref(false);
+// the platform's colors, the default ones if it has none (never the site's)
+usePageColors(() => {
+  if (!platform.value) return undefined;
+  return {
+    primary: themeColor(platform.value.color_primary),
+    secondary: themeColor(platform.value.color_secondary),
+  };
+});
 
 onMounted(async () => {
   const platformId = parseInt(route.params.id as string);
@@ -90,8 +96,6 @@ onMounted(async () => {
                     { label: 'Games', value: stats.game_count },
                     { label: 'Users', value: stats.user_count },
                   ]"
-                  :background="platformBackground(platform)"
-                  :color="platformTextColor(platform)"
                 />
               </div>
             </div>

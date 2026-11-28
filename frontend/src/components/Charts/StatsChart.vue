@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { chartColor } from "../../pageTheme";
 import { Bar, Line } from "vue-chartjs";
 import {
   Chart as ChartJS,
@@ -29,7 +30,7 @@ const props = withDefaults(
     kind?: "bar" | "line";
     /** shown after the value when hovering, like "hours" */
     unit?: string;
-    /** one color, or one per bar */
+    /** one color, or one per bar. The theme's chart color by default */
     color?: string | string[];
     /** bars going sideways, for long labels like platform names */
     horizontal?: boolean;
@@ -41,20 +42,22 @@ const props = withDefaults(
   {
     kind: "bar",
     unit: "",
-    color: "rgba(158, 194, 73, 0.9)",
     horizontal: false,
     aspectRatio: 2,
     loading: false,
   },
 );
 
+const DEFAULT_COLOR = "rgba(158, 194, 73, 0.9)";
+const color = computed(() => props.color ?? chartColor.value ?? DEFAULT_COLOR);
+
 const data = computed(() => ({
   labels: props.labels,
   datasets: [
     {
       data: props.values,
-      backgroundColor: props.color,
-      borderColor: props.color,
+      backgroundColor: color.value,
+      borderColor: color.value,
       // no dots on the line, only on the month you hover
       pointRadius: 0,
       pointHoverRadius: 5,
