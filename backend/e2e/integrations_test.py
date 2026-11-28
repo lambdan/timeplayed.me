@@ -126,7 +126,7 @@ class TestIGDBDisabled:
 
     def test_search_needs_manual_activity(self, make_user):
         # everything but manual_activity
-        _, client = make_user(permissions=["commands", "oblivionis_sync"])
+        _, client = make_user(permissions=["commands", "discord_tracking"])
         assert client.get("/igdb/search", params={"q": "zelda"}).status_code == 403
 
     def test_game_by_igdb_id_not_in_db(self, api):

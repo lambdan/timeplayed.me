@@ -257,7 +257,7 @@ class TestLiveActivity:
 class TestManualActivityPermission:
     def test_requires_permission(self, make_user, make_game, platform_id):
         # everything but manual_activity
-        _, client = make_user(permissions=["commands", "oblivionis_sync"])
+        _, client = make_user(permissions=["commands", "discord_tracking"])
         game = make_game()
 
         r = client.post(

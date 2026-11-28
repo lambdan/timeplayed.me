@@ -77,7 +77,7 @@ class TestPatchActivityPlatform:
 class TestEditPermission:
     def test_requires_manual_activity(self, make_user, make_game, make_platform):
         # everything but manual_activity
-        user, client = make_user(permissions=["commands", "oblivionis_sync"])
+        user, client = make_user(permissions=["commands", "discord_tracking"])
         old = make_game("Old")
         ps4 = make_platform("ps4")
         activity = make_activity(user, old, ps4)

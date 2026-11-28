@@ -223,7 +223,7 @@ class TestDiscordPresence:
 
     def test_not_stored_without_sync_permission_says_why(self):
         user, _ = User.from_discord("1234", "discordguy")
-        user.remove_permission(Permission.OBLIVIONIS_SYNC)
+        user.remove_permission(Permission.DISCORD_TRACKING)
         user.save()
         play([Playing("Game", "ps5", T0)], 0, 10)
         update([], T0 + minutes(11))
@@ -231,7 +231,7 @@ class TestDiscordPresence:
         assert Activity.select().count() == 0
         assert presence_history()[-1] == (
             "Stopped playing 'Game' (ps5) after 660 seconds (stopped playing): "
-            "skipped, user doesn't have the oblivionis_sync permission"
+            "skipped, user doesn't have the discord_tracking permission"
         )
 
     def test_playstation_8_hours_is_dropped(self):

@@ -696,7 +696,7 @@ class TestAdminPresence:
             "activities": [],
         }
         assert bob_member["user_id"] == bob.get_id()
-        # no oblivionis_sync
+        # no discord_tracking
         assert bob_member["synced"] is False
         # oldest first
         assert [t["game_name"] for t in bob_member["tracked"]] == [

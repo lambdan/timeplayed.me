@@ -108,13 +108,13 @@ def parseActivity(
                 e,
             )
 
-        if not user.has_permission(Permission.OBLIVIONIS_SYNC):
+        if not user.has_permission(Permission.DISCORD_TRACKING):
             logger.warning(
                 "User '%s' (id: %s) does not have permission to sync, skipping",
                 user.name,
                 user.id,
             )
-            return True, "skipped, user doesn't have the oblivionis_sync permission"
+            return True, "skipped, user doesn't have the discord_tracking permission"
 
         if (
             activity["platform"] in PLAYSTATION_PLATFORMS

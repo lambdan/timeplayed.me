@@ -106,7 +106,7 @@ class TestPlaying:
         presence("1", "Hidden", "ps5")
         # not seen for a while, the bot was down
         presence("1", "Known", "ps5", last_seen=minutes_ago(10))
-        # no oblivionis_sync
+        # no discord_tracking
         presence("2", "Known", "ps5")
         # no user yet
         presence("3", "Known", "ps5")

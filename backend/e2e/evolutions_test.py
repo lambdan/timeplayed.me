@@ -290,3 +290,29 @@ class TestEvolution17:
         assert permissions(no_avatar) == ["commands", "force_anonymous"]
         assert permissions(no_name) == ["force_anonymous"]
         assert permissions(neither) == ["force_anonymous"]
+
+
+class TestEvolution18:
+    """oblivionis_sync is renamed to discord_tracking"""
+
+    def test_rename(self, db):
+        def user(permissions):
+            return User.create(name="x", permissions=permissions)
+
+        synced = user(["commands", "oblivionis_sync", "manual_activity"])
+        not_synced = user(["commands"])
+        empty = user(None)
+
+        tp_db.execute_sql((evolutions.EVOLUTIONS_DIR / "18.sql").read_text())
+
+        def permissions(u):
+            return User.get_by_id(u.get_id()).get_permissions()
+
+        assert permissions(synced) == [
+            "commands",
+            "discord_tracking",
+            "manual_activity",
+        ]
+        assert permissions(not_synced) == ["commands"]
+        # array_replace keeps NULL as NULL
+        assert permissions(empty) is None

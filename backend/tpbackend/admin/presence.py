@@ -60,7 +60,7 @@ def get_presence() -> Admin_Presence:
                 discord_user_name=name,
                 user_id=user.get_id() if user else None,
                 # new users get it by default
-                synced=not user or user.has_permission(Permission.OBLIVIONIS_SYNC),
+                synced=not user or user.has_permission(Permission.DISCORD_TRACKING),
                 tracked=tracked.get(discord_user_id, []),
                 activities=activities.get(discord_user_id, []),
             )

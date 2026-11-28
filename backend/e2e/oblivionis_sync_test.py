@@ -76,7 +76,7 @@ class TestOblivionisSync:
 
         wait_for(lambda: oblivionis.Activity.select().count() == 0)
 
-        assert not User.get().has_permission(Permission.OBLIVIONIS_SYNC)
+        assert not User.get().has_permission(Permission.DISCORD_TRACKING)
         assert Activity.select().count() == 0
 
     def test_drops_playstation_sessions_of_exactly_8_hours(self):

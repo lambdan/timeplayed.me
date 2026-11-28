@@ -75,7 +75,7 @@ def playing_now(
             continue
         user = users.get(presence.get_discord_user_id())
         # no user yet: created when the session is stored
-        if not user or not user.has_permission(Permission.OBLIVIONIS_SYNC):
+        if not user or not user.has_permission(Permission.DISCORD_TRACKING):
             continue
         # unknown games and platforms are created when the session is stored
         game = GameSelect.by_name_or_alias(sync.game_name(presence.get_game_name()))
