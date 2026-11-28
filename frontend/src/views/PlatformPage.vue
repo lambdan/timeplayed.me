@@ -92,11 +92,6 @@ onMounted(async () => {
                   ]"
                   :background="platformBackground(platform)"
                   :color="platformTextColor(platform)"
-                  :combinedNote="
-                    withChildren
-                      ? 'Including the platforms in the breakdown'
-                      : undefined
-                  "
                 />
               </div>
             </div>
@@ -105,6 +100,7 @@ onMounted(async () => {
             class="col-lg-4"
             :platform="platform"
             :includeChildren="withChildren"
+            :totalSeconds="stats.seconds"
           />
         </div>
       </div>

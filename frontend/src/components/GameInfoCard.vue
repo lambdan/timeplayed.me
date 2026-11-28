@@ -17,7 +17,6 @@ const props = defineProps<{
 const parent = ref<Game>();
 
 // games with children show the combined numbers
-const withChildren = computed(() => props.familyStats !== undefined);
 const stats = computed(() => props.familyStats ?? props.game.stats);
 
 onMounted(async () => {
@@ -59,9 +58,6 @@ onMounted(async () => {
               { label: 'Users', value: stats.user_count },
               { label: 'Platforms', value: stats.platform_count },
             ]"
-            :combinedNote="
-              withChildren ? 'Including the games in the breakdown' : undefined
-            "
           />
           <GameAliases :game="game" class="mt-2" />
         </div>

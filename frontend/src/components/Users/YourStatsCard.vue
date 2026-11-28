@@ -8,21 +8,42 @@ import type {
 } from "../../api.models";
 import { TimeplayedAPI } from "../../api.client";
 import { useAuthenticatedUser } from "../../composables/useAuthenticatedUser";
-import { formatDuration } from "../../utils";
-import CalendarBasic from "../CalendarBasic.vue";
+import InfoStatTiles from "../Misc/InfoStatTiles.vue";
+import { platformBackground, platformTextColor } from "../../platformStyle";
 
 // the logged in user's stats for one game or platform. Hidden if they haven't played it
 const props = defineProps<{
   game?: Game;
   platform?: Platform;
-  /** include child games/platforms, marks the numbers as combined */
+  /** include child games/platforms, like the rest of the page */
   includeChildren?: boolean;
+  /** everyone's playtime on it, for the user's share */
+  totalSeconds?: number;
 }>();
 
 const { authenticatedUser } = useAuthenticatedUser();
 const gameStats = ref<GameWithStats["stats"]>();
 const platformStats = ref<PlatformWithStats["stats"]>();
 const stats = computed(() => gameStats.value ?? platformStats.value);
+// users is left out, it's always 1
+const counts = computed(() => {
+  const tiles: { label: string; value: number | string; sub?: string }[] = [];
+  if (gameStats.value) {
+    tiles.push({ label: "Platforms", value: gameStats.value.platform_count });
+  }
+  if (platformStats.value) {
+    tiles.push({ label: "Games", value: platformStats.value.game_count });
+  }
+  if (stats.value && props.totalSeconds) {
+    const percent = (stats.value.seconds / props.totalSeconds) * 100;
+    tiles.push({
+      label: "Share",
+      value: percent < 1 ? "<1%" : `${Math.round(percent)}%`,
+      sub: "of all playtime",
+    });
+  }
+  return tiles;
+});
 
 async function load() {
   gameStats.value = undefined;
@@ -64,73 +85,13 @@ watch(
     <div class="card h-100">
       <h2 class="card-header">Your stats</h2>
       <div class="card-body">
-        <table class="table table-sm table-hover mb-0">
-          <tbody>
-            <tr>
-              <th class="text-nowrap">Playtime</th>
-              <td>
-                {{ formatDuration(stats.seconds) }}
-                <span
-                  v-if="includeChildren"
-                  class="text-muted"
-                  title="Combined total"
-                  >*</span
-                >
-              </td>
-            </tr>
-            <tr>
-              <th class="text-nowrap">Activities</th>
-              <td>
-                {{ stats.activity_count }}
-                <span
-                  v-if="includeChildren"
-                  class="text-muted"
-                  title="Combined total"
-                  >*</span
-                >
-              </td>
-            </tr>
-            <tr v-if="gameStats">
-              <th class="text-nowrap">Platforms</th>
-              <td>
-                {{ gameStats.platform_count }}
-                <span
-                  v-if="includeChildren"
-                  class="text-muted"
-                  title="Combined total"
-                  >*</span
-                >
-              </td>
-            </tr>
-            <tr v-if="platformStats">
-              <th class="text-nowrap">Games</th>
-              <td>
-                {{ platformStats.game_count }}
-                <span
-                  v-if="includeChildren"
-                  class="text-muted"
-                  title="Combined total"
-                  >*</span
-                >
-              </td>
-            </tr>
-            <tr v-if="stats.first_activity">
-              <th class="text-nowrap">First played</th>
-              <td>
-                <CalendarBasic
-                  :date="stats.first_activity!"
-                  :showIcon="false"
-                />
-              </td>
-            </tr>
-            <tr v-if="stats.last_activity">
-              <th class="text-nowrap">Last played</th>
-              <td>
-                <CalendarBasic :date="stats.last_activity!" :showIcon="false" />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <InfoStatTiles
+          :stats="stats"
+          :counts="counts"
+          :narrow="true"
+          :background="platform ? platformBackground(platform) : undefined"
+          :color="platform ? platformTextColor(platform) : undefined"
+        />
       </div>
     </div>
   </div>

@@ -65,6 +65,7 @@ onMounted(async () => {
             class="col-lg-4"
             :game="game"
             :includeChildren="withChildren"
+            :totalSeconds="(familyStats ?? game.stats).seconds"
           />
         </div>
       </div>

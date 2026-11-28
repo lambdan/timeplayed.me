@@ -11,9 +11,9 @@ defineProps<{
     last_activity?: number | null;
   };
   /** tiles after playtime and activities, like users and platforms */
-  counts: { label: string; value: number }[];
-  /** shown under the tiles when the numbers include children */
-  combinedNote?: string;
+  counts: { label: string; value: number | string; sub?: string }[];
+  /** two tiles per row on every screen, for narrow cards */
+  narrow?: boolean;
   /** tile colors, like a platform's */
   background?: string;
   color?: string;
@@ -21,7 +21,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="row row-cols-2 row-cols-xl-3 g-2">
+  <div class="row row-cols-2 g-2" :class="{ 'row-cols-xl-3': !narrow }">
     <div class="col">
       <RecapStatTile
         label="Playtime"
@@ -49,6 +49,7 @@ defineProps<{
       <RecapStatTile
         :label="count.label"
         :value="`${count.value}`"
+        :sub="count.sub"
         :small="true"
         :background="background"
         :color="color"
@@ -74,8 +75,5 @@ defineProps<{
         :color="color"
       />
     </div>
-  </div>
-  <div v-if="combinedNote" class="small text-muted mt-2">
-    {{ combinedNote }}
   </div>
 </template>
