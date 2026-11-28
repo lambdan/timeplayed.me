@@ -218,8 +218,8 @@ onMounted(async () => {
           />
         </div>
         <div class="form-text">
-          Hides your profile, activity and stats. They're left out of all global
-          stats, only you can see them on your own user page.
+          Hides your profile, activity and stats, excluding them from global
+          stats. Only you can see what you've played.
         </div>
       </div>
 
