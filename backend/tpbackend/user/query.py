@@ -7,14 +7,51 @@ from peewee import (
     Case,
 )
 from tpbackend.common.query import sort_by
+from tpbackend.permissions import Permission
 from tpbackend.storage import User, Activity
+
+
+def private_condition(viewer: User | None = None):
+    """
+    the private users, but the viewer. Private users' activity is only on their own
+    user page, so pass the viewer only for routes that are about one user
+    """
+    private = User.permissions.contains(str(Permission.PRIVATE))  # type: ignore
+    if viewer:
+        private = private & (User.id != viewer.get_id())
+    return private
+
+
+def not_private_activity():
+    """
+    activity of users who aren't private. Private users' activity is only on their own
+    user page, it's left out of everything else (totals, lists, charts...)
+    """
+    private_users = User.select(User.id).where(private_condition())
+    return Activity.user.not_in(private_users)  # type: ignore
+
+
+def anonymous_condition():
+    """like User.is_anonymous"""
+    return User.permissions.contains_any(  # type: ignore
+        str(Permission.ANONYMOUS), str(Permission.FORCE_ANONYMOUS)
+    )
+
 
 logger = logging.getLogger("user_query")
 
 
+# the name like API_User shows it, so sorting by name doesn't give away hidden names
+SHOWN_NAME = Case(
+    None,
+    [(anonymous_condition(), fn.CONCAT("User ", User.id))],
+    fn.COALESCE(User.display_name, User.name),
+)
+
+
 class UserQuery:
     SORTS = {
-        "name": User.display_name,  # User.name,
+        "name": SHOWN_NAME,
         "id": User.id,
         "created": User.created,
         "updated": User.updated,
@@ -41,6 +78,19 @@ class UserQuery:
             return query
         q = query.where(User.search.contains(search.lower()))  # type: ignore
         return q
+
+    @staticmethod
+    def public_search(query, search: str):
+        """search, but anonymous users' real names don't match"""
+        if not search or search.strip() == "":
+            return query
+        query = UserQuery.search(query, search)
+        return query.where(~anonymous_condition())
+
+    @staticmethod
+    def not_private(query, viewer: User | None = None):
+        """leaves out private users, but the viewer"""
+        return query.where(~private_condition(viewer))
 
 
 class UserStatsQuery:
@@ -79,7 +129,7 @@ class UserStatsQuery:
 
     SORTS = {
         **AGGREGATES,
-        "name": User.display_name,  # User.name,
+        "name": SHOWN_NAME,
         "id": User.id,
     }
 

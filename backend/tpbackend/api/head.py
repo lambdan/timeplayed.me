@@ -17,7 +17,7 @@ from tpbackend.platform.models import API_PlatformWithStats
 from tpbackend.platform.query import PlatformStatsQuery
 from tpbackend.platform.utils import platform_url
 from tpbackend.user.models import API_UserWithStats
-from tpbackend.user.query import UserStatsQuery
+from tpbackend.user.query import UserQuery, UserStatsQuery
 from tpbackend.user.utils import user_url
 
 head_router = APIRouter()
@@ -102,6 +102,8 @@ def game_head(game_id: int) -> str:
 
 def user_head(user_id: int) -> str:
     query = UserStatsQuery.apply_ids(UserStatsQuery.base(), [user_id])
+    # private users' pages are only for themselves
+    query = UserQuery.not_private(query)
     user = query.get_or_none()
     if user is None:
         return ""

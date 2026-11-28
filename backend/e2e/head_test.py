@@ -74,11 +74,20 @@ class TestHead:
         user, _ = make_user(
             name="secret",
             display_name="Secret",
-            permissions=[p for p in DEFAULT_PERMISSIONS if p != Permission.SHOW_NAME],
+            permissions=[*DEFAULT_PERMISSIONS, Permission.ANONYMOUS],
         )
         r = api.get(f"/head/user/{user.get_id()}")
         assert f"<title>User {user.get_id()} playtime - Timeplayed.me</title>" in r.text
         assert "Secret" not in r.text
+
+    def test_private_user(self, api, make_user, make_game, make_platform):
+        user, _ = make_user(
+            name="secret", permissions=[*DEFAULT_PERMISSIONS, Permission.PRIVATE]
+        )
+        add_activity(user, make_game(), make_platform())
+        r = api.get(f"/head/user/{user.get_id()}")
+        assert "secret" not in r.text
+        assert "Private" not in r.text
 
     def test_platform(self, api, make_user, make_game, make_platform):
         user, _ = make_user()

@@ -7,6 +7,7 @@ from peewee import (
     Case,
 )
 from tpbackend.common.query import sort_by
+from tpbackend.user.query import not_private_activity
 from tpbackend.storage import Activity, Platform
 
 logger = logging.getLogger("platform_query")
@@ -84,10 +85,25 @@ class PlatformStatsQuery:
     }
 
     @staticmethod
-    def base():
+    def activity_join(platform_id, private: bool):
+        """
+        the activity to join for the platform id. private: also private users' activity,
+        only for when it's filtered to one user (who can see it)
+        """
+        on = Activity.platform == platform_id
+        if not private:
+            on = on & not_private_activity()
+        return on
+
+    @staticmethod
+    def base(private=False):
         return (
             Platform.select(Platform, *PlatformStatsQuery.AGGREGATES.values())
-            .join(Activity, JOIN.LEFT_OUTER)
+            .join(
+                Activity,
+                JOIN.LEFT_OUTER,
+                on=PlatformStatsQuery.activity_join(Platform.id, private),
+            )
             .group_by(Platform.id)
         )
 
@@ -117,7 +133,7 @@ class PlatformStatsQuery:
         )
 
     @staticmethod
-    def base_with_children():
+    def base_with_children(private=False):
         """
         Like base(), but the stats of every platform include all its children (any depth)
         """
@@ -128,7 +144,7 @@ class PlatformStatsQuery:
             .join(
                 Activity,
                 JOIN.LEFT_OUTER,
-                on=(Activity.platform == family.c.platform_id),
+                on=PlatformStatsQuery.activity_join(family.c.platform_id, private),
             )
             .group_by(Platform.id)
             .with_cte(family)

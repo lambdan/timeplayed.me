@@ -8,7 +8,7 @@ from tpbackend.user.models import (
     API_User,
 )
 from tpbackend.api.responses import bad_request, forbidden, not_found
-from tpbackend.api.auth import AuthenticatedUser, authenticate
+from tpbackend.api.auth import AuthenticatedUser, OptionalUser
 from tpbackend.permissions import Permission
 from tpbackend.storage import Platform, User, db
 import logging
@@ -33,6 +33,8 @@ router = APIRouter()
 
 
 def __get_users_stats(
+    # only matters for users asked for by id, private users see themselves
+    viewer: User | None,
     uids: list[int] | None = None,
     before: int | None = None,
     after: int | None = None,
@@ -54,6 +56,10 @@ def __get_users_stats(
         if len(uids) > 100:
             return bad_request("Cannot request more than 100 users at once")
         query = UserStatsQuery.apply_ids(query, uids)
+        # private users only see themselves on their own page
+        query = UserQuery.not_private(query, viewer)
+    else:
+        query = UserQuery.not_private(query)
 
     if bf:
         query = ActivityQuery.before(query, bf)
@@ -68,7 +74,7 @@ def __get_users_stats(
         query = ActivityQuery.platform(query, platform_id, include_child_platforms)
 
     if search:
-        query = UserQuery.search(query, search=search)
+        query = UserQuery.public_search(query, search=search)
 
     query = UserStatsQuery.apply_sort(query, sort, order)
 
@@ -78,7 +84,6 @@ def __get_users_stats(
     if limit:
         query = query.limit(clamp(limit, 1, 100))
 
-    # print("__get_users_stats QUERY", query.sql())
     return [API_UserWithStats.from_user(user) for user in query]
 
 
@@ -88,6 +93,7 @@ def __get_users_stats(
     response_model=API_UserWithStats,
 )
 def get_single_user_stats(
+    viewer: OptionalUser,
     user_id: int,
     before=query_ts("before"),
     after=query_ts("after"),
@@ -97,6 +103,7 @@ def get_single_user_stats(
     include_child_platforms: bool = query_platform_include_children(),
 ) -> API_UserWithStats:
     x = __get_users_stats(
+        viewer,
         uids=[int(user_id)],
         before=before,
         after=after,
@@ -116,6 +123,7 @@ def get_single_user_stats(
     tags=["users", "stats"],
 )
 def get_many_users_stats(
+    viewer: OptionalUser,
     user_ids=path_csv("user ids"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -128,6 +136,7 @@ def get_many_users_stats(
 ) -> list[API_UserWithStats]:
     uids = parse_csv(user_ids)
     return __get_users_stats(
+        viewer,
         uids=uids,
         before=before,
         after=after,
@@ -162,6 +171,7 @@ def get_users_stats(
     offset = max(0, int(offset))
 
     return __get_users_stats(
+        None,
         before=before,
         after=after,
         game_id=game,
@@ -182,6 +192,8 @@ def get_users_stats(
 
 
 def __get_users(
+    # only matters for users asked for by id, private users see themselves
+    viewer: User | None,
     ids: list[int] | None = None,
     sort="id",
     order="asc",
@@ -191,9 +203,13 @@ def __get_users(
 ) -> list[API_User]:
     query = UserQuery.base()
     if search:
-        query = UserQuery.search(query, search=search)
+        query = UserQuery.public_search(query, search=search)
     if ids and len(ids) > 0:
         query = UserQuery.apply_ids(query=query, user_ids=ids)
+        # private users only see themselves on their own page
+        query = UserQuery.not_private(query, viewer)
+    else:
+        query = UserQuery.not_private(query)
     query = UserQuery.apply_sort(query=query, sort=sort, order=order)
 
     if offset:
@@ -208,8 +224,8 @@ def __get_users(
     tags=["users"],
     response_model=API_User,
 )
-def get_single_user(user_id: int) -> API_User:
-    x = __get_users(ids=[int(user_id)])
+def get_single_user(viewer: OptionalUser, user_id: int) -> API_User:
+    x = __get_users(viewer, ids=[int(user_id)])
     if len(x) == 0:
         return not_found("User not found")
     return x[0]
@@ -221,6 +237,7 @@ def get_single_user(user_id: int) -> API_User:
     response_model=list[API_User],
 )
 def get_many_users(
+    viewer: OptionalUser,
     user_ids=path_csv("user ids"),
     sort=sorts(list(UserQuery.SORTS.keys()), "id"),
     order: AscDescOrder = "asc",
@@ -229,6 +246,7 @@ def get_many_users(
     if len(gids) > 100:
         return bad_request("Cannot request more than 100 users at once")
     return __get_users(
+        viewer,
         ids=gids,
         sort=sort,
         order=order,
@@ -251,7 +269,7 @@ def get_users(
     offset = max(0, int(offset))
 
     return __get_users(
-        sort=sort, order=order, offset=offset, limit=limit, search=search
+        None, sort=sort, order=order, offset=offset, limit=limit, search=search
     )
 
 
@@ -290,10 +308,17 @@ def update_settings(
     if data.move_pc_activity:
         move_pc_activity(user)
 
-    if data.show_nsfw is True:
-        user.add_permission(Permission.SHOW_NSFW)
-    elif data.show_nsfw is False:
-        user.remove_permission(Permission.SHOW_NSFW)
+    # force_anonymous is up to admins, so it stays when the user turns anonymous off
+    for permission, value in [
+        (Permission.SHOW_NSFW, data.show_nsfw),
+        (Permission.ANONYMOUS, data.anonymous),
+        (Permission.HIDE_PLAYING, data.hide_playing),
+        (Permission.PRIVATE, data.private),
+    ]:
+        if value is True:
+            user.add_permission(permission)
+        elif value is False:
+            user.remove_permission(permission)
 
     user.save()
     return API_AuthenticatedUser.from_user(user)

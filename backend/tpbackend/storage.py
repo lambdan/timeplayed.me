@@ -21,7 +21,7 @@ from peewee import (
 )
 from playhouse.postgres_ext import PostgresqlExtDatabase, ArrayField
 from tpbackend.history_actor import get_history_actor
-from tpbackend.permissions import DEFAULT_PERMISSIONS
+from tpbackend.permissions import DEFAULT_PERMISSIONS, Permission
 
 from tpbackend.utils2 import dt_to_ts, js_iso, now_iso, assertTimezone, now
 
@@ -481,6 +481,18 @@ class User(IdMixin, HistoryMixin, SearchMixin):
 
     def get_permissions(self) -> list[str]:
         return cast(list[str], self.permissions)
+
+    def is_anonymous(self) -> bool:
+        """name, avatar and Discord ID hidden on the site, by the user or an admin"""
+        return self.has_permission(Permission.ANONYMOUS) or self.has_permission(
+            Permission.FORCE_ANONYMOUS
+        )
+
+    def is_private_to(self, viewer: "User | None") -> bool:
+        """private users only show as themselves to themselves, as 'Private' to everyone else"""
+        if not self.has_permission(Permission.PRIVATE):
+            return False
+        return viewer is None or viewer.get_id() != self.get_id()
 
     def has_activity(self) -> bool:
         # hmm should hidden be filtered here...

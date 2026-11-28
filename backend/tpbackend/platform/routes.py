@@ -1,3 +1,6 @@
+from tpbackend.api.auth import OptionalUser
+from tpbackend.storage import User
+from tpbackend.user.utils import check_user_filter
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.platform.models import API_PlatformWithStats, API_Platform
 from tpbackend.platform.query import PlatformStatsQuery, PlatformQuery
@@ -24,6 +27,7 @@ router = APIRouter()
 
 
 def __get_platforms_stats(
+    viewer: User | None,
     pids: list[int] | None = None,
     before=None,
     after=None,
@@ -41,10 +45,13 @@ def __get_platforms_stats(
     bf = parseTS(before)
     af = parseTS(after)
 
+    # 404 for private users, but to themselves. Then their activity is what's asked for
+    check_user_filter(user_id, viewer)
+    private = bool(user_id)
     if include_child_platforms:
-        query = PlatformStatsQuery.base_with_children()
+        query = PlatformStatsQuery.base_with_children(private=private)
     else:
-        query = PlatformStatsQuery.base()
+        query = PlatformStatsQuery.base(private=private)
 
     if only_top_level:
         query = PlatformStatsQuery.top_level(query)
@@ -85,6 +92,7 @@ def __get_platforms_stats(
     response_model=API_PlatformWithStats,
 )
 def get_single_platform_stats(
+    viewer: OptionalUser,
     platform_id=path_id("platform"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -98,6 +106,7 @@ def get_single_platform_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         game_id=game,
         include_children=include_children,
         include_child_platforms=include_child_platforms,
@@ -113,6 +122,7 @@ def get_single_platform_stats(
     tags=["platforms", "stats"],
 )
 def get_many_platforms_stats(
+    viewer: OptionalUser,
     platform_ids=path_csv("platform ids"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -129,6 +139,7 @@ def get_many_platforms_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         game_id=game,
         include_children=include_children,
         include_child_platforms=include_child_platforms,
@@ -143,6 +154,7 @@ def get_many_platforms_stats(
     response_model=list[API_PlatformWithStats],
 )
 def get_platforms_stats(
+    viewer: OptionalUser,
     offset=offset(),
     limit=limit(),
     user=query_id("user"),
@@ -165,6 +177,7 @@ def get_platforms_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         game_id=game,
         include_children=include_children,
         include_child_platforms=include_child_platforms,

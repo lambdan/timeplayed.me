@@ -116,15 +116,12 @@ class TestEvolutions:
             scratch.execute_sql("SELECT count(*) FROM game WHERE nsfw").fetchone()[0]
             == 0
         )
-        # 4.sql gave existing users show_avatar and show_name, once
+        # 4.sql gave existing users show_avatar and show_name, once, so 17.sql removed
+        # them without forcing anyone anonymous
         permissions = scratch.execute_sql(
             'SELECT permissions FROM "user" ORDER BY id'
         ).fetchall()
-        assert [p[0] for p in permissions] == [
-            ["commands", "show_avatar", "show_name"],
-            ["commands", "show_name", "show_avatar"],
-            ["show_avatar", "show_name"],
-        ]
+        assert [p[0] for p in permissions] == [["commands"], ["commands"], []]
         newest = max(evolutions.numbered(evolutions.EVOLUTIONS_DIR))
         assert (
             scratch.execute_sql("SELECT max(id) FROM evolutions").fetchone()[0]
@@ -270,3 +267,26 @@ class TestEvolution13:
 
         for h in [gone, ambiguous]:
             assert History.get_by_id(h.get_id()).get_actor() is None
+
+
+class TestEvolution17:
+    """show_name and show_avatar become force_anonymous when either was removed"""
+
+    def test_force_anonymous(self, db):
+        def user(permissions):
+            return User.create(name="x", permissions=permissions)
+
+        both = user(["commands", "show_name", "show_avatar"])
+        no_avatar = user(["commands", "show_name"])
+        no_name = user(["show_avatar"])
+        neither = user([])
+
+        tp_db.execute_sql((evolutions.EVOLUTIONS_DIR / "17.sql").read_text())
+
+        def permissions(u):
+            return User.get_by_id(u.get_id()).get_permissions()
+
+        assert permissions(both) == ["commands"]
+        assert permissions(no_avatar) == ["commands", "force_anonymous"]
+        assert permissions(no_name) == ["force_anonymous"]
+        assert permissions(neither) == ["force_anonymous"]

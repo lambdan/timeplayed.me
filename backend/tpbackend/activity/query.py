@@ -6,6 +6,7 @@ from tpbackend.common.query import sort_by
 from tpbackend.game.query import GameStatsQuery
 from tpbackend.platform.query import PlatformStatsQuery
 from tpbackend.storage import Activity, User, Game, Platform
+from tpbackend.user.query import private_condition
 from tpbackend.utils2 import assertTimezone, validateTS, ts_to_dt
 
 logger = logging.getLogger("activities_query")
@@ -23,6 +24,15 @@ class ActivityQuery:
             return Activity.select()
         else:
             return Activity.select().where(Activity.hidden == False)  # noqa: E712
+
+    @staticmethod
+    def visible_to(query, viewer: User | None = None):
+        """
+        leaves out the activity of private users, but the viewer's. Private users only see
+        their activity on their own user page, so pass the viewer only for that
+        """
+        private_users = User.select(User.id).where(private_condition(viewer))
+        return query.where(Activity.user.not_in(private_users))  # type: ignore
 
     @staticmethod
     def apply_sort(query, sort, order):

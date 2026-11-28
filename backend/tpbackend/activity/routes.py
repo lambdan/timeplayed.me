@@ -10,7 +10,7 @@ from tpbackend.activity.controller import (
     stop_live_activity_through_api,
 )
 
-from tpbackend.api.auth import AuthenticatedUser, ManualActivityUser
+from tpbackend.api.auth import AuthenticatedUser, ManualActivityUser, OptionalUser
 from tpbackend.api.params import (
     query_game_include_children,
     query_id,
@@ -18,7 +18,8 @@ from tpbackend.api.params import (
     query_ts,
     sorts,
 )
-from tpbackend.storage import Activity
+from tpbackend.storage import Activity, User
+from tpbackend.user.utils import check_user_filter
 from tpbackend.activity.models import (
     API_Activity,
     API_LiveActivity,
@@ -43,15 +44,20 @@ router = APIRouter()
 
 def __get_newest_or_oldest(
     which: Literal["newest", "oldest"],
+    viewer: User | None,
     user=None,
     game=None,
     platform=None,
     include_children=False,
     include_child_platforms=False,
 ) -> API_Activity | None:
-    query = ActivityQuery.base(include_hidden=False)
+    # 404 for private users, but to themselves
+    check_user_filter(user, viewer)
+    query = ActivityQuery.base()
     if user:
         query = ActivityQuery.user(query, user)
+    else:
+        query = ActivityQuery.visible_to(query)
     if game:
         query = ActivityQuery.game(query, game, include_children)
     if platform:
@@ -74,6 +80,7 @@ def add_activity(user: ManualActivityUser, data: API_PostActivity) -> API_Activi
 
 @router.get("/activity/newest", tags=["activities"], response_model=API_Activity)
 def get_newest_activity(
+    viewer: OptionalUser,
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
@@ -82,6 +89,7 @@ def get_newest_activity(
 ) -> API_Activity | None:
     x = __get_newest_or_oldest(
         which="newest",
+        viewer=viewer,
         user=user,
         game=game,
         platform=platform,
@@ -95,6 +103,7 @@ def get_newest_activity(
 
 @router.get("/activity/oldest", tags=["activities"], response_model=API_Activity)
 def get_oldest_activity(
+    viewer: OptionalUser,
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
@@ -103,6 +112,7 @@ def get_oldest_activity(
 ) -> API_Activity | None:
     x = __get_newest_or_oldest(
         which="oldest",
+        viewer=viewer,
         user=user,
         game=game,
         platform=platform,
@@ -161,8 +171,8 @@ def abort_live_activity(user: ManualActivityUser):
     tags=["activities"],
     response_model=API_Activity,
 )
-def get_single_activity(id: int) -> API_Activity:
-    query = ActivityQuery.base(include_hidden=False)
+def get_single_activity(viewer: OptionalUser, id: int) -> API_Activity:
+    query = ActivityQuery.visible_to(ActivityQuery.base(), viewer)
     query = ActivityQuery.id(query, id)
     activity = query.first()
     if not activity:
@@ -193,12 +203,14 @@ def patch_activity(
     tags=["activities"],
     response_model=list[API_Activity],
 )
-def get_many_activities(ids=path_csv("activity ids")) -> list[API_Activity]:
+def get_many_activities(
+    viewer: OptionalUser, ids=path_csv("activity ids")
+) -> list[API_Activity]:
     aids = parse_csv(ids)  # haha
     if len(aids) > 100:
         return bad_request("Cannot request more than 100 activities at once")
 
-    activities = ActivityQuery.base()
+    activities = ActivityQuery.visible_to(ActivityQuery.base(), viewer)
     activities = ActivityQuery.ids(activities, aids)
     return [API_Activity.from_activity(a) for a in activities]
 
@@ -209,6 +221,7 @@ def get_many_activities(ids=path_csv("activity ids")) -> list[API_Activity]:
     response_model=list[API_Activity],
 )
 def get_activities(
+    viewer: OptionalUser,
     offset=offset(),
     limit=limit(),
     order: AscDescOrder = "desc",
@@ -224,10 +237,14 @@ def get_activities(
     limit = clamp(int(limit), 1, 500)
     offset = max(0, int(offset))
     before, after = validateTS(before), validateTS(after)
+    # 404 for private users, but to themselves
+    check_user_filter(user, viewer)
 
-    query = ActivityQuery.base(include_hidden=False)
+    query = ActivityQuery.base()
     if user is not None:
         query = ActivityQuery.user(query, user)
+    else:
+        query = ActivityQuery.visible_to(query)
     if game is not None:
         query = ActivityQuery.game(query, game, include_children)
     if platform is not None:
@@ -243,6 +260,7 @@ def get_activities(
 
 @router.get("/total", response_model=Total, tags=["activities"])
 def get_total(
+    viewer: OptionalUser,
     users=query_csv("users"),
     games=query_csv("games"),
     platforms=query_csv("platforms"),
@@ -252,7 +270,11 @@ def get_total(
     before, after = validateTS(before), validateTS(after)
     query = ActivityQuery.base(include_hidden=False)
     if users:
+        # 404 for private users, but to themselves
+        check_user_filter(parse_csv(users), viewer)
         query = ActivityQuery.users(query, parse_csv(users))
+    else:
+        query = ActivityQuery.visible_to(query)
     if games:
         query = ActivityQuery.games(query, parse_csv(games))
     if platforms:

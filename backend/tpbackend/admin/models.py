@@ -80,10 +80,14 @@ class Admin_User(API_AuthenticatedUser):
 
     @classmethod
     def from_user(cls, user: User):
-        # admins see the real name, even if it's hidden on the site
+        # admins see the real name and Discord ID, even if they're hidden on the site
         return cls(
             **API_AuthenticatedUser.from_user(user).model_dump()
-            | {"name": user.get_name(), "display_name": user.get_display_name()},
+            | {
+                "name": user.get_name(),
+                "display_name": user.get_display_name(),
+                "discord_id": user.get_discord_id(),
+            },
             activity_count=activity_count(user=user),
         )
 

@@ -148,7 +148,7 @@ class TestPlaying:
 class TestAdminLive:
     def test_list(self, make_user, make_game, ps5):
         _, admin = make_user(name="admin", permissions=["admin"])
-        user, _ = make_user(name="alice", permissions=[Permission.SHOW_NAME])
+        user, _ = make_user(name="alice", permissions=[])
         game = make_game("Some Game")
         started = minutes_ago(10)
         live = LiveActivity.create(user=user, game=game, platform=ps5, started=started)

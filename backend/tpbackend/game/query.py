@@ -7,6 +7,7 @@ from peewee import (
     Case,
 )
 from tpbackend.common.query import sort_by
+from tpbackend.user.query import not_private_activity
 from tpbackend.storage import Activity, Game
 
 logger = logging.getLogger("game_query")
@@ -95,20 +96,30 @@ class GameStatsQuery:
     }
 
     @staticmethod
-    def base(include_hidden=False):
-        if include_hidden:
-            return (
-                Game.select(Game, *GameStatsQuery.AGGREGATES.values())
-                .join(Activity, JOIN.LEFT_OUTER)
-                .group_by(Game.id)
+    def activity_join(game_id, private: bool):
+        """
+        the activity to join for the game id. private: also private users' activity,
+        only for when it's filtered to one user (who can see it)
+        """
+        on = Activity.game == game_id
+        if not private:
+            on = on & not_private_activity()
+        return on
+
+    @staticmethod
+    def base(include_hidden=False, private=False):
+        query = (
+            Game.select(Game, *GameStatsQuery.AGGREGATES.values())
+            .join(
+                Activity,
+                JOIN.LEFT_OUTER,
+                on=GameStatsQuery.activity_join(Game.id, private),
             )
-        else:
-            return (
-                Game.select(Game, *GameStatsQuery.AGGREGATES.values())
-                .join(Activity, JOIN.LEFT_OUTER)
-                .where(Game.hidden == False)  # noqa: E712
-                .group_by(Game.id)
-            )
+            .group_by(Game.id)
+        )
+        if not include_hidden:
+            query = query.where(Game.hidden == False)  # noqa: E712
+        return query
 
     @staticmethod
     def family():
@@ -134,7 +145,7 @@ class GameStatsQuery:
         return family.select_from(family.c.game_id).where(family.c.root_id == game_id)
 
     @staticmethod
-    def base_with_children(include_hidden=False):
+    def base_with_children(include_hidden=False, private=False):
         """
         Like base(), but the stats of every game include all its children (any depth)
         """
@@ -142,7 +153,11 @@ class GameStatsQuery:
         query = (
             Game.select(Game, *GameStatsQuery.AGGREGATES.values())
             .join(family, JOIN.LEFT_OUTER, on=(family.c.root_id == Game.id))
-            .join(Activity, JOIN.LEFT_OUTER, on=(Activity.game == family.c.game_id))
+            .join(
+                Activity,
+                JOIN.LEFT_OUTER,
+                on=GameStatsQuery.activity_join(family.c.game_id, private),
+            )
             .group_by(Game.id)
             .with_cte(family)
         )

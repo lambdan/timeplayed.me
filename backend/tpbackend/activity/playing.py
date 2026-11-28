@@ -29,6 +29,10 @@ def playing_now(now: datetime.datetime) -> list[API_Playing]:
     ):
         if game.get_hidden():
             return
+        if user.has_permission(Permission.HIDE_PLAYING) or user.has_permission(
+            Permission.PRIVATE
+        ):
+            return
         key = (user.get_id(), game.get_id(), platform.get_id())
         started_ts = dt_to_ts(started)
         # tracked both manually and by Discord: the earliest start

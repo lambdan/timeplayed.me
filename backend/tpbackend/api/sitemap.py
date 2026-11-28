@@ -10,6 +10,7 @@ from tpbackend.game.utils import game_url
 from tpbackend.globals import FALLBACK_URL, timeplayed_url
 from tpbackend.platform.utils import platform_url
 from tpbackend.storage import Activity, Game
+from tpbackend.user.query import not_private_activity
 from tpbackend.user.utils import user_url
 
 sitemap_router = APIRouter()
@@ -34,6 +35,8 @@ def __last_activity_per(field) -> dict[int, datetime.datetime]:
     query = (
         Activity.select(field, fn.MAX(Activity.timestamp).alias("last"))
         .where(Activity.hidden == False)  # noqa: E712
+        # private users' activity, and so their pages, are only for themselves
+        .where(not_private_activity())
         .group_by(field)
         .tuples()
     )

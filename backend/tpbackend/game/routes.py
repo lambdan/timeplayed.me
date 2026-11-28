@@ -1,3 +1,5 @@
+from tpbackend.storage import User
+from tpbackend.user.utils import check_user_filter
 from fastapi.responses import RedirectResponse
 from tpbackend.activity.query import ActivityQuery
 from tpbackend.game.models import API_GameWithStats
@@ -6,7 +8,7 @@ from tpbackend.igdb.controller import get_or_create_game
 from tpbackend.igdb.controller import enabled as igdb_enabled
 from tpbackend.igdb.controller import search_game as igdb_search_game
 from tpbackend.igdb.models import IGDB_SearchResult
-from tpbackend.api.auth import ManualActivityUser
+from tpbackend.api.auth import ManualActivityUser, OptionalUser
 from tpbackend.utils2 import clamp, parseTS, parse_csv
 from tpbackend.game.query import GameQuery
 from tpbackend.game.models import (
@@ -40,6 +42,7 @@ router = APIRouter()
 
 
 def __get_games_stats(
+    viewer: User | None,
     gids: list[int] | None = None,
     before: int | None = None,
     after: int | None = None,
@@ -57,10 +60,13 @@ def __get_games_stats(
     bf = parseTS(before)
     af = parseTS(after)
 
+    # 404 for private users, but to themselves. Then their activity is what's asked for
+    check_user_filter(user_id, viewer)
+    private = bool(user_id)
     if include_children:
-        query = GameStatsQuery.base_with_children()
+        query = GameStatsQuery.base_with_children(private=private)
     else:
-        query = GameStatsQuery.base()
+        query = GameStatsQuery.base(private=private)
 
     if only_top_level:
         query = GameStatsQuery.top_level(query)
@@ -102,6 +108,7 @@ def __get_games_stats(
     response_model=API_GameWithStats,
 )
 def get_single_game_stats(
+    viewer: OptionalUser,
     game_id=path_id("game"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -115,6 +122,7 @@ def get_single_game_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         platform_id=platform,
         include_child_platforms=include_child_platforms,
         include_children=include_children,
@@ -130,6 +138,7 @@ def get_single_game_stats(
     tags=["games", "stats"],
 )
 def get_many_games_stats(
+    viewer: OptionalUser,
     game_ids=path_csv("game ids"),
     before=query_ts("before"),
     after=query_ts("after"),
@@ -146,6 +155,7 @@ def get_many_games_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         platform_id=platform,
         include_child_platforms=include_child_platforms,
         sort=sort,
@@ -160,6 +170,7 @@ def get_many_games_stats(
     response_model=list[API_GameWithStats],
 )
 def get_games_stats(
+    viewer: OptionalUser,
     offset=offset(),
     limit=limit(),
     user=query_id("user"),
@@ -182,6 +193,7 @@ def get_games_stats(
         before=before,
         after=after,
         user_id=user,
+        viewer=viewer,
         platform_id=platform,
         include_child_platforms=include_child_platforms,
         sort=sort,

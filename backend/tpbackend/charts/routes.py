@@ -1,3 +1,5 @@
+from tpbackend.api.auth import OptionalUser
+from tpbackend.user.utils import check_user_filter
 import datetime
 from typing import cast
 from fastapi import APIRouter
@@ -23,6 +25,7 @@ router = APIRouter()
 
 @router.get("/playtime/by_day", tags=["charts"], response_model=PlaytimeChart)
 def get_playtime_by_day(
+    viewer: OptionalUser,
     user=query_id("user"),
     game=query_id("game"),
     include_children: bool = query_game_include_children(),
@@ -35,8 +38,12 @@ def get_playtime_by_day(
     before = validateTS(before)
     after = validateTS(after)
 
+    # 404 for private users, but to themselves
+    check_user_filter(user, viewer)
     if user:
         query = ActivityQuery.user(query, user)
+    else:
+        query = ActivityQuery.visible_to(query)
     if game:
         query = ActivityQuery.game(query, game, include_children)
     if platform:

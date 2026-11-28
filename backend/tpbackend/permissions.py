@@ -5,23 +5,27 @@ class Permission(StrEnum):
     """stored as the plain string in user.permissions"""
 
     ADMIN = "admin"
+    ANONYMOUS = "anonymous"
     COMMANDS = "commands"
     DEVELOPER = "developer"
+    FORCE_ANONYMOUS = "force_anonymous"
+    HIDE_PLAYING = "hide_playing"
     MANUAL_ACTIVITY = "manual_activity"
     OBLIVIONIS_SYNC = "oblivionis_sync"
-    SHOW_AVATAR = "show_avatar"
-    SHOW_NAME = "show_name"
+    PRIVATE = "private"
     SHOW_NSFW = "show_nsfw"
 
 
 DESCRIPTIONS: dict[Permission, str] = {
     Permission.ADMIN: "Can use admin commands in Discord and the admin page",
+    Permission.ANONYMOUS: "Name, avatar and Discord ID are hidden on the site ('User <id>'), set by the user in settings",
     Permission.COMMANDS: "Can use Discord bot commands",
     Permission.DEVELOPER: "Can use the bot when it runs in dev mode (commands starting with .)",
+    Permission.FORCE_ANONYMOUS: "Anonymous, and the user can't turn it off (offensive names etc)",
+    Permission.HIDE_PLAYING: "Left out of now playing, set by the user in settings",
     Permission.MANUAL_ACTIVITY: "Can add activity and change its game or platform (manual tracking page, activity page, API)",
     Permission.OBLIVIONIS_SYNC: "Oblivionis activity is synced for this user",
-    Permission.SHOW_AVATAR: "Discord avatar is shown on the site (otherwise a default avatar)",
-    Permission.SHOW_NAME: "Name is shown on the site (otherwise 'User <id>')",
+    Permission.PRIVATE: "User page only visible to the user, elsewhere their activity is under 'Private', set by the user in settings",
     Permission.SHOW_NSFW: "Sees NSFW game titles and covers on the site (otherwise censored), set by the user in settings",
 }
 
@@ -30,8 +34,6 @@ DEFAULT_PERMISSIONS = [
     Permission.COMMANDS,
     Permission.MANUAL_ACTIVITY,
     Permission.OBLIVIONIS_SYNC,
-    Permission.SHOW_AVATAR,
-    Permission.SHOW_NAME,
 ]
 
 ALL_PERMISSIONS = list(Permission)

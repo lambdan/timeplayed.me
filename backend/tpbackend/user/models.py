@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 from tpbackend.utils2 import dt_to_ts
 from tpbackend.common.models import BaseTotals
-from tpbackend.permissions import Permission
+from tpbackend.storage import User
 
 # what Discord PC activity counts as, the abbreviations of the pc (unknown OS)/windows/mac/linux platforms
 PCPlatform = Literal["pc", "win", "mac", "linux"]
@@ -16,26 +16,30 @@ class UserTotals(BaseTotals):
 
 class API_User(BaseModel):
     id: int
-    discord_id: str | None
-    name: str = Field("Discord username typically")
-    display_name: str = Field("Discord display name")
+    discord_id: str | None = Field(description="null for anonymous users")
+    name: str = Field(
+        description="Discord username typically, 'User <id>' for anonymous users"
+    )
+    display_name: str = Field(description="Discord display name")
     created: int
     updated: int
 
     @classmethod
-    def from_user(cls, user):
-        name = user.name
+    def from_user(cls, user: User) -> "API_User":
+        name = user.get_name()
         display_name = user.get_display_name()
-        if not user.has_permission(Permission.SHOW_NAME):
-            name = f"User {user.id}"
+        discord_id = user.get_discord_id()
+        if user.is_anonymous():
+            name = f"User {user.get_id()}"
             display_name = name
+            discord_id = None
         return cls(
-            id=user.id,
-            discord_id=user.discord_id,
+            id=user.get_id(),
+            discord_id=discord_id,
             name=name,
             display_name=display_name,
-            created=dt_to_ts(user.created),
-            updated=dt_to_ts(user.updated),
+            created=dt_to_ts(user.created),  # type: ignore
+            updated=dt_to_ts(user.updated),  # type: ignore
         )
 
 
@@ -46,7 +50,7 @@ class API_AuthenticatedUser(API_User):
     )
 
     @classmethod
-    def from_user(cls, user):
+    def from_user(cls, user: User):
         return cls(
             **API_User.from_user(user).model_dump(),
             permissions=user.get_permissions(),
@@ -62,6 +66,17 @@ class API_PutSettings(BaseModel):
     )
     show_nsfw: bool | None = Field(
         default=None, description="Show NSFW game titles and covers"
+    )
+    anonymous: bool | None = Field(
+        default=None,
+        description="Hide name, avatar and Discord ID on the site (an admin can force it on)",
+    )
+    hide_playing: bool | None = Field(
+        default=None, description="Leave the user out of now playing"
+    )
+    private: bool | None = Field(
+        default=None,
+        description="Only the user sees their page, their activity and stats are left out everywhere else",
     )
     move_pc_activity: bool | None = Field(
         default=None,
