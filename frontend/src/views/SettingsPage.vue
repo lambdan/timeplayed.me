@@ -178,7 +178,7 @@ onMounted(async () => {
         <div class="row g-2 align-items-end">
           <div class="col-auto">
             <label for="color-primary" class="form-label small mb-0"
-              >Page</label
+              >Primary</label
             >
             <input
               id="color-primary"
@@ -189,7 +189,7 @@ onMounted(async () => {
           </div>
           <div class="col-auto">
             <label for="color-secondary" class="form-label small mb-0"
-              >Charts</label
+              >Secondary</label
             >
             <input
               id="color-secondary"
@@ -212,8 +212,7 @@ onMounted(async () => {
           </div>
         </div>
         <div class="form-text">
-          Your user page in your colors. Chart colors that are hard to read
-          aren't used.
+          Pick your favorite colors, who knows where they will show up :)
         </div>
       </div>
 
