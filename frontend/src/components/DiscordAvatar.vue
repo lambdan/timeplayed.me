@@ -21,8 +21,8 @@ const props = withDefaults(
 );
 
 onMounted(async () => {
-  avatarUrl.value =
-    "https://placehold.co/512x512?text=" + props.user.display_name;
+  // anonymous users have no Discord ID: one of Discord's default avatars
+  avatarUrl.value = `https://cdn.discordapp.com/embed/avatars/${props.user.id % 5}.png`;
   if (props.user.discord_id) {
     avatarUrl.value = TimeplayedAPI.getDiscordAvatarUrl(props.user.discord_id);
   }

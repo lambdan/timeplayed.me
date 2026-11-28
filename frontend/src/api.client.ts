@@ -19,9 +19,27 @@ import {
   getCached,
   setCached,
 } from "./utils.cache.ts";
+import { useApiToken } from "./composables/useApiToken.ts";
+
+/** private users see themselves on the site, so the token goes with every request */
+function viewerHeaders(): Record<string, string> {
+  const { token } = useApiToken();
+  return token.value ? { Authorization: `Bearer ${token.value}` } : {};
+}
 
 export class TimeplayedAPI {
   private static readonly client = createClient<paths>({ baseUrl: "/api" });
+
+  static {
+    this.client.use({
+      onRequest({ request }) {
+        for (const [name, value] of Object.entries(viewerHeaders())) {
+          if (!request.headers.has(name)) request.headers.set(name, value);
+        }
+        return request;
+      },
+    });
+  }
 
   private static getAuthHeaders(token: string) {
     return {
@@ -524,7 +542,9 @@ export class TimeplayedAPI {
       if (value !== undefined) params.set(key, String(value));
     }
     const qs = params.toString();
-    const response = await fetch(`/api${path}${qs ? "?" + qs : ""}`);
+    const response = await fetch(`/api${path}${qs ? "?" + qs : ""}`, {
+      headers: viewerHeaders(),
+    });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       throw data ?? new Error(`${response.status} ${response.statusText}`);

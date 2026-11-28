@@ -663,16 +663,19 @@ export interface components {
         API_AuthenticatedUser: {
             /** Id */
             id: number;
-            /** Discord Id */
+            /**
+             * Discord Id
+             * @description null for anonymous users
+             */
             discord_id: string | null;
             /**
              * Name
-             * @default Discord username typically
+             * @description Discord username typically, 'User <id>' for anonymous users
              */
             name: string;
             /**
              * Display Name
-             * @default Discord display name
+             * @description Discord display name
              */
             display_name: string;
             /** Created */
@@ -950,16 +953,19 @@ export interface components {
         API_User: {
             /** Id */
             id: number;
-            /** Discord Id */
+            /**
+             * Discord Id
+             * @description null for anonymous users
+             */
             discord_id: string | null;
             /**
              * Name
-             * @default Discord username typically
+             * @description Discord username typically, 'User <id>' for anonymous users
              */
             name: string;
             /**
              * Display Name
-             * @default Discord display name
+             * @description Discord display name
              */
             display_name: string;
             /** Created */
@@ -971,16 +977,19 @@ export interface components {
         API_UserWithStats: {
             /** Id */
             id: number;
-            /** Discord Id */
+            /**
+             * Discord Id
+             * @description null for anonymous users
+             */
             discord_id: string | null;
             /**
              * Name
-             * @default Discord username typically
+             * @description Discord username typically, 'User <id>' for anonymous users
              */
             name: string;
             /**
              * Display Name
-             * @default Discord display name
+             * @description Discord display name
              */
             display_name: string;
             /** Created */

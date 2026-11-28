@@ -34,6 +34,9 @@ export type PCPlatform = (typeof PC_PLATFORMS)[number];
 export type SettingsPut = {
   pc_platform?: PCPlatform;
   show_nsfw?: boolean;
+  anonymous?: boolean;
+  hide_playing?: boolean;
+  private?: boolean;
   // also move activity on "pc" (unknown OS) to the new pc_platform
   move_pc_activity?: boolean;
 };

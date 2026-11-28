@@ -14,6 +14,8 @@ import { usePageTitle } from "../composables/usePageTitle";
 const route = useRoute();
 const setTitle = usePageTitle();
 const user = ref<UserWithStats>();
+// also private users, to everyone but themselves
+const notFound = ref(false);
 // date range for the top lists next to recent activity, set by their picker
 const topAfter = ref<Date>();
 const topBefore = ref<Date>();
@@ -22,13 +24,19 @@ const topReady = ref(false);
 
 onMounted(async () => {
   const userId = parseInt(route.params.id as string);
-  user.value = await TimeplayedAPI.getUserStats(userId);
+  try {
+    user.value = await TimeplayedAPI.getUserStats(userId);
+  } catch {
+    notFound.value = true;
+    return;
+  }
   setTitle(`${user.value.display_name} playtime`);
 });
 </script>
 
 <template>
-  <div v-if="!user" class="text-center">
+  <p v-if="notFound" class="text-center">User not found</p>
+  <div v-else-if="!user" class="text-center">
     <div class="spinner-border" role="status"></div>
   </div>
 

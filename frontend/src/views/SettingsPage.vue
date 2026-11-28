@@ -15,6 +15,9 @@ const {
 const platforms = ref<Platform[]>([]);
 const pcPlatform = ref<PCPlatform>();
 const showNsfw = ref(false);
+const anonymous = ref(false);
+const hidePlaying = ref(false);
+const isPrivate = ref(false);
 // activity still on "Unknown", offered to move when picking an OS for the first time.
 // Only what the user can see, the backend moves their hidden activity too
 const pcActivityCount = ref(0);
@@ -29,8 +32,16 @@ watch(
   (user) => {
     pcPlatform.value = user?.pc_platform as PCPlatform | undefined;
     showNsfw.value = !!user?.permissions.includes("show_nsfw");
+    anonymous.value = !!user?.permissions.includes("anonymous");
+    hidePlaying.value = !!user?.permissions.includes("hide_playing");
+    isPrivate.value = !!user?.permissions.includes("private");
   },
   { immediate: true },
+);
+
+// set by an admin, the user can't turn it off
+const forcedAnonymous = computed(
+  () => !!authenticatedUser.value?.permissions.includes("force_anonymous"),
 );
 
 const canMovePcActivity = computed(
@@ -69,6 +80,9 @@ async function save() {
     await TimeplayedAPI.updateSettings(token.value, {
       pc_platform: pcPlatform.value,
       show_nsfw: showNsfw.value,
+      anonymous: anonymous.value,
+      hide_playing: hidePlaying.value,
+      private: isPrivate.value,
       move_pc_activity: canMovePcActivity.value && movePcActivity.value,
     });
     movePcActivity.value = false;
@@ -143,8 +157,69 @@ onMounted(async () => {
           />
         </div>
         <div class="form-text">
-          Show titles and covers of NSFW games. When off, titles are hidden and
-          covers are blurred.
+          Show titles and covers of NSFW games. When off, titles are scrambled
+          and covers are blurred.
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="mb-3">
+        <h3>Privacy</h3>
+        <p>
+          Note that these settings only apply to the website (and API). How you
+          appear in Discord is unaffected.
+        </p>
+        <label for="anonymous" class="form-label">Anonymous</label>
+        <div class="form-check form-switch">
+          <input
+            id="anonymous"
+            :checked="anonymous || forcedAnonymous"
+            :disabled="forcedAnonymous"
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            @change="anonymous = ($event.target as HTMLInputElement).checked"
+          />
+        </div>
+        <div class="form-text">
+          Replace your name and avatar with generic ones.
+        </div>
+        <div v-if="forcedAnonymous" class="form-text">
+          Forced on by an admin due to inappropriate name or avatar. Contact an
+          admin if you believe this is a mistake.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="hide-playing" class="form-label"
+          >Hide from now playing</label
+        >
+        <div class="form-check form-switch">
+          <input
+            id="hide-playing"
+            v-model="hidePlaying"
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+          />
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="private" class="form-label">Private</label>
+        <div class="form-check form-switch">
+          <input
+            id="private"
+            v-model="isPrivate"
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+          />
+        </div>
+        <div class="form-text">
+          Hides your profile, activity and stats. They're left out of all global
+          stats, only you can see them on your own user page.
         </div>
       </div>
 
