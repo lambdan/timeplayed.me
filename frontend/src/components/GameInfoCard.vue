@@ -8,6 +8,7 @@ import type { Game, GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import CalendarBasic from "./CalendarBasic.vue";
 import GameMetadataRows from "./Games/GameMetadataRows.vue";
+import GameIds from "./Games/GameIds.vue";
 
 const props = defineProps<{
   game: GameWithStats;
@@ -129,5 +130,10 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    <!-- footer, so it's at the bottom when the card is stretched next to your stats -->
+    <GameIds
+      :game="game"
+      class="card-footer border-0 bg-transparent pt-0 text-center small text-muted"
+    />
   </div>
 </template>
