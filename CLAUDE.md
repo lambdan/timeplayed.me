@@ -100,7 +100,7 @@ CI runs format-check, `make test`, `make e2e` and `npm run build`. If those pass
 - User permissions are abuse switches, added after real misuse, so check them in the backend on every path, not just in the frontend:
     - `commands`: the remaining Discord commands
     - `manual_activity`: adding activity (manual tracking, API) and changing an activity's game or platform. Deleting your own activity needs no permission
-    - `oblivionis_sync`: whether the user's Oblivionis activity is synced
+    - `discord_tracking`: whether the user's Discord playtime is tracked (Oblivionis sync, now playing)
 - Privacy settings are user permissions too, set in settings, all off by default. None of them affect recording (activity, history, Discord history) or the admin routes, which show everything:
     - `anonymous` / `force_anonymous` (set by admins, the user can't turn it off): "User <id>", Discord default avatar, no `discord_id` in the public API
     - `hide_playing`: left out of `/playing` for everyone, themselves too
