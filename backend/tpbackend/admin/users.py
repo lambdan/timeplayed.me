@@ -17,7 +17,12 @@ from tpbackend.admin.models import (
 from tpbackend.api.auth import AdminUser, CurrentToken
 from tpbackend.api.params import limit, offset, query_search
 from tpbackend.api.responses import bad_request, not_found
-from tpbackend.permissions import ALL_PERMISSIONS, DESCRIPTIONS, Permission
+from tpbackend.permissions import (
+    ALL_PERMISSIONS,
+    DESCRIPTIONS,
+    USER_SETTINGS,
+    Permission,
+)
 from tpbackend.storage import DiscordHistory, Token, User, User_or_none
 from tpbackend.user.query import UserQuery
 from tpbackend.user.tokens import generate_token
@@ -37,7 +42,10 @@ def __get_user(user_id: int) -> User:
 @router.get("/permissions", response_model=list[Admin_Permission])
 def get_all_permissions() -> list[Admin_Permission]:
     return [
-        Admin_Permission(name=p, description=DESCRIPTIONS[p]) for p in ALL_PERMISSIONS
+        Admin_Permission(
+            name=p, description=DESCRIPTIONS[p], user_setting=p in USER_SETTINGS
+        )
+        for p in ALL_PERMISSIONS
     ]
 
 

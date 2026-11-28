@@ -63,6 +63,13 @@ class TestAdminUsers:
         admin_permission = next(p for p in r.json() if p["name"] == "admin")
         assert admin_permission["description"] == DESCRIPTIONS[Permission.ADMIN]
 
+    def test_permissions_user_settings(self, admin):
+        _, client = admin
+        r = client.get("/admin/permissions")
+        assert r.status_code == 200, r.text
+        user_settings = [p["name"] for p in r.json() if p["user_setting"]]
+        assert user_settings == ["anonymous", "hide_playing", "private", "show_nsfw"]
+
     def test_add(self, admin):
         _, client = admin
         r = client.post("/admin/user", json={"name": "test", "display_name": "Test"})

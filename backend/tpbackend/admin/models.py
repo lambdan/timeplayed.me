@@ -197,6 +197,8 @@ class Admin_Platform(API_Platform):
 class Admin_Permission(BaseModel):
     name: str
     description: str
+    # set by the user on the settings page, not by admins
+    user_setting: bool
 
 
 class Admin_PostUser(BaseModel):

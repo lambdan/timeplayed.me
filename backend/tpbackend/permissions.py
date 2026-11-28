@@ -18,15 +18,15 @@ class Permission(StrEnum):
 
 DESCRIPTIONS: dict[Permission, str] = {
     Permission.ADMIN: "Can use admin commands in Discord and the admin page",
-    Permission.ANONYMOUS: "Name, avatar and Discord ID are hidden on the site ('User <id>'), set by the user in settings",
+    Permission.ANONYMOUS: "Name, avatar and Discord ID are hidden on the site ('User <id>')",
     Permission.COMMANDS: "Can use Discord bot commands",
     Permission.DEVELOPER: "Can use the bot when it runs in dev mode (commands starting with .)",
     Permission.FORCE_ANONYMOUS: "Anonymous, and the user can't turn it off (offensive names etc)",
-    Permission.HIDE_PLAYING: "Left out of now playing, set by the user in settings",
+    Permission.HIDE_PLAYING: "Left out of now playing",
     Permission.MANUAL_ACTIVITY: "Can add activity and change its game or platform (manual tracking page, activity page, API)",
     Permission.OBLIVIONIS_SYNC: "Oblivionis activity is synced for this user",
-    Permission.PRIVATE: "Left out of everything public, only the user sees their own user page, set by the user in settings",
-    Permission.SHOW_NSFW: "Sees NSFW game titles and covers on the site (otherwise censored), set by the user in settings",
+    Permission.PRIVATE: "Left out of everything public, only the user sees their own user page",
+    Permission.SHOW_NSFW: "Sees NSFW game titles and covers on the site (otherwise censored)",
 }
 
 # new users get these
@@ -37,3 +37,11 @@ DEFAULT_PERMISSIONS = [
 ]
 
 ALL_PERMISSIONS = list(Permission)
+
+# the user sets these on the settings page, admins set the rest
+USER_SETTINGS = [
+    Permission.ANONYMOUS,
+    Permission.HIDE_PLAYING,
+    Permission.PRIVATE,
+    Permission.SHOW_NSFW,
+]
