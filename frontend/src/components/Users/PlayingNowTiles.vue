@@ -55,7 +55,7 @@ onUnmounted(() => {
         background="var(--bs-success)"
         color="#fff"
       >
-        {{ lookups.platform(p.platform_id)?.display_name }}
+        {{ lookups.platform(p.platform_id)?.display_name }} &middot;
         <span style="font-variant-numeric: tabular-nums">{{
           formatDuration(seconds(p), true)
         }}</span>
