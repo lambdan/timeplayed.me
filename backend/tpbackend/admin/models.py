@@ -284,13 +284,6 @@ class Admin_PatchGame(BaseModel):
     color_secondary: str | None = Field(default=None, description="Hex, # is optional")
 
 
-class Admin_GameColors(BaseModel):
-    """colors picked from the game's cover, for the admin to set. One of several, best first"""
-
-    color_primary: str
-    color_secondary: str
-
-
 class Admin_CoverUrl(BaseModel):
     url: str
 

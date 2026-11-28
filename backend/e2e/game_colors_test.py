@@ -1,9 +1,5 @@
-import io
-
 import pytest
-from PIL import Image, ImageDraw
 
-from conftest import png_bytes
 from tpbackend.storage import Game
 
 
@@ -63,46 +59,3 @@ class TestGameColors:
         child = make_game("Child", parent=parent, color_primary="f5e614")
         # not mixed with the parent's secondary
         assert colors(api, child) == ("f5e614", None)
-
-
-class TestCoverColors:
-    def test_picked_from_cover(self, admin, make_game, upload_cover):
-        game = make_game()
-        # small enough to be its own thumbnail, which colors are picked from. A larger one
-        # gets a WebP thumbnail, and its colors shift a little
-        upload_cover(game, png_bytes(size=(60, 90)))  # (200, 50, 50)
-        r = admin.get(f"/admin/game/{game.get_id()}/cover/colors")
-        assert r.status_code == 200, r.text
-        assert r.json() == [{"color_primary": "c83232", "color_secondary": "ffffff"}]
-        # nothing is saved, the admin sets them
-        assert Game.get_by_id(game.get_id()).get_color_primary() is None
-
-    def test_several_best_first(self, admin, make_game, upload_cover):
-        game = make_game()
-        # the size colors are picked at, so the colors don't blend when it's resized
-        image = Image.new("RGB", (64, 64), (245, 230, 20))
-        ImageDraw.Draw(image).rectangle([0, 0, 63, 19], (30, 30, 30))
-        out = io.BytesIO()
-        image.save(out, format="PNG")
-        upload_cover(game, out.getvalue())
-        r = admin.get(f"/admin/game/{game.get_id()}/cover/colors")
-        assert r.json() == [
-            {"color_primary": "f5e614", "color_secondary": "000000"},
-            {"color_primary": "1e1e1e", "color_secondary": "ffffff"},
-        ]
-
-    def test_parents_cover(self, admin, make_game, upload_cover):
-        parent = make_game("Parent")
-        child = make_game("Child", parent=parent)
-        upload_cover(parent, png_bytes(size=(60, 90)))
-        r = admin.get(f"/admin/game/{child.get_id()}/cover/colors")
-        assert r.json()[0]["color_primary"] == "c83232"
-
-    def test_no_cover(self, admin, make_game):
-        r = admin.get(f"/admin/game/{make_game().get_id()}/cover/colors")
-        assert r.status_code == 404
-
-    def test_admins_only(self, make_user, make_game):
-        _, user = make_user(name="not admin")
-        r = user.get(f"/admin/game/{make_game().get_id()}/cover/colors")
-        assert r.status_code in (401, 403)

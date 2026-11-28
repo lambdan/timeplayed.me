@@ -7,7 +7,6 @@ from fastapi.concurrency import run_in_threadpool
 from tpbackend.admin.models import (
     Admin_Alias,
     Admin_Game,
-    Admin_GameColors,
     Admin_GameDetails,
     Admin_MergeGame,
     Admin_MergePreview,
@@ -32,10 +31,8 @@ from tpbackend.operations import (
     merge_games,
     sync_activities_hidden,
 )
-from tpbackend.files.colors import parse_color, pick_colors, text_color
-from tpbackend.files.images import THUMBNAIL, get_image, get_versions, store_upload
-from tpbackend.files.storage import storage
-from tpbackend.game.cover import find_cover
+from tpbackend.common.colors import parse_color
+from tpbackend.files.images import get_image, get_versions, store_upload
 from tpbackend.storage import Activity, Game, ImageFile, LiveActivity
 from tpbackend.utils2 import clamp, ts_to_dt
 
@@ -110,25 +107,6 @@ def add_game(data: Admin_PostGame) -> Admin_GameDetails:
     game.add_history("Game added")
     game.save()
     return Admin_GameDetails.from_game(game)
-
-
-@router.get("/game/{game_id}/cover/colors", response_model=list[Admin_GameColors])
-def get_cover_colors(game_id: int) -> list[Admin_GameColors]:
-    """
-    colors picked from the cover the game shows (its parent's too), best first, so the
-    admin can try the next one. Nothing is saved. From the thumbnail, it's small and
-    colors are picked from an even smaller copy anyway
-    """
-    image = find_cover(__get_game(game_id)).versions.get(THUMBNAIL.name)
-    if not image:
-        return not_found("Game has no cover")
-    data = storage.load(image.get_id())
-    if data is None:
-        return not_found("Cover image is missing")
-    return [
-        Admin_GameColors(color_primary=primary, color_secondary=text_color(primary))
-        for primary in pick_colors(data)
-    ]
 
 
 @router.get("/game/{game_id}", response_model=Admin_GameDetails)

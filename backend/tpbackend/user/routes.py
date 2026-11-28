@@ -8,7 +8,7 @@ from tpbackend.user.models import (
     API_User,
 )
 from tpbackend.api.responses import bad_request, forbidden, not_found
-from tpbackend.files.colors import parse_color
+from tpbackend.common.colors import parse_color
 from tpbackend.api.auth import AuthenticatedUser, OptionalUser
 from tpbackend.permissions import Permission
 from tpbackend.storage import Platform, User, db
