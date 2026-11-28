@@ -3,6 +3,7 @@ import io
 import pytest
 from PIL import Image, ImageDraw
 
+from conftest import png_bytes
 from tpbackend.storage import Game
 
 
@@ -67,7 +68,9 @@ class TestGameColors:
 class TestCoverColors:
     def test_picked_from_cover(self, admin, make_game, upload_cover):
         game = make_game()
-        upload_cover(game)  # (200, 50, 50)
+        # small enough to be its own thumbnail, which colors are picked from. A larger one
+        # gets a WebP thumbnail, and its colors shift a little
+        upload_cover(game, png_bytes(size=(60, 90)))  # (200, 50, 50)
         r = admin.get(f"/admin/game/{game.get_id()}/cover/colors")
         assert r.status_code == 200, r.text
         assert r.json() == [{"color_primary": "c83232", "color_secondary": "ffffff"}]
@@ -91,7 +94,7 @@ class TestCoverColors:
     def test_parents_cover(self, admin, make_game, upload_cover):
         parent = make_game("Parent")
         child = make_game("Child", parent=parent)
-        upload_cover(parent)
+        upload_cover(parent, png_bytes(size=(60, 90)))
         r = admin.get(f"/admin/game/{child.get_id()}/cover/colors")
         assert r.json()[0]["color_primary"] == "c83232"
 

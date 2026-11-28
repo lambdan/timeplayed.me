@@ -33,9 +33,9 @@ from tpbackend.operations import (
     sync_activities_hidden,
 )
 from tpbackend.files.colors import parse_color, pick_colors, text_color
-from tpbackend.files.images import get_image, get_versions, store_upload
+from tpbackend.files.images import THUMBNAIL, get_image, get_versions, store_upload
 from tpbackend.files.storage import storage
-from tpbackend.game.cover import ORIGINAL, find_cover
+from tpbackend.game.cover import find_cover
 from tpbackend.storage import Activity, Game, ImageFile, LiveActivity
 from tpbackend.utils2 import clamp, ts_to_dt
 
@@ -116,9 +116,10 @@ def add_game(data: Admin_PostGame) -> Admin_GameDetails:
 def get_cover_colors(game_id: int) -> list[Admin_GameColors]:
     """
     colors picked from the cover the game shows (its parent's too), best first, so the
-    admin can try the next one. Nothing is saved
+    admin can try the next one. Nothing is saved. From the thumbnail, it's small and
+    colors are picked from an even smaller copy anyway
     """
-    image = find_cover(__get_game(game_id)).versions.get(ORIGINAL)
+    image = find_cover(__get_game(game_id)).versions.get(THUMBNAIL.name)
     if not image:
         return not_found("Game has no cover")
     data = storage.load(image.get_id())
