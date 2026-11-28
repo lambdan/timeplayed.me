@@ -101,6 +101,10 @@ CI runs format-check, `make test`, `make e2e` and `npm run build`. If those pass
     - `commands`: the remaining Discord commands
     - `manual_activity`: adding activity (manual tracking, API) and changing an activity's game or platform. Deleting your own activity needs no permission
     - `oblivionis_sync`: whether the user's Oblivionis activity is synced
+- Privacy settings are user permissions too, set in settings, all off by default. None of them affect recording (activity, history, Discord history) or the admin routes, which show everything:
+    - `anonymous` / `force_anonymous` (set by admins, the user can't turn it off): "User <id>", Discord default avatar, no `discord_id` in the public API
+    - `hide_playing`: left out of `/playing` for everyone, themselves too
+    - `private`: left out of everything public (lists, totals, user counts, charts, game/platform stats, now playing, sitemap), even for themselves. Routes filtered to one user (`/user/{id}`, `?user=`) allow only that user and 404 for others (`check_user_filter` in `user/utils.py`, `ActivityQuery.visible_to`, `not_private_activity()` in `user/query.py`). New public routes need the same filtering
 - Public routes only let users change their own activity. Admins edit other users' through the admin routes.
 - NSFW is decided in the frontend: the backend gives NSFW names and covers to everyone, and `useNsfw` hides them from viewers who haven't opted in (the `show_nsfw` permission, set in settings). Names are jumbled, covers stay on the blurred preview
 - The backend is one process, but sync routes run in a thread pool, so shared things (like the IGDB client) must be thread-safe. For "only do this once" work (like fetching a cover), use `KeyedLock` (`tpbackend/keyed_lock.py`): a unique constraint alone still lets every request do the work before one insert wins
