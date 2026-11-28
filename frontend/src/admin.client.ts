@@ -317,14 +317,6 @@ export class AdminAPI {
     return request<AdminGameDetails>("POST", "/game", { body: { name } });
   }
 
-  /** colors picked from the game's cover, best first. Nothing is saved */
-  static getCoverColors(id: number) {
-    return request<{ color_primary: string; color_secondary: string }[]>(
-      "GET",
-      `/game/${id}/cover/colors`,
-    );
-  }
-
   static patchGame(id: number, body: AdminGamePatch) {
     return request<AdminGameDetails>("PATCH", `/game/${id}`, { body });
   }

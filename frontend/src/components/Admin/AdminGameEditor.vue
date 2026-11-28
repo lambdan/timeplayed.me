@@ -12,6 +12,7 @@ import AdminSectionTabs from "./AdminSectionTabs.vue";
 import AdminUnsaved from "./AdminUnsaved.vue";
 import IGDBResults from "../Games/IGDBResults.vue";
 import AdminCoverInput from "./AdminCoverInput.vue";
+import AdminCoverColorPicker from "./AdminCoverColorPicker.vue";
 import GamePicker from "../Games/GamePicker.vue";
 import { useUnsavedChanges } from "../../composables/useUnsavedChanges";
 import { unsavedFieldLabels } from "../../utils.admin";
@@ -41,11 +42,12 @@ const form = ref({
   color_primary: "",
   color_secondary: "",
 });
-// colors picked from the cover, best first, and which one is in the form
-const coverColors = ref<{ color_primary: string; color_secondary: string }[]>(
-  [],
-);
-const coverColorIndex = ref(0);
+// the color field that clicking the cover sets, the cover is shown while picking
+const pickingColor = ref<"color_primary" | "color_secondary" | null>(null);
+
+function togglePicking(field: "color_primary" | "color_secondary") {
+  pickingColor.value = pickingColor.value === field ? null : field;
+}
 
 const igdbId = ref("");
 const newAlias = ref("");
@@ -67,8 +69,6 @@ function toNumberOrNull(value: string | number): number | null {
 
 function setGame(g: AdminGameDetails) {
   game.value = g;
-  // the cover may have changed, picked again on the next click
-  coverColors.value = [];
   form.value = {
     name: g.name,
     release_year: g.release_year?.toString() ?? "",
@@ -181,32 +181,6 @@ function save() {
     keepOldNameAsAlias.value = false;
     return updated;
   }, "Saved");
-}
-
-/**
- * fills in the colors picked from the cover, saved like the other fields.
- * Each click tries the next one
- */
-async function colorsFromCover() {
-  const g = game.value;
-  if (!g) return;
-  try {
-    error.value = "";
-    message.value = "";
-    if (coverColors.value.length === 0) {
-      coverColors.value = await AdminAPI.getCoverColors(g.id);
-      coverColorIndex.value = 0;
-    } else {
-      coverColorIndex.value =
-        (coverColorIndex.value + 1) % coverColors.value.length;
-    }
-    const colors = coverColors.value[coverColorIndex.value];
-    if (!colors) return;
-    form.value.color_primary = "#" + colors.color_primary;
-    form.value.color_secondary = "#" + colors.color_secondary;
-  } catch (e: any) {
-    error.value = e.message;
-  }
 }
 
 // no colors of its own, the parent's are used
@@ -473,6 +447,15 @@ onMounted(async () => {
                 />
                 <button
                   class="btn btn-outline-secondary"
+                  :class="{ active: pickingColor === 'color_primary' }"
+                  title="Pick from the cover"
+                  aria-label="Pick from the cover"
+                  @click="togglePicking('color_primary')"
+                >
+                  <i class="bi bi-eyedropper"></i>
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
                   @click="form.color_primary = ''"
                 >
                   Clear
@@ -480,7 +463,7 @@ onMounted(async () => {
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Secondary (text)</label>
+              <label class="form-label small mb-0"> Secondary (text) </label>
               <div class="input-group input-group-sm">
                 <input
                   v-model="form.color_secondary"
@@ -490,22 +473,31 @@ onMounted(async () => {
                 />
                 <button
                   class="btn btn-outline-secondary"
+                  :class="{ active: pickingColor === 'color_secondary' }"
+                  title="Pick from the cover"
+                  aria-label="Pick from the cover"
+                  @click="togglePicking('color_secondary')"
+                >
+                  <i class="bi bi-eyedropper"></i>
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
                   @click="form.color_secondary = ''"
                 >
                   Clear
                 </button>
               </div>
             </div>
-            <div class="col-6 col-md-3 d-flex align-items-end">
-              <button
-                class="btn btn-outline-secondary btn-sm"
-                @click="colorsFromCover"
-              >
-                Colors from cover
-                <span v-if="coverColors.length > 1"
-                  >({{ coverColorIndex + 1 }}/{{ coverColors.length }})</span
-                >
-              </button>
+            <div v-if="pickingColor" class="col-12">
+              <div class="small text-body-secondary">
+                Click the cover to pick the
+                {{ pickingColor === "color_primary" ? "background" : "text" }}
+                color
+              </div>
+              <AdminCoverColorPicker
+                :gameId="game.id"
+                @pick="(color) => (form[pickingColor!] = color)"
+              />
             </div>
             <div
               class="col-6 col-md-3 d-flex flex-wrap align-items-end column-gap-3 text-nowrap"
