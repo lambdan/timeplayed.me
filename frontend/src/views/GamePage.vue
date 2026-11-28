@@ -12,7 +12,7 @@ import PlaytimeCharts from "../components/Charts/PlaytimeCharts.vue";
 import type { GameWithStats } from "../api.models";
 import { TimeplayedAPI } from "../api.client";
 import { usePageTitle } from "../composables/usePageTitle";
-import { setPageTheme } from "../pageTheme";
+import { pageAccent, setPageTheme } from "../pageTheme";
 
 const route = useRoute();
 const setTitle = usePageTitle();
@@ -27,9 +27,19 @@ const topBefore = ref<Date>();
 // lists wait for the pickers first range
 const topReady = ref(false);
 
-// the whole page in the game's colors
-watch(game, (g) => setPageTheme(g?.color_primary ?? null));
+// the whole page in the game's colors, the charts in the secondary color if it can be read
+const primary = computed(() =>
+  game.value?.color_primary ? "#" + game.value.color_primary : null,
+);
+const secondary = computed(() =>
+  game.value?.color_secondary ? "#" + game.value.color_secondary : null,
+);
+watch(game, () => setPageTheme(primary.value));
 onUnmounted(() => setPageTheme(null));
+const chartColor = computed(() => {
+  if (!primary.value) return undefined;
+  return pageAccent(primary.value, secondary.value) ?? undefined;
+});
 
 onMounted(async () => {
   const gameId = route.params.id as string;
@@ -124,7 +134,11 @@ onMounted(async () => {
         </div>
       </div>
       <div class="col-12">
-        <PlaytimeCharts :game="game" :includeChildren="withChildren" />
+        <PlaytimeCharts
+          :game="game"
+          :includeChildren="withChildren"
+          :color="chartColor"
+        />
       </div>
     </div>
   </template>

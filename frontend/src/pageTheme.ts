@@ -11,6 +11,8 @@ const CARD_LIGHTER = 0.04;
 const TERTIARY_LIGHTER = 0.08;
 const SECONDARY_LIGHTER = 0.12;
 const BORDER_LIGHTER = 0.2;
+// text needs this much contrast to be readable (WCAG AA)
+const MIN_CONTRAST = 4.5;
 
 function parse(hex: string): RGB {
   const h = hex.replace("#", "");
@@ -46,39 +48,61 @@ function luminance(rgb: RGB): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/**
- * the CSS variables (and page background) for a page themed from the color. A color darker
- * than the default background is used as it is, a lighter one is a tint of it
- */
-export function pageTheme(color: string): Record<string, string> {
-  const rgb = parse(color);
-  let page = rgb;
-  if (luminance(rgb) > luminance(DEFAULT_BG)) {
-    page = mix(DEFAULT_BG, rgb, TINT);
+/** the page background: a color darker than the default is used as it is, a lighter one is a tint */
+function pageBackground(color: RGB): RGB {
+  if (luminance(color) > luminance(DEFAULT_BG)) {
+    return mix(DEFAULT_BG, color, TINT);
   }
+  return color;
+}
+
+/** WCAG contrast ratio, 1 (none) to 21 (black on white) */
+function contrast(a: RGB, b: RGB): number {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+/**
+ * the accent color (for charts) on a page themed from primary: secondary,
+ * if it can be read on the cards. Many are black or white text colors for tiles,
+ * black can't be read on a dark page
+ */
+export function pageAccent(
+  primary: string,
+  secondary: string | null,
+): string | null {
+  if (!secondary) return null;
+  const card = lighter(pageBackground(parse(primary)), CARD_LIGHTER);
+  if (contrast(parse(secondary), card) < MIN_CONTRAST) return null;
+  return secondary;
+}
+
+/** the CSS variables (and page background) for a page themed from the color */
+function pageTheme(primary: string): Record<string, string> {
+  const page = pageBackground(parse(primary));
   const card = lighter(page, CARD_LIGHTER);
   const tertiary = lighter(page, TERTIARY_LIGHTER);
-  const secondary = lighter(page, SECONDARY_LIGHTER);
+  const secondaryBg = lighter(page, SECONDARY_LIGHTER);
   return {
     "background-color": toHex(page),
     "--bs-body-bg": toHex(card),
     "--bs-body-bg-rgb": toRgbList(card),
     "--bs-tertiary-bg": toHex(tertiary),
     "--bs-tertiary-bg-rgb": toRgbList(tertiary),
-    "--bs-secondary-bg": toHex(secondary),
-    "--bs-secondary-bg-rgb": toRgbList(secondary),
+    "--bs-secondary-bg": toHex(secondaryBg),
+    "--bs-secondary-bg-rgb": toRgbList(secondaryBg),
     "--bs-border-color": toHex(lighter(page, BORDER_LIGHTER)),
   };
 }
 
 /** themes the whole page (the body), or back to the default with null */
-export function setPageTheme(color: string | null) {
+export function setPageTheme(primary: string | null) {
   const style = document.body.style;
   for (const property of Object.keys(pageTheme("#000000"))) {
     style.removeProperty(property);
   }
-  if (!color) return;
-  for (const [property, value] of Object.entries(pageTheme(color))) {
+  if (!primary) return;
+  for (const [property, value] of Object.entries(pageTheme(primary))) {
     style.setProperty(property, value);
   }
 }
