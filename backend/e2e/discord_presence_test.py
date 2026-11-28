@@ -2,7 +2,8 @@ import datetime
 
 from tpbackend.discord import presence
 from tpbackend.discord.presence import Playing
-from tpbackend.storage import Activity, DiscordPresence, User
+from tpbackend.permissions import Permission
+from tpbackend.storage import Activity, DiscordHistory, DiscordPresence, User
 
 T0 = datetime.datetime(2026, 11, 22, 12, 0, tzinfo=datetime.UTC)
 
@@ -21,6 +22,15 @@ def play(playing: list[Playing], start: float, end: float):
     """
     for m in range(int(start), int(end) + 1):
         update(playing, T0 + minutes(m))
+
+
+def presence_history() -> list[str]:
+    return [
+        h.message
+        for h in DiscordHistory.select()
+        .where(DiscordHistory.user == "1234", DiscordHistory.event == "presence")
+        .order_by(DiscordHistory.id)
+    ]
 
 
 def activities() -> list[Activity]:
@@ -55,6 +65,10 @@ class TestDiscordPresence:
             in h
             for h in activity.get_history()
         )
+        assert presence_history() == [
+            "Started playing 'Some Game' (ps5), Discord start: 2026-11-22T12:00:00Z",
+            f"Stopped playing 'Some Game' (ps5) after 240 seconds (stopped playing): stored in activity {activity.get_id()}",
+        ]
 
     def test_switching_games(self):
         play([Playing("First", "ps5", T0)], 0, 29)
@@ -146,6 +160,9 @@ class TestDiscordPresence:
 
         assert Activity.select().count() == 0
         assert DiscordPresence.select().count() == 0
+        assert presence_history()[-1] == (
+            "Stopped playing 'Game' (ps5) right away, not stored (not seen since, bot was down)"
+        )
 
     def test_stopped_while_bot_was_down_ends_at_last_seen(self):
         play([Playing("Game", "ps5", T0)], 1, 10)
@@ -203,6 +220,19 @@ class TestDiscordPresence:
             for h in history
         )
         assert any("Activity source: Discord presence" in h for h in history)
+
+    def test_not_stored_without_sync_permission_says_why(self):
+        user, _ = User.from_discord("1234", "discordguy")
+        user.remove_permission(Permission.OBLIVIONIS_SYNC)
+        user.save()
+        play([Playing("Game", "ps5", T0)], 0, 10)
+        update([], T0 + minutes(11))
+
+        assert Activity.select().count() == 0
+        assert presence_history()[-1] == (
+            "Stopped playing 'Game' (ps5) after 660 seconds (stopped playing): "
+            "skipped, user doesn't have the oblivionis_sync permission"
+        )
 
     def test_playstation_8_hours_is_dropped(self):
         play([Playing("Game", "ps5", T0)], 1, 8 * 60 - 1)

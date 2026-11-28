@@ -65,17 +65,19 @@ def parseActivity(
     source: str = "Oblivionis",
     ended: datetime.datetime | None = None,
     details: str = "",
-) -> bool:
+) -> tuple[bool, str]:
     """
     Adds a session that ended `ended` (now if None) from Discord activity: from Oblivionis,
     or from the bot's own presence tracking (`source` says which, for logs and history).
-    `details` is added to the activity's history (or the user's, if it's dropped)
+    `details` is added to the activity's history (or the user's, if it's dropped).
+    Returns whether it's done with (False when it failed and should be tried again), and
+    what happened to it
     """
     try:
         logger.info("Syncing activity: %s", activity)
         if activity["duration"] < MINIMUM_SESSION_LENGTH:
             logger.info("Skipping too short session...")
-            return True
+            return True, "skipped, too short"
 
         user, created = User.from_discord(
             activity["discord_user_id"], activity["discord_user_name"]
@@ -112,7 +114,7 @@ def parseActivity(
                 user.name,
                 user.id,
             )
-            return True
+            return True, "skipped, user doesn't have the oblivionis_sync permission"
 
         if (
             activity["platform"] in PLAYSTATION_PLATFORMS
@@ -123,7 +125,7 @@ def parseActivity(
                 f"Dropped {source} activity of exactly 8 hours (game: '{activity['game_name']}', platform: '{activity['platform']}'{details})"
             )
             user.save()
-            return True
+            return True, "dropped, PlayStation session of exactly 8 hours"
 
         incoming_game = activity["game_name"]
         game = get_game_by_name_or_alias_or_create(game_name(incoming_game), source)
@@ -152,13 +154,13 @@ def parseActivity(
                 f"Activity source: {source} (incoming game: '{incoming_game}', incoming platform: '{incoming_platform}', duration: {activity['duration']}{details})"
             )
             created_activity.save()
-            return True
+            return True, f"stored in activity {created_activity.get_id()}"
 
         logger.error("Error when syncing activity: %s", success[1])
-        return False
+        return False, f"failed: {success[1]}"
     except Exception as e:
         logger.error("Unhandled exception when syncing: %s", e)
-        return False
+        return False, f"failed: {e}"
 
 
 async def sync_loop():
@@ -169,7 +171,7 @@ async def sync_loop():
 
         for o in oblivionisActivities:
             i = o.id
-            success = parseActivity(
+            success, _ = parseActivity(
                 {
                     "dt": o.timestamp,
                     "discord_user_name": o.user.name,

@@ -38,8 +38,10 @@ class CustomDb(PostgresqlExtDatabase):
             Game.on_connect()
             Activity.on_connect()
             LiveActivity.on_connect()
+            DiscordPresence.on_connect()
             DiscordHistory.on_connect()
             History.on_connect()
+            Token.on_connect()
 
         return connected
 

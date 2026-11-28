@@ -17,11 +17,14 @@ from tpbackend import utils2
 from tpbackend.utils2 import js_iso
 from tpbackend.discord.bot import bot
 from tpbackend.oblivionis import sync
-from tpbackend.storage import DiscordPresence
+from tpbackend.storage import DiscordHistory, DiscordPresence
 
 logger = logging.getLogger("discord-presence")
 
 SOURCE = "Discord presence"
+# DiscordHistory event for what the tracker does, and for what Discord says they're doing
+HISTORY_EVENT = "presence"
+ACTIVITIES_HISTORY_EVENT = "activities"
 CHECK_INTERVAL_SECONDS = 60
 # when a session hasn't been seen for this long, the bot wasn't watching (it was down),
 # so they may have stopped any time since it was last seen
@@ -64,6 +67,37 @@ def playing_from_activities(activities) -> list[Playing]:
     return playing
 
 
+# what else an activity says, for the Discord history. title and artist are Spotify's
+DESCRIBED_FIELDS = ["details", "state", "title", "artist"]
+
+
+def describe_activities(activities) -> str:
+    """
+    What a member is doing according to Discord, for their Discord history
+    """
+    parts = []
+    for activity in activities:
+        part = f"{activity.type.name} '{activity.name}'"
+        platform = getattr(activity, "platform", None)
+        if platform:
+            part += f" ({platform})"
+        fields = []
+        for field in DESCRIBED_FIELDS:
+            value = getattr(activity, field, None)
+            if value:
+                fields.append(f"{field}: '{value}'")
+        if fields:
+            part += f" [{', '.join(fields)}]"
+        parts.append(part)
+    return ", ".join(parts) or "nothing"
+
+
+def add_history(discord_user_id: str, message: str, now: datetime.datetime):
+    DiscordHistory.create(
+        timestamp=now, event=HISTORY_EVENT, user=discord_user_id, message=message
+    )
+
+
 def is_same_game(presence: DiscordPresence, playing: Playing) -> bool:
     return (
         presence.get_game_name() == playing.game_name
@@ -89,12 +123,17 @@ def close(presence: DiscordPresence, ended: datetime.datetime, reason: str):
     presence.delete_instance()
     if seconds <= 0:
         # never seen playing after it started
+        add_history(
+            presence.get_discord_user_id(),
+            f"Stopped playing '{presence.get_game_name()}' ({presence.get_platform()}) right away, not stored ({reason})",
+            ended,
+        )
         return
     details = f", first seen: {js_iso(presence.get_started())}"
     if discord_started:
         details += f", Discord start: {js_iso(discord_started)}"
     details += f", ended: {js_iso(ended)} ({reason})"
-    sync.parseActivity(
+    _, outcome = sync.parseActivity(
         {
             "game_name": presence.get_game_name(),
             "duration": seconds,
@@ -106,6 +145,11 @@ def close(presence: DiscordPresence, ended: datetime.datetime, reason: str):
         source=SOURCE,
         ended=ended,
         details=details,
+    )
+    add_history(
+        presence.get_discord_user_id(),
+        f"Stopped playing '{presence.get_game_name()}' ({presence.get_platform()}) after {seconds} seconds ({reason}): {outcome}",
+        ended,
     )
 
 
@@ -155,6 +199,10 @@ def update(
             game.game_name,
             game.platform,
         )
+        message = f"Started playing '{game.game_name}' ({game.platform})"
+        if game.started:
+            message += f", Discord start: {js_iso(game.started)}"
+        add_history(discord_user_id, message, now)
         DiscordPresence.create(
             discord_user_id=discord_user_id,
             discord_user_name=discord_user_name,
@@ -214,6 +262,15 @@ async def check_loop():
 async def on_presence_update(before: discord.Member, after: discord.Member):
     if after.bot:
         return
+    try:
+        # what Discord says, before the tracker maps it, to see what it didn't pick up
+        described = describe_activities(after.activities)
+        if described != describe_activities(before.activities):
+            DiscordHistory.create(
+                event=ACTIVITIES_HISTORY_EVENT, user=str(after.id), message=described
+            )
+    except Exception as e:
+        logger.error("Storing activities of %s failed: %s", after.name, e)
     try:
         update(
             str(after.id),

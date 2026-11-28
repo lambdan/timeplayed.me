@@ -74,3 +74,23 @@ def test_members_skips_bots_and_duplicates(monkeypatch):
     ]
     monkeypatch.setattr(presence, "bot", SimpleNamespace(guilds=guilds))
     assert list(presence.members()) == [alice, bob]
+
+
+def test_describe_activities():
+    activities = [
+        activity("World of Warcraft: Forever"),
+        activity("Some Game", platform="ps5"),
+        activity(
+            "Spotify",
+            type=discord.ActivityType.listening,
+            title="Song",
+            artist="Band",
+        ),
+        activity("Rich Game", details="In a dungeon", state="Party of 3"),
+    ]
+    assert presence.describe_activities(activities) == (
+        "playing 'World of Warcraft: Forever', playing 'Some Game' (ps5), "
+        "listening 'Spotify' [title: 'Song', artist: 'Band'], "
+        "playing 'Rich Game' [details: 'In a dungeon', state: 'Party of 3']"
+    )
+    assert presence.describe_activities([]) == "nothing"
