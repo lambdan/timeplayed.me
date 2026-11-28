@@ -1,8 +1,10 @@
 import io
 
+import pytest
+
 from PIL import Image, ImageDraw
 
-from tpbackend.files.colors import pick_color, text_color
+from tpbackend.files.colors import parse_color, pick_color, text_color
 
 
 def image_bytes(image: Image.Image) -> bytes:
@@ -56,3 +58,18 @@ class TestTextColor:
 
     def test_bright_cyan_gets_black(self):
         assert text_color("00c0e0") == "000000"
+
+
+class TestParseColor:
+    def test_hash_and_case(self):
+        assert parse_color(" #1A2B3C ") == "1a2b3c"
+
+    def test_empty(self):
+        assert parse_color(None) is None
+        assert parse_color("") is None
+        assert parse_color("#") is None
+
+    def test_not_a_color(self):
+        for color in ("red", "#12345", "1234567", "#gggggg"):
+            with pytest.raises(ValueError):
+                parse_color(color)

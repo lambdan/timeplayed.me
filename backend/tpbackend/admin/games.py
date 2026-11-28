@@ -1,5 +1,4 @@
 import logging
-import re
 from typing import Literal, cast
 
 from fastapi import APIRouter, Query, Request
@@ -33,7 +32,7 @@ from tpbackend.operations import (
     merge_games,
     sync_activities_hidden,
 )
-from tpbackend.files.colors import pick_color, text_color
+from tpbackend.files.colors import parse_color, pick_color, text_color
 from tpbackend.files.images import get_image, get_versions, store_upload
 from tpbackend.files.storage import storage
 from tpbackend.game.cover import ORIGINAL, find_cover
@@ -113,13 +112,6 @@ def add_game(data: Admin_PostGame) -> Admin_GameDetails:
     return Admin_GameDetails.from_game(game)
 
 
-def __color(color: str | None) -> str | None:
-    """colors are stored as hex without #"""
-    if color is None:
-        return None
-    return color.strip().lstrip("#").lower() or None
-
-
 @router.get("/game/{game_id}/cover/colors", response_model=Admin_GameColors)
 def get_cover_colors(game_id: int) -> Admin_GameColors:
     """colors picked from the cover the game shows (its parent's too), nothing is saved"""
@@ -170,9 +162,10 @@ def patch_game(game_id: int, data: Admin_PatchGame) -> Admin_GameDetails:
 
     for field in ("color_primary", "color_secondary"):
         if field in sent:
-            color = __color(getattr(data, field))
-            if color and not re.fullmatch("[0-9a-f]{6}", color):
-                return bad_request(f"{field} must be a hex color like #1a2b3c")
+            try:
+                color = parse_color(getattr(data, field))
+            except ValueError as e:
+                return bad_request(f"{field} {e}")
             if field == "color_primary":
                 game.set_color_primary(color)
             else:

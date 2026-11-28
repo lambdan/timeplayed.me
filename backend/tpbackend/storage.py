@@ -365,6 +365,9 @@ class User(IdMixin, HistoryMixin, SearchMixin):
     display_name = CharField(null=True)
     pc_platform = CharField(default="pc")
     permissions = ArrayField(TextField, default=lambda: list(DEFAULT_PERMISSIONS))  # type: ignore
+    # for the user's tiles, like a game's: background and text, hex without #
+    color_primary = CharField(null=True, default=None)
+    color_secondary = CharField(null=True, default=None)
 
     @classmethod
     def from_discord(cls, discord_id: str | int, name: str) -> tuple["User", bool]:
@@ -481,6 +484,24 @@ class User(IdMixin, HistoryMixin, SearchMixin):
 
     def get_permissions(self) -> list[str]:
         return cast(list[str], self.permissions)
+
+    def get_color_primary(self) -> str | None:
+        return cast(str | None, self.color_primary)
+
+    def set_color_primary(self, color: str | None):
+        old_color = self.get_color_primary()
+        self.color_primary = color
+        if old_color != color:
+            self.add_history(f"Primary color changed from '{old_color}' to '{color}'")
+
+    def get_color_secondary(self) -> str | None:
+        return cast(str | None, self.color_secondary)
+
+    def set_color_secondary(self, color: str | None):
+        old_color = self.get_color_secondary()
+        self.color_secondary = color
+        if old_color != color:
+            self.add_history(f"Secondary color changed from '{old_color}' to '{color}'")
 
     def is_anonymous(self) -> bool:
         """name, avatar and Discord ID hidden on the site, by the user or an admin"""

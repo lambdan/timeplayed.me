@@ -4,6 +4,7 @@ Colors picked from an image, for tiles (like a game's, from its cover)
 
 import colorsys
 import io
+import re
 
 from PIL import Image
 
@@ -72,3 +73,18 @@ def text_color(background: str) -> str:
     if on_white > on_black:
         return "ffffff"
     return "000000"
+
+
+def parse_color(color: str | None) -> str | None:
+    """
+    a color from an admin, as stored: hex without #, lowercase. None for empty.
+    ValueError if it isn't a hex color
+    """
+    if color is None:
+        return None
+    color = color.strip().lstrip("#").lower()
+    if not color:
+        return None
+    if not re.fullmatch("[0-9a-f]{6}", color):
+        raise ValueError("must be a hex color like #1a2b3c")
+    return color

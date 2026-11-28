@@ -8,6 +8,7 @@ from tpbackend.user.models import (
     API_User,
 )
 from tpbackend.api.responses import bad_request, forbidden, not_found
+from tpbackend.files.colors import parse_color
 from tpbackend.api.auth import AuthenticatedUser, OptionalUser
 from tpbackend.permissions import Permission
 from tpbackend.storage import Platform, User, db
@@ -301,12 +302,23 @@ def update_settings(
             new_pc_platform = data.pc_platform
         if new_pc_platform == "pc":
             return bad_request("Pick an operating system to move the activity to")
+    try:
+        color_primary = parse_color(data.color_primary)
+        color_secondary = parse_color(data.color_secondary)
+    except ValueError as e:
+        return bad_request(f"Color {e}")
 
     if data.pc_platform is not None and data.pc_platform != user.get_pc_platform():
         user.set_pc_platform(data.pc_platform)
 
     if data.move_pc_activity:
         move_pc_activity(user)
+
+    # None leaves the color as it is, empty removes it
+    if data.color_primary is not None:
+        user.set_color_primary(color_primary)
+    if data.color_secondary is not None:
+        user.set_color_secondary(color_secondary)
 
     # force_anonymous is up to admins, so it stays when the user turns anonymous off
     for permission, value in [

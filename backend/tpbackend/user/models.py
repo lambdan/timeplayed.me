@@ -21,6 +21,10 @@ class API_User(BaseModel):
         description="Discord username typically, 'User <id>' for anonymous users"
     )
     display_name: str = Field(description="Discord display name")
+    color_primary: str | None = Field(
+        description="Background for the user's tiles, hex without #. Set by the user"
+    )
+    color_secondary: str | None = Field(description="Text on color_primary")
     created: int
     updated: int
 
@@ -38,6 +42,8 @@ class API_User(BaseModel):
             discord_id=discord_id,
             name=name,
             display_name=display_name,
+            color_primary=user.get_color_primary(),
+            color_secondary=user.get_color_secondary(),
             created=dt_to_ts(user.created),  # type: ignore
             updated=dt_to_ts(user.updated),  # type: ignore
         )
@@ -77,6 +83,13 @@ class API_PutSettings(BaseModel):
     private: bool | None = Field(
         default=None,
         description="Only the user sees their page, their activity and stats are left out everywhere else",
+    )
+    color_primary: str | None = Field(
+        default=None,
+        description="Background for the user's tiles, hex (# is optional), empty to remove",
+    )
+    color_secondary: str | None = Field(
+        default=None, description="Text on color_primary, hex, empty to remove"
     )
     move_pc_activity: bool | None = Field(
         default=None,
