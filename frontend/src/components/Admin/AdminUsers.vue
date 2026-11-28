@@ -30,6 +30,16 @@ const error = ref("");
 
 const selected = ref<AdminUserDetails>();
 const permissions = ref<string[]>([]);
+const permissionGroups = computed(() => [
+  {
+    label: "Set by admins",
+    permissions: allPermissions.value.filter((p) => !p.user_setting),
+  },
+  {
+    label: "User settings",
+    permissions: allPermissions.value.filter((p) => p.user_setting),
+  },
+]);
 /** ticked or unticked, but not saved */
 function permissionChanged(name: string) {
   const saved = selected.value?.permissions.includes(name) ?? false;
@@ -401,8 +411,17 @@ onMounted(async () => {
         </template>
 
         <template v-else-if="section === 'permissions'">
-          <div class="mb-2">
-            <div v-for="p in allPermissions" :key="p.name" class="form-check">
+          <div
+            v-for="group in permissionGroups"
+            :key="group.label"
+            class="mb-3"
+          >
+            <h6>{{ group.label }}</h6>
+            <div
+              v-for="p in group.permissions"
+              :key="p.name"
+              class="form-check"
+            >
               <input
                 :id="`perm-${p.name}`"
                 v-model="permissions"

@@ -9,7 +9,12 @@ import type {
 } from "./api.models.ts";
 import { useApiToken } from "./composables/useApiToken.ts";
 
-export type AdminPermission = { name: string; description: string };
+export type AdminPermission = {
+  name: string;
+  description: string;
+  /** set by the user on the settings page, not by admins */
+  user_setting: boolean;
+};
 // current: the token this browser is logged in with
 export type AdminTokenInfo = { id: number; created: number; current: boolean };
 export type AdminUser = AuthenticatedUser & { activity_count: number };
