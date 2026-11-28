@@ -265,7 +265,7 @@ onMounted(async () => {
               </select>
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Primary color</label>
+              <label class="form-label small mb-0">Primary (bg)</label>
               <div class="input-group input-group-sm">
                 <input
                   v-model="form.color_primary"
@@ -282,7 +282,7 @@ onMounted(async () => {
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Secondary color</label>
+              <label class="form-label small mb-0">Secondary (text)</label>
               <div class="input-group input-group-sm">
                 <input
                   v-model="form.color_secondary"

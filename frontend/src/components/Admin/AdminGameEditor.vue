@@ -38,6 +38,8 @@ const form = ref({
   steam_id: "",
   parent_id: null as number | null,
   hidden: false,
+  color_primary: "",
+  color_secondary: "",
 });
 const igdbId = ref("");
 const newAlias = ref("");
@@ -67,6 +69,8 @@ function setGame(g: AdminGameDetails) {
     steam_id: g.steam_id?.toString() ?? "",
     parent_id: g.parent_id ?? null,
     hidden: g.hidden,
+    color_primary: g.own_color_primary ? "#" + g.own_color_primary : "",
+    color_secondary: g.own_color_secondary ? "#" + g.own_color_secondary : "",
   };
   igdbId.value = g.igdb_id?.toString() ?? "";
 }
@@ -111,6 +115,10 @@ const patch = computed(() => {
   if (form.value.parent_id !== g.parent_id)
     changed.parent_id = form.value.parent_id;
   if (form.value.hidden !== g.hidden) changed.hidden = form.value.hidden;
+  const primary = form.value.color_primary.replace("#", "") || null;
+  if (primary !== g.own_color_primary) changed.color_primary = primary;
+  const secondary = form.value.color_secondary.replace("#", "") || null;
+  if (secondary !== g.own_color_secondary) changed.color_secondary = secondary;
   return changed;
 });
 
@@ -122,6 +130,8 @@ const FIELD_LABELS: Record<keyof AdminGamePatch, string> = {
   steam_id: "Steam ID",
   parent_id: "parent",
   hidden: "hidden",
+  color_primary: "primary color",
+  color_secondary: "secondary color",
 };
 
 // set when refreshing from IGDB renames the game, so the old name still matches
@@ -164,6 +174,28 @@ function save() {
     return updated;
   }, "Saved");
 }
+
+/** fills in the colors picked from the cover, saved like the other fields */
+async function colorsFromCover() {
+  const g = game.value;
+  if (!g) return;
+  try {
+    error.value = "";
+    message.value = "";
+    const colors = await AdminAPI.getCoverColors(g.id);
+    form.value.color_primary = "#" + colors.color_primary;
+    form.value.color_secondary = "#" + colors.color_secondary;
+  } catch (e: any) {
+    error.value = e.message;
+  }
+}
+
+// no colors of its own, the parent's are used
+const inheritsColors = computed(() => {
+  const g = game.value;
+  if (!g) return false;
+  return !g.own_color_primary && !g.own_color_secondary && !!g.color_primary;
+});
 
 async function refreshFromIGDB() {
   const g = game.value;
@@ -405,6 +437,53 @@ onMounted(async () => {
                 :class="{ 'border-warning': 'steam_id' in patch }"
                 type="number"
               />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">
+                Primary (bg)
+                <span v-if="inheritsColors" class="text-body-secondary"
+                  >(parent)</span
+                >
+              </label>
+              <div class="input-group input-group-sm">
+                <input
+                  v-model="form.color_primary"
+                  class="form-control form-control-color"
+                  :class="{ 'border-warning': 'color_primary' in patch }"
+                  type="color"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  @click="form.color_primary = ''"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small mb-0">Secondary (text)</label>
+              <div class="input-group input-group-sm">
+                <input
+                  v-model="form.color_secondary"
+                  class="form-control form-control-color"
+                  :class="{ 'border-warning': 'color_secondary' in patch }"
+                  type="color"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  @click="form.color_secondary = ''"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-end">
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                @click="colorsFromCover"
+              >
+                Colors from cover
+              </button>
             </div>
             <div
               class="col-6 col-md-3 d-flex flex-wrap align-items-end column-gap-3 text-nowrap"

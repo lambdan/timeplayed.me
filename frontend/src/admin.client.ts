@@ -50,6 +50,9 @@ export type AdminGame = Game & {
   own_nsfw: boolean;
   // ImageFile id of the uploaded cover
   uploaded_cover: string | null;
+  // set on this game, color_primary/color_secondary can be the parent's
+  own_color_primary: string | null;
+  own_color_secondary: string | null;
   activity_count: number;
   last_activity: number | null;
 };
@@ -62,6 +65,8 @@ export type AdminGamePatch = Partial<{
   parent_id: number | null;
   steam_id: number | null;
   hidden: boolean;
+  color_primary: string | null;
+  color_secondary: string | null;
 }>;
 export type AdminGameMissing =
   "igdb" | "cover" | "release_year" | "activity" | "not_on_igdb"; // igdb id 0
@@ -310,6 +315,14 @@ export class AdminAPI {
 
   static addGame(name: string) {
     return request<AdminGameDetails>("POST", "/game", { body: { name } });
+  }
+
+  /** colors picked from the game's cover, nothing is saved */
+  static getCoverColors(id: number) {
+    return request<{ color_primary: string; color_secondary: string }>(
+      "GET",
+      `/game/${id}/cover/colors`,
+    );
   }
 
   static patchGame(id: number, body: AdminGamePatch) {

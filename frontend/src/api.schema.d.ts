@@ -738,6 +738,16 @@ export interface components {
             children_ids: number[];
             /** Parent Id */
             parent_id: number | null;
+            /**
+             * Color Primary
+             * @description Background for the game's tiles, hex without #. The parent's if the game has none
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Text on color_primary
+             */
+            color_secondary: string | null;
         };
         /**
          * API_GameCover
@@ -795,6 +805,16 @@ export interface components {
             children_ids: number[];
             /** Parent Id */
             parent_id: number | null;
+            /**
+             * Color Primary
+             * @description Background for the game's tiles, hex without #. The parent's if the game has none
+             */
+            color_primary: string | null;
+            /**
+             * Color Secondary
+             * @description Text on color_primary
+             */
+            color_secondary: string | null;
             stats: components["schemas"]["GameStats"];
         };
         /** API_LiveActivity */
