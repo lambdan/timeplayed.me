@@ -1,4 +1,7 @@
+import io
+
 import pytest
+from PIL import Image, ImageDraw
 
 from tpbackend.storage import Game
 
@@ -67,16 +70,30 @@ class TestCoverColors:
         upload_cover(game)  # (200, 50, 50)
         r = admin.get(f"/admin/game/{game.get_id()}/cover/colors")
         assert r.status_code == 200, r.text
-        assert r.json() == {"color_primary": "c83232", "color_secondary": "ffffff"}
+        assert r.json() == [{"color_primary": "c83232", "color_secondary": "ffffff"}]
         # nothing is saved, the admin sets them
         assert Game.get_by_id(game.get_id()).get_color_primary() is None
+
+    def test_several_best_first(self, admin, make_game, upload_cover):
+        game = make_game()
+        # the size colors are picked at, so the colors don't blend when it's resized
+        image = Image.new("RGB", (64, 64), (245, 230, 20))
+        ImageDraw.Draw(image).rectangle([0, 0, 63, 19], (30, 30, 30))
+        out = io.BytesIO()
+        image.save(out, format="PNG")
+        upload_cover(game, out.getvalue())
+        r = admin.get(f"/admin/game/{game.get_id()}/cover/colors")
+        assert r.json() == [
+            {"color_primary": "f5e614", "color_secondary": "000000"},
+            {"color_primary": "1e1e1e", "color_secondary": "ffffff"},
+        ]
 
     def test_parents_cover(self, admin, make_game, upload_cover):
         parent = make_game("Parent")
         child = make_game("Child", parent=parent)
         upload_cover(parent)
         r = admin.get(f"/admin/game/{child.get_id()}/cover/colors")
-        assert r.json()["color_primary"] == "c83232"
+        assert r.json()[0]["color_primary"] == "c83232"
 
     def test_no_cover(self, admin, make_game):
         r = admin.get(f"/admin/game/{make_game().get_id()}/cover/colors")

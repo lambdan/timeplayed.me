@@ -285,7 +285,7 @@ class Admin_PatchGame(BaseModel):
 
 
 class Admin_GameColors(BaseModel):
-    """colors picked from the game's cover, for the admin to set"""
+    """colors picked from the game's cover, for the admin to set. One of several, best first"""
 
     color_primary: str
     color_secondary: str

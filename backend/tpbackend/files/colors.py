@@ -15,6 +15,12 @@ PALETTE_SIZE = 8
 MIN_SHARE = 0.05
 # below this score nothing stands out, then it's the most common color
 MIN_SCORE = 0.02
+# colors closer than this (in RGB) look the same, only the better one is listed
+MIN_DISTANCE = 40
+
+
+def distance(a: tuple[int, ...], b: tuple[int, ...]) -> float:
+    return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
 
 
 def is_near_white(rgb: tuple[int, ...]) -> bool:
@@ -22,11 +28,11 @@ def is_near_white(rgb: tuple[int, ...]) -> bool:
     return v > 0.9 and s < 0.1
 
 
-def pick_color(data: bytes) -> str:
+def pick_colors(data: bytes) -> list[str]:
     """
-    the image's most striking color, as hex without #: common and vivid, not near black.
-    Images without one (like a grey or black cover) get their most common color,
-    not near white so tiles don't disappear on the page
+    the image's colors as hex without #, best first. The best is its most striking color:
+    common and vivid, not near black. Images without one (like a grey or black cover) get
+    their most common colors first, near white last so tiles don't disappear on the page
     """
     with Image.open(io.BytesIO(data)) as image:
         small = image.convert("RGB")
@@ -36,26 +42,31 @@ def pick_color(data: bytes) -> str:
     # (count, palette index), most common first
     counts = sorted(quantized.getcolors() or [], reverse=True)
     total = sum(count for count, _ in counts)
-    colors = [(count / total, tuple(palette[i * 3 : i * 3 + 3])) for count, i in counts]
 
-    best = None
-    best_score = 0.0
-    for share, rgb in colors:
-        if share < MIN_SHARE:
-            continue
+    vivid: list[tuple[float, tuple[int, ...]]] = []
+    others: list[tuple[int, ...]] = []
+    for count, i in counts:
+        share = count / total
+        rgb = tuple(palette[i * 3 : i * 3 + 3])
         _, s, v = colorsys.rgb_to_hsv(*(c / 255 for c in rgb))
         # vivid wins, dark colors count for less
         score = share * s * min(1, v / 0.4)
-        if score > best_score:
-            best, best_score = rgb, score
-
-    if best is None or best_score < MIN_SCORE:
-        not_white = [rgb for _, rgb in colors if not is_near_white(rgb)]
-        if not_white:
-            best = not_white[0]
+        if share >= MIN_SHARE and score >= MIN_SCORE:
+            vivid.append((score, rgb))
         else:
-            best = colors[0][1]
-    return "%02x%02x%02x" % best
+            others.append(rgb)
+
+    vivid.sort(key=lambda scored: scored[0], reverse=True)
+    # others stay most common first, near white ones go last (sort is stable)
+    others.sort(key=is_near_white)
+    ranked = [rgb for _, rgb in vivid] + others
+
+    # reducing colors gives near copies, like two blues for one blue area
+    picked: list[tuple[int, ...]] = []
+    for rgb in ranked:
+        if not any(distance(rgb, other) < MIN_DISTANCE for other in picked):
+            picked.append(rgb)
+    return ["%02x%02x%02x" % rgb for rgb in picked]
 
 
 def text_color(background: str) -> str:
