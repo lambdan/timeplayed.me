@@ -42,12 +42,8 @@ const form = ref({
   color_primary: "",
   color_secondary: "",
 });
-// the color field that clicking the cover sets, the cover is shown while picking
-const pickingColor = ref<"color_primary" | "color_secondary" | null>(null);
-
-function togglePicking(field: "color_primary" | "color_secondary") {
-  pickingColor.value = pickingColor.value === field ? null : field;
-}
+// the color field that clicking the cover sets
+const pickingColor = ref<"color_primary" | "color_secondary">("color_primary");
 
 const igdbId = ref("");
 const newAlias = ref("");
@@ -391,155 +387,168 @@ onMounted(async () => {
           </div>
 
           <h6>Details</h6>
-          <div class="row g-2 mb-2">
-            <div class="col-12 col-md-6">
-              <label class="form-label small mb-0">Name</label>
-              <input
-                v-model="form.name"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'name' in patch }"
-              />
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Release year</label>
-              <input
-                v-model="form.release_year"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'release_year' in patch }"
-                type="number"
-              />
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Parent game</label>
-              <GamePicker
-                v-model="form.parent_id"
-                admin
-                :exclude="[gameId]"
-                size="sm"
-                placeholder="None"
-                :class="{
-                  'border border-warning rounded': 'parent_id' in patch,
-                }"
-              />
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">Steam ID</label>
-              <input
-                v-model="form.steam_id"
-                class="form-control form-control-sm"
-                :class="{ 'border-warning': 'steam_id' in patch }"
-                type="number"
-              />
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0">
-                Primary (bg)
-                <span v-if="inheritsColors" class="text-body-secondary"
-                  >(parent)</span
-                >
-              </label>
-              <div class="input-group input-group-sm">
-                <input
-                  v-model="form.color_primary"
-                  class="form-control form-control-color"
-                  :class="{ 'border-warning': 'color_primary' in patch }"
-                  type="color"
-                />
-                <button
-                  class="btn btn-outline-secondary"
-                  :class="{ active: pickingColor === 'color_primary' }"
-                  title="Pick from the cover"
-                  aria-label="Pick from the cover"
-                  @click="togglePicking('color_primary')"
-                >
-                  <i class="bi bi-eyedropper"></i>
-                </button>
-                <button
-                  class="btn btn-outline-secondary"
-                  @click="form.color_primary = ''"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label small mb-0"> Secondary (text) </label>
-              <div class="input-group input-group-sm">
-                <input
-                  v-model="form.color_secondary"
-                  class="form-control form-control-color"
-                  :class="{ 'border-warning': 'color_secondary' in patch }"
-                  type="color"
-                />
-                <button
-                  class="btn btn-outline-secondary"
-                  :class="{ active: pickingColor === 'color_secondary' }"
-                  title="Pick from the cover"
-                  aria-label="Pick from the cover"
-                  @click="togglePicking('color_secondary')"
-                >
-                  <i class="bi bi-eyedropper"></i>
-                </button>
-                <button
-                  class="btn btn-outline-secondary"
-                  @click="form.color_secondary = ''"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div v-if="pickingColor" class="col-12">
-              <div class="small text-body-secondary">
-                Click the cover to pick the
-                {{ pickingColor === "color_primary" ? "background" : "text" }}
-                color
-              </div>
+          <div class="row g-3 mb-2">
+            <div class="col-12 col-sm-auto">
               <AdminCoverColorPicker
+                :key="game.id"
                 :gameId="game.id"
-                @pick="(color) => (form[pickingColor!] = color)"
+                :target="
+                  pickingColor === 'color_primary' ? 'background' : 'text'
+                "
+                @pick="(color) => (form[pickingColor] = color)"
+                @auto="
+                  (colors) => {
+                    form.color_primary = colors.primary;
+                    form.color_secondary = colors.secondary;
+                  }
+                "
               />
             </div>
-            <div
-              class="col-6 col-md-3 d-flex flex-wrap align-items-end column-gap-3 text-nowrap"
-            >
-              <div class="form-check">
-                <input
-                  id="game-hidden"
-                  v-model="form.hidden"
-                  class="form-check-input"
-                  :class="{ 'border-warning': 'hidden' in patch }"
-                  type="checkbox"
-                />
-                <label class="form-check-label" for="game-hidden">Hidden</label>
-              </div>
-              <div class="form-check">
-                <input
-                  id="game-cover-disabled"
-                  v-model="form.cover_disabled"
-                  class="form-check-input"
-                  :class="{ 'border-warning': 'cover_disabled' in patch }"
-                  type="checkbox"
-                />
-                <label class="form-check-label" for="game-cover-disabled">
-                  Cover disabled
-                </label>
-              </div>
-              <div class="form-check">
-                <input
-                  id="game-nsfw"
-                  v-model="form.nsfw"
-                  class="form-check-input"
-                  :class="{ 'border-warning': 'nsfw' in patch }"
-                  type="checkbox"
-                />
-                <label class="form-check-label" for="game-nsfw">
-                  NSFW
-                  <span
-                    v-if="game.nsfw && !game.own_nsfw"
-                    class="text-body-secondary"
-                    >(parent)</span
-                  >
-                </label>
+            <div class="col">
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label small mb-0">Name</label>
+                  <input
+                    v-model="form.name"
+                    class="form-control form-control-sm"
+                    :class="{ 'border-warning': 'name' in patch }"
+                  />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small mb-0">Release year</label>
+                  <input
+                    v-model="form.release_year"
+                    class="form-control form-control-sm"
+                    :class="{ 'border-warning': 'release_year' in patch }"
+                    type="number"
+                  />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small mb-0">Parent game</label>
+                  <GamePicker
+                    v-model="form.parent_id"
+                    admin
+                    :exclude="[gameId]"
+                    size="sm"
+                    placeholder="None"
+                    :class="{
+                      'border border-warning rounded': 'parent_id' in patch,
+                    }"
+                  />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small mb-0">Steam ID</label>
+                  <input
+                    v-model="form.steam_id"
+                    class="form-control form-control-sm"
+                    :class="{ 'border-warning': 'steam_id' in patch }"
+                    type="number"
+                  />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small mb-0">
+                    Primary (bg)
+                    <span v-if="inheritsColors" class="text-body-secondary"
+                      >(parent)</span
+                    >
+                  </label>
+                  <div class="input-group input-group-sm">
+                    <input
+                      v-model="form.color_primary"
+                      class="form-control form-control-color"
+                      :class="{ 'border-warning': 'color_primary' in patch }"
+                      type="color"
+                    />
+                    <button
+                      class="btn btn-outline-secondary"
+                      :class="{ active: pickingColor === 'color_primary' }"
+                      title="Clicking the cover sets this"
+                      aria-label="Clicking the cover sets this"
+                      @click="pickingColor = 'color_primary'"
+                    >
+                      <i class="bi bi-eyedropper"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      @click="form.color_primary = ''"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small mb-0">
+                    Secondary (text)
+                  </label>
+                  <div class="input-group input-group-sm">
+                    <input
+                      v-model="form.color_secondary"
+                      class="form-control form-control-color"
+                      :class="{ 'border-warning': 'color_secondary' in patch }"
+                      type="color"
+                    />
+                    <button
+                      class="btn btn-outline-secondary"
+                      :class="{ active: pickingColor === 'color_secondary' }"
+                      title="Clicking the cover sets this"
+                      aria-label="Clicking the cover sets this"
+                      @click="pickingColor = 'color_secondary'"
+                    >
+                      <i class="bi bi-eyedropper"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      @click="form.color_secondary = ''"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="col-6 col-md-3 d-flex flex-wrap align-items-end column-gap-3 text-nowrap"
+                >
+                  <div class="form-check">
+                    <input
+                      id="game-hidden"
+                      v-model="form.hidden"
+                      class="form-check-input"
+                      :class="{ 'border-warning': 'hidden' in patch }"
+                      type="checkbox"
+                    />
+                    <label class="form-check-label" for="game-hidden"
+                      >Hidden</label
+                    >
+                  </div>
+                  <div class="form-check">
+                    <input
+                      id="game-cover-disabled"
+                      v-model="form.cover_disabled"
+                      class="form-check-input"
+                      :class="{ 'border-warning': 'cover_disabled' in patch }"
+                      type="checkbox"
+                    />
+                    <label class="form-check-label" for="game-cover-disabled">
+                      Cover disabled
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      id="game-nsfw"
+                      v-model="form.nsfw"
+                      class="form-check-input"
+                      :class="{ 'border-warning': 'nsfw' in patch }"
+                      type="checkbox"
+                    />
+                    <label class="form-check-label" for="game-nsfw">
+                      NSFW
+                      <span
+                        v-if="game.nsfw && !game.own_nsfw"
+                        class="text-body-secondary"
+                        >(parent)</span
+                      >
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
