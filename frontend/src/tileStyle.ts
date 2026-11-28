@@ -1,4 +1,4 @@
-// a game's (its own or its parent's) or user's colors for tiles. undefined for the default tiles
+// a user's colors for tiles. undefined for the default tiles
 
 type Colored = {
   color_primary: string | null;
