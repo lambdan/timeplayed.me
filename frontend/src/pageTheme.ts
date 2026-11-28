@@ -5,10 +5,9 @@ import { computed, ref, watchEffect } from "vue";
 
 type RGB = [number, number, number];
 
-// Bootstrap's dark --bs-body-bg, the page background without a theme
-const DEFAULT_BG: RGB = [0x21, 0x25, 0x29];
-// a light color is mixed into the default background this much, so the page stays dark
-const TINT = 0.2;
+// page colors are darkened to this one's luminance, about a quarter of Bootstrap's
+// dark grey. Much darker pages looked better (GTA VI's, this color, was the first)
+const DARKEST_PAGE: RGB = [0x1a, 0x04, 0x2d];
 // how much lighter than the page Bootstrap's dark theme makes these, kept the same
 const CARD_LIGHTER = 0.04;
 const TERTIARY_LIGHTER = 0.08;
@@ -38,6 +37,11 @@ function mix(a: RGB, b: RGB, amount: number): RGB {
   return a.map((c, i) => c + (b[i] - c) * amount) as RGB;
 }
 
+/** the color at this brightness, 0 (black) to 1 (as it is) */
+function darker(color: RGB, brightness: number): RGB {
+  return color.map((c) => c * brightness) as RGB;
+}
+
 function lighter(color: RGB, amount: number): RGB {
   return mix(color, [255, 255, 255], amount);
 }
@@ -51,12 +55,25 @@ function luminance(rgb: RGB): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** the page background: a color darker than the default is used as it is, a lighter one is a tint */
+/**
+ * the page background: a color that's dark enough is used as it is, a lighter one is
+ * darkened until it's dark enough
+ */
 function pageBackground(color: RGB): RGB {
-  if (luminance(color) > luminance(DEFAULT_BG)) {
-    return mix(DEFAULT_BG, color, TINT);
+  const target = luminance(DARKEST_PAGE);
+  if (luminance(color) <= target) return color;
+  // the brightness that gets there, found by halving the range
+  let low = 0;
+  let high = 1;
+  for (let i = 0; i < 20; i++) {
+    const brightness = (low + high) / 2;
+    if (luminance(darker(color, brightness)) > target) {
+      high = brightness;
+    } else {
+      low = brightness;
+    }
   }
-  return color;
+  return darker(color, low);
 }
 
 /** WCAG contrast ratio, 1 (none) to 21 (black on white) */
